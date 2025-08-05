@@ -49,11 +49,6 @@
 		}
 	})
 
-	// this doesn't work
-	// onDestroy(async() => {
-	// await pg.sql`UPDATE app_state SET channels_display = ${display} WHERE id = 1`
-	// })
-
 	function setDisplay(value = 'grid') {
 		display = value
 		appState.channels_display = display

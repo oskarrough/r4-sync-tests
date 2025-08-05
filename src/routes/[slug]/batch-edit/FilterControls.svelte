@@ -1,16 +1,6 @@
 <script>
-	let {
-		filter,
-		tagFilter,
-		orderBy,
-		orderDirection,
-		showAllTags,
-		visibleTags,
-		onFilterChange,
-		onOrderChange,
-		clearTagFilter,
-		filterByTag
-	} = $props()
+	let {filter, tagFilter, showAllTags, visibleTags, onFilterChange, clearTagFilter, filterByTag} =
+		$props()
 
 	const filterOptions = [
 		{value: 'all', label: 'All tracks'},
@@ -20,12 +10,6 @@
 		{value: 'single-tag', label: 'Single tag'},
 		{value: 'no-meta', label: 'No metadata'},
 		{value: 'has-meta', label: 'Has metadata'}
-	]
-
-	const orderOptions = [
-		{value: 'created_at', label: 'Created'},
-		{value: 'title', label: 'Title'},
-		{value: 'updated_at', label: 'Updated'}
 	]
 </script>
 
@@ -37,23 +21,6 @@
 				{#each filterOptions as option (option.value)}
 					<option value={option.value}>{option.label}</option>
 				{/each}
-			</select>
-		</label>
-
-		<label>
-			Order by:
-			<select bind:value={orderBy} onchange={(e) => onOrderChange(e.target.value, orderDirection)}>
-				{#each orderOptions as option (option.value)}
-					<option value={option.value}>{option.label}</option>
-				{/each}
-			</select>
-		</label>
-
-		<label>
-			Direction:
-			<select bind:value={orderDirection} onchange={(e) => onOrderChange(orderBy, e.target.value)}>
-				<option value="desc">Newest first</option>
-				<option value="asc">Oldest first</option>
 			</select>
 		</label>
 	</div>

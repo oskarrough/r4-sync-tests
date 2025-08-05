@@ -1,167 +1,82 @@
 <script>
-	import {onMount} from 'svelte'
-	import {pg} from '$lib/db'
 	import {stageEdit, commitEdits, discardEdits, getEdits} from '$lib/api'
 	import {pullTracks} from '$lib/sync'
-	import {pullTrackMetaYouTubeFromChannel} from '$lib/sync/youtube'
-	import {pullMusicBrainz} from '$lib/sync/musicbrainz'
-	import {extractYouTubeId} from '$lib/utils'
-	import {SvelteSet, SvelteMap} from 'svelte/reactivity'
-
-	import TrackRow from './TrackRow.svelte'
 	import BulkActions from './BulkActions.svelte'
 	import FilterControls from './FilterControls.svelte'
 	import EditPreview from './EditPreview.svelte'
+	import TrackRow from './TrackRow.svelte'
 
 	let {data} = $props()
 
-	const channel = $derived(data.channel)
-	let tracks = $state([])
-	let selectedTracks = new SvelteSet()
+	let {channel, editCount, edits, tracks} = $derived(data)
+	let selectedTracks = $state([])
 
-	let editCount = $state(0)
-	let edits = $state([])
 	let hasEdits = $derived(editCount > 0)
 
 	let showPreview = $state(false)
 	let updatingMeta = $state(false)
 
-	let editingCell = $state(null) // {trackId, field}
-	let editingValue = $state('')
+	// TODO: Re-implement inline editing - track which cell is being edited and its value
+	// let editingCell = $state(null) // {trackId, field}
+	// let editingValue = $state('')
 
 	let filter = $state('all')
 	let tagFilter = $state('')
-	let orderBy = $state('created_at')
-	let orderDirection = $state('desc')
 	let showAllTags = $state(false)
 
-	let selectedCount = $derived(selectedTracks.size)
+	let selectedCount = $derived(selectedTracks.length)
 	let hasSelection = $derived(selectedCount > 0)
 
-	let filteredTracks = $derived.by(() => {
-		let filtered = tracks.filter((track) => {
-			// Apply primary filter
-			let matches = true
-			switch (filter) {
-				case 'has-t-param':
-					matches = track.url?.includes('&t=') || track.url?.includes('?t=')
-					break
-				case 'missing-description':
-					matches = !track.description
-					break
-				case 'no-tags':
-					matches = !track.tags || track.tags.length === 0
-					break
-				case 'single-tag':
-					matches = track.tags && track.tags.length === 1
-					break
-				case 'no-meta':
-					matches = !track.has_youtube_meta && !track.has_musicbrainz_meta
-					break
-				case 'has-meta':
-					matches = track.has_youtube_meta || track.has_musicbrainz_meta
-					break
-				default:
-					matches = true
-			}
+	// TODO: Re-implement track filtering with simple function call instead of complex derived
+	// Should filter by: has-t-param, missing-description, no-tags, single-tag, no-meta, has-meta
+	// Also apply tag filter if specified
+	let filteredTracks = $derived(tracks)
 
-			// Apply tag filter if specified
-			if (matches && tagFilter) {
-				matches = track.tags && track.tags.includes(tagFilter)
-			}
+	// TODO: Re-implement tag cloud with static computation on mount instead of derived cascade
+	// Should count all tags from tracks, sort by frequency, show top 20 by default
+	let visibleTags = $state([])
 
-			return matches
-		})
-
-		// Apply ordering
-		return filtered.sort((a, b) => {
-			const aVal = a[orderBy] || ''
-			const bVal = b[orderBy] || ''
-			const comparison =
-				orderDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal)
-			return comparison
-		})
-	})
-
-	let allTags = $derived(tracks.flatMap((track) => track.tags || []))
-	let tagCounts = $derived.by(() => {
-		const counts = new SvelteMap()
-		allTags.forEach((tag) => {
-			counts.set(tag, (counts.get(tag) || 0) + 1)
-		})
-		return counts
-	})
-	let tagStats = $derived(
-		Array.from(tagCounts.entries())
-			.map(([tag, count]) => ({tag, count}))
-			.sort((a, b) => b.count - a.count)
-	)
-	let visibleTags = $derived(showAllTags ? tagStats : tagStats.slice(0, 20))
-
-	onMount(async () => {
-		if (!data.channel?.id) return
-		console.log(data)
-
-		try {
-			const tracksResult =
-				await pg.sql`SELECT * from tracks where channel_id = ${data.channel.id} ORDER BY created_at DESC`
-			console.log({tracksResult})
-			tracks = tracksResult.rows
-			console.log({tracks})
-		} catch (error) {
-			console.error('Error fetching tracks:', error)
-		}
-
-		const editCountResult = await pg.sql`SELECT COUNT(*) as count FROM track_edits`
-		editCount = editCountResult.rows[0]?.count || 0
-		console.log({editCount})
-		edits = await getEdits()
-		console.log({edits})
-	})
-
-	// Get current value for a field, considering staged edits
-	const getCurrentValue = $derived.by(() => (trackId, field) => {
-		const edit = edits.find((e) => e.track_id === trackId && e.field === field)
-		if (edit) return edit.new_value
-
+	// TODO: Re-implement getCurrentValue as simple function instead of derived
+	// Should check edits first, fallback to track data
+	function getCurrentValue(trackId, field) {
 		const track = tracks.find((t) => t.id === trackId)
 		return track?.[field] || ''
-	})
+	}
 
 	function selectTrack(trackId, event) {
-		if (event.shiftKey && selectedTracks.size > 0) {
+		if (event.shiftKey && selectedTracks.length > 0) {
 			// Shift+click: select range
 			const trackIndex = filteredTracks.findIndex((t) => t.id === trackId)
-			const lastSelected = Array.from(selectedTracks).pop()
+			const lastSelected = selectedTracks[selectedTracks.length - 1]
 			const lastIndex = filteredTracks.findIndex((t) => t.id === lastSelected)
 
 			const start = Math.min(trackIndex, lastIndex)
 			const end = Math.max(trackIndex, lastIndex)
 
+			const rangeIds = []
 			for (let i = start; i <= end; i++) {
-				selectedTracks.add(filteredTracks[i].id)
+				rangeIds.push(filteredTracks[i].id)
 			}
+			selectedTracks = [...new Set([...selectedTracks, ...rangeIds])]
 		} else if (event.ctrlKey || event.metaKey) {
 			// Ctrl/Cmd+click: toggle selection
-			if (selectedTracks.has(trackId)) {
-				selectedTracks.delete(trackId)
+			if (selectedTracks.includes(trackId)) {
+				selectedTracks = selectedTracks.filter((id) => id !== trackId)
 			} else {
-				selectedTracks.add(trackId)
+				selectedTracks = [...selectedTracks, trackId]
 			}
 		} else {
 			// Regular click: select only this track
-			selectedTracks.clear()
-			selectedTracks.add(trackId)
+			selectedTracks = [trackId]
 		}
 	}
 
 	function selectAll() {
-		selectedTracks = new SvelteSet(filteredTracks.map((t) => t.id))
+		selectedTracks = filteredTracks.map((t) => t.id)
 	}
 
 	function clearSelection() {
-		selectedTracks.clear()
-		selectedTracks = new SvelteSet()
+		selectedTracks = []
 	}
 
 	async function bulkEdit(field, newValue) {
@@ -204,46 +119,19 @@
 		}
 	}
 
-	function startEdit(trackId, field, currentValue, event) {
-		event.stopPropagation()
-		editingCell = {trackId, field}
-		editingValue = currentValue || ''
+	// TODO: Re-implement inline editing functions
+	// startEdit, saveEdit, cancelEdit, handleKeydown, focus
+	function startEdit() {
+		console.log('TODO: inline editing')
 	}
-
-	async function saveEdit() {
-		if (!editingCell) return
-
-		const track = tracks.find((t) => t.id === editingCell.trackId)
-		if (track && editingValue !== track[editingCell.field]) {
-			await stageEdit(
-				editingCell.trackId,
-				editingCell.field,
-				track[editingCell.field] || '',
-				editingValue
-			)
-		}
-
-		editingCell = null
-		editingValue = ''
+	function saveEdit() {
+		console.log('TODO: inline editing')
 	}
-
-	function cancelEdit() {
-		editingCell = null
-		editingValue = ''
+	function handleKeydown() {
+		console.log('TODO: inline editing')
 	}
-
-	function handleKeydown(event) {
-		if (event.key === 'Escape') {
-			cancelEdit()
-		} else if (event.key === 'Enter' && !event.shiftKey) {
-			event.preventDefault()
-			saveEdit()
-		}
-	}
-
-	function focus(element) {
-		element.focus()
-		element.select()
+	function focus() {
+		console.log('TODO: inline editing')
 	}
 
 	async function handlePullTracks() {
@@ -270,44 +158,14 @@
 		tagFilter = newTagFilter
 	}
 
-	function handleOrderChange(newOrderBy, newDirection) {
-		orderBy = newOrderBy
-		orderDirection = newDirection
-	}
-
 	function handleTrackSelect(trackId, event) {
 		selectTrack(trackId, event)
 	}
 
+	// TODO: Re-implement metadata pulling with simpler approach
+	// Should pull YouTube metadata first, then MusicBrainz for tracks that need it
 	async function handlePullMeta() {
-		if (!channel?.id) return
-		updatingMeta = true
-		try {
-			// First pull YouTube metadata for all tracks
-			await pullTrackMetaYouTubeFromChannel(channel.id)
-
-			// Then pull MusicBrainz data for tracks that don't have it yet
-			const tracksNeedingMusicBrainz = tracks.filter((track) => {
-				const ytid = extractYouTubeId(track.url)
-				return ytid && track.title && !track.musicbrainz_data
-			})
-
-			// Pull MusicBrainz data for each track that needs it
-			for (const track of tracksNeedingMusicBrainz) {
-				const ytid = extractYouTubeId(track.url)
-				if (ytid && track.title) {
-					try {
-						await pullMusicBrainz(ytid, track.title)
-					} catch (error) {
-						console.error(`MusicBrainz failed for track ${track.id}:`, error)
-					}
-				}
-			}
-		} catch (error) {
-			console.error('Pull metadata failed:', error)
-		} finally {
-			updatingMeta = false
-		}
+		console.log('TODO: implement metadata pulling')
 	}
 </script>
 
@@ -339,17 +197,6 @@
 			<option value="has-meta">has metadata</option>
 		</select>
 		<output>showing {filteredTracks.length}</output>
-	</fieldset>
-
-	<fieldset>
-		<legend>sort</legend>
-		<select bind:value={orderBy}>
-			<option value="created_at">created</option>
-			<option value="updated_at">updated</option>
-		</select>
-		<button onclick={() => (orderDirection = orderDirection === 'desc' ? 'asc' : 'desc')}>
-			{orderDirection === 'desc' ? '↓' : '↑'}
-		</button>
 	</fieldset>
 </nav>
 
@@ -416,13 +263,10 @@
 <FilterControls
 	{filter}
 	{tagFilter}
-	{orderBy}
-	{orderDirection}
 	{showAllTags}
 	{visibleTags}
 	onFilterChange={handleFilterChange}
 	onTagFilterChange={handleTagFilterChange}
-	onOrderChange={handleOrderChange}
 	{clearTagFilter}
 	{filterByTag}
 />
@@ -458,10 +302,10 @@
 			{#each filteredTracks as track (track.id)}
 				<TrackRow
 					{track}
-					isSelected={selectedTracks.has(track.id)}
+					isSelected={selectedTracks.includes(track.id)}
 					{selectedTracks}
-					{editingCell}
-					{editingValue}
+					editingCell={null}
+					editingValue=""
 					{getCurrentValue}
 					{startEdit}
 					{saveEdit}

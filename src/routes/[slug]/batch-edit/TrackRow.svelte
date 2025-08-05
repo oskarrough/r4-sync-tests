@@ -16,9 +16,9 @@
 
 	function handleCheckboxChange(e) {
 		if (e.target.checked) {
-			selectedTracks.add(track.id)
+			selectedTracks = [...selectedTracks, track.id]
 		} else {
-			selectedTracks.delete(track.id)
+			selectedTracks = selectedTracks.filter((id) => id !== track.id)
 		}
 	}
 </script>
