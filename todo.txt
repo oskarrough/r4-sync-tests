@@ -1,5 +1,6 @@
 IDEAS
 
+- edit track UI (for the ones you own)
 - how to deal with volume on mobile
 - after adding a track the modal form resets, which is fine, but there's no clear ux to indicate that it was saved correctly. One idea is to add the <TrackCard> below. The r4-track-form thing must
 - mass tracks edit batch editor interface → comprehensive design in @batch-editing.md

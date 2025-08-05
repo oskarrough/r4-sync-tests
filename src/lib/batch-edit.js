@@ -1,4 +1,4 @@
-const EDITABLE_FIELDS = ['title', 'tags', 'description']
+const EDITABLE_FIELDS = ['title', 'description', 'url']
 
 export async function stageEdit(pg, trackId, field, oldValue, newValue) {
 	if (!EDITABLE_FIELDS.includes(field)) {
@@ -21,10 +21,10 @@ export async function commitEdits(pg) {
 		for (const edit of edits.rows) {
 			if (edit.field === 'title') {
 				await tx.sql`UPDATE tracks SET title = ${edit.new_value} WHERE id = ${edit.track_id}`
-			} else if (edit.field === 'tags') {
-				await tx.sql`UPDATE tracks SET tags = ${edit.new_value} WHERE id = ${edit.track_id}`
 			} else if (edit.field === 'description') {
 				await tx.sql`UPDATE tracks SET description = ${edit.new_value} WHERE id = ${edit.track_id}`
+			} else if (edit.field === 'url') {
+				await tx.sql`UPDATE tracks SET url = ${edit.new_value} WHERE id = ${edit.track_id}`
 			}
 		}
 		await tx.sql`DELETE FROM track_edits`

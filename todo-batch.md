@@ -65,7 +65,7 @@ build staging system first, optimize never.
 created comprehensive test suite for batch editing api:
 
 - ✓ staging edits correctly
-- ✓ updating existing edits on conflict (upsert behavior)  
+- ✓ updating existing edits on conflict (upsert behavior)
 - ✓ rejecting invalid field names
 - ✓ committing edits atomically with transaction
 - ✓ discarding staged edits

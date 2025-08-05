@@ -1,6 +1,6 @@
 <script>
 	import {liveQuery} from '$lib/live-query'
-	import {stageEdit, commitEdits, discardEdits, getEditCount, getEdits} from '$lib/api'
+	import {stageEdit, commitEdits, discardEdits, getEdits} from '$lib/api'
 	import {SvelteSet} from 'svelte/reactivity'
 
 	let {data} = $props()
@@ -28,20 +28,16 @@
 		)
 	})
 
-	// Monitor edit count
+	// Monitor edit count with live query
 	$effect(() => {
-		const interval = setInterval(async () => {
-			try {
-				editCount = await getEditCount()
-				if (showPreview) {
-					edits = await getEdits()
-				}
-			} catch (error) {
-				console.error('Failed to get edit count:', error)
+		return liveQuery('SELECT COUNT(*) as count FROM track_edits', [], (result) => {
+			editCount = result.rows[0]?.count || 0
+			if (showPreview) {
+				getEdits()
+					.then((result) => (edits = result))
+					.catch(console.error)
 			}
-		}, 500)
-
-		return () => clearInterval(interval)
+		})
 	})
 
 	function selectTrack(trackId, event) {
@@ -143,13 +139,18 @@
 	<div class="bulk-actions">
 		<input
 			type="text"
-			placeholder="add tags (comma separated)"
-			onkeydown={(e) => e.key === 'Enter' && bulkEdit('tags', e.target.value.trim())}
+			placeholder="set title"
+			onkeydown={(e) => e.key === 'Enter' && bulkEdit('title', e.target.value.trim())}
 		/>
 		<input
 			type="text"
-			placeholder="set title prefix"
-			onkeydown={(e) => e.key === 'Enter' && bulkEdit('title', e.target.value.trim())}
+			placeholder="set description"
+			onkeydown={(e) => e.key === 'Enter' && bulkEdit('description', e.target.value.trim())}
+		/>
+		<input
+			type="text"
+			placeholder="set url"
+			onkeydown={(e) => e.key === 'Enter' && bulkEdit('url', e.target.value.trim())}
 		/>
 	</div>
 
@@ -166,62 +167,58 @@
 {#if showPreview && edits.length > 0}
 	<section class="preview">
 		<h3>preview changes</h3>
-		<table>
-			<thead>
-				<tr>
-					<th>track</th>
-					<th>field</th>
-					<th>old → new</th>
-				</tr>
-			</thead>
-			<tbody>
-				{#each edits as edit (edit.track_id + edit.field)}
-					{@const track = tracks.find((t) => t.id === edit.track_id)}
-					<tr>
-						<td>{track?.title || 'unknown'}</td>
-						<td>{edit.field}</td>
-						<td>
-							<span class="old">{edit.old_value || '(empty)'}</span>
-							→
-							<span class="new">{edit.new_value}</span>
-						</td>
-					</tr>
-				{/each}
-			</tbody>
-		</table>
+		<div class="preview-list">
+			<div class="preview-header">
+				<div>track</div>
+				<div>field</div>
+				<div>old → new</div>
+			</div>
+			{#each edits as edit (edit.track_id + edit.field)}
+				{@const track = tracks.find((t) => t.id === edit.track_id)}
+				<div class="preview-row">
+					<div>{track?.title || 'unknown'}</div>
+					<div>{edit.field}</div>
+					<div>
+						<span class="old">{edit.old_value || '(empty)'}</span>
+						→
+						<span class="new">{edit.new_value}</span>
+					</div>
+				</div>
+			{/each}
+		</div>
 	</section>
 {/if}
 
 <section class="tracks">
-	<table>
-		<thead>
-			<tr>
-				<th width="40"></th>
-				<th>title</th>
-				<th>tags</th>
-				<th>description</th>
-				<th>created</th>
-			</tr>
-		</thead>
-		<tbody>
-			{#each tracks as track (track.id)}
-				<tr class:selected={selectedTracks.has(track.id)} onclick={(e) => selectTrack(track.id, e)}>
-					<td>
-						<input
-							type="checkbox"
-							checked={selectedTracks.has(track.id)}
-							onchange={(e) =>
-								e.target.checked ? selectedTracks.add(track.id) : selectedTracks.delete(track.id)}
-						/>
-					</td>
-					<td class="title">{track.title}</td>
-					<td class="tags">{track.tags || ''}</td>
-					<td class="description">{track.description || ''}</td>
-					<td class="date">{new Date(track.created_at).toLocaleDateString()}</td>
-				</tr>
-			{/each}
-		</tbody>
-	</table>
+	<div class="tracks-list">
+		<div class="tracks-header">
+			<div class="col-checkbox"></div>
+			<div class="col-title">title</div>
+			<div class="col-description">description</div>
+			<div class="col-url">url</div>
+			<div class="col-date">created</div>
+		</div>
+		{#each tracks as track (track.id)}
+			<div
+				class="track-row"
+				class:selected={selectedTracks.has(track.id)}
+				onclick={(e) => selectTrack(track.id, e)}
+			>
+				<div class="col-checkbox">
+					<input
+						type="checkbox"
+						checked={selectedTracks.has(track.id)}
+						onchange={(e) =>
+							e.target.checked ? selectedTracks.add(track.id) : selectedTracks.delete(track.id)}
+					/>
+				</div>
+				<div class="col-title">{track.title}</div>
+				<div class="col-description">{track.description || ''}</div>
+				<div class="col-url">{track.url}</div>
+				<div class="col-date">{new Date(track.created_at).toLocaleDateString()}</div>
+			</div>
+		{/each}
+	</div>
 </section>
 
 <style>
@@ -261,16 +258,44 @@
 		border-bottom: 1px solid var(--gray-5);
 	}
 
-	.preview table {
-		width: 100%;
-		border-collapse: collapse;
+	.preview-list {
+		display: flex;
+		flex-direction: column;
 	}
 
-	.preview th,
-	.preview td {
+	.preview-header {
+		display: flex;
+		background: var(--gray-3);
+		font-weight: bold;
+		border-bottom: 1px solid var(--gray-5);
+	}
+
+	.preview-header > div {
 		padding: 0.5rem;
-		border: 1px solid var(--gray-5);
-		text-align: left;
+		flex: 1;
+		border-right: 1px solid var(--gray-5);
+	}
+
+	.preview-header > div:last-child {
+		border-right: none;
+	}
+
+	.preview-row {
+		display: flex;
+		border-bottom: 1px solid var(--gray-5);
+	}
+
+	.preview-row > div {
+		padding: 0.5rem;
+		flex: 1;
+		border-right: 1px solid var(--gray-5);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.preview-row > div:last-child {
+		border-right: none;
 	}
 
 	.old {
@@ -287,64 +312,75 @@
 		overflow-x: auto;
 	}
 
-	table {
-		width: 100%;
-		border-collapse: collapse;
+	.tracks-list {
+		display: flex;
+		flex-direction: column;
 		font-size: 0.9rem;
 	}
 
-	th,
-	td {
-		padding: 0.5rem;
-		border-bottom: 1px solid var(--gray-5);
-		text-align: left;
-		vertical-align: top;
-	}
-
-	th {
+	.tracks-header {
+		display: flex;
 		background: var(--gray-3);
+		font-weight: bold;
+		border-bottom: 1px solid var(--gray-5);
 		position: sticky;
 		top: 0;
 		z-index: 1;
 	}
 
-	tbody tr {
+	.track-row {
+		display: flex;
+		border-bottom: 1px solid var(--gray-5);
 		cursor: pointer;
 	}
 
-	tbody tr:hover {
+	.track-row:hover {
 		background: var(--gray-2);
 	}
 
-	tbody tr.selected {
+	.track-row.selected {
 		background: var(--blue-3);
 	}
 
-	.title {
-		font-weight: bold;
-		max-width: 20rem;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
+	.col-checkbox {
+		flex: 0 0 40px;
+		padding: 0.5rem;
+		text-align: center;
 	}
 
-	.tags {
-		max-width: 15rem;
+	.col-title {
+		flex: 1;
+		padding: 0.5rem;
+		font-weight: bold;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+		min-width: 0;
+	}
+
+	.col-description {
+		flex: 1;
+		padding: 0.5rem;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		min-width: 0;
+	}
+
+	.col-url {
+		flex: 1;
+		padding: 0.5rem;
 		font-family: monospace;
 		font-size: 0.8rem;
-	}
-
-	.description {
-		max-width: 25rem;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+		min-width: 0;
 	}
 
-	.date {
+	.col-date {
+		flex: 0 0 100px;
+		padding: 0.5rem;
 		font-size: 0.8rem;
 		color: var(--gray-11);
 		white-space: nowrap;

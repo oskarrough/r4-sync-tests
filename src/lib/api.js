@@ -5,6 +5,7 @@ import {leaveBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
 import {shuffleArray} from '$lib/utils'
 import {appState} from '$lib/app-state.svelte'
+import * as batchEdit from './batch-edit.js'
 
 const log = logger.ns('api').seal()
 
@@ -209,8 +210,6 @@ export async function queryChannelsWithTrackCounts() {
 	`
 	return rows
 }
-
-import * as batchEdit from './batch-edit.js'
 
 export async function stageEdit(trackId, field, oldValue, newValue) {
 	return batchEdit.stageEdit(pg, trackId, field, oldValue, newValue)
