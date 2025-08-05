@@ -38,7 +38,7 @@
 		"@electric-sql/pglite-repl": "^0.2.25",
 		"@humanspeak/svelte-virtual-list": "^0.2.6",
 		"@radio4000/components": "^0.2.15",
-		"@radio4000/sdk": "^0.4.11",
+		"@radio4000/sdk": "^0.4.12",
 		"@sveltejs/adapter-static": "^3.0.8",
 		"adze": "^2.2.5",
 		"fuzzysort": "^3.1.0",

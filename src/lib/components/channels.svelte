@@ -8,7 +8,7 @@
 	const {slug: initialSlug, display: initialDisplay, longitude, latitude, zoom} = $props()
 
 	/** @type {'list' | 'grid' | 'map'}*/
-	let display = $derived(appState.channels_display || initialDisplay || 'list')
+	let display = $derived(appState.channels_display || initialDisplay || 'grid')
 	let limit = $state(15)
 	let perPage = $state(100)
 	let onlyChannelsWithImages = $state(false)

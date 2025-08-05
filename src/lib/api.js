@@ -1,5 +1,5 @@
 import {pg} from '$lib/db'
-import {needsUpdate, pullTracks} from '$lib/sync'
+import {needsUpdate, pullTracks, pullChannel} from '$lib/sync'
 import {sdk} from '@radio4000/sdk'
 import {leaveBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
@@ -13,6 +13,30 @@ const log = logger.ns('api').seal()
  * @prop {string} id
  * @prop {string} email
  */
+
+/**
+ * Load and sync channel by slug, ensuring tracks are up to date
+ * @param {string} slug
+ * @returns {Promise<import('$lib/types').Channel>}
+ */
+export async function loadChannel(slug) {
+	let channel = (await pg.query('SELECT * FROM channels WHERE slug = $1', [slug])).rows[0]
+
+	if (!channel) {
+		try {
+			await pullChannel(slug)
+			channel = (await pg.query('SELECT * FROM channels WHERE slug = $1', [slug])).rows[0]
+		} catch (err) {
+			console.error('load_channel_error', err)
+		}
+	}
+
+	if (!channel) throw new Error('Channel not found')
+
+	if (await needsUpdate(slug)) pullTracks(slug)
+
+	return channel
+}
 
 export async function checkUser() {
 	try {

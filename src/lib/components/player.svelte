@@ -5,6 +5,7 @@
 	import {appState} from '$lib/app-state.svelte'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import Icon from '$lib/components/icon.svelte'
+	import LinkEntities from '$lib/components/link-entities.svelte'
 
 	import {togglePlay, next, previous, toggleShuffle, play, pause} from '$lib/api/player'
 	import {togglePlayerExpanded} from '$lib/api'
@@ -242,7 +243,9 @@
 				{/if}
 				<a href={`/${channel.slug}/tracks/${track.id}`}>{track.title}</a>
 			</h3>
-			{#if track.description}<p><small>{track.description}</small></p>{/if}
+			{#if track.description}<p>
+					<small><LinkEntities text={track.description} {track} /></small>
+				</p>{/if}
 		</div>
 	{/if}
 {/snippet}
