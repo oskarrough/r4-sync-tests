@@ -375,6 +375,28 @@
 		position: sticky;
 		top: 0;
 		z-index: 1;
+		font-weight: bold;
+		background: var(--gray-1);
+		border-bottom: 1px solid var(--gray-4);
+	}
+
+	.tracks-header > div {
+		padding: 0.5rem;
+		flex: 1;
+		text-align: left;
+	}
+
+	.tracks-header .col-checkbox,
+	.tracks-header .col-link {
+		flex: 0 0 40px;
+	}
+
+	.tracks-header .col-meta {
+		flex: 0 0 60px;
+	}
+
+	.tracks-header .col-date {
+		flex: 0 0 100px;
 	}
 
 	.empty-state {
