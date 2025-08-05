@@ -1,5 +1,6 @@
 <script>
-	import {liveQuery} from '$lib/live-query'
+	import {onMount} from 'svelte'
+	import {pg} from '$lib/db'
 	import {stageEdit, commitEdits, discardEdits, getEdits} from '$lib/api'
 	import {pullTracks} from '$lib/sync'
 	import {pullTrackMetaYouTubeFromChannel} from '$lib/sync/youtube'
@@ -7,13 +8,21 @@
 	import {extractYouTubeId} from '$lib/utils'
 	import {SvelteSet, SvelteMap} from 'svelte/reactivity'
 
+	import TrackRow from './TrackRow.svelte'
+	import BulkActions from './BulkActions.svelte'
+	import FilterControls from './FilterControls.svelte'
+	import EditPreview from './EditPreview.svelte'
+
 	let {data} = $props()
 
-	let channel = $state(data.channel)
+	const channel = $derived(data.channel)
 	let tracks = $state([])
 	let selectedTracks = new SvelteSet()
+
 	let editCount = $state(0)
 	let edits = $state([])
+	let hasEdits = $derived(editCount > 0)
+
 	let showPreview = $state(false)
 	let updatingMeta = $state(false)
 
@@ -28,11 +37,9 @@
 
 	let selectedCount = $derived(selectedTracks.size)
 	let hasSelection = $derived(selectedCount > 0)
-	let hasEdits = $derived(editCount > 0)
-	let hasTracksToClear = $derived(filteredTracks.length > 0)
 
-	let filteredTracks = $derived(
-		tracks.filter((track) => {
+	let filteredTracks = $derived.by(() => {
+		let filtered = tracks.filter((track) => {
 			// Apply primary filter
 			let matches = true
 			switch (filter) {
@@ -65,51 +72,60 @@
 
 			return matches
 		})
-	)
 
-	let tagStats = $derived(() => {
-		const tagCounts = new SvelteMap()
-		tracks.forEach((track) => {
-			if (track.tags && track.tags.length > 0) {
-				track.tags.forEach((tag) => {
-					tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1)
-				})
-			}
+		// Apply ordering
+		return filtered.sort((a, b) => {
+			const aVal = a[orderBy] || ''
+			const bVal = b[orderBy] || ''
+			const comparison =
+				orderDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal)
+			return comparison
 		})
-		return Array.from(tagCounts.entries())
+	})
+
+	let allTags = $derived(tracks.flatMap((track) => track.tags || []))
+	let tagCounts = $derived.by(() => {
+		const counts = new SvelteMap()
+		allTags.forEach((tag) => {
+			counts.set(tag, (counts.get(tag) || 0) + 1)
+		})
+		return counts
+	})
+	let tagStats = $derived(
+		Array.from(tagCounts.entries())
 			.map(([tag, count]) => ({tag, count}))
 			.sort((a, b) => b.count - a.count)
+	)
+	let visibleTags = $derived(showAllTags ? tagStats : tagStats.slice(0, 20))
+
+	onMount(async () => {
+		if (!data.channel?.id) return
+		console.log(data)
+
+		try {
+			const tracksResult =
+				await pg.sql`SELECT * from tracks where channel_id = ${data.channel.id} ORDER BY created_at DESC`
+			console.log({tracksResult})
+			tracks = tracksResult.rows
+			console.log({tracks})
+		} catch (error) {
+			console.error('Error fetching tracks:', error)
+		}
+
+		const editCountResult = await pg.sql`SELECT COUNT(*) as count FROM track_edits`
+		editCount = editCountResult.rows[0]?.count || 0
+		console.log({editCount})
+		edits = await getEdits()
+		console.log({edits})
 	})
 
-	// Load tracks for this channel
-	$effect(() => {
-		if (!channel?.id) return
+	// Get current value for a field, considering staged edits
+	const getCurrentValue = $derived.by(() => (trackId, field) => {
+		const edit = edits.find((e) => e.track_id === trackId && e.field === field)
+		if (edit) return edit.new_value
 
-		return liveQuery(
-			`SELECT t.id, t.title, t.tags, t.mentions, t.description, t.url, t.created_at, t.updated_at,
-			        tm.youtube_data IS NOT NULL as has_youtube_meta,
-			        tm.musicbrainz_data IS NOT NULL as has_musicbrainz_meta
-			 FROM tracks t
-			 LEFT JOIN track_meta tm ON tm.ytid = ytid(t.url)
-			 WHERE t.channel_id = $1 
-			 ORDER BY ${orderBy} ${orderDirection}`,
-			[channel.id],
-			(result) => {
-				tracks = result.rows
-			}
-		)
-	})
-
-	// Monitor edit count with live query
-	$effect(() => {
-		return liveQuery('SELECT COUNT(*) as count FROM track_edits', [], (result) => {
-			editCount = result.rows[0]?.count || 0
-			if (showPreview) {
-				getEdits()
-					.then((result) => (edits = result))
-					.catch(console.error)
-			}
-		})
+		const track = tracks.find((t) => t.id === trackId)
+		return track?.[field] || ''
 	})
 
 	function selectTrack(trackId, event) {
@@ -137,7 +153,6 @@
 			selectedTracks.clear()
 			selectedTracks.add(trackId)
 		}
-		selectedTracks = new SvelteSet(selectedTracks) // trigger reactivity
 	}
 
 	function selectAll() {
@@ -247,6 +262,23 @@
 		tagFilter = ''
 	}
 
+	function handleFilterChange(newFilter) {
+		filter = newFilter
+	}
+
+	function handleTagFilterChange(newTagFilter) {
+		tagFilter = newTagFilter
+	}
+
+	function handleOrderChange(newOrderBy, newDirection) {
+		orderBy = newOrderBy
+		orderDirection = newDirection
+	}
+
+	function handleTrackSelect(trackId, event) {
+		selectTrack(trackId, event)
+	}
+
 	async function handlePullMeta() {
 		if (!channel?.id) return
 		updatingMeta = true
@@ -324,7 +356,7 @@
 <section class="selection-controls">
 	<output>{selectedCount} selected</output>
 	<menu>
-		<button onclick={selectAll} disabled={!hasTracksToClear}>select all</button>
+		<button onclick={selectAll} disabled={filteredTracks.length === 0}>select all</button>
 		<button onclick={clearSelection} disabled={!hasSelection}>clear</button>
 	</menu>
 </section>
@@ -371,59 +403,39 @@
 	</menu>
 </section>
 
-{#if showPreview && edits.length > 0}
-	<section class="preview">
-		<h3>preview changes</h3>
-		<div class="preview-list">
-			<div class="preview-header">
-				<div>track</div>
-				<div>field</div>
-				<div>old → new</div>
-			</div>
-			{#each edits as edit (edit.track_id + edit.field)}
-				{@const track = tracks.find((t) => t.id === edit.track_id)}
-				<div class="preview-row">
-					<div>{track?.title || 'unknown'}</div>
-					<div>{edit.field}</div>
-					<div>
-						<span class="old">{edit.old_value || '(empty)'}</span>
-						→
-						<span class="new">{edit.new_value}</span>
-					</div>
-				</div>
-			{/each}
-		</div>
-	</section>
-{/if}
+<EditPreview
+	{showPreview}
+	{edits}
+	{tracks}
+	{hasEdits}
+	{togglePreview}
+	{handleCommit}
+	{handleDiscard}
+/>
 
-<section class="tag-stats">
-	<div class="tag-stats-header">
-		<h3>tag usage ({tagStats().length} unique tags)</h3>
-		{#if tagFilter}
-			<span class="active-filter">
-				filtering by: <strong>{tagFilter}</strong>
-				<button onclick={clearTagFilter} class="clear-filter">×</button>
-			</span>
-		{/if}
-	</div>
-	<div class="tag-cloud">
-		{#each showAllTags ? tagStats() : tagStats().slice(0, 20) as { tag, count } (tag)}
-			<span
-				class="tag-item"
-				class:active={tagFilter === tag}
-				title="{count} tracks - click to filter"
-				onclick={() => filterByTag(tag)}
-			>
-				{tag} <span class="tag-count">({count})</span>
-			</span>
-		{/each}
-		{#if tagStats().length > 20}
-			<button class="show-more" onclick={() => (showAllTags = !showAllTags)}>
-				{showAllTags ? 'show less' : `show all ${tagStats().length} tags`}
-			</button>
-		{/if}
-	</div>
-</section>
+<FilterControls
+	{filter}
+	{tagFilter}
+	{orderBy}
+	{orderDirection}
+	{showAllTags}
+	{visibleTags}
+	onFilterChange={handleFilterChange}
+	onTagFilterChange={handleTagFilterChange}
+	onOrderChange={handleOrderChange}
+	{clearTagFilter}
+	{filterByTag}
+/>
+
+<BulkActions
+	{selectedTracks}
+	{filteredTracks}
+	{hasSelection}
+	{selectedCount}
+	{bulkEdit}
+	{selectAll}
+	{clearSelection}
+/>
 
 <section class="tracks">
 	{#if filteredTracks.length === 0}
@@ -444,86 +456,20 @@
 				<div class="col-date">created</div>
 			</div>
 			{#each filteredTracks as track (track.id)}
-				<div
-					class="track-row"
-					class:selected={selectedTracks.has(track.id)}
-					onclick={(e) => selectTrack(track.id, e)}
-				>
-					<div class="col-checkbox">
-						<input
-							type="checkbox"
-							checked={selectedTracks.has(track.id)}
-							onchange={(e) => {
-								if (e.target.checked) {
-									selectedTracks.add(track.id)
-								} else {
-									selectedTracks.delete(track.id)
-								}
-								selectedTracks = new SvelteSet(selectedTracks)
-							}}
-						/>
-					</div>
-					<div class="col-link">
-						<a
-							href="/{data.slug}/tracks/{track.id}"
-							target="_blank"
-							rel="noopener noreferrer"
-							title="Open track page">↗</a
-						>
-					</div>
-					<div class="col-title" onclick={(e) => startEdit(track.id, 'title', track.title, e)}>
-						{#if editingCell?.trackId === track.id && editingCell?.field === 'title'}
-							<input
-								type="text"
-								bind:value={editingValue}
-								onblur={saveEdit}
-								onkeydown={handleKeydown}
-								class="inline-edit"
-								use:focus
-							/>
-						{:else}
-							<span class="editable">{track.title}</span>
-						{/if}
-					</div>
-					<div class="col-tags">{track.tags || ''}</div>
-					<div class="col-mentions">{track.mentions || ''}</div>
-					<div
-						class="col-description"
-						onclick={(e) => startEdit(track.id, 'description', track.description, e)}
-					>
-						{#if editingCell?.trackId === track.id && editingCell?.field === 'description'}
-							<input
-								type="text"
-								bind:value={editingValue}
-								onblur={saveEdit}
-								onkeydown={handleKeydown}
-								class="inline-edit"
-								use:focus
-							/>
-						{:else}
-							<span class="editable">{track.description || ''}</span>
-						{/if}
-					</div>
-					<div class="col-url" onclick={(e) => startEdit(track.id, 'url', track.url, e)}>
-						{#if editingCell?.trackId === track.id && editingCell?.field === 'url'}
-							<input
-								type="text"
-								bind:value={editingValue}
-								onblur={saveEdit}
-								onkeydown={handleKeydown}
-								class="inline-edit"
-								use:focus
-							/>
-						{:else}
-							<span class="editable">{track.url}</span>
-						{/if}
-					</div>
-					<div class="col-meta">
-						{#if track.has_youtube_meta}<span class="meta-indicator yt">Y</span>{/if}
-						{#if track.has_musicbrainz_meta}<span class="meta-indicator mb">M</span>{/if}
-					</div>
-					<div class="col-date">{new Date(track.created_at).toLocaleDateString()}</div>
-				</div>
+				<TrackRow
+					{track}
+					isSelected={selectedTracks.has(track.id)}
+					{selectedTracks}
+					{editingCell}
+					{editingValue}
+					{getCurrentValue}
+					{startEdit}
+					{saveEdit}
+					{handleKeydown}
+					{focus}
+					onSelect={(e) => handleTrackSelect(track.id, e)}
+					{data}
+				/>
 			{/each}
 		</div>
 	{/if}
@@ -531,8 +477,6 @@
 
 <style>
 	header {
-		padding: 1rem;
-		border-bottom: 1px solid var(--gray-5);
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
@@ -541,8 +485,6 @@
 	nav.view-controls {
 		display: flex;
 		gap: 2rem;
-		padding: 1rem;
-		border-bottom: 1px solid var(--gray-5);
 		align-items: end;
 	}
 
@@ -550,23 +492,12 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		padding: 0.5rem 1rem;
-		background: var(--gray-1);
-		border-bottom: 1px solid var(--gray-5);
 	}
 
 	.actions {
-		padding: 1rem;
-		border-bottom: 1px solid var(--gray-5);
 		display: flex;
 		gap: 2rem;
 		flex-wrap: wrap;
-	}
-
-	.data-management {
-		padding: 0.5rem 1rem;
-		background: var(--gray-1);
-		border-bottom: 1px solid var(--gray-5);
 	}
 
 	fieldset {
@@ -578,84 +509,12 @@
 		align-items: center;
 	}
 
-	legend {
-		font-size: 0.85rem;
-		color: var(--gray-11);
-		margin-bottom: 0.25rem;
-	}
-
 	menu {
 		display: flex;
 		gap: 0.5rem;
 		margin: 0;
 		padding: 0;
 		list-style: none;
-	}
-
-	output {
-		font-size: 0.9rem;
-		color: var(--gray-11);
-	}
-
-	.edit-count {
-		font-weight: bold;
-		color: var(--orange-11);
-	}
-
-	.preview {
-		padding: 1rem;
-		background: var(--gray-2);
-		border-bottom: 1px solid var(--gray-5);
-	}
-
-	.preview-list {
-		display: flex;
-		flex-direction: column;
-	}
-
-	.preview-header {
-		display: flex;
-		background: var(--gray-3);
-		font-weight: bold;
-		border-bottom: 1px solid var(--gray-5);
-	}
-
-	.preview-header > div {
-		padding: 0.5rem;
-		flex: 1;
-		border-right: 1px solid var(--gray-5);
-	}
-
-	.preview-header > div:last-child {
-		border-right: none;
-	}
-
-	.preview-row {
-		display: flex;
-		border-bottom: 1px solid var(--gray-5);
-	}
-
-	.preview-row > div {
-		padding: 0.5rem;
-		flex: 1;
-		border-right: 1px solid var(--gray-5);
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	.preview-row > div:last-child {
-		border-right: none;
-	}
-
-	.old {
-		color: var(--red-11);
-		text-decoration: line-through;
-	}
-
-	.new {
-		color: var(--green-11);
-		font-weight: bold;
 	}
 
 	.tracks {
@@ -665,288 +524,17 @@
 	.tracks-list {
 		display: flex;
 		flex-direction: column;
-		font-size: 0.9rem;
 	}
 
 	.tracks-header {
 		display: flex;
-		background: var(--gray-3);
-		font-weight: bold;
-		border-bottom: 1px solid var(--gray-5);
 		position: sticky;
 		top: 0;
 		z-index: 1;
 	}
 
-	.track-row {
-		display: flex;
-		border-bottom: 1px solid var(--gray-5);
-		cursor: pointer;
-	}
-
-	.track-row:hover {
-		background: var(--gray-2);
-	}
-
-	.track-row.selected {
-		background: var(--blue-3);
-	}
-
-	.col-checkbox {
-		flex: 0 0 40px;
-		padding: 0.5rem;
-		text-align: center;
-	}
-
-	.col-link {
-		flex: 0 0 30px;
-		padding: 0.5rem;
-		text-align: center;
-	}
-
-	.col-link a {
-		color: var(--gray-11);
-		text-decoration: none;
-		font-size: 0.9rem;
-	}
-
-	.col-link a:hover {
-		color: var(--blue-11);
-	}
-
-	.col-title {
-		flex: 2;
-		padding: 0.5rem;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		min-width: 0;
-	}
-
-	.col-tags {
-		flex: 1;
-		padding: 0.5rem;
-		font-size: 0.8rem;
-		color: var(--gray-11);
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		min-width: 0;
-	}
-
-	.col-mentions {
-		flex: 1;
-		padding: 0.5rem;
-		font-size: 0.8rem;
-		color: var(--gray-11);
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		min-width: 0;
-	}
-
-	.col-description {
-		flex: 2;
-		padding: 0.5rem;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		min-width: 0;
-	}
-
-	.col-url {
-		flex: 1;
-		padding: 0.5rem;
-		font-family: monospace;
-		font-size: 0.8rem;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		min-width: 0;
-	}
-
-	.col-meta {
-		flex: 0 0 60px;
-		padding: 0.5rem;
-		display: flex;
-		gap: 0.25rem;
-		align-items: center;
-	}
-
-	.meta-indicator {
-		display: inline-block;
-		width: 16px;
-		height: 16px;
-		border-radius: 50%;
-		font-size: 0.7rem;
-		font-weight: bold;
-		text-align: center;
-		line-height: 16px;
-		color: white;
-	}
-
-	.meta-indicator.yt {
-		background: var(--red-9);
-	}
-
-	.meta-indicator.mb {
-		background: var(--green-9);
-	}
-
-	.col-date {
-		flex: 0 0 100px;
-		padding: 0.5rem;
-		font-size: 0.8rem;
-		color: var(--gray-11);
-		white-space: nowrap;
-	}
-
-	input[type='text'] {
-		padding: 0.3rem 0.5rem;
-		border: 1px solid var(--gray-6);
-		border-radius: var(--border-radius);
-		min-width: 12rem;
-	}
-
-	button {
-		padding: 0.3rem 0.8rem;
-		border: 1px solid var(--gray-6);
-		border-radius: var(--border-radius);
-		background: var(--gray-1);
-		cursor: pointer;
-	}
-
-	button:hover {
-		background: var(--gray-3);
-	}
-
-	button:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
-	}
-
-	.editable {
-		cursor: pointer;
-		border-radius: 2px;
-		padding: 1px 3px;
-		transition: background-color 0.1s;
-	}
-
-	.editable:hover {
-		background: var(--gray-3);
-	}
-
-	.inline-edit {
-		width: 100%;
-		border: 1px solid var(--blue-7);
-		border-radius: 2px;
-		padding: 2px 4px;
-		font-size: inherit;
-		font-family: inherit;
-		background: white;
-		outline: none;
-	}
-
 	.empty-state {
 		padding: 2rem;
 		text-align: center;
-		color: var(--gray-11);
-	}
-
-	.tag-stats {
-		padding: 1rem;
-		border-bottom: 1px solid var(--gray-5);
-		background: var(--gray-1);
-	}
-
-	.tag-stats-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: 1rem;
-	}
-
-	.tag-stats h3 {
-		margin: 0;
-		font-size: 1rem;
-		color: var(--gray-12);
-	}
-
-	.active-filter {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		font-size: 0.9rem;
-		color: var(--blue-11);
-	}
-
-	.clear-filter {
-		background: var(--red-9);
-		color: white;
-		border: none;
-		border-radius: 50%;
-		width: 20px;
-		height: 20px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 14px;
-		line-height: 1;
-		cursor: pointer;
-		padding: 0;
-	}
-
-	.clear-filter:hover {
-		background: var(--red-10);
-	}
-
-	.tag-cloud {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-		line-height: 1.5;
-	}
-
-	.tag-item {
-		display: inline-block;
-		padding: 0.25rem 0.5rem;
-		background: var(--gray-3);
-		border: 1px solid var(--gray-6);
-		border-radius: var(--border-radius);
-		font-size: 0.85rem;
-		cursor: pointer;
-		transition: background-color 0.1s;
-	}
-
-	.tag-item:hover {
-		background: var(--gray-4);
-	}
-
-	.tag-item.active {
-		background: var(--blue-3);
-		border-color: var(--blue-7);
-		color: var(--blue-11);
-	}
-
-	.tag-count {
-		color: var(--gray-11);
-		font-size: 0.8em;
-	}
-
-	.show-more {
-		background: var(--gray-2);
-		border: 1px dashed var(--gray-6);
-		color: var(--gray-11);
-		font-size: 0.85rem;
-		padding: 0.25rem 0.5rem;
-		border-radius: var(--border-radius);
-		cursor: pointer;
-		transition: all 0.1s;
-	}
-
-	.show-more:hover {
-		background: var(--gray-3);
-		border-color: var(--gray-7);
-		color: var(--gray-12);
 	}
 </style>

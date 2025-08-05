@@ -13,7 +13,7 @@
 	import {appState, initAppState, persistAppState} from '$lib/app-state.svelte'
 	import '@radio4000/components'
 	import {logger} from '$lib/logger'
-	import {onMount} from 'svelte'
+	import {onMount, untrack} from 'svelte'
 	import {checkUser} from '$lib/api'
 
 	const log = logger.ns('layout').seal()
@@ -34,11 +34,14 @@
 		if (skipPersist) return
 		// Take a snapshot to track all property changes
 		$state.snapshot(appState)
-		persistAppState()
-			.then(() => console.log('persisted'))
-			.catch((err) => {
-				console.error('Failed to persist app state from effect:', err)
-			})
+		// Use untrack to prevent the persistence from causing reactivity loops
+		untrack(() => {
+			persistAppState()
+				.then(() => console.log('persisted'))
+				.catch((err) => {
+					console.error('Failed to persist app state from effect:', err)
+				})
+		})
 	})
 
 	// "Close" the database on page unload. I have not noticed any difference, but seems like a good thing to do.
