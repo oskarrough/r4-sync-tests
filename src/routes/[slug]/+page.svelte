@@ -133,6 +133,7 @@
 			<button onclick={updateDurations} disabled={updatingDurations}>
 				{updatingDurations ? '⏳' : '⏱️'} &darr; Pull durations
 			</button>
+			<a href="/{data.slug}/batch-edit">batch edit</a>
 		</menu>
 	</form>
 </header>

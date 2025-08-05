@@ -16,6 +16,7 @@ import migration07sql from '$lib/migrations/07-add_channel-coordinates-url.sql?r
 import migration08sql from '$lib/migrations/08-enable_pg_trgm.sql?raw'
 import migration09sql from '$lib/migrations/09-create_track_meta.sql?raw'
 import migration10sql from '$lib/migrations/10-create_ytid_function_and_view.sql?raw'
+import migration11sql from '$lib/migrations/11-create_track_edits.sql?raw'
 
 // This will limit the amount of channels pulled.
 export const debugLimit = 2000
@@ -30,7 +31,8 @@ const migrations = [
 	{name: '07-add_channel-coordinates-url', sql: migration07sql},
 	{name: '08-enable_pg_trgm', sql: migration08sql},
 	{name: '09-create_track_meta', sql: migration09sql},
-	{name: '10-create_ytid_function_and_view', sql: migration10sql}
+	{name: '10-create_ytid_function_and_view', sql: migration10sql},
+	{name: '11-create_track_edits', sql: migration11sql}
 ]
 
 // Switch between in-memory and OPFS persisted indexeddb for PostgreSQL
@@ -61,12 +63,14 @@ export async function dropDb() {
 	await pg.sql`DELETE FROM app_state;`
 	await pg.sql`DELETE FROM tracks;`
 	await pg.sql`DELETE FROM channels;`
+	await pg.sql`DELETE FROM track_edits;`
 	// Then drop them
 	await pg.sql`drop table if exists app_state CASCADE;`
 	await pg.sql`drop table if exists tracks CASCADE;`
 	await pg.sql`drop table if exists channels CASCADE;`
 	await pg.sql`drop table if exists migrations CASCADE;`
 	await pg.sql`drop table if exists track_meta CASCADE;`
+	await pg.sql`drop table if exists track_edits CASCADE;`
 	log.log('drop_tables')
 }
 

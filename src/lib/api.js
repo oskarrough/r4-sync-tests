@@ -209,3 +209,25 @@ export async function queryChannelsWithTrackCounts() {
 	`
 	return rows
 }
+
+import * as batchEdit from './batch-edit.js'
+
+export async function stageEdit(trackId, field, oldValue, newValue) {
+	return batchEdit.stageEdit(pg, trackId, field, oldValue, newValue)
+}
+
+export async function commitEdits() {
+	return batchEdit.commitEdits(pg)
+}
+
+export async function discardEdits() {
+	return batchEdit.discardEdits(pg)
+}
+
+export async function getEditCount() {
+	return batchEdit.getEditCount(pg)
+}
+
+export async function getEdits() {
+	return batchEdit.getEdits(pg)
+}
