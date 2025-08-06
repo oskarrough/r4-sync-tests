@@ -7,3 +7,12 @@ transaction(callback) - atomic operations
 
 Options: rowMode, parsers, serializers, blob
 Returns: Promise<Results> (query/sql) or Promise<Results[]> (exec)
+
+```js
+pg.query(query, params, callback)
+pg.exec(query, params, callback)
+pg.live.query(query, params, callback)  (prefered for smaller results, narrow rows)
+pg.live.incrementalQuery(query, params, key, callback)  (It materialises the full result set on each update from only the changes emitted by the live.changes API. Good for large result sets and wide rows.)
+pg.live.changes() a lower level API that emits the changes (insert/update/delete) that can then be mapped to mutations in a UI or other datastore.
+```
+

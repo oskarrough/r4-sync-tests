@@ -60,8 +60,8 @@
 		</div>
 		<time>
 			{#if track.channel_slug}<small class="slug">@{track.channel_slug}</small>{/if}
-			<small>{formatDate(new Date(track.created_at))}</small></time
-		>
+			<small>{formatDate(new Date(track.created_at))}</small>
+		</time>
 	</a>
 	{@render children?.({track})}
 </article>

@@ -25,7 +25,7 @@
 	<HeaderSearch />
 	<!-- <a href="/playground/spam-warrior" class="btn">Spam Warrior</a> -->
 
-	<div class="row right">
+	<menu class="row right">
 		{#if !preloading}
 			<LiveBroadcasts />
 			<BroadcastControls />
@@ -45,7 +45,7 @@
 		<a href="/settings" class="btn" class:active={page.route.id === '/settings'}>
 			<Icon icon="settings" size={20} />
 		</a>
-	</div>
+	</menu>
 </header>
 
 <style>

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 It's called claude.md so it picks up automatically without mentioning it, but really it's sound guidance
 for anyone working on this project.
 
-# R5 - Local-First Music Player
+# What is this? R5 - Local-First Music Player
 
 A local-first music player for radio4000.
 
@@ -13,13 +13,14 @@ SvelteKit + Svelte 5 runes, PGlite (client-side postgres), @radio4000/sdk, jsdoc
 ## File Organization
 
 ```
+/docs 				   -- feature design docs
 /src/lib/db.ts         -- local db, schema
 /src/lib/migrations/   -- sql migration files
 /src/lib/api.js        -- reusable data operations
 /src/lib/sync.js       -- local/remote data synchronization
 /src/lib/live-query.js -- local, reactive db queries
 /src/lib/utils.js      -- the odd reusable function
-/docs 				   -- feature design docs
+/src/lib/components    -- where components go
 ```
 
 ## Database and state
@@ -29,10 +30,9 @@ The app works with two databases:
 1. Local PostgreSQL (client-side, PGlite) via `import {pg} from $lib/db` - primary interface, allows reads/writes
 2. Remote PostgreSQL (radio4000/Supabase) via @radio4000/sdk - public reads, authenticated writes, no auto-sync
 
-- Database is state. All application state (UI state, user preferences, everything) lives in the local `app_state` table. No component state, no stores - everything persisted and unified.
-- Avoid component-level state for app data
-- Live queries propagate changes to UI automatically
-- Avoid server-side code, prefer client side for loading data as well
+- Database is state. All application state (UI state, user preferences, everything) lives in the local `app_state` table. Limited component state, avoid stores - everything persisted and unified.
+- The $lib/app-state.svelte automatically is a proxy and automatically persited to pglite
+- No server-side code here, yet, all client side
 
 The local schema can be updated at any time, be generous with migrations:
 
@@ -54,42 +54,15 @@ Use $lib/types.ts to define them and reuse across the codebase.
 - `window.r5.sdk` - radio4000 api client
 - inspect `app_state` table in devtools for current state
 
-You can ask me to run SQL queries on the local db for you with this snippet:
-(await window.r5.pg.sql`select * from tracks limit 2`).rows
+You can't run queries on the local pglite database, because it is in the browser. You can ask me to run SQL queries on the local db for you with this snippet: (await window.r5.pg.sql`select * from tracks limit 2`).rows
 
 ### Using pglite
 
-```js
-pg.query(query, params, callback)
-pg.exec(query, params, callback)
-pg.live.query(query, params, callback)  (prefered for smaller results, narrow rows)
-pg.live.incrementalQuery(query, params, key, callback)  (It materialises the full result set on each update from only the changes emitted by the live.changes API. Good for large result sets and wide rows.)
-pg.live.changes() a lower level API that emits the changes (insert/update/delete) that can then be mapped to mutations in a UI or other datastore.
-```
+See docs/pglite.txt
 
 ## API
 
 In `/src/lib/api.js` you can find reusable functions for data operations.
-
-### Local-First Data Pattern
-
-For user-specific data that works offline and syncs when authenticated:
-
-1. **Auto-loading** - Create functions that check local first, pull remote if empty
-2. **Local operations** - All reads/writes work locally, sync is separate concern
-
-```js
-export async function ensureFollowers(id) {
-	const existing = await queryFollowers(id)
-	if (!existing) {
-		await pullFollowers(id)
-		return await queryFollowers(id)
-	}
-	return existing
-}
-```
-
-This pattern eliminates dual-identity branching logic and makes offline-first features trivial.
 
 ## Svelte 5 syntax
 
@@ -102,9 +75,9 @@ $effect(() => {
 ```
 
 Snippets can be used for reusable "mini" components, when a file is too much https://svelte.dev/docs/svelte/snippet.
+Use $derived liberally. $derived can be mutated!
 Attachments can be used for reusable behaviours/effects on elements https://svelte.dev/docs/svelte/@attach.
 Use `bind:this` to get a reference to the element. You can even export methods on it.
-$derived can be mutated
 
 ## HTML/CSS
 
