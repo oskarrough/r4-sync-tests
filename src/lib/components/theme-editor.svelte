@@ -1,5 +1,6 @@
 <script>
 	import {appState} from '$lib/app-state.svelte'
+	import InputRange from '$lib/components/input-range.svelte'
 
 	const uid = $props.id()
 
@@ -88,14 +89,13 @@
 
 		<div>
 			<label for={`${uid}--scaling`}>scale</label>
-			<input
-				type="range"
-				min="0.9"
-				max="1.1"
-				step="0.05"
-				value={customVariables['--scaling'] || '1'}
-				oninput={(e) => updateVariable('--scaling', e.target.value)}
+			<InputRange
+				value={customVariables['--scaling'] || 1}
+				min={0.9}
+				max={1.1}
+				step={0.05}
 				id={`${uid}--scaling`}
+				oninput={(e) => updateVariable('--scaling', e.target.value)}
 			/>
 			<span>{customVariables['--scaling'] || '1'}</span>
 			<small>scale the interface to your measure</small>

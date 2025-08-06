@@ -10,7 +10,7 @@
 	})
 
 	async function change(event, session) {
-		log.log('change', event, session)
+		log.log('change', event, session?.user?.email)
 		if (event === 'SIGNED_OUT') {
 			appState.channels = []
 		}
