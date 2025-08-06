@@ -87,14 +87,14 @@
 	}
 
 	.artwork {
-		width: 3rem;
-		height: 1.8rem;
+		width: 2rem;
+		height: 2rem;
+		object-fit: cover;
+		object-position: center;
+		align-self: center;
 	}
 
 	.title {
-		font-size: var(--font-5);
-		font-weight: 400;
-
 		.active & {
 			background: var(--color-accent);
 			color: light-dark(var(--gray-1), var(--gray-12));
