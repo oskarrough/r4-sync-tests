@@ -4,7 +4,7 @@ import {syncFollowers, pullFollowers} from '$lib/sync/followers'
 import {r4} from '$lib/r4'
 import {leaveBroadcast} from '$lib/broadcast'
 import {shuffleArray} from '$lib/utils'
-import {appState} from '$lib/app-state.svelte'
+import {appState, defaultAppState} from '$lib/app-state.svelte'
 import {logger} from '$lib/logger'
 
 const log = logger.ns('api').seal()
@@ -115,10 +115,14 @@ export async function toggleQueuePanel() {
 }
 
 export async function resetDatabase() {
-	// clear app state first
+	// Clear appState
 	for (const key in appState) {
 		delete appState[key]
 	}
+	
+	// Set defaults
+	Object.assign(appState, defaultAppState)
+	
 	await dropDb()
 	await migrateDb()
 	// add artificial delay for better ux

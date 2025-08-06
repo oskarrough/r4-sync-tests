@@ -3,7 +3,7 @@ import {logger} from '$lib/logger'
 import type {AppState} from './types'
 const log = logger.ns('app_state').seal()
 
-const defaultAppState = {
+export const defaultAppState = {
 	id: 1,
 	counter: 0,
 
