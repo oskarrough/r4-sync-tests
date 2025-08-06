@@ -21,6 +21,8 @@ SvelteKit + Svelte 5 runes, PGlite (client-side postgres), @radio4000/sdk, jsdoc
 /src/lib/live-query.js -- local, reactive db queries
 /src/lib/utils.js      -- the odd reusable function
 /src/lib/components    -- where components go
+/src/lib/types.ts      -- type definitions for database schemas and app state
+/todo.txt`			   -- current priorities and planned improvements
 ```
 
 ## Database and state

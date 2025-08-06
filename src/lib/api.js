@@ -119,10 +119,10 @@ export async function resetDatabase() {
 	for (const key in appState) {
 		delete appState[key]
 	}
-	
+
 	// Set defaults
 	Object.assign(appState, defaultAppState)
-	
+
 	await dropDb()
 	await migrateDb()
 	// add artificial delay for better ux
