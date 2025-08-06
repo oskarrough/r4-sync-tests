@@ -62,34 +62,39 @@
 	})
 </script>
 
-<AuthListener />
-<KeyboardShortcuts />
+<svelte:boundary>
+	<AuthListener />
+	<KeyboardShortcuts />
 
-<div class={['layout', {asideVisible: appState.queue_panel_visible}]}>
-	<LayoutHeader {preloading} />
+	<div class={['layout', {asideVisible: appState.queue_panel_visible}]}>
+		<LayoutHeader {preloading} />
 
-	<div class="content">
-		<main class="scroll">
-			{#if preloading}
-				<center>
-					<p>Preparing R4&hellip;</p>
-				</center>
-			{:else}
-				{@render children()}
+		<div class="content">
+			<main class="scroll">
+				{#if preloading}
+					<center>
+						<p>Preparing R4&hellip;</p>
+					</center>
+				{:else}
+					{@render children()}
+				{/if}
+			</main>
+
+			<QueuePanel />
+
+			{#if chatPanelVisible}
+				<DraggablePanel title="R4 Chat">
+					<LiveChat />
+				</DraggablePanel>
 			{/if}
-		</main>
+		</div>
 
-		<QueuePanel />
-
-		{#if chatPanelVisible}
-			<DraggablePanel title="R4 Chat">
-				<LiveChat />
-			</DraggablePanel>
-		{/if}
+		<LayoutFooter {preloading} />
 	</div>
-
-	<LayoutFooter {preloading} />
-</div>
+	{#snippet pending()}
+		<p>loading...</p>
+	{/snippet}
+</svelte:boundary>
 
 <style>
 	.layout {

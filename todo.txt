@@ -4,6 +4,7 @@ IDEAS
 - after adding a track the modal form resets, which is fine, but there's no clear ux to indicate that it was saved correctly. One idea is to add the <TrackCard> below. The r4-track-form thing must
 - add app_state.hide_track_artwork setting and respect it in track cards etc. by default we show artwork
 - feature/batch-edit -> https://github.com/radio4000/r4-sync-tests/pull/16 -> mass tracks edit batch editor interface → comprehensive design in @batch-editing.md 
+- analyze https://svelte.dev/docs/svelte/$effect#When-not-to-use-$effect
 
 ARCHITECTURE IMPROVEMENTS
 
