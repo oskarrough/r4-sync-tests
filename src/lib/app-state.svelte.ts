@@ -3,7 +3,7 @@ import {logger} from '$lib/logger'
 import type {AppState} from './types'
 const log = logger.ns('app_state').seal()
 
-export const appState: AppState = $state({
+const defaultAppState = {
 	id: 1,
 	counter: 0,
 
@@ -28,7 +28,9 @@ export const appState: AppState = $state({
 	listening_to_channel_id: undefined,
 
 	theme: 'dark'
-})
+}
+
+export const appState: AppState = $state({...defaultAppState})
 
 let initialized = false
 

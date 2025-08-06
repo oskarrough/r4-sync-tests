@@ -1,6 +1,7 @@
 <script>
-	import {migrateDb, dropDb, exportDb} from '$lib/db'
+	import {exportDb} from '$lib/db'
 	import {sync} from '$lib/sync'
+	import {resetDatabase} from '$lib/api'
 	import {sdk} from '@radio4000/sdk'
 	import PgliteRepl from '$lib/components/pglite-repl.svelte'
 	import KeyboardEditor from '$lib/components/keyboard-editor.svelte'
@@ -21,17 +22,12 @@
 		}
 	}
 
-	async function resetDatabase() {
+	async function handleReset() {
 		resetting = true
 		try {
-			await dropDb()
-			await migrateDb()
-			// Live queries don't recover well from table drops, so reload, and without a timeout it's too fast :/
-			setTimeout(() => {
-				//window.location.reload()
-			}, 100)
+			await resetDatabase()
 		} catch (error) {
-			console.error('dropDb + migrateDb() failed:', error)
+			console.error('resetDatabase() failed:', error)
 		} finally {
 			resetting = false
 		}
@@ -53,7 +49,7 @@
 		</button>
 		<!-- <button disabled>Import local database</button> -->
 		<button onclick={exportDb}>Export local database</button>
-		<button onclick={resetDatabase} data-loading={resetting} disabled={resetting} class="danger">
+		<button onclick={handleReset} data-loading={resetting} disabled={resetting} class="danger">
 			{#if resetting}Resetting...{:else}Reset local database{/if}
 		</button>
 	</menu>

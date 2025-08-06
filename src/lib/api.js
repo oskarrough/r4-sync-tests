@@ -1,4 +1,4 @@
-import {pg} from '$lib/db'
+import {pg, dropDb, migrateDb} from '$lib/db'
 import {needsUpdate, pullTracks} from '$lib/sync'
 import {syncFollowers, pullFollowers} from '$lib/sync/followers'
 import {r4} from '$lib/r4'
@@ -133,6 +133,17 @@ export async function toggleTheme() {
 
 export async function toggleQueuePanel() {
 	appState.queue_panel_visible = !appState.queue_panel_visible
+}
+
+export async function resetDatabase() {
+	// clear app state first
+	for (const key in appState) {
+		delete appState[key]
+	}
+	await dropDb()
+	await migrateDb()
+	// add artificial delay for better ux
+	await new Promise((resolve) => setTimeout(resolve, 500))
 }
 
 export function togglePlayerExpanded() {
