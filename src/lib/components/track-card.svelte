@@ -92,12 +92,12 @@
 	}
 
 	.title {
-		/* font-size: var(--font-4); */
+		font-size: var(--font-5);
 		font-weight: 400;
 
 		.active & {
-			font-weight: 600;
-			color: var(--color-accent);
+			background: var(--color-accent);
+			color: light-dark(var(--gray-1), var(--gray-12));
 		}
 	}
 

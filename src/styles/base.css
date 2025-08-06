@@ -33,13 +33,12 @@ html {
 	color-scheme: light dark;
 	interpolate-size: allow-keywords;
 
-	background: var(--gray-1);
+	background: var(--bg-1);
 	color: var(--gray-12);
 }
 
 html {
-	font-size: calc(16px * var(--scaling));
-	/* font-size: 15px; */
+	font-size: calc(15px * var(--scaling));
 	/* font-size: calc(clamp(1em, 0.5em + 1vw, 2em)); */
 }
 

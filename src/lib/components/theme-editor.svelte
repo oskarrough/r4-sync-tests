@@ -10,12 +10,6 @@
 			description: 'primary accent color for links and highlights',
 			default: '#6d28d9'
 		},
-		{
-			name: '--player-accent',
-			label: 'player accent',
-			description: 'accent color for player controls',
-			default: '#b8e68a'
-		}
 	]
 
 	const customVariables = $derived(appState.custom_css_variables || {})

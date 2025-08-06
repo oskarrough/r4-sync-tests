@@ -175,7 +175,7 @@
 		display: flex;
 		flex-direction: column;
 		height: 100%;
-		background: light-dark(var(--gray-1), var(--gray-2));
+		background: var(--bg-2);
 		border-left: 1px solid var(--gray-5);
 
 		/* perf trick! */
@@ -188,7 +188,7 @@
 		justify-content: space-between;
 		padding: 0.5rem;
 		border-bottom: 1px solid var(--gray-5);
-		background: light-dark(var(--gray-2), var(--gray-3));
+		background: var(--bg-3);
 	}
 
 	p.history {

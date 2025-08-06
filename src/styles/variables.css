@@ -52,8 +52,13 @@
 	/* --color-surface: #ffffffd9; */
 	/* --color-transparent: #0000; */
 
+	--bg-1: var(--gray-1);
+	--bg-2: light-dark(var(--gray-1), var(--gray-2));
+	--bg-3: light-dark(var(--gray-2), var(--gray-3));
+
 	/* accent system */
-	--color-accent: light-dark(var(--color-purple), var(--color-deeppurple));
+	--color-accent: var(--color-purple);
+	/* light-dark(var(--color-purple), var(--color-deeppurple)); */
 	--accent-1: color-mix(in lab, white, var(--color-accent) 95%);
 	--accent-2: color-mix(in lab, white, var(--color-accent) 90%);
 	--accent-3: color-mix(in lab, white, var(--color-accent) 85%);
@@ -66,10 +71,6 @@
 	--accent-10: color-mix(in lab, black, var(--color-accent) 15%);
 	--accent-11: color-mix(in lab, black, var(--color-accent) 30%);
 	--accent-12: color-mix(in lab, black, var(--color-accent) 50%);
-
-	/* context-specific accents */
-	/* --player-accent: light-dark(var(--color-acidgreen), var(--color-deeppurple)); */
-	--button-accent: green;
 
 	/* breakpoints */
 	--breakpoint-xs: 520px;
