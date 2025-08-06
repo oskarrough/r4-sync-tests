@@ -3,9 +3,9 @@
 	import {sync} from '$lib/sync'
 	import {sdk} from '@radio4000/sdk'
 	import PgliteRepl from '$lib/components/pglite-repl.svelte'
-	/*import SyncDebug from '$lib/components/sync-debug.svelte'*/
 	import KeyboardEditor from '$lib/components/keyboard-editor.svelte'
-	import CssVariablesEditor from '$lib/components/css-variables-editor.svelte'
+	import ThemeEditor from '$lib/components/theme-editor.svelte'
+	/*import SyncDebug from '$lib/components/sync-debug.svelte'*/
 
 	let syncing = $state(false)
 	let resetting = $state(false)
@@ -77,7 +77,7 @@
 		<KeyboardEditor />
 	</section>
 	<section>
-		<CssVariablesEditor />
+		<ThemeEditor />
 	</section>
 	<section>
 		<PgliteRepl />
@@ -90,8 +90,8 @@
 	section {
 		margin: 0.5rem;
 	}
-	menu + section {
-		margin-top: 1rem;
+	section {
+		margin-top: 2rem;
 	}
 	p {
 		max-width: 100ch;

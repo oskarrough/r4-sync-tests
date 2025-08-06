@@ -213,10 +213,11 @@
 
 	h1 {
 		padding-top: 1rem;
+		font-size: var(--font-9);
 	}
 
 	h1 + p {
-		/* font-size: var(--font-6); */
+		font-size: var(--font-6);
 		line-height: 1.3;
 		max-width: 60ch;
 	}

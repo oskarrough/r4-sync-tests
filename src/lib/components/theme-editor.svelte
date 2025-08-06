@@ -44,13 +44,25 @@
 				root.style.removeProperty(name)
 			}
 		})
+		// Handle --scaling separately
+		const scalingValue = customVariables['--scaling']
+		if (scalingValue) {
+			root.style.setProperty('--scaling', scalingValue)
+		} else {
+			root.style.removeProperty('--scaling')
+		}
 	}
+
+	// Apply on initial load
+	$effect(() => {
+		applyVariablesToDOM()
+	})
 </script>
 
 <section>
 	<header>
-		<h3>CSS variables</h3>
-		<button onclick={resetToDefaults}>Reset to defaults</button>
+		<h2>Theme editor</h2>
+		<button onclick={resetToDefaults}>Reset theme to defaults</button>
 	</header>
 
 	<form>
@@ -72,6 +84,21 @@
 				<small>{variable.description}</small>
 			</div>
 		{/each}
+
+		<div>
+			<label for={`${uid}--scaling`}>scale</label>
+			<input
+				type="range"
+				min="0.9"
+				max="1.1"
+				step="0.05"
+				value={customVariables['--scaling'] || '1'}
+				oninput={(e) => updateVariable('--scaling', e.target.value)}
+				id={`${uid}--scaling`}
+			/>
+			<span>{customVariables['--scaling'] || '1'}</span>
+			<small>overall interface scaling</small>
+		</div>
 	</form>
 </section>
 
