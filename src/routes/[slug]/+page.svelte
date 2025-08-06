@@ -138,8 +138,8 @@
 			<p>{channel.description}</p>
 			<p>
 				<small>
-					Last updated {relativeDate(latestTrackDate || channel.updated_at)}. Broadcasting since {relativeDateSolar(
-						channel.created_at
+					Broadcasting since {relativeDateSolar(channel.created_at)}. Updated {relativeDate(
+						latestTrackDate || channel.updated_at
 					)}.
 				</small>
 			</p>
@@ -199,7 +199,7 @@
 		margin: 1rem 1rem 0rem 1.5rem;
 		max-width: 60%;
 
-		@media (min-width: 600px) {
+		@media (min-width: 520px) {
 			max-width: calc(100vw - 2rem);
 			float: left;
 			max-width: 13rem;
@@ -213,10 +213,11 @@
 
 	h1 {
 		padding-top: 1rem;
+		font-size: var(--font-9);
 	}
 
 	h1 + p {
-		font-size: var(--font-size-title3);
+		font-size: var(--font-6);
 		line-height: 1.3;
 		max-width: 60ch;
 	}

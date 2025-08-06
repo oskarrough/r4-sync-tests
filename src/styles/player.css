@@ -22,6 +22,10 @@ media-control-bar {
 	--media-loading-indicator-icon-height: 2rem;
 }
 
+media-control-bar {
+	gap: 0.2rem;
+}
+
 media-time-display {
 	user-select: none;
 }
@@ -33,6 +37,15 @@ media-time-display {
 	}
 	p {
 		margin: 0;
+	}
+
+	media-volume-range {
+		display: none;
+	}
+	@media (min-width: 768px) {
+		media-volume-range {
+			display: initial;
+		}
 	}
 }
 
@@ -52,10 +65,6 @@ media-time-display {
 		max-width: none;
 		width: var(--size);
 		height: var(--size);
-	}
-
-	h3 {
-		font-size: inherit;
 	}
 
 	.text {
@@ -100,28 +109,23 @@ media-time-display {
 		width: auto;
 	}
 
-	@media (max-width: 700px) {
-		/* media-time-display, */
-		media-volume-range {
+	@media (max-width: 520px) {
+		.artwork,
+		.prev,
+		media-time-range {
 			display: none;
 		}
+	}
+
+	@media (max-width: 768px) {
 		media-time-range {
 			width: 60px;
 		}
-
 		media-mute-button,
 		button {
 			/* smaller */
 			padding-left: var(--gap);
 			padding-right: var(--gap);
-		}
-	}
-
-	@media (max-width: 500px) {
-		.artwork,
-		.prev,
-		media-time-range {
-			display: none;
 		}
 	}
 }
@@ -167,7 +171,7 @@ media-time-range {
 		/* avoid layout jumps when no track description */
 		/* min-height: 4rem; */
 		h3 + p small {
-			font-size: var(--font-size-regular);
+			/* font-size: var(--font-4); */
 		}
 	}
 
@@ -191,7 +195,7 @@ media-time-range {
 		margin-top: auto;
 		order: 5;
 
-		@media (min-width: 700px) {
+		@media (min-width: 768px) {
 			/* bigger menu */
 			media-mute-button,
 			button {
@@ -201,12 +205,6 @@ media-time-range {
 				width: 2rem;
 				height: 2rem;
 			}
-		}
-	}
-
-	@media (max-width: 700px) {
-		media-volume-range {
-			display: none;
 		}
 	}
 }

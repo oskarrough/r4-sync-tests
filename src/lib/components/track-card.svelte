@@ -67,7 +67,7 @@
 		display: flex;
 		flex-flow: row nowrap;
 		gap: 0 0.5rem;
-		padding: 0.6rem 0.5rem 0.5rem 0.25rem;
+		padding: 0.6rem 0.5rem 0.5rem 0.2rem;
 		line-height: 1.2;
 		text-decoration: none;
 		cursor: default;
@@ -82,22 +82,22 @@
 		width: 2rem;
 		flex-shrink: 0;
 		color: var(--gray-6);
-		font-size: var(--font-size-micro);
+		/* font-size: var(--font-1); */
 		text-indent: 0.2em;
 	}
 
 	.artwork {
-		width: 3rem;
-		height: 1.8rem;
+		width: 2rem;
+		height: 2rem;
+		object-fit: cover;
+		object-position: center;
+		align-self: center;
 	}
 
 	.title {
-		font-size: var(--font-size-regular);
-		font-weight: 400;
-
 		.active & {
-			font-weight: 600;
-			color: var(--color-accent);
+			background: var(--color-accent);
+			color: light-dark(var(--gray-1), var(--gray-12));
 		}
 	}
 

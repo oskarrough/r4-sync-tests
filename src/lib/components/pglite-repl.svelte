@@ -17,12 +17,22 @@
 	}
 </script>
 
+<header>
+	<h2>PGLite repl</h2>
+	{#if !enabled}
+		<button onclick={enable}>Enter REPL</button>
+	{/if}
+</header>
+
 {#if enabled}
 	<p>Try querying channels, tracks or app_state using SQL.</p>
 	<pglite-repl bind:this={el}></pglite-repl>
-{:else}
-	<button onclick={enable}>Enter PGlite REPL</button>
 {/if}
 
 <style>
+	header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
 </style>

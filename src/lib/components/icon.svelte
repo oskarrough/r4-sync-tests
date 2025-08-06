@@ -42,6 +42,7 @@
 	.icon {
 		display: flex;
 		align-items: center;
-		gap: 0.4rem;
+		gap: 0.2rem;
+		font-style: normal;
 	}
 </style>

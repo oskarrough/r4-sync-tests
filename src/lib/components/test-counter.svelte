@@ -19,7 +19,7 @@
 
 <style>
 	button {
-		min-width: 2.5rem;
+		min-width: 2.7rem;
 	}
 
 	:global(a.active) button {

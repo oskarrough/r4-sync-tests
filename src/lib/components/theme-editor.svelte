@@ -9,12 +9,6 @@
 			label: 'accent color',
 			description: 'primary accent color for links and highlights',
 			default: '#6d28d9'
-		},
-		{
-			name: '--player-accent',
-			label: 'player accent',
-			description: 'accent color for player controls',
-			default: '#b8e68a'
 		}
 	]
 
@@ -44,13 +38,25 @@
 				root.style.removeProperty(name)
 			}
 		})
+		// Handle --scaling separately
+		const scalingValue = customVariables['--scaling']
+		if (scalingValue) {
+			root.style.setProperty('--scaling', scalingValue)
+		} else {
+			root.style.removeProperty('--scaling')
+		}
 	}
+
+	// Apply on initial load
+	$effect(() => {
+		applyVariablesToDOM()
+	})
 </script>
 
 <section>
 	<header>
-		<h3>CSS variables</h3>
-		<button onclick={resetToDefaults}>Reset to defaults</button>
+		<h2>Theme editor</h2>
+		<button onclick={resetToDefaults}>Reset theme to defaults</button>
 	</header>
 
 	<form>
@@ -72,6 +78,21 @@
 				<small>{variable.description}</small>
 			</div>
 		{/each}
+
+		<div>
+			<label for={`${uid}--scaling`}>scale</label>
+			<input
+				type="range"
+				min="0.9"
+				max="1.1"
+				step="0.05"
+				value={customVariables['--scaling'] || '1'}
+				oninput={(e) => updateVariable('--scaling', e.target.value)}
+				id={`${uid}--scaling`}
+			/>
+			<span>{customVariables['--scaling'] || '1'}</span>
+			<small>overall interface scaling</small>
+		</div>
 	</form>
 </section>
 
@@ -87,37 +108,6 @@
 		gap: 1rem;
 	}
 
-	dl {
-		margin: 0;
-		display: grid;
-		gap: 0.5rem;
-	}
-
-	dl > div {
-		display: grid;
-		grid-template-columns: auto 1fr;
-		gap: 1rem;
-		align-items: center;
-	}
-
-	dt,
-	dd {
-		margin: 0;
-	}
-
-	dd {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.color-preview {
-		width: 1rem;
-		height: 1rem;
-		border-radius: var(--border-radius);
-		border: 1px solid var(--gray-5);
-	}
-
 	input[type='color'] {
 		width: 3rem;
 		height: 2rem;
@@ -128,14 +118,6 @@
 
 	input[type='text'] {
 		width: 10rem;
-	}
-
-	footer {
-		display: flex;
-		gap: 0.5rem;
-		margin-top: 1rem;
-		padding-top: 1rem;
-		border-top: 1px solid var(--gray-5);
 	}
 
 	form {
@@ -153,8 +135,6 @@
 	}
 
 	small {
-		color: var(--gray-8);
-		font-size: var(--font-size-small);
 		grid-column: 1 / -1;
 	}
 </style>

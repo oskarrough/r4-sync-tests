@@ -162,7 +162,7 @@
 		background: var(--gray-3);
 		border: 1px solid var(--gray-5);
 		border-radius: var(--border-radius);
-		padding: 0.25rem 0.5rem;
+		padding: 0.2rem 0.5rem;
 		font-family: monospace;
 		min-width: 3rem;
 		text-align: center;
@@ -182,10 +182,9 @@
 
 	code {
 		background: var(--gray-3);
-		padding: 0.125rem 0.25rem;
-		border-radius: 3px;
+		padding: 0.125rem 0.2rem;
+		border-radius: var(--border-radius);
 		font-family: monospace;
-		font-size: 0.9em;
 	}
 
 	form {

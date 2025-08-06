@@ -89,14 +89,14 @@
 
 <aside>
 	<header>
-		<div class="view-buttons">
+		<menu>
 			<button onclick={() => (view = 'queue')} class:active={view === 'queue'}
 				>Queue ({queueTracks.length})</button
 			>
 			<button onclick={() => (view = 'history')} class:active={view === 'history'}
 				>History ({playHistory.length})</button
 			>
-		</div>
+		</menu>
 		{#if view === 'queue' && trackIds.length > 0}
 			<button onclick={clearQueue}>Clear</button>
 		{:else if view === 'history' && playHistory.length > 0}
@@ -175,7 +175,7 @@
 		display: flex;
 		flex-direction: column;
 		height: 100%;
-		background: light-dark(var(--gray-1), var(--gray-2));
+		background: var(--bg-2);
 		border-left: 1px solid var(--gray-5);
 
 		/* perf trick! */
@@ -188,21 +188,11 @@
 		justify-content: space-between;
 		padding: 0.5rem;
 		border-bottom: 1px solid var(--gray-5);
-		background: light-dark(var(--gray-2), var(--gray-3));
-		font-size: var(--font-size-regular);
+		background: var(--bg-3);
 	}
 
 	p.history {
 		margin: 0 0 0 0.5rem;
-	}
-
-	.view-buttons {
-		display: flex;
-		gap: 0.25rem;
-	}
-
-	.view-buttons button.active {
-		background: var(--gray-4);
 	}
 
 	main {

@@ -15,15 +15,13 @@ button,
 	position: relative;
 	border-radius: var(--border-radius);
 
-	/* questionable styles */
-	font-size: var(--font-size-small);
+	font-size: var(--font-4);
 	font-weight: 400;
-	/* letter-spacing: 0.03em; */
 	min-width: 1.75rem;
 	min-height: 2rem;
 	padding: 0 0.5rem;
 
-	background: var(--button-accent);
+	background: var(--gray-1);
 	color: var(--gray-12);
 
 	box-shadow:
@@ -73,7 +71,6 @@ button[data-loading='true'] {
 
 /* bit bigger */
 button[type='submit'] {
-	font-size: var(--font-size-regular);
 	padding-left: 1rem;
 	padding-right: 1rem;
 }

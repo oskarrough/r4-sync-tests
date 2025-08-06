@@ -55,9 +55,16 @@
 
 <style>
 	footer {
+		background: var(--bg-3);
 		border: 1px solid var(--gray-7);
 		border-radius: var(--border-radius);
-		background: var(--player-accent);
+
+		/*
+		background: light-dark(var(--accent-7), var(--accent-1));
+		:global(button, .btn) {
+			background: light-dark(var(--accent-6), var(--accent-3));
+			border: 0;
+			}*/
 
 		position: fixed;
 		left: 0.2rem;

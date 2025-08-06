@@ -207,14 +207,6 @@
 		margin-bottom: 2rem;
 	}
 
-	section {
-	}
-
-	h2 {
-		font-size: var(--font-size-large);
-		margin: 0.5rem;
-	}
-
 	.grid :global(article h3 + p) {
 		display: none;
 	}

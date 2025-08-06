@@ -48,7 +48,7 @@
 			display: grid;
 			grid-template-columns: 4rem auto;
 			align-items: center;
-			padding: 0.25rem 0.5rem;
+			padding: 0.2rem 0.5rem;
 		}
 
 		:global(.grid) & {
@@ -89,7 +89,6 @@
 	}
 
 	h3 {
-		font-size: 1rem;
 		font-weight: normal;
 	}
 	h3,
@@ -99,13 +98,10 @@
 	}
 	h3 + p {
 		color: var(--gray-10);
-		font-size: var(--font-size-regular);
-		/* margin-top: 0.25rem; */
 	}
 
 	.live-indicator {
 		color: red;
-		font-size: 0.8rem;
 		font-weight: bold;
 		margin-left: 0.5rem;
 	}
