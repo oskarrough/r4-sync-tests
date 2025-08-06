@@ -68,6 +68,9 @@
 		</p>
 		<p>Pull channels from R4 (including version 1) by <em>syncing</em> above &uarr;</p>
 		<p>Writes are done remotely.</p>
+		<p>
+			Interested? <a href="https://matrix.to/#/#radio4000:matrix.org" rel="noreferrer">Come chat</a>
+		</p>
 	</section>
 	<section>
 		<ThemeEditor />
