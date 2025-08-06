@@ -57,12 +57,12 @@ export async function pullTrackMetaYouTube(ytids) {
 			if (!response.ok) throw new Error(`API error: ${response.status}`)
 			return await response.json()
 		},
-		{size: 1, concurrency: 3}
+		{batchSize: 1, withinBatch: 3}
 	)
 
 	// Flatten batch results
 	const videos = results
-		.filter((result) => result.status === 'fulfilled')
+		.filter((result) => result.ok)
 		.flatMap((result) => result.value)
 		.filter((video) => video?.duration)
 
