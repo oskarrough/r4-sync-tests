@@ -6,7 +6,7 @@ let followChannelCalls = []
 
 const mockSdk = {
 	channels: {
-		readFollowings: (userChannelId) => Promise.resolve({data: [], error: null}),
+		readFollowings: () => Promise.resolve({data: [], error: null}),
 		followChannel: (userChannelId, channelId) => {
 			followChannelCalls.push({userChannelId, channelId})
 			return Promise.resolve({error: null})
@@ -16,12 +16,7 @@ const mockSdk = {
 
 // Test implementation of sync logic
 async function testSyncFollowers(userChannelId) {
-	// 1. Get local favorites before sync
-	const {rows: localFavorites} = await testPg.sql`
-		SELECT channel_id FROM followers WHERE follower_id = 'local-user'
-	`
-
-	// 2. Pull remote followers
+	// 1. Pull remote followers
 	const {data: remoteFollows} = await mockSdk.channels.readFollowings(userChannelId)
 	await testPg.transaction(async (tx) => {
 		for (const followedChannel of remoteFollows || []) {

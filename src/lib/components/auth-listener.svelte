@@ -1,6 +1,5 @@
 <script>
 	import {sdk} from '@radio4000/sdk'
-	import {pg} from '$lib/db'
 	import {logger} from '$lib/logger'
 	import {appState} from '$lib/app-state.svelte'
 	import {syncFollowers} from '$lib/sync/followers'
