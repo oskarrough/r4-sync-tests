@@ -47,12 +47,12 @@
 		{#if ytid && showImage}<img src={imageSrc} alt={track.title} class="artwork" />{/if}
 		<div>
 			<h3 class="title">{track.title}</h3>
-			<div class="description">
+			<p class="description">
 				<small>
 					<LinkEntities {track} text={track.description} />
 				</small>
 				{#if track.duration}<small>{track.duration}s</small>{/if}
-			</div>
+			</p>
 		</div>
 		<time>
 			{#if track.channel_slug}<small class="slug">@{track.channel_slug}</small>{/if}
@@ -67,7 +67,7 @@
 		display: flex;
 		flex-flow: row nowrap;
 		gap: 0 0.5rem;
-		padding: 0.6rem 0.5rem 0.5rem 0.2rem;
+		padding: 0.5rem 0.5rem 0.5rem 0.5rem;
 		line-height: 1.2;
 		text-decoration: none;
 		cursor: default;
@@ -97,8 +97,12 @@
 	.title {
 		.active & {
 			background: var(--color-accent);
-			color: light-dark(var(--gray-1), var(--gray-12));
+			color: var(--gray-1);
 		}
+	}
+
+	p {
+		margin: 0;
 	}
 
 	time {

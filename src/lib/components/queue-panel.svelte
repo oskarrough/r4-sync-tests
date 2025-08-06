@@ -175,8 +175,8 @@
 		display: flex;
 		flex-direction: column;
 		height: 100%;
-		background: var(--bg-2);
-		border-left: 1px solid var(--gray-5);
+		background: var(--aside-bg, var(--bg-2));
+		border-left: 1px solid var(--gray-6);
 
 		/* perf trick! */
 		contain: layout size;
@@ -187,8 +187,8 @@
 		align-items: center;
 		justify-content: space-between;
 		padding: 0.5rem;
-		border-bottom: 1px solid var(--gray-5);
-		background: var(--bg-3);
+		background: var(--aside-bg, var(--bg-3));
+		border-bottom: 1px solid var(--gray-7);
 	}
 
 	p.history {
@@ -219,7 +219,6 @@
 	.search-container {
 		padding: 0.5rem;
 		border-bottom: 1px solid var(--gray-5);
-		background: light-dark(var(--gray-1), var(--gray-2));
 	}
 
 	.search-container :global(input) {

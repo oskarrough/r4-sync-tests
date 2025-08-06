@@ -60,7 +60,11 @@ body {
 	overflow-y: auto;
 	scrollbar-width: thin;
 	scrollbar-gutter: stable;
-	/*scrollbar-color: var(--white) var(--black);*/
+}
+
+* {
+	scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-bg);
+	scrollbar-color: var(--gray-7) var(--gray-1);
 }
 
 @media (prefers-reduced-motion: reduce) {

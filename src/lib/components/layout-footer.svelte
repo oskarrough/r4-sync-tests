@@ -55,7 +55,7 @@
 
 <style>
 	footer {
-		background: var(--bg-3);
+		background: var(--footer-bg, var(--bg-3));
 		border: 1px solid var(--gray-7);
 		border-radius: var(--border-radius);
 

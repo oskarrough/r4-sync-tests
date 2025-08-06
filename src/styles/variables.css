@@ -53,8 +53,12 @@
 	/* --color-transparent: #0000; */
 
 	--bg-1: var(--gray-1);
-	--bg-2: light-dark(var(--gray-1), var(--gray-2));
-	--bg-3: light-dark(var(--gray-2), var(--gray-3));
+	--bg-2: light-dark(var(--gray-2), var(--gray-2));
+	--bg-3: light-dark(var(--gray-3), var(--gray-3));
+
+	--header-bg: var(--bg-2);
+	--aside-bg: var(--bg-2);
+	--footer-bg: light-dark(var(--accent-7), var(--accent-12));
 
 	/* accent system */
 	--color-accent: light-dark(var(--color-purple), var(--color-acidgreen));
@@ -69,9 +73,9 @@
 	--accent-7: color-mix(in lab, white, var(--color-accent) 35%);
 	--accent-8: color-mix(in lab, white, var(--color-accent) 20%);
 	--accent-9: var(--color-accent);
-	--accent-10: color-mix(in lab, black, var(--color-accent) 15%);
-	--accent-11: color-mix(in lab, black, var(--color-accent) 30%);
-	--accent-12: color-mix(in lab, black, var(--color-accent) 50%);
+	--accent-10: color-mix(in lab, black, var(--color-accent) 70%);
+	--accent-11: color-mix(in lab, black, var(--color-accent) 50%);
+	--accent-12: color-mix(in lab, black, var(--color-accent) 20%);
 
 	/* breakpoints */
 	--breakpoint-xs: 520px;
