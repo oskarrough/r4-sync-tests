@@ -42,7 +42,7 @@ export async function initAppState() {
 			Object.assign(appState, result.rows[0])
 		}
 	} catch (err) {
-		console.warn('Failed to load app state from db:', err)
+		log.warn('Failed to load app state from db:', err)
 	}
 	initialized = true
 }
@@ -112,6 +112,6 @@ export async function persistAppState() {
 				custom_css_variables = EXCLUDED.custom_css_variables
 		`)
 	} catch (err) {
-		console.warn('Failed to persist app state:', err)
+		log.warn('Failed to persist app state:', err)
 	}
 }

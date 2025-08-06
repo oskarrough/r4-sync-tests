@@ -186,12 +186,12 @@ export async function needsUpdate(slug) {
 
 /** Pulls all channels into local db (v1+v2) */
 export async function sync() {
-	console.time('sync')
+	log.time('sync')
 	await Promise.all([
-		pullChannels().catch((err) => console.error('sync:pull_channels_error', err)),
-		pullV1Channels().catch((err) => console.error('sync:pull_v1_channels_error', err))
+		pullChannels().catch((err) => log.error('pull_channels_error', err)),
+		pullV1Channels().catch((err) => log.error('pull_v1_channels_error', err))
 	])
-	console.timeEnd('sync')
+	log.timeEnd('sync')
 }
 
 /** Sync if no channels exist locally */
@@ -200,5 +200,5 @@ export async function autoSync() {
 	const channelCount = parseInt(rows[0].count)
 	if (channelCount) return
 	log.log('autosync')
-	await sync().catch((err) => console.error('auto_sync:error', err))
+	await sync().catch((err) => log.error('auto_sync_error', err))
 }
