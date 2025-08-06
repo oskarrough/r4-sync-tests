@@ -1,7 +1,7 @@
-import {pg} from '$lib/db'
+import {pg, dropDb, migrateDb} from '$lib/db'
 import {needsUpdate, pullTracks} from '$lib/sync'
 import {syncFollowers, pullFollowers} from '$lib/sync/followers'
-import {sdk} from '@radio4000/sdk'
+import {r4} from '$lib/r4'
 import {leaveBroadcast} from '$lib/broadcast'
 import {shuffleArray} from '$lib/utils'
 import {appState} from '$lib/app-state.svelte'
@@ -16,27 +16,24 @@ const log = logger.ns('api').seal()
 
 export async function checkUser() {
 	try {
-		const {data: user} = await sdk.users.readUser()
-		// log.log('check_user', user, error)
+		const user = await r4.users.readUser()
 		if (!user) {
 			appState.channels = []
 			appState.broadcasting_channel_id = undefined
-		} else {
-			const {data: channels} = await sdk.channels.readUserChannels()
-			// log.log('check_user', {channels})
-			if (channels) {
-				const wasSignedOut = !appState.channels?.length
-				appState.channels = channels.map((/** @type {any} */ c) => c.id)
-
-				// Sync followers when user signs in (not on every check)
-				if (wasSignedOut && appState.channels.length) {
-					syncFollowers(appState.channels[0]).catch((err) =>
-						log.error('sync_followers_on_signin_error', err)
-					)
-				}
-			}
-			return user
+			return null
 		}
+
+		const channels = await r4.channels.readUserChannels()
+		const wasSignedOut = !appState.channels?.length
+		appState.channels = channels.map((/** @type {any} */ c) => c.id)
+
+		// Sync followers when user signs in (not on every check)
+		if (wasSignedOut && appState.channels.length) {
+			syncFollowers(appState.channels[0]).catch((err) =>
+				log.error('sync_followers_on_signin_error', err)
+			)
+		}
+		return user
 	} catch (err) {
 		log.error('check_user_error', err)
 	}
@@ -71,7 +68,7 @@ export async function playTrack(id, endReason, startReason) {
  */
 export async function playChannel({id, slug}, index = 0) {
 	log.log('play_channel', {id, slug})
-	await leaveBroadcast() // actually only needed if we're listening
+	leaveBroadcast()
 	if (await needsUpdate(slug)) await pullTracks(slug)
 	const tracks = (
 		await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`
@@ -83,31 +80,14 @@ export async function playChannel({id, slug}, index = 0) {
 
 /** @param {string[]} ids */
 export async function setPlaylist(ids) {
-	const isShuffled = appState.shuffle || false
-
 	appState.playlist_tracks = ids
-	if (isShuffled) {
-		appState.playlist_tracks_shuffled = shuffleArray(ids)
-	}
+	appState.playlist_tracks_shuffled = shuffleArray(ids)
 }
 
 /** @returns {Promise<import('$lib/types').BroadcastWithChannel[]>} */
 export async function readBroadcastsWithChannel() {
-	const {data, error} = await sdk.supabase.from('broadcast').select(`
-		channel_id,
-		track_id,
-		track_played_at,
-		channels (
-			id,
-			name,
-			slug,
-			image,
-			description
-		)
-	`)
-	if (error) throw error
 	// @ts-expect-error supabase typing issue with nested relations
-	return data || []
+	return r4.broadcasts.readBroadcastsWithChannel()
 }
 
 /** @param {string[]} trackIds */
@@ -132,6 +112,17 @@ export async function toggleTheme() {
 
 export async function toggleQueuePanel() {
 	appState.queue_panel_visible = !appState.queue_panel_visible
+}
+
+export async function resetDatabase() {
+	// clear app state first
+	for (const key in appState) {
+		delete appState[key]
+	}
+	await dropDb()
+	await migrateDb()
+	// add artificial delay for better ux
+	await new Promise((resolve) => setTimeout(resolve, 500))
 }
 
 export function togglePlayerExpanded() {

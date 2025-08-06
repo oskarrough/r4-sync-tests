@@ -1,4 +1,4 @@
-import {sdk} from '@radio4000/sdk'
+import {r4} from '$lib/r4'
 import {pg} from '$lib/db'
 import {logger} from '$lib/logger'
 const log = logger.ns('sync:followers').seal()
@@ -8,8 +8,7 @@ const log = logger.ns('sync:followers').seal()
  * @param {string} userChannelId - ID of the user's channel
  */
 export async function pullFollowers(userChannelId) {
-	const {data: remoteFollows, error} = await sdk.channels.readFollowings(userChannelId)
-	if (error) throw error
+	const remoteFollows = await r4.channels.readFollowings(userChannelId)
 
 	await pg.transaction(async (tx) => {
 		for (const followedChannel of remoteFollows || []) {
@@ -65,7 +64,7 @@ export async function pushFollowers(userChannelId, channelIds) {
 
 			// Push to remote
 			try {
-				await sdk.channels.followChannel(userChannelId, channelId)
+				await r4.channels.followChannel(userChannelId, channelId)
 				await tx.sql`
 					UPDATE followers 
 					SET synced_at = CURRENT_TIMESTAMP 

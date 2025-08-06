@@ -93,7 +93,7 @@
 
 <style>
 	.layout {
-		--aside-width: 60ch;
+		--aside-width: min(60ch, 100%);
 
 		display: grid;
 		grid-template-rows: auto 1fr auto;

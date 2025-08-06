@@ -1,20 +1,40 @@
 IDEAS
 
-- how to deal with volume on mobile
+- there's an issue with the app state playlist and shuffled playlist. when the playlist is set, we need to make sure the shuffled one is derived from it. else they might up pointing to diff lists
 - after adding a track the modal form resets, which is fine, but there's no clear ux to indicate that it was saved correctly. One idea is to add the <TrackCard> below. The r4-track-form thing must
-- mass tracks edit batch editor interface → comprehensive design in @batch-editing.md
-- themable ui, introduce semantic css variables
-- the <youtube-player> fires volumechange seemingly at will, many times on load, which currently overwrites any appState.volume the user might already have. In other words, your volume preferences is persisted, but also overwritten on load
-- set pwa theme color based on color scheme? https://github.com/w3c/manifest/issues/975 https://github.com/whatwg/html/pull/6569
 - add app_state.hide_track_artwork setting and respect it in track cards etc. by default we show artwork
+- feature/batch-edit -> https://github.com/radio4000/r4-sync-tests/pull/16 -> mass tracks edit batch editor interface → comprehensive design in @batch-editing.md 
+
+ARCHITECTURE IMPROVEMENTS
+
+- implement consistent error handling with ok/err return types for api & sync operations
+- create job queue system for sync operations (sync_queue table with status, attempts, last_error)
+- refactor persistAppState() to use parameterized queries instead of string concatenation
+- add validation layer at sync boundaries (remote->local) using lightweight lib like valibot
+- document live query vs regular query patterns: live for shared state, regular for local view state
+- simplify sync operation complexity - remove v1/v2 channel branching, fix needsUpdate() timestamp logic, add retry mechanism
+- separate api layers - split ui operations (toggleTheme, openSearch, dom manipulation) from data operations in api.js
+- fix transaction boundaries - ensure atomic updates for chunked sync operations, handle partial sync failures properly
+- refactor broadcast architecture - remove module-level state, fix implicit dependencies, add cleanup on failures
+- extract reusable debouncing utility instead of per-component implementation
+- clarify data flow patterns - document and standardize when operations hit local vs remote database
+- implement sync resumption - track sync progress in db, allow continuation of interrupted syncs
+- create standardized loading/error boundaries for async operations in ui
+- consolidate follower sync logic into single flow, remove complex local-user migration
+- extract dom manipulation from data layer (togglePlayPause in api.js)
+- standardize component data fetching patterns - extract search logic from ui concerns
 
 HARD ONES
 
 - find a way to share `track_meta` data between users. push it remote, how? security?
+- the <youtube-player> fires volumechange seemingly at will, many times on load, which currently overwrites any appState.volume the user might already have. In other words, your volume preferences is persisted, but also overwritten on load
 
 DONE
 
+- how to deal with volume on mobile
 - run sync() on first load automatically for better ux
 - redo player by optimize player and header layout for mobile first!!!
 - refactor <Player /> with more sub-components?
 - refactor layout.svelte to more components
+- set pwa theme color based on color scheme? https://github.com/w3c/manifest/issues/975 https://github.com/whatwg/html/pull/6569
+- themable ui, introduce semantic css variables

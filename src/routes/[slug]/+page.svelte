@@ -5,7 +5,6 @@
 	import {pg} from '$lib/db'
 	import {incrementalLiveQuery} from '$lib/live-query'
 	import {setPlaylist, addToPlaylist} from '$lib/api'
-	import {pullTrackMetaYouTubeFromChannel} from '$lib/sync/youtube'
 	import {relativeDate, relativeDateSolar} from '$lib/dates'
 	import Icon from '$lib/components/icon.svelte'
 	import SearchInput from '$lib/components/search-input.svelte'
@@ -22,7 +21,6 @@
 	let trackIds = $state([])
 	let searchQuery = $state(data.search || '')
 	let debounceTimer = $state()
-	let updatingDurations = $state(false)
 
 	function debouncedSearch() {
 		clearTimeout(debounceTimer)
@@ -106,18 +104,6 @@
 		const url = `/${data.slug}${params.toString() ? `?${params}` : ''}`
 		goto(url, {replaceState: true})
 	}
-
-	async function updateDurations() {
-		if (!channel?.id) return
-		updatingDurations = true
-		try {
-			await pullTrackMetaYouTubeFromChannel(channel.id)
-		} catch (error) {
-			console.error('Failed to update durations:', error)
-		} finally {
-			updatingDurations = false
-		}
-	}
 </script>
 
 {#if channel}
@@ -156,9 +142,6 @@
 						<menu>
 							<button onclick={() => setPlaylist(trackIds)}>Play All</button>
 							<button onclick={() => addToPlaylist(trackIds)}>Add to queue</button>
-							<button onclick={updateDurations} disabled={updatingDurations}>
-								{updatingDurations ? '⏳' : '⏱️'} &darr; Pull durations
-							</button>
 						</menu>
 					</form>
 				</header>
@@ -178,15 +161,15 @@
 <style>
 	header:has(form) {
 		position: sticky;
-		top: -0.5rem;
-		margin: 0.5rem;
+		top: -0.8rem;
+		margin: 0.5rem 0.5rem;
 		z-index: 1;
 	}
 
 	form {
 		display: flex;
 		flex-flow: row wrap;
-		gap: 0.2rem 1rem;
+		gap: 0.2rem 0.5rem;
 		margin-bottom: 1rem;
 		align-items: center;
 	}

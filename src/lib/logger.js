@@ -1,12 +1,16 @@
 import adze, {setup, Formatter} from 'adze'
 
+const key = 'r5'
+
 class R5Formatter extends Formatter {
 	formatBrowser(data, timestamp, args) {
-		return [`r5.${data.namespace[0]}`, ...args]
+		if (!data.namespace) return [key, ...args]
+		return [`${key}.${data.namespace?.[0]}`, ...args]
 	}
 
 	formatServer(data, timestamp, args) {
-		return [`r5.${data.namespace[0]}`, ...args]
+		if (!data.namespace) return [key, ...args]
+		return [`${key}.${data.namespace?.[0]}`, ...args]
 	}
 }
 
