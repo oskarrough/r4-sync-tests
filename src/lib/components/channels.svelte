@@ -8,11 +8,13 @@
 
 	const {slug: initialSlug, display: initialDisplay, longitude, latitude, zoom} = $props()
 
+	const center = $derived(longitude && latitude ? {longitude, latitude} : null)
+
 	/** @type {'list' | 'grid' | 'map'}*/
 	let display = $derived(appState.channels_display || initialDisplay || 'list')
 	let limit = $state(15)
 	let perPage = $state(100)
-	let filter = $state('10+')
+	let filter = $state('all')
 	let shuffled = $state(true)
 
 	const channelsPromise = $derived.by(

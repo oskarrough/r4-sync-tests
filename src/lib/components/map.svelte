@@ -79,8 +79,8 @@
 			})
 		}
 
-		if (center) {
-			map.setView(center, zoom)
+		if (center && center.longitude && center.latitude) {
+			map.setView([center.latitude, center.longitude], zoom)
 		}
 
 		return {
