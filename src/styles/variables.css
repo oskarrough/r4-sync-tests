@@ -14,15 +14,23 @@
 	--color-acidgreen: #b8e68a;
 	--color-deeppurple: hsl(295, 22%, 12%);
 
+	--scaling: 1;
+
+	--space-1: calc(0.2rem * var(--scaling));
+	--space-2: calc(0.5rem * var(--scaling));
+	--space-3: calc(1rem * var(--scaling));
+
+	--font-1: 0.6875rem;
+	--font-2: 0.75rem;
+	--font-3: 0.8125rem;
+	--font-4: 0.9375rem;
+	--font-5: 1rem;
+	--font-6: 1.125rem;
+	--font-7: 1.25rem;
+	--font-8: 1.5rem;
+	--font-9: 2.25rem;
+
 	--border-radius: 0.4rem;
-	--font-size-micro: 0.6875rem;
-	--font-size-mini: 0.75rem;
-	--font-size-small: 0.8125rem;
-	--font-size-regular: 0.9375rem;
-	--font-size-large: 1.125rem;
-	--font-size-title1: 2.25rem;
-	--font-size-title2: 1.5rem;
-	--font-size-title3: 1.25rem;
 
 	--gray-1: light-dark(lch(97.5% 0 282), lch(7% 1.867 272));
 	--gray-2: light-dark(lch(94% 2 282), lch(10% 3.033 272));
@@ -37,6 +45,13 @@
 	--gray-11: light-dark(lch(20% 1 282), lch(90% 1.35 272));
 	--gray-12: light-dark(lch(10% 0 282), lch(95% 0 272));
 
+	/* --color-background: #fff; */
+	/* --color-overlay: var(--black-a6); */
+	/* --color-panel-solid: #fff; */
+	/* --color-panel-translucent: #ffffffb3; */
+	/* --color-surface: #ffffffd9; */
+	/* --color-transparent: #0000; */
+
 	--color-accent: light-dark(var(--color-purple), var(--color-red));
 	--color-accent-light1: color-mix(in lab, white, var(--color-accent) 20%);
 	--color-accent-light2: color-mix(in lab, white, var(--color-accent) 10%);
@@ -46,6 +61,15 @@
 	--color-accent-dark3: color-mix(in lab, black, var(--color-accent) 5%);
 	--player-accent: light-dark(var(--color-acidgreen), var(--color-deeppurple));
 	--button-accent: light-dark(var(--gray-1), color-mix(in lab, black, var(--color-deeppurple) 30%));
+
+	/* breakpoints */
+	--breakpoint-xs: 520px;
+	--breakpoint-sm: 768px;
+	--breakpoint-md: 1024px;
+	--breakpoint-lg: 1280px;
+	--breakpoint-xl: 1640px;
+
+	/* Forlayout think in boxes, flex (rows), grid, section (vertical spacing) and containers (max width) */
 }
 
 :root.light {

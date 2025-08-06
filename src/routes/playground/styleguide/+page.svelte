@@ -26,14 +26,14 @@
 	]
 
 	const fontSizes = [
-		'--font-size-micro',
-		'--font-size-mini',
-		'--font-size-small',
-		'--font-size-regular',
-		'--font-size-large',
-		'--font-size-title3',
-		'--font-size-title2',
-		'--font-size-title1'
+		'--font-1',
+		'--font-2',
+		'--font-3',
+		'--font-4',
+		'--font-5',
+		'--font-6',
+		'--font-7',
+		'--font-8'
 	]
 </script>
 
@@ -140,17 +140,12 @@
 		padding: 0.5rem;
 	}
 
-	.color-info code {
-		font-size: 12px;
-	}
-
 	.variable-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(60ch, 1fr));
 		gap: 1rem;
 
 		h3 {
-			font-size: var(--font-size-regular);
 			border-left: var(--size) solid;
 			padding-left: 0.5rem;
 			margin: 0;
@@ -160,7 +155,6 @@
 			margin: 0;
 			padding: 0.5rem;
 			border-left: 1px solid;
-			font-size: var(--size);
 		}
 	}
 </style>

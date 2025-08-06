@@ -126,7 +126,7 @@
 		align-items: center;
 		justify-content: flex-end;
 		margin: 0.5rem;
-		gap: 0.25rem;
+		gap: 0.2rem;
 		z-index: 1;
 
 		label {
@@ -135,7 +135,7 @@
 	}
 
 	menu :global(svg) {
-		width: var(--font-size-large);
+		width: var(--font-5);
 		margin-right: 0.2em;
 	}
 

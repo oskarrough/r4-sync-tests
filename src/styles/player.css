@@ -54,10 +54,6 @@ media-time-display {
 		height: var(--size);
 	}
 
-	h3 {
-		font-size: inherit;
-	}
-
 	.text {
 		/* this allows the flex child to shrink. default is "auto" */
 		min-width: 0;
@@ -167,7 +163,7 @@ media-time-range {
 		/* avoid layout jumps when no track description */
 		/* min-height: 4rem; */
 		h3 + p small {
-			font-size: var(--font-size-regular);
+			/* font-size: var(--font-4); */
 		}
 	}
 

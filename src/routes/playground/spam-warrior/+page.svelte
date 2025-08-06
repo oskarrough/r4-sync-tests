@@ -347,7 +347,6 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 		width: 100%;
 		height: 8rem;
 		font-family: monospace;
-		font-size: var(--font-size-mini);
 		padding: 0.5rem;
 	}
 
@@ -378,8 +377,7 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 	}
 
 	.description {
-		color: #666;
-		margin-top: 0.25rem;
+		margin-top: 0.2rem;
 		font-style: italic;
 	}
 
@@ -387,7 +385,7 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		padding: 0.25rem;
+		padding: 0.2rem;
 	}
 
 	.controls {

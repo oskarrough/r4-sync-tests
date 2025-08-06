@@ -141,7 +141,7 @@
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
-		font-size: var(--font-size-small);
+		/* font-size: var(--font-3); */
 		line-height: 1;
 	}
 
@@ -172,8 +172,8 @@
 		position: absolute;
 		top: -3px;
 		left: -5px;
-		width: var(--font-size-small);
-		height: var(--font-size-small);
+		width: var(--font-3);
+		height: var(--font-3);
 		background-color: #00ff00;
 		border: 2px solid white;
 		border-radius: 50%;

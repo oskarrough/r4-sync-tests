@@ -216,7 +216,7 @@
 	}
 
 	h1 + p {
-		font-size: var(--font-size-title3);
+		/* font-size: var(--font-6); */
 		line-height: 1.3;
 		max-width: 60ch;
 	}

@@ -60,8 +60,6 @@
 		}
 
 		a {
-			font-size: var(--font-size-small);
-			line-height: 2rem;
 			text-decoration: none;
 		}
 

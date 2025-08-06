@@ -67,7 +67,7 @@
 		display: flex;
 		flex-flow: row nowrap;
 		gap: 0 0.5rem;
-		padding: 0.6rem 0.5rem 0.5rem 0.25rem;
+		padding: 0.6rem 0.5rem 0.5rem 0.2rem;
 		line-height: 1.2;
 		text-decoration: none;
 		cursor: default;
@@ -82,7 +82,7 @@
 		width: 2rem;
 		flex-shrink: 0;
 		color: var(--gray-6);
-		font-size: var(--font-size-micro);
+		/* font-size: var(--font-1); */
 		text-indent: 0.2em;
 	}
 
@@ -92,7 +92,7 @@
 	}
 
 	.title {
-		font-size: var(--font-size-regular);
+		/* font-size: var(--font-4); */
 		font-weight: 400;
 
 		.active & {

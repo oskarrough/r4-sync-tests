@@ -87,37 +87,6 @@
 		gap: 1rem;
 	}
 
-	dl {
-		margin: 0;
-		display: grid;
-		gap: 0.5rem;
-	}
-
-	dl > div {
-		display: grid;
-		grid-template-columns: auto 1fr;
-		gap: 1rem;
-		align-items: center;
-	}
-
-	dt,
-	dd {
-		margin: 0;
-	}
-
-	dd {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.color-preview {
-		width: 1rem;
-		height: 1rem;
-		border-radius: var(--border-radius);
-		border: 1px solid var(--gray-5);
-	}
-
 	input[type='color'] {
 		width: 3rem;
 		height: 2rem;
@@ -128,14 +97,6 @@
 
 	input[type='text'] {
 		width: 10rem;
-	}
-
-	footer {
-		display: flex;
-		gap: 0.5rem;
-		margin-top: 1rem;
-		padding-top: 1rem;
-		border-top: 1px solid var(--gray-5);
 	}
 
 	form {
@@ -153,8 +114,6 @@
 	}
 
 	small {
-		color: var(--gray-8);
-		font-size: var(--font-size-small);
 		grid-column: 1 / -1;
 	}
 </style>
