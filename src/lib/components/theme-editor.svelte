@@ -7,7 +7,7 @@
 		{
 			name: '--color-accent',
 			label: 'accent color',
-			description: 'primary accent color for links and highlights',
+			description: 'color for links, highlights et cetera',
 			default: '#6d28d9'
 		}
 	]
@@ -44,6 +44,13 @@
 			root.style.setProperty('--scaling', scalingValue)
 		} else {
 			root.style.removeProperty('--scaling')
+		}
+		// Handle --border-radius separately
+		const borderRadiusValue = customVariables['--border-radius']
+		if (borderRadiusValue !== undefined) {
+			root.style.setProperty('--border-radius', borderRadiusValue)
+		} else {
+			root.style.removeProperty('--border-radius')
 		}
 	}
 
@@ -91,7 +98,19 @@
 				id={`${uid}--scaling`}
 			/>
 			<span>{customVariables['--scaling'] || '1'}</span>
-			<small>overall interface scaling</small>
+			<small>scale the interface to your measure</small>
+		</div>
+
+		<div>
+			<label for={`${uid}--border-radius`}>rounded corners</label>
+			<input
+				type="checkbox"
+				checked={customVariables['--border-radius'] !== '0'}
+				onchange={(e) => updateVariable('--border-radius', e.target.checked ? '0.4rem' : '0')}
+				id={`${uid}--border-radius`}
+			/>
+			<span></span>
+			<small>Round, round, around we go</small>
 		</div>
 	</form>
 </section>
@@ -104,8 +123,8 @@
 	header {
 		display: flex;
 		align-items: center;
-		margin-bottom: 0.5rem;
 		gap: 1rem;
+		margin-bottom: 1rem;
 	}
 
 	input[type='color'] {
@@ -121,17 +140,22 @@
 	}
 
 	form {
+		margin-left: 1rem;
 		display: flex;
 		flex-flow: column;
-		gap: 1rem;
+		gap: 0.5rem;
 		align-items: flex-start;
 	}
 
 	form > div {
 		display: grid;
 		grid-template-columns: auto auto 1fr;
-		gap: 0.5rem;
+		gap: 0 0.5rem;
 		align-items: center;
+	}
+
+	label {
+		user-select: none;
 	}
 
 	small {

@@ -64,7 +64,7 @@
 
 <section>
 	<header>
-		<h3>Keyboard shortcuts</h3>
+		<h2>Keyboard shortcuts</h2>
 		{#if !editing}
 			<button onclick={() => (editing = true)}>Edit shortcuts</button>
 		{:else}
@@ -136,12 +136,12 @@
 	header {
 		display: flex;
 		align-items: center;
-		margin-bottom: 0.5rem;
+		margin-bottom: 1rem;
 		gap: 1rem;
 	}
 
 	dl {
-		margin: 0;
+		margin: 0 0 0 1rem;
 		display: grid;
 		gap: 0.5rem;
 	}
@@ -159,11 +159,9 @@
 	}
 
 	kbd {
-		background: var(--gray-3);
 		border: 1px solid var(--gray-5);
 		border-radius: var(--border-radius);
 		padding: 0.2rem 0.5rem;
-		font-family: monospace;
 		min-width: 3rem;
 		text-align: center;
 	}
@@ -184,7 +182,11 @@
 		background: var(--gray-3);
 		padding: 0.125rem 0.2rem;
 		border-radius: var(--border-radius);
-		font-family: monospace;
+	}
+
+	form,
+	dl {
+		margin-left: 1rem;
 	}
 
 	form {
