@@ -183,12 +183,12 @@ export async function needsUpdate(slug) {
 
 /** Pulls all channels into local db (v1+v2) */
 export async function sync() {
-	log.time('sync')
+	console.time('r4.sync sync')
 	await Promise.all([
 		pullChannels().catch((err) => log.error('pull_channels_error', err)),
 		pullV1Channels().catch((err) => log.error('pull_v1_channels_error', err))
 	])
-	log.timeEnd('sync')
+	console.timeEnd('r4.sync sync')
 }
 
 /** Sync if no channels exist locally */
