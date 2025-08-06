@@ -1,0 +1,1 @@
+ALTER TABLE app_state ADD COLUMN hide_track_artwork BOOLEAN DEFAULT false;

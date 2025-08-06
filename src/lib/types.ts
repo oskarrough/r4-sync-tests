@@ -66,6 +66,7 @@ export interface AppState {
 	show_video_player: boolean
 	player_expanded?: boolean
 	shortcuts: Record<string, string>
+	hide_track_artwork: boolean
 }
 
 export type KeyBindingsConfig = Record<string, string>

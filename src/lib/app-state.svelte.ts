@@ -27,7 +27,8 @@ const defaultAppState = {
 	broadcasting_channel_id: undefined,
 	listening_to_channel_id: undefined,
 
-	theme: 'dark'
+	theme: 'dark',
+	hide_track_artwork: false
 }
 
 export const appState: AppState = $state({...defaultAppState})
@@ -72,7 +73,7 @@ export async function persistAppState() {
 				id, queue_panel_visible, theme, volume, counter, is_playing, shuffle, 
 				show_video_player, channels_display, playlist_track, broadcasting_channel_id, 
 				listening_to_channel_id, playlist_tracks, playlist_tracks_shuffled, channels, 
-				player_expanded, shortcuts, custom_css_variables
+				player_expanded, shortcuts, custom_css_variables, hide_track_artwork
 			)
 			VALUES (
 				${appState.id}, 
@@ -92,7 +93,8 @@ export async function persistAppState() {
 				${channelsArray}, 
 				${appState.player_expanded || false}, 
 				'${JSON.stringify(appState.shortcuts)}', 
-				'${JSON.stringify(appState.custom_css_variables)}'
+				'${JSON.stringify(appState.custom_css_variables)}',
+				${appState.hide_track_artwork || false}
 			)
 			ON CONFLICT (id) DO UPDATE SET
 				queue_panel_visible = EXCLUDED.queue_panel_visible,
@@ -111,7 +113,8 @@ export async function persistAppState() {
 				channels = EXCLUDED.channels,
 				player_expanded = EXCLUDED.player_expanded,
 				shortcuts = EXCLUDED.shortcuts,
-				custom_css_variables = EXCLUDED.custom_css_variables
+				custom_css_variables = EXCLUDED.custom_css_variables,
+				hide_track_artwork = EXCLUDED.hide_track_artwork
 		`)
 	} catch (err) {
 		log.warn('Failed to persist app state:', err)
