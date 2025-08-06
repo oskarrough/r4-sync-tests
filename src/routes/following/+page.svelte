@@ -15,14 +15,14 @@
 <header>
 	<h1>Following</h1>
 	<p>
-		{followings.length} channels
+		{followings?.length || 0} channels
 		{#if !appState.channels?.length}
 			· sign in to sync with remote
 		{/if}
 	</p>
 </header>
 
-{#if followings.length === 0}
+{#if followings?.length === 0}
 	<p>Browse channels and tap the heart to follow them.</p>
 {:else}
 	<div class="grid">
