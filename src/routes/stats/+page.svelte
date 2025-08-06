@@ -182,12 +182,13 @@
 			</header>
 			<div class="tag-cloud">
 				{#each stats.topTags as { tag, count } (tag)}
-					<span
+					<a
+						href="/search?search={encodeURIComponent(tag)}"
 						class="tag"
 						style="font-size: {Math.min(2, 0.8 + count / 10)}em; opacity: {Math.min(
 							1,
 							0.4 + count / 20
-						)}">{tag}</span
+						)}">{tag}</a
 					>
 				{/each}
 			</div>
