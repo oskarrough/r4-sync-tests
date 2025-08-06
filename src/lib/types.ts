@@ -91,7 +91,7 @@ export interface Ok<T> {
 	value: T
 }
 
-export interface Error<E> {
+export interface Err<E> {
 	ok: false
 	error: E
 }
@@ -103,7 +103,7 @@ export function ok<T>(value: T): Ok<T> {
 	}
 }
 
-export function err<T>(error: T): Error<T> {
+export function err<T>(error: T): Err<T> {
 	return {
 		ok: false,
 		error
