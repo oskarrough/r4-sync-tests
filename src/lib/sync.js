@@ -1,4 +1,4 @@
-import {sdk} from '@radio4000/sdk'
+import {r4} from '$lib/r4'
 import {pg, debugLimit} from '$lib/db'
 import {pullV1Tracks, pullV1Channels} from '$lib/v1'
 import {logger} from '$lib/logger'
@@ -17,12 +17,12 @@ const log = logger.ns('sync').seal()
  */
 export async function pullChannels({limit = debugLimit} = {}) {
 	// Use the channels_with_tracks view to get only channels that have tracks
-	const {data: channels, error} = await sdk.supabase
+	const {data: channels} = await r4.sdk.supabase
 		.from('channels_with_tracks')
 		.select('*')
 		.order('updated_at', {ascending: false})
 		.limit(limit)
-	if (error) throw error
+		.throwOnError()
 
 	await pg.transaction(async (tx) => {
 		for (const channel of channels) {
@@ -64,10 +64,8 @@ export async function pullTracks(slug) {
 		if (!channel) throw new Error(`sync:pull_tracks_error_404: ${slug}`)
 
 		if (channel.firebase_id) return await pullV1Tracks(channel.id, channel.firebase_id, pg)
-		const {data, error} = await sdk.channels.readChannelTracks(slug)
-		if (error) throw error
 		/** @type {import('$lib/types').Track[]} */
-		const tracks = data
+		const tracks = await r4.channels.readChannelTracks(slug)
 
 		// Insert tracks
 		await pg.transaction(async (tx) => {
@@ -116,8 +114,7 @@ export async function pullTracks(slug) {
  * @param {string} slug - Channel slug
  */
 export async function pullChannel(slug) {
-	const {data: channel, error} = await sdk.channels.readChannel(slug)
-	if (error) throw error
+	const channel = await r4.channels.readChannel(slug)
 	await pg.sql`
 			INSERT INTO channels (id, name, slug, description, image, created_at, updated_at)
 			VALUES (
@@ -163,14 +160,14 @@ export async function needsUpdate(slug) {
 		if (channel.firebase_id && localLatest) return false
 
 		// Get latest remote track update
-		const {data: remoteLatest, error: remoteError} = await sdk.supabase
+		const {data: remoteLatest} = await r4.sdk.supabase
 			.from('channel_track')
 			.select('updated_at')
 			.eq('channel_id', id)
 			.order('updated_at', {ascending: false})
 			.limit(1)
 			.single()
-		if (remoteError) throw remoteError
+			.throwOnError()
 
 		// Compare timestamps (ignoring milliseconds)
 		const remoteMsRemoved = new Date(remoteLatest.updated_at).setMilliseconds(0)

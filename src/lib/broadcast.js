@@ -1,4 +1,4 @@
-import {sdk} from '@radio4000/sdk'
+import {r4} from '$lib/r4'
 import {pg} from '$lib/db'
 import {logger} from '$lib/logger'
 import {playTrack} from '$lib/api'
@@ -21,19 +21,19 @@ export function startBroadcasting(channelId) {
 }
 
 export function stopBroadcasting() {
-	appState.broadcasting_channel_id = null
-	log.log(':stop')
+	appState.broadcasting_channel_id = undefined
+	log.log('stop')
 }
 
 /** @param {string} channelId */
 export async function joinBroadcast(channelId) {
 	try {
-		const {data, error} = await sdk.supabase
+		const {data} = await r4.sdk.supabase
 			.from('broadcast')
 			.select('*')
 			.eq('channel_id', channelId)
 			.single()
-		if (error) throw error
+			.throwOnError()
 		await syncPlayBroadcast(data)
 		log.log('broadcast:join', {channelId})
 	} catch (error) {
@@ -45,7 +45,7 @@ export async function joinBroadcast(channelId) {
 }
 
 export function leaveBroadcast() {
-	appState.listening_to_channel_id = null
+	appState.listening_to_channel_id = undefined
 	log.log('broadcast:leave')
 }
 
@@ -82,12 +82,14 @@ export async function setupBroadcastSync() {
  */
 async function createRemoteBroadcast(channelId, trackId) {
 	try {
-		const {error} = await sdk.supabase.from('broadcast').upsert({
-			channel_id: channelId,
-			track_id: trackId,
-			track_played_at: new Date().toISOString()
-		})
-		if (error) throw error
+		await r4.sdk.supabase
+			.from('broadcast')
+			.upsert({
+				channel_id: channelId,
+				track_id: trackId,
+				track_played_at: new Date().toISOString()
+			})
+			.throwOnError()
 		log.log('create', {channelId, trackId})
 	} catch (error) {
 		log.error('create_error', {
@@ -103,7 +105,7 @@ async function createRemoteBroadcast(channelId, trackId) {
 async function deleteRemoteBroadcast(channelId) {
 	if (!channelId) return
 	try {
-		await sdk.supabase.from('broadcast').delete().eq('channel_id', channelId)
+		await r4.sdk.supabase.from('broadcast').delete().eq('channel_id', channelId).throwOnError()
 		log.log('delete', {channelId})
 	} catch (error) {
 		log.error('delete_error', {
@@ -119,13 +121,14 @@ async function deleteRemoteBroadcast(channelId) {
  */
 async function updateRemoteBroadcastTrack(channelId, trackId) {
 	try {
-		await sdk.supabase
+		await r4.sdk.supabase
 			.from('broadcast')
 			.update({
 				track_id: trackId,
 				track_played_at: new Date().toISOString()
 			})
 			.eq('channel_id', channelId)
+			.throwOnError()
 		log.log('update', {channelId, trackId})
 	} catch (error) {
 		log.error('update_error', {
@@ -156,11 +159,12 @@ export async function syncPlayBroadcast(broadcast) {
 	try {
 		await playTrack(track_id, '', 'broadcast_sync')
 	} catch {
-		const {data} = await sdk.supabase
+		const {data} = await r4.sdk.supabase
 			.from('channel_track')
 			.select('channels(slug)')
 			.eq('track_id', track_id)
 			.single()
+			.throwOnError()
 		// @ts-expect-error supabase
 		const slug = data?.channels?.slug
 		if (slug) {

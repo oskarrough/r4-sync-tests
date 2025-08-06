@@ -1,7 +1,7 @@
 import {pg} from '$lib/db'
 import {needsUpdate, pullTracks} from '$lib/sync'
 import {syncFollowers, pullFollowers} from '$lib/sync/followers'
-import {sdk} from '@radio4000/sdk'
+import {r4} from '$lib/r4'
 import {leaveBroadcast} from '$lib/broadcast'
 import {shuffleArray} from '$lib/utils'
 import {appState} from '$lib/app-state.svelte'
@@ -16,27 +16,24 @@ const log = logger.ns('api').seal()
 
 export async function checkUser() {
 	try {
-		const {data: user} = await sdk.users.readUser()
-		// log.log('check_user', user, error)
+		const user = await r4.users.readUser()
 		if (!user) {
 			appState.channels = []
 			appState.broadcasting_channel_id = undefined
-		} else {
-			const {data: channels} = await sdk.channels.readUserChannels()
-			// log.log('check_user', {channels})
-			if (channels) {
-				const wasSignedOut = !appState.channels?.length
-				appState.channels = channels.map((/** @type {any} */ c) => c.id)
-
-				// Sync followers when user signs in (not on every check)
-				if (wasSignedOut && appState.channels.length) {
-					syncFollowers(appState.channels[0]).catch((err) =>
-						log.error('sync_followers_on_signin_error', err)
-					)
-				}
-			}
-			return user
+			return null
 		}
+
+		const channels = await r4.channels.readUserChannels()
+		const wasSignedOut = !appState.channels?.length
+		appState.channels = channels.map((/** @type {any} */ c) => c.id)
+
+		// Sync followers when user signs in (not on every check)
+		if (wasSignedOut && appState.channels.length) {
+			syncFollowers(appState.channels[0]).catch((err) =>
+				log.error('sync_followers_on_signin_error', err)
+			)
+		}
+		return user
 	} catch (err) {
 		log.error('check_user_error', err)
 	}
@@ -93,7 +90,11 @@ export async function setPlaylist(ids) {
 
 /** @returns {Promise<import('$lib/types').BroadcastWithChannel[]>} */
 export async function readBroadcastsWithChannel() {
-	const {data, error} = await sdk.supabase.from('broadcast').select(`
+	// @ts-expect-error supabase typing issue with nested relations
+	const {data} = await r4.sdk.supabase
+		.from('broadcast')
+		.select(
+			`
 		channel_id,
 		track_id,
 		track_played_at,
@@ -104,9 +105,9 @@ export async function readBroadcastsWithChannel() {
 			image,
 			description
 		)
-	`)
-	if (error) throw error
-	// @ts-expect-error supabase typing issue with nested relations
+	`
+		)
+		.throwOnError()
 	return data || []
 }
 

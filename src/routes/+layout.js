@@ -1,6 +1,6 @@
 import {browser} from '$app/environment'
 import {pg, migrateDb} from '$lib/db'
-import {sdk} from '@radio4000/sdk'
+import {r4} from '$lib/r4'
 import {autoSync} from '$lib/sync'
 import {initAppState} from '$lib/app-state.svelte'
 import {logger} from '$lib/logger'
@@ -21,7 +21,7 @@ export async function load() {
 			await initAppState()
 			await autoSync()
 			// @ts-expect-error debugging
-			window.r5 = {pg, sdk}
+			window.r5 = {pg, r4}
 		} catch (err) {
 			log.error('load_error', err)
 		} finally {
@@ -30,5 +30,5 @@ export async function load() {
 		}
 	}
 
-	return {pg, sdk, preloading}
+	return {pg, r4, preloading}
 }
