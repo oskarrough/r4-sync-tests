@@ -57,7 +57,7 @@
 	--bg-3: light-dark(var(--gray-2), var(--gray-3));
 
 	/* accent system */
-	--color-accent: light-dark(var(--color-purple), hsl(259.7, 98%, 61%));
+	--color-accent: light-dark(var(--color-purple), var(--color-acidgreen));
 
 	/* light-dark(var(--color-purple), var(--color-deeppurple)); */
 	--accent-1: color-mix(in lab, white, var(--color-accent) 95%);

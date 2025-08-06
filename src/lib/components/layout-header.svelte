@@ -23,15 +23,18 @@
 		{/if}
 	</a>
 	<HeaderSearch />
-	<a href="/following" class="btn" class:active={page.route.id === '/following'}>
-		<Icon icon="favorite" size={20} />
-	</a>
 	<!-- <a href="/playground/spam-warrior" class="btn">Spam Warrior</a> -->
 
 	<div class="row right">
 		{#if !preloading}
 			<LiveBroadcasts />
 			<BroadcastControls />
+			<a href="/stats" class="btn" class:active={page.route.id === '/stats'}>
+				<Icon icon="chart-scatter" size={20} />
+			</a>
+			<a href="/following" class="btn" class:active={page.route.id === '/following'}>
+				<Icon icon="favorite" size={20} />
+			</a>
 			<AddTrackModal />
 			<button onclick={toggleQueuePanel} class:active={appState.queue_panel_visible}>
 				<Icon icon="sidebar-fill-right" size={20} />

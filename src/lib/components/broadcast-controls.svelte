@@ -22,11 +22,11 @@
 		<button onclick={() => stopBroadcasting()}>🔴 Stop broadcasting</button>
 	{:else}
 		<button onclick={start}>
-			<Icon icon="signal" size={20} strokeWidth={1.7}>Broadcast</Icon>
+			<Icon icon="signal" size={20} strokeWidth={1.7}></Icon>
 		</button>
 	{/if}
 {:else}
 	<a class="btn" href="/login">
-		<Icon icon="signal" size={20} strokeWidth={1.7}>Broadcast</Icon>
+		<Icon icon="signal" size={20} strokeWidth={1.7}></Icon>
 	</a>
 {/if}
