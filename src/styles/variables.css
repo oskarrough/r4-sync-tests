@@ -52,15 +52,24 @@
 	/* --color-surface: #ffffffd9; */
 	/* --color-transparent: #0000; */
 
-	--color-accent: light-dark(var(--color-purple), var(--color-red));
-	--color-accent-light1: color-mix(in lab, white, var(--color-accent) 20%);
-	--color-accent-light2: color-mix(in lab, white, var(--color-accent) 10%);
-	--color-accent-light3: color-mix(in lab, white, var(--color-accent) 5%);
-	--color-accent-dark1: color-mix(in lab, black, var(--color-accent) 20%);
-	--color-accent-dark2: color-mix(in lab, black, var(--color-accent) 10%);
-	--color-accent-dark3: color-mix(in lab, black, var(--color-accent) 5%);
-	--player-accent: light-dark(var(--color-acidgreen), var(--color-deeppurple));
-	--button-accent: light-dark(var(--gray-1), color-mix(in lab, black, var(--color-deeppurple) 30%));
+	/* accent system */
+	--color-accent: light-dark(var(--color-purple), var(--color-deeppurple));
+	--accent-1: color-mix(in lab, white, var(--color-accent) 95%);
+	--accent-2: color-mix(in lab, white, var(--color-accent) 90%);
+	--accent-3: color-mix(in lab, white, var(--color-accent) 85%);
+	--accent-4: color-mix(in lab, white, var(--color-accent) 75%);
+	--accent-5: color-mix(in lab, white, var(--color-accent) 65%);
+	--accent-6: color-mix(in lab, white, var(--color-accent) 50%);
+	--accent-7: color-mix(in lab, white, var(--color-accent) 35%);
+	--accent-8: color-mix(in lab, white, var(--color-accent) 20%);
+	--accent-9: var(--color-accent);
+	--accent-10: color-mix(in lab, black, var(--color-accent) 15%);
+	--accent-11: color-mix(in lab, black, var(--color-accent) 30%);
+	--accent-12: color-mix(in lab, black, var(--color-accent) 50%);
+
+	/* context-specific accents */
+	/* --player-accent: light-dark(var(--color-acidgreen), var(--color-deeppurple)); */
+	--button-accent: green;
 
 	/* breakpoints */
 	--breakpoint-xs: 520px;

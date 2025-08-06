@@ -132,10 +132,4 @@
 		flex-direction: column;
 		flex-grow: 1;
 	}
-
-	@media (max-width: 768px) {
-		.content {
-			grid-template-columns: 1fr;
-		}
-	}
 </style>

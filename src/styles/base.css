@@ -60,6 +60,7 @@ body {
 	overscroll-behavior: contain;
 	overflow-y: auto;
 	scrollbar-width: thin;
+	scrollbar-gutter: stable;
 	/*scrollbar-color: var(--white) var(--black);*/
 }
 
@@ -111,7 +112,7 @@ hr {
 }
 
 small {
-	font-size: var(--font-5);
+	font-size: var(--font-3);
 	color: var(--gray-8);
 }
 

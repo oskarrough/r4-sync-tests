@@ -57,7 +57,7 @@
 	footer {
 		border: 1px solid var(--gray-7);
 		border-radius: var(--border-radius);
-		background: var(--player-accent);
+		background: light-dark(var(--accent-7), var(--accent-1));
 
 		position: fixed;
 		left: 0.2rem;
