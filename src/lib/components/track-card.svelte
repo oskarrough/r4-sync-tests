@@ -11,7 +11,7 @@
 		track: Track
 		index: number
 		showImage?: boolean
-		children?: Snippet
+		children?: Snippet<[Track]>
 	}
 
 	let {track, index, showImage = true, children}: Props = $props()

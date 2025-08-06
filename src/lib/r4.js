@@ -24,6 +24,25 @@ export const r4 = {
 		followChannel: (...args) => unwrap(() => sdk.channels.followChannel(...args))
 	},
 
+	broadcasts: {
+		readBroadcastsWithChannel: async () => {
+			const {data, error} = await sdk.supabase.from('broadcast').select(`
+					channel_id,
+					track_id,
+					track_played_at,
+					channels (
+						id,
+						name,
+						slug,
+						image,
+						description
+					)
+				`)
+			if (error) throw error
+			return data || []
+		}
+	},
+
 	// Escape hatch - original SDK when you need {data, error} pattern
 	sdk
 }

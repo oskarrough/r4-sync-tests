@@ -68,7 +68,7 @@ export async function playTrack(id, endReason, startReason) {
  */
 export async function playChannel({id, slug}, index = 0) {
 	log.log('play_channel', {id, slug})
-	await leaveBroadcast() // actually only needed if we're listening
+	leaveBroadcast()
 	if (await needsUpdate(slug)) await pullTracks(slug)
 	const tracks = (
 		await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`
@@ -80,35 +80,14 @@ export async function playChannel({id, slug}, index = 0) {
 
 /** @param {string[]} ids */
 export async function setPlaylist(ids) {
-	const isShuffled = appState.shuffle || false
-
 	appState.playlist_tracks = ids
-	if (isShuffled) {
-		appState.playlist_tracks_shuffled = shuffleArray(ids)
-	}
+	appState.playlist_tracks_shuffled = shuffleArray(ids)
 }
 
 /** @returns {Promise<import('$lib/types').BroadcastWithChannel[]>} */
 export async function readBroadcastsWithChannel() {
 	// @ts-expect-error supabase typing issue with nested relations
-	const {data} = await r4.sdk.supabase
-		.from('broadcast')
-		.select(
-			`
-		channel_id,
-		track_id,
-		track_played_at,
-		channels (
-			id,
-			name,
-			slug,
-			image,
-			description
-		)
-	`
-		)
-		.throwOnError()
-	return data || []
+	return r4.broadcasts.readBroadcastsWithChannel()
 }
 
 /** @param {string[]} trackIds */

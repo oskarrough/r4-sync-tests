@@ -70,10 +70,10 @@
 		<p>Writes are done remotely.</p>
 	</section>
 	<section>
-		<KeyboardEditor />
+		<ThemeEditor />
 	</section>
 	<section>
-		<ThemeEditor />
+		<KeyboardEditor />
 	</section>
 	<section>
 		<PgliteRepl />
