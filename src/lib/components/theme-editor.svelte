@@ -9,7 +9,7 @@
 			label: 'accent color',
 			description: 'primary accent color for links and highlights',
 			default: '#6d28d9'
-		},
+		}
 	]
 
 	const customVariables = $derived(appState.custom_css_variables || {})
