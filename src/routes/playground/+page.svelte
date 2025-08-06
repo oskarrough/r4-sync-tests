@@ -2,6 +2,7 @@
 	// import {liveQuery} from '$lib/live-query'
 	import {toggleQueuePanel} from '$lib/api'
 	import {appState} from '$lib/app-state.svelte'
+	import InputRange from '$lib/components/input-range.svelte'
 
 	let count = $state()
 	const double = $derived(count * 2)
@@ -24,7 +25,7 @@
 <section>
 	<button onclick={toggleQueuePanel}> 🔄 Toggle Queue Panel </button>
 	<p>queue_panel_visible: {appState.queue_panel_visible}</p>
-	<input type="range" min="0" max="1" step="0.1" bind:value={appState.volume} />
+	<InputRange bind:value={appState.volume} min={0} max={1} step={0.1} />
 	<p>volume: {appState.volume}</p>
 </section>
 
