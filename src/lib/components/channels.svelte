@@ -15,8 +15,10 @@
 	let filter = $state('10+')
 	let shuffled = $state(true)
 
-	const channelsPromise = $derived.by(async () => (await pg.sql`SELECT * FROM channels ORDER BY created_at DESC`).rows)
-	
+	const channelsPromise = $derived.by(
+		async () => (await pg.sql`SELECT * FROM channels ORDER BY created_at DESC`).rows
+	)
+
 	function filterChannels(channels) {
 		return channels.filter((c) => {
 			if (filter === 'all') return true
@@ -27,7 +29,7 @@
 			return true
 		})
 	}
-	
+
 	function processChannels(channels) {
 		const filtered = filterChannels(channels)
 		const processed = shuffled ? shuffleArray([...filtered]) : filtered
@@ -101,7 +103,7 @@
 		<p>Loading channels...</p>
 	{:then channels}
 		{@const processed = processChannels(channels)}
-		
+
 		{#if display === 'map'}
 			{#if processed.mapMarkers}
 				<MapComponent urlMode markers={processed.mapMarkers} {center} {zoom}></MapComponent>

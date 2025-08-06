@@ -2,7 +2,8 @@
 	import {sdk} from '@radio4000/sdk'
 	import {pg} from '$lib/db'
 	import {
-		setupBroadcastSync,
+		handleBroadcastStateChange,
+		handleTrackChange,
 		joinBroadcast,
 		leaveBroadcast,
 		syncPlayBroadcast
@@ -16,12 +17,16 @@
 	/** @type {import('$lib/types').BroadcastWithChannel[]} */
 	let activeBroadcasts = $state([])
 
+	// Watch for broadcast state changes
 	$effect(() => {
-		let subscription = null
-		setupBroadcastSync().then((sub) => {
-			subscription = sub
-		})
-		return () => subscription?.unsubscribe()
+		handleBroadcastStateChange(appState.broadcasting_channel_id, appState.playlist_track)
+	})
+
+	// Watch for track changes while broadcasting
+	$effect(() => {
+		if (appState.broadcasting_channel_id) {
+			handleTrackChange(appState.broadcasting_channel_id, appState.playlist_track)
+		}
 	})
 
 	/**

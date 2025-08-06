@@ -1,18 +1,23 @@
 <script>
-	import {startBroadcasting, stopBroadcasting} from '$lib/broadcast'
 	import {appState} from '$lib/app-state.svelte'
 	import Icon from '$lib/components/icon.svelte'
 
 	const userChannelId = $derived(appState?.channels?.[0])
 
+	function stopBroadcasting() {
+		appState.broadcasting_channel_id = undefined
+		console.log('broadcaststop')
+	}
+
 	async function start() {
-		if (!appState.playlist_track)
+		if (!appState.playlist_track) {
 			alert('You need to be playing a track to start broadcasting. Play something.')
-		else {
+		} else {
 			/** @type {HTMLElement & {paused: boolean, play(): void} | null} */
 			const player = document.querySelector('youtube-video')
 			if (player?.paused) player.play()
-			await startBroadcasting(userChannelId)
+			appState.broadcasting_channel_id = userChannelId
+			console.log('broadcaststart')
 		}
 	}
 </script>

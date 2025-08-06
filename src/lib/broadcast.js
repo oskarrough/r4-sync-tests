@@ -15,19 +15,9 @@ let lastTrackId = null
 let broadcastSyncChannel = null
 
 /** @param {string} channelId */
-export function startBroadcasting(channelId) {
-	appState.broadcasting_channel_id = channelId
-	log.log('start', {channelId})
-}
-
-export function stopBroadcasting() {
-	appState.broadcasting_channel_id = undefined
-	log.log('stop')
-}
-
-/** @param {string} channelId */
 export async function joinBroadcast(channelId) {
 	try {
+		// First get current state
 		const {data} = await r4.sdk.supabase
 			.from('broadcast')
 			.select('*')
@@ -35,6 +25,9 @@ export async function joinBroadcast(channelId) {
 			.single()
 			.throwOnError()
 		await syncPlayBroadcast(data)
+
+		// Then subscribe to changes
+		startBroadcastSync(channelId)
 		log.log('broadcast:join', {channelId})
 	} catch (error) {
 		log.error('broadcast:join_error', {
@@ -45,35 +38,28 @@ export async function joinBroadcast(channelId) {
 }
 
 export function leaveBroadcast() {
+	stopBroadcastSync()
 	appState.listening_to_channel_id = undefined
 	log.log('broadcast:leave')
 }
 
-/* Watches for changes to app_state.{broadcasting_channel_id,playlist_track},
- * and creates, deletes or updates remote broadcast as needed */
-export async function setupBroadcastSync() {
-	log.log('setup')
-	return pg.live.query('SELECT * FROM app_state WHERE id = 1', [], async (res) => {
-		const state = res.rows[0]
-		if (!state) return
-		const {broadcasting_channel_id, playlist_track} = state
-
-		// Handle broadcast state change (start/stop broadcasting)
-		if (broadcasting_channel_id !== lastBroadcastingChannelId) {
-			if (broadcasting_channel_id) {
-				await createRemoteBroadcast(broadcasting_channel_id, playlist_track)
-			} else {
-				await deleteRemoteBroadcast(lastBroadcastingChannelId)
-			}
-			lastBroadcastingChannelId = broadcasting_channel_id
+/* Handle broadcast state and track changes */
+export async function handleBroadcastStateChange(broadcasting_channel_id, playlist_track) {
+	if (broadcasting_channel_id !== lastBroadcastingChannelId) {
+		if (broadcasting_channel_id) {
+			await createRemoteBroadcast(broadcasting_channel_id, playlist_track)
+		} else {
+			await deleteRemoteBroadcast(lastBroadcastingChannelId)
 		}
+		lastBroadcastingChannelId = broadcasting_channel_id
+	}
+}
 
-		// Handle track change (only if actively broadcasting)
-		if (broadcasting_channel_id && playlist_track !== lastTrackId) {
-			await updateRemoteBroadcastTrack(broadcasting_channel_id, playlist_track)
-			lastTrackId = playlist_track
-		}
-	})
+export async function handleTrackChange(broadcasting_channel_id, playlist_track) {
+	if (broadcasting_channel_id && playlist_track !== lastTrackId) {
+		await updateRemoteBroadcastTrack(broadcasting_channel_id, playlist_track)
+		lastTrackId = playlist_track
+	}
 }
 
 /**
@@ -81,6 +67,26 @@ export async function setupBroadcastSync() {
  * @param {string|null} trackId
  */
 async function createRemoteBroadcast(channelId, trackId) {
+	log.log('create_attempt', {channelId, trackId, trackIdType: typeof trackId})
+
+	if (!trackId) {
+		log.log('create_skipped_no_track', {channelId})
+		return
+	}
+
+	// Check if track is from v1 channel - these can't be broadcast
+	const {rows} = await pg.sql`
+		SELECT c.firebase_id 
+		FROM channels c 
+		JOIN tracks t ON c.id = t.channel_id 
+		WHERE t.id = ${trackId}
+	`
+	if (rows[0]?.firebase_id) {
+		log.log('create_skipped_v1_track', {channelId, trackId, firebase_id: rows[0].firebase_id})
+		return
+	}
+
+	// Try to create broadcast directly first, sync if foreign key fails
 	try {
 		await r4.sdk.supabase
 			.from('broadcast')
@@ -91,10 +97,60 @@ async function createRemoteBroadcast(channelId, trackId) {
 			})
 			.throwOnError()
 		log.log('create', {channelId, trackId})
+		return
 	} catch (error) {
+		const errorMsg = /** @type {Error} */ (error).message
+
+		// If foreign key constraint violation, try to sync the track
+		if (
+			errorMsg.includes('violates foreign key constraint') &&
+			errorMsg.includes('track_id_fkey')
+		) {
+			log.log('fk_violation_syncing_track', {channelId, trackId})
+
+			// Get channel slug for this track
+			const {rows} = await pg.sql`
+				SELECT c.slug 
+				FROM channels c 
+				JOIN tracks t ON c.id = t.channel_id 
+				WHERE t.id = ${trackId}
+			`
+			const channel = rows[0]
+
+			if (channel?.slug) {
+				try {
+					await pullChannel(channel.slug)
+					await pullTracks(channel.slug)
+					log.log('track_synced_retrying_broadcast', {channelId, trackId, slug: channel.slug})
+
+					// Retry broadcast creation
+					await r4.sdk.supabase
+						.from('broadcast')
+						.upsert({
+							channel_id: channelId,
+							track_id: trackId,
+							track_played_at: new Date().toISOString()
+						})
+						.throwOnError()
+					log.log('create_after_sync', {channelId, trackId})
+					return
+				} catch (syncError) {
+					log.error('sync_failed', {
+						channelId,
+						trackId,
+						slug: channel.slug,
+						error: /** @type {Error} */ (syncError).message
+					})
+				}
+			} else {
+				log.error('track_channel_not_found_locally', {channelId, trackId})
+			}
+		}
+
 		log.error('create_error', {
 			channelId,
-			error: /** @type {Error} */ (error).message
+			trackId,
+			error: errorMsg
 		})
 	}
 }
@@ -137,6 +193,29 @@ async function updateRemoteBroadcastTrack(channelId, trackId) {
 			error: /** @type {Error} */ (error).message
 		})
 	}
+}
+
+/** @param {string} channelId */
+function startBroadcastSync(channelId) {
+	stopBroadcastSync()
+
+	broadcastSyncChannel = r4.sdk.supabase
+		.channel(`broadcast:${channelId}`)
+		.on(
+			'postgres_changes',
+			{
+				event: 'UPDATE',
+				schema: 'public',
+				table: 'broadcast',
+				filter: `channel_id=eq.${channelId}`
+			},
+			(payload) => {
+				const broadcast = payload.new
+				log.log('broadcast:change', {channelId, track_id: broadcast.track_id})
+				syncPlayBroadcast(broadcast)
+			}
+		)
+		.subscribe()
 }
 
 export function stopBroadcastSync() {

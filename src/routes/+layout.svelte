@@ -2,7 +2,6 @@
 	import '../styles/style.css'
 	import 'leaflet/dist/leaflet.css'
 	import {pg} from '$lib/db'
-	import {stopBroadcasting} from '$lib/broadcast'
 	import LayoutHeader from '$lib/components/layout-header.svelte'
 	import LayoutFooter from '$lib/components/layout-footer.svelte'
 	import QueuePanel from '$lib/components/queue-panel.svelte'
@@ -53,7 +52,7 @@
 		const handler = async () => {
 			log.log('beforeunload_closing_db')
 			// event.preventDefault()
-			stopBroadcasting()
+			appState.broadcasting_channel_id = undefined
 			appState.is_playing = false
 			await pg.close()
 		}
