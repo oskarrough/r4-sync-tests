@@ -9,7 +9,9 @@
 	const display = $derived(page?.url?.searchParams?.get('display') || 'grid')
 	const longitude = $derived(Number(page?.url?.searchParams?.get('longitude')))
 	const latitude = $derived(Number(page?.url?.searchParams?.get('latitude')))
-	const zoom = $derived(Number(page?.url?.searchParams?.get('zoom')))
+	const zoom = $derived(
+		page?.url?.searchParams?.get('zoom') ? Number(page?.url?.searchParams?.get('zoom')) : 4
+	)
 
 	let channelCount = $state(0)
 	let syncing = $state(false)
