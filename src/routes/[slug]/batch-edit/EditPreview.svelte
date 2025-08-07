@@ -10,8 +10,8 @@
 {#if hasEdits}
 	<section>
 		<header>
-			<h3>Staged Edits ({edits.length})</h3>
 			<menu>
+				<p>Staged Edits ({edits.length})</p>
 				<button onclick={togglePreview}>
 					{showPreview ? 'Hide' : 'Show'} Preview
 				</button>
@@ -21,7 +21,7 @@
 		</header>
 
 		{#if showPreview}
-			<div class="edit-list">
+			<div class="edit-list scroll">
 				{#each edits as edit (edit.track_id + edit.field)}
 					<div class="edit-item">
 						<div>{getTrackTitle(edit.track_id)}</div>
@@ -39,24 +39,15 @@
 {/if}
 
 <style>
-	header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: 1rem;
+	section {
+		margin: 0 0.5rem;
 	}
-
-	menu {
-		display: flex;
-		gap: 0.5rem;
-		margin: 0;
-		padding: 0;
-		list-style: none;
+	menu p {
+		margin: auto 0;
 	}
 
 	.edit-list {
 		max-height: 300px;
-		overflow-y: auto;
 	}
 
 	.edit-item {

@@ -117,74 +117,34 @@
 		cursor: pointer;
 	}
 
-	.col-checkbox {
-		flex: 0 0 40px;
-		padding: 0.5rem;
-		text-align: center;
-	}
-
+	.col-checkbox,
 	.col-link {
-		flex: 0 0 30px;
-		padding: 0.5rem;
 		text-align: center;
 	}
 
-	.col-title {
-		flex: 2;
-		padding: 0.5rem;
+	.col-title,
+	.col-tags,
+	.col-mentions,
+	.col-description,
+	.col-url {
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 		min-width: 0;
 	}
 
-	.col-tags {
-		flex: 1;
-		padding: 0.5rem;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		min-width: 0;
-	}
-
-	.col-mentions {
-		flex: 1;
-		padding: 0.5rem;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		min-width: 0;
-	}
-
+	.col-title,
 	.col-description {
 		flex: 2;
-		padding: 0.5rem;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		min-width: 0;
-	}
-
-	.col-url {
-		flex: 1;
-		padding: 0.5rem;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		min-width: 0;
 	}
 
 	.col-meta {
-		flex: 0 0 60px;
-		padding: 0.5rem;
 		display: flex;
 		gap: 0.25rem;
 		align-items: center;
 	}
 
 	.col-date {
-		flex: 0 0 100px;
-		padding: 0.5rem;
 		white-space: nowrap;
 	}
 

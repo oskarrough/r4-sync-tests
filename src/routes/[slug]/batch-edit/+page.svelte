@@ -1,8 +1,8 @@
 <script>
 	import {stageEdit, commitEdits, discardEdits, getEdits} from '$lib/api'
 	import {pullTracks} from '$lib/sync'
+	import {invalidateAll} from '$app/navigation'
 	import BulkActions from './BulkActions.svelte'
-	import FilterControls from './FilterControls.svelte'
 	import EditPreview from './EditPreview.svelte'
 	import TrackRow from './TrackRow.svelte'
 
@@ -21,20 +21,37 @@
 	// let editingValue = $state('')
 
 	let filter = $state('all')
-	let tagFilter = $state('')
-	let showAllTags = $state(false)
 
 	let selectedCount = $derived(selectedTracks.length)
 	let hasSelection = $derived(selectedCount > 0)
 
-	// TODO: Re-implement track filtering with simple function call instead of complex derived
-	// Should filter by: has-t-param, missing-description, no-tags, single-tag, no-meta, has-meta
-	// Also apply tag filter if specified
-	let filteredTracks = $derived(tracks)
+	let filteredTracks = $derived.by(() => {
+		if (!tracks) return []
 
-	// TODO: Re-implement tag cloud with static computation on mount instead of derived cascade
-	// Should count all tags from tracks, sort by frequency, show top 20 by default
-	let visibleTags = $state([])
+		let filtered = tracks
+
+		if (filter !== 'all') {
+			filtered = tracks.filter((track) => {
+				switch (filter) {
+					case 'has-t-param':
+						return track.url?.includes('&t=')
+					case 'missing-description':
+						return !track.description?.trim()
+					case 'no-tags':
+						return !track.tags?.length
+					case 'single-tag':
+						return track.tags?.length === 1
+					case 'no-meta':
+						return !track.title && !track.description
+					case 'has-meta':
+						return track.title || track.description
+					default:
+						return true
+				}
+			})
+		}
+		return filtered
+	})
 
 	// TODO: Re-implement getCurrentValue as simple function instead of derived
 	// Should check edits first, fallback to track data
@@ -107,6 +124,7 @@
 		try {
 			await discardEdits()
 			showPreview = false
+			await invalidateAll()
 		} catch (error) {
 			console.error('Discard failed:', error)
 		}
@@ -142,28 +160,6 @@
 		}
 	}
 
-	function filterByTag(tag) {
-		tagFilter = tagFilter === tag ? '' : tag
-	}
-
-	function clearTagFilter() {
-		tagFilter = ''
-	}
-
-	function handleFilterChange(newFilter) {
-		filter = newFilter
-	}
-
-	function handleTagFilterChange(newTagFilter) {
-		tagFilter = newTagFilter
-	}
-
-	function handleTrackSelect(trackId, event) {
-		selectTrack(trackId, event)
-	}
-
-	// TODO: Re-implement metadata pulling with simpler approach
-	// Should pull YouTube metadata first, then MusicBrainz for tracks that need it
 	async function handlePullMeta() {
 		console.log('TODO: implement metadata pulling')
 	}
@@ -176,17 +172,14 @@
 <header>
 	<nav>
 		<a href="/{data.slug}">@{channel?.name}</a> / batch edit
+		<p>
+			<strong
+				>IMPORTANT: This is local-only. No remote data is overwritten. It is safe to play. you can
+				edit any radio.</strong
+			>
+		</p>
 	</nav>
-	<p>
-		IMPORTANT: This only changes local data. No remote data is touched or written to. This also
-		means you can edit ANY channel. It is safe to experiment. Changes will be overwritten next time
-		you sync/pull. Later we'll enable remote writes.
-	</p>
-</header>
-
-<nav class="view-controls">
-	<fieldset>
-		<legend>filter</legend>
+	<menu>
 		<select bind:value={filter}>
 			<option value="all">all tracks ({tracks.length})</option>
 			<option value="has-t-param">has &t= param</option>
@@ -196,59 +189,12 @@
 			<option value="no-meta">no metadata</option>
 			<option value="has-meta">has metadata</option>
 		</select>
-		<output>showing {filteredTracks.length}</output>
-	</fieldset>
-</nav>
-
-<section class="selection-controls">
-	<output>{selectedCount} selected</output>
-	<menu>
-		<button onclick={selectAll} disabled={filteredTracks.length === 0}>select all</button>
-		<button onclick={clearSelection} disabled={!hasSelection}>clear</button>
-	</menu>
-</section>
-
-<section class="actions">
-	<fieldset>
-		<legend>bulk edit</legend>
-		<input
-			type="text"
-			placeholder="set title"
-			onkeydown={(e) => e.key === 'Enter' && bulkEdit('title', e.target.value.trim())}
-		/>
-		<input
-			type="text"
-			placeholder="set description"
-			onkeydown={(e) => e.key === 'Enter' && bulkEdit('description', e.target.value.trim())}
-		/>
-		<input
-			type="text"
-			placeholder="set url"
-			onkeydown={(e) => e.key === 'Enter' && bulkEdit('url', e.target.value.trim())}
-		/>
-	</fieldset>
-
-	<fieldset>
-		<legend>changes</legend>
-		<output class="edit-count">{editCount} changes drafted</output>
-		<menu>
-			<button onclick={togglePreview} disabled={!hasEdits}>
-				{showPreview ? 'hide' : 'preview'}
-			</button>
-			<button onclick={handleCommit} disabled={!hasEdits}>apply</button>
-			<button onclick={handleDiscard} disabled={!hasEdits}>discard</button>
-		</menu>
-	</fieldset>
-</section>
-
-<section class="data-management">
-	<menu>
-		<button onclick={handlePullTracks}>reload tracks from remote</button>
+		<button onclick={handlePullTracks}>Pull tracks</button>
 		<button onclick={handlePullMeta} disabled={updatingMeta}>
-			{updatingMeta ? '⏳ pulling...' : '⏱️ pull metadata (YouTube + MusicBrainz)'}
+			{updatingMeta ? '⏳ Pulling...' : '⏱️ Pull metadata (YouTube + MusicBrainz)'}
 		</button>
 	</menu>
-</section>
+</header>
 
 <EditPreview
 	{showPreview}
@@ -260,19 +206,7 @@
 	{handleDiscard}
 />
 
-<FilterControls
-	{filter}
-	{tagFilter}
-	{showAllTags}
-	{visibleTags}
-	onFilterChange={handleFilterChange}
-	onTagFilterChange={handleTagFilterChange}
-	{clearTagFilter}
-	{filterByTag}
-/>
-
 <BulkActions
-	{selectedTracks}
 	{filteredTracks}
 	{hasSelection}
 	{selectedCount}
@@ -281,11 +215,9 @@
 	{clearSelection}
 />
 
-<section class="tracks">
+<section class="tracks scroll">
 	{#if filteredTracks.length === 0}
-		<div class="empty-state">
-			<p>no tracks found</p>
-		</div>
+		<p>no tracks found</p>
 	{:else}
 		<div class="tracks-list">
 			<div class="tracks-header">
@@ -311,7 +243,7 @@
 					{saveEdit}
 					{handleKeydown}
 					{focus}
-					onSelect={(e) => handleTrackSelect(track.id, e)}
+					onSelect={(e) => selectTrack(track.id, e)}
 					{data}
 				/>
 			{/each}
@@ -321,48 +253,17 @@
 
 <style>
 	header {
+		margin-left: 0.5rem;
+		margin-bottom: 0.5rem;
+	}
+	header nav {
 		display: flex;
-		justify-content: space-between;
+		flex-flow: row;
 		align-items: center;
-	}
-
-	nav.view-controls {
-		display: flex;
-		gap: 2rem;
-		align-items: end;
-	}
-
-	.selection-controls {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
-
-	.actions {
-		display: flex;
-		gap: 2rem;
-		flex-wrap: wrap;
-	}
-
-	fieldset {
-		border: none;
-		padding: 0;
-		margin: 0;
-		display: flex;
-		gap: 0.5rem;
-		align-items: center;
-	}
-
-	menu {
-		display: flex;
-		gap: 0.5rem;
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
-
-	.tracks {
-		overflow-x: auto;
+		margin: 0.5rem 0 0.5rem 0;
+		p {
+			margin: 0 0 0 auto;
+		}
 	}
 
 	.tracks-list {
@@ -380,27 +281,35 @@
 		border-bottom: 1px solid var(--gray-4);
 	}
 
-	.tracks-header > div {
+	:global(.col-checkbox),
+	:global(.col-link),
+	:global(.col-title),
+	:global(.col-tags),
+	:global(.col-mentions),
+	:global(.col-description),
+	:global(.col-url),
+	:global(.col-meta),
+	:global(.col-date) {
 		padding: 0.5rem;
 		flex: 1;
 		text-align: left;
 	}
 
-	.tracks-header .col-checkbox,
-	.tracks-header .col-link {
+	:global(.col-title),
+	:global(.col-description) {
+		flex: 2;
+	}
+
+	:global(.col-checkbox),
+	:global(.col-link) {
 		flex: 0 0 40px;
 	}
 
-	.tracks-header .col-meta {
+	:global(.col-meta) {
 		flex: 0 0 60px;
 	}
 
-	.tracks-header .col-date {
+	:global(.col-date) {
 		flex: 0 0 100px;
-	}
-
-	.empty-state {
-		padding: 2rem;
-		text-align: center;
 	}
 </style>
