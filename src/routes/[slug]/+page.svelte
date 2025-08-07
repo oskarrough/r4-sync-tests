@@ -160,6 +160,10 @@
 {/if}
 
 <style>
+	article {
+		margin-bottom: var(--player-compact-size);
+	}
+
 	header:has(form) {
 		position: sticky;
 		top: -0.8rem;

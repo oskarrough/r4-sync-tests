@@ -85,6 +85,9 @@
 </article>
 
 <style>
+	article {
+		padding-bottom: var(--player-compact-space);
+	}
 	menu,
 	section {
 		margin: 0.5rem;

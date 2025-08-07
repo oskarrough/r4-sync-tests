@@ -85,6 +85,7 @@
 	--breakpoint-xl: 1640px;
 
 	/* Forlayout think in boxes, flex (rows), grid, section (vertical spacing) and containers (max width) */
+	--player-compact-size: 8rem;
 }
 
 :root.light {

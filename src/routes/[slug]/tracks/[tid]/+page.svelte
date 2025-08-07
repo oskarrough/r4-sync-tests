@@ -22,6 +22,6 @@
 
 <style>
 	article {
-		margin: 0 0.5rem 12rem;
+		margin: 0 0.5rem var(--player-compact-size);
 	}
 </style>

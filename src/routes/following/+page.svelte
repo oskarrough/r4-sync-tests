@@ -17,13 +17,13 @@
 	<p>
 		{followings?.length || 0} channels
 		{#if !appState.channels?.length}
-			· sign in to sync with remote
+			· <a href="/login?redirect=/following">sign in to sync your followers with R4</a>
 		{/if}
 	</p>
 </header>
 
 {#if followings?.length === 0}
-	<p>Browse channels and tap the heart to follow them.</p>
+	<p style="margin-left: 0.5rem;">Channels you follow will appear here.</p>
 {:else}
 	<div class="grid">
 		{#each followings as following (following.id)}
@@ -39,5 +39,9 @@
 
 	header p {
 		margin: 0;
+	}
+
+	.grid {
+		margin-bottom: var(--player-compact-size);
 	}
 </style>
