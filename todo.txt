@@ -1,5 +1,6 @@
 THINGS TO LOOK AT
 
+- v1 channels can't be bookmarked, they can't be broadcasted, because remote supabase doesn't know about their "foreign key".. ideas? r5 doesn't care whether it's v1 or v2, but remote postgres does. Maybe a system where the keys aren't proper ids, but just strings?
 - there's an issue with the app state playlist and shuffled playlist. when the playlist is set, we need to make sure the shuffled one is derived from it. else they might up pointing to diff lists
 - after adding a track the modal form resets, which is fine, but there's no clear ux to indicate that it was saved correctly. One idea is to add the <TrackCard> below. The r4-track-form thing must
 - add app_state.hide_track_artwork setting and respect it in track cards etc. by default we show artwork
