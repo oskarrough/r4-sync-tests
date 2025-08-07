@@ -10,7 +10,7 @@
 
 <article>
 	<header>
-		<p><a href="/{channel.slug}">@{channel.name}</a> / {track.title}</p>
+		<p><a href="/{channel.slug}">@{channel.slug}</a> / {track.title}</p>
 		<!-- <ChannelCard {channel} /> -->
 		<!-- <ButtonPlay {channel} /> -->
 	</header>
@@ -22,6 +22,6 @@
 
 <style>
 	article {
-		margin: 0 0.5rem var(--player-compact-size);
+		margin: 0.5rem 0.5rem var(--player-compact-size);
 	}
 </style>

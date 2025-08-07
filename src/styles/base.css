@@ -33,6 +33,11 @@ html {
 	color-scheme: light dark;
 	interpolate-size: allow-keywords;
 
+	/* ios text */
+	-moz-text-size-adjust: none;
+	-webkit-text-size-adjust: none;
+	text-size-adjust: none;
+
 	background: var(--bg-1);
 	color: var(--gray-12);
 }
@@ -73,22 +78,27 @@ body {
 	}
 }
 
+h1,
+h2,
+h3,
+h4 {
+	text-wrap: balance;
+	margin: 0;
+}
+
 h1 {
 	font-size: var(--font-5);
 	font-weight: 600;
-	margin: 0;
 }
 
 h2 {
 	font-size: var(--font-5);
 	font-weight: 600;
-	margin: 0;
 }
 
 h3 {
 	font-size: var(--font-5);
 	font-weight: 400;
-	margin: 0;
 }
 
 p {
