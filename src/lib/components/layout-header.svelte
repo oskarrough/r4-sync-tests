@@ -25,11 +25,16 @@
 	<HeaderSearch />
 	<!-- <a href="/playground/spam-warrior" class="btn">Spam Warrior</a> -->
 
+	<menu>
+		{#if !preloading}
+		{/if}
+	</menu>
 	<menu class="row right">
 		{#if !preloading}
-			<LiveBroadcasts />
 			<AddTrackModal />
 			<BroadcastControls />
+			<LiveBroadcasts />
+			<hr />
 			<a href="/following" class="btn" class:active={page.route.id === '/following'}>
 				<Icon icon="favorite" size={20} />
 			</a>
