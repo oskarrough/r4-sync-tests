@@ -1,19 +1,20 @@
 <script>
+	import {tick} from 'svelte'
 	import 'media-chrome'
 	import 'youtube-video-element'
-	import {queryTrackWithChannel} from '$lib/api'
+	import {togglePlayerExpanded, queryTrackWithChannel} from '$lib/api'
+	import {togglePlay, next, previous, toggleShuffle, play, pause} from '$lib/api/player'
 	import {appState} from '$lib/app-state.svelte'
+	import {logger} from '$lib/logger'
+	import {extractYouTubeId} from '$lib/utils'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import Icon from '$lib/components/icon.svelte'
 	import LinkEntities from '$lib/components/link-entities.svelte'
 
-	import {togglePlay, next, previous, toggleShuffle, play, pause} from '$lib/api/player'
-	import {togglePlayerExpanded} from '$lib/api'
-	import {extractYouTubeId} from '$lib/utils'
-	import {tick} from 'svelte'
-
 	/** @typedef {import('$lib/types').Track} Track */
 	/** @typedef {import('$lib/types').Channel} Channel */
+
+	const log = logger.ns('player').seal()
 
 	// The YouTube player element
 	let yt = $state()
@@ -51,13 +52,13 @@
 			const paused = ytplayer.paused
 			// const wasPlaying = track && yt && !paused
 			await setChannelFromTrack(tid)
-			console.log('track changed', {track: track?.title, yt, paused, didPlay, autoplay})
+			log.log('track changed', {track: track?.title, yt, paused, didPlay, autoplay})
 			// Only auto-play if we were already playing when track changed
 			if (didPlay && yt) {
-				console.log('Auto-playing next track, yt ready:', !!yt, 'didPlay:', didPlay)
+				log.log('Auto-playing next track, yt ready:', !!yt, 'didPlay:', didPlay)
 				// Wait for YouTube element to be ready before playing
 				yt.loadComplete.then(() => {
-					console.log('YouTube loadComplete, calling play')
+					log.log('YouTube loadComplete, calling play')
 					play(yt)
 				})
 			}
@@ -74,13 +75,13 @@
 	}
 
 	function handlePlay() {
-		console.log('handlePlay')
+		log.log('handlePlay')
 		didPlay = true
 		appState.is_playing = true
 	}
 
 	function handlePause() {
-		console.log('handlePause')
+		log.log('handlePause')
 		appState.is_playing = false
 	}
 
@@ -88,7 +89,7 @@
 	function handleError(event) {
 		const code = event.target.error.code
 		const msg = `youtube_error_${code}`
-		console.warn(msg)
+		log.warn(msg)
 		next(track, activeQueue, msg)
 	}
 
@@ -105,7 +106,7 @@
 		const {volume} = e.target
 		if (appState.volume === volume) return
 		appState.volume = volume
-		console.log('volumeChange', volume)
+		log.log('volumeChange', volume)
 	}
 
 	// Pre-buffer video if it's in cued state for smooth playback
@@ -113,12 +114,12 @@
 		await tick()
 		const playerState = yt?.api?.getPlayerState?.()
 		if (playerState === 5 && !didPlay) {
-			console.log('prebuffering')
+			log.log('prebuffering')
 			play(yt)
 			setTimeout(() => {
 				pause(yt)
 				//appState.is_playing = false
-				console.log('prebuffering complete')
+				log.log('prebuffering complete')
 			}, 200)
 		}
 	}
@@ -235,7 +236,11 @@
 
 {#snippet trackContent()}
 	{#if channel && track}
-		<img class="artwork" src={trackImage} alt={track.title} />
+		{#if !appState.hide_track_artwork}<img
+				class="artwork"
+				src={trackImage}
+				alt={track.title}
+			/>{/if}
 		<div class="text">
 			<h3>
 				{#if isListeningToBroadcast}

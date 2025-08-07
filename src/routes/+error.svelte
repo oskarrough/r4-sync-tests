@@ -5,8 +5,8 @@
 <article>
 	<p>An error happened.</p>
 	<h1>{page.status}: {page.error?.message || 'Unknown error'}</h1>
-	<p><a href={window.location.href}>Reload app</a></p>
 	<p><a href="/settings">Go to settings to reset the application.</a></p>
+	<p><button onclick={() => window.location.reload()}>Reload app</button></p>
 </article>
 
 <style>

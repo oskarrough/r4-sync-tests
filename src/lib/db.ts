@@ -16,8 +16,10 @@ import migration07sql from '$lib/migrations/07-add_channel-coordinates-url.sql?r
 import migration08sql from '$lib/migrations/08-enable_pg_trgm.sql?raw'
 import migration09sql from '$lib/migrations/09-create_track_meta.sql?raw'
 import migration10sql from '$lib/migrations/10-create_ytid_function_and_view.sql?raw'
-import migration11sql from '$lib/migrations/11-create_track_edits.sql?raw'
-import migration12sql from '$lib/migrations/12-add_tags_mentions.sql?raw'
+import migration11sql from '$lib/migrations/11-create_followers.sql?raw'
+import migration12sql from '$lib/migrations/12-add_hide_track_artwork.sql?raw'
+import migration13sql from '$lib/migrations/13-create_track_edits.sql?raw'
+import migration14sql from '$lib/migrations/14-add_tags_mentions.sql?raw'
 
 // This will limit the amount of channels pulled.
 export const debugLimit = 2000
@@ -33,8 +35,10 @@ const migrations = [
 	{name: '08-enable_pg_trgm', sql: migration08sql},
 	{name: '09-create_track_meta', sql: migration09sql},
 	{name: '10-create_ytid_function_and_view', sql: migration10sql},
-	{name: '11-create_track_edits', sql: migration11sql},
-	{name: '12-add_tags_mentions', sql: migration12sql}
+	{name: '11-create_followers', sql: migration11sql},
+	{name: '12-add_hide_track_artwork', sql: migration12sql},
+	{name: '13-create_track_edits', sql: migration13sql},
+	{name: '14-add_tags_mentions', sql: migration14sql}
 ]
 
 // Switch between in-memory and OPFS persisted indexeddb for PostgreSQL

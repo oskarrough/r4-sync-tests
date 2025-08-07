@@ -19,6 +19,13 @@ const config = {
 		version: {
 			name: child_process.execSync('git rev-parse HEAD').toString().trim()
 		}
+	},
+
+	compilerOptions: {
+		experimental: {
+			// https://svelte.dev/docs/svelte/await-expressions
+			async: true
+		}
 	}
 }
 

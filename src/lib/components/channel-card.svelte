@@ -1,7 +1,6 @@
 <script>
 	import {trimWithEllipsis} from '$lib/utils'
-	import ButtonPlay from './button-play.svelte'
-	import ChannelAvatar from './channel-avatar.svelte'
+	import ChannelHero from './channel-hero.svelte'
 
 	/** @type {{channel: import('$lib/types').Channel}}*/
 	let {channel} = $props()
@@ -15,11 +14,8 @@
 </script>
 
 <article ondblclick={doubleclick} data-busy={channel.busy}>
-	<ButtonPlay {channel} class="play-button" />
 	<a href={`/${channel.slug}`}>
-		<figure>
-			<ChannelAvatar id={channel.image} alt={channel.name} />
-		</figure>
+		<ChannelHero {channel} />
 		<div>
 			<h3>
 				{channel.name}
@@ -52,7 +48,7 @@
 			display: grid;
 			grid-template-columns: 4rem auto;
 			align-items: center;
-			padding: 0.25rem 0.5rem;
+			padding: 0.2rem 0.5rem;
 		}
 
 		:global(.grid) & {
@@ -78,7 +74,7 @@
 		outline-offset: -2px;
 	}
 
-	figure {
+	article :global(figure) {
 		max-width: 50vw;
 		aspect-ratio: 1/1;
 		background: var(--gray-2);
@@ -88,27 +84,11 @@
 		min-height: 2rem;
 	}
 
-	/** hide play button unles hovered */
-	article:not(:hover) :global(.play-button) {
-		opacity: 0;
-	}
-
-	article :global(.play-button) {
-		position: absolute;
-		top: 0.2rem;
-		left: 0.2rem;
-		width: 3rem;
-		border: 0;
-		box-shadow: none;
-		transition: none;
-	}
-
 	[data-busy='true'] {
 		cursor: wait;
 	}
 
 	h3 {
-		font-size: 1rem;
 		font-weight: normal;
 	}
 	h3,
@@ -118,13 +98,10 @@
 	}
 	h3 + p {
 		color: var(--gray-10);
-		font-size: var(--font-size-regular);
-		/* margin-top: 0.25rem; */
 	}
 
 	.live-indicator {
 		color: red;
-		font-size: 0.8rem;
 		font-weight: bold;
 		margin-left: 0.5rem;
 	}

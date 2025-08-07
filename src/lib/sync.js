@@ -1,4 +1,4 @@
-import {sdk} from '@radio4000/sdk'
+import {r4} from '$lib/r4'
 import {pg, debugLimit} from '$lib/db'
 import {pullV1Tracks, pullV1Channels} from '$lib/v1'
 import {logger} from '$lib/logger'
@@ -17,12 +17,12 @@ const log = logger.ns('sync').seal()
  */
 export async function pullChannels({limit = debugLimit} = {}) {
 	// Use the channels_with_tracks view to get only channels that have tracks
-	const {data: channels, error} = await sdk.supabase
+	const {data: channels} = await r4.sdk.supabase
 		.from('channels_with_tracks')
 		.select('*')
 		.order('updated_at', {ascending: false})
 		.limit(limit)
-	if (error) throw error
+		.throwOnError()
 
 	await pg.transaction(async (tx) => {
 		for (const channel of channels) {
@@ -64,11 +64,9 @@ export async function pullTracks(slug) {
 		if (!channel) throw new Error(`sync:pull_tracks_error_404: ${slug}`)
 
 		if (channel.firebase_id) return await pullV1Tracks(channel.id, channel.firebase_id, pg)
-		const {data, error} = await sdk.channels.readChannelTracks(slug)
-		console.log('here', data)
-		if (error) throw error
+
 		/** @type {import('$lib/types').Track[]} */
-		const tracks = data
+		const tracks = await r4.channels.readChannelTracks(slug)
 
 		// Insert tracks
 		await pg.transaction(async (tx) => {
@@ -120,8 +118,7 @@ export async function pullTracks(slug) {
  * @param {string} slug - Channel slug
  */
 export async function pullChannel(slug) {
-	const {data: channel, error} = await sdk.channels.readChannel(slug)
-	if (error) throw error
+	const channel = await r4.channels.readChannel(slug)
 	await pg.sql`
 			INSERT INTO channels (id, name, slug, description, image, created_at, updated_at)
 			VALUES (
@@ -167,14 +164,14 @@ export async function needsUpdate(slug) {
 		if (channel.firebase_id && localLatest) return false
 
 		// Get latest remote track update
-		const {data: remoteLatest, error: remoteError} = await sdk.supabase
+		const {data: remoteLatest} = await r4.sdk.supabase
 			.from('channel_track')
 			.select('updated_at')
 			.eq('channel_id', id)
 			.order('updated_at', {ascending: false})
 			.limit(1)
 			.single()
-		if (remoteError) throw remoteError
+			.throwOnError()
 
 		// Compare timestamps (ignoring milliseconds)
 		const remoteMsRemoved = new Date(remoteLatest.updated_at).setMilliseconds(0)
@@ -190,12 +187,12 @@ export async function needsUpdate(slug) {
 
 /** Pulls all channels into local db (v1+v2) */
 export async function sync() {
-	console.time('sync')
+	console.time('r4.sync sync')
 	await Promise.all([
-		pullChannels().catch((err) => console.error('sync:pull_channels_error', err)),
-		pullV1Channels().catch((err) => console.error('sync:pull_v1_channels_error', err))
+		pullChannels().catch((err) => log.error('pull_channels_error', err)),
+		pullV1Channels().catch((err) => log.error('pull_v1_channels_error', err))
 	])
-	console.timeEnd('sync')
+	console.timeEnd('r4.sync sync')
 }
 
 /** Sync if no channels exist locally */
@@ -204,5 +201,5 @@ export async function autoSync() {
 	const channelCount = parseInt(rows[0].count)
 	if (channelCount) return
 	log.log('autosync')
-	await sync().catch((err) => console.error('auto_sync:error', err))
+	await sync().catch((err) => log.error('auto_sync_error', err))
 }

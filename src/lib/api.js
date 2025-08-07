@@ -1,11 +1,12 @@
-import {pg} from '$lib/db'
-import {needsUpdate, pullTracks, pullChannel} from '$lib/sync'
-import {sdk} from '@radio4000/sdk'
+import * as batchEdit from './batch-edit.js'
+import {appState, defaultAppState} from '$lib/app-state.svelte'
 import {leaveBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
+import {needsUpdate, pullTracks, pullChannel} from '$lib/sync'
+import {pg, dropDb, migrateDb} from '$lib/db'
+import {r4} from '$lib/r4'
 import {shuffleArray} from '$lib/utils'
-import {appState} from '$lib/app-state.svelte'
-import * as batchEdit from './batch-edit.js'
+import {syncFollowers, pullFollowers} from '$lib/sync/followers'
 
 const log = logger.ns('api').seal()
 
@@ -40,20 +41,26 @@ export async function loadChannel(slug) {
 
 export async function checkUser() {
 	try {
-		const {data: user, error} = await sdk.users.readUser()
-		log.log('check_user', user, error)
+		const user = await r4.users.readUser()
 		if (!user) {
 			appState.channels = []
-		} else {
-			const {data: channels} = await sdk.channels.readUserChannels()
-			log.log('check_user', {channels})
-			if (channels) {
-				appState.channels = channels.map((/** @type {any} */ c) => c.id)
-			}
-			return user
+			appState.broadcasting_channel_id = undefined
+			return null
 		}
+
+		const channels = await r4.channels.readUserChannels()
+		const wasSignedOut = !appState.channels?.length
+		appState.channels = channels.map((/** @type {any} */ c) => c.id)
+
+		// Sync followers when user signs in (not on every check)
+		if (wasSignedOut && appState.channels.length) {
+			syncFollowers(appState.channels[0]).catch((err) =>
+				log.error('sync_followers_on_signin_error', err)
+			)
+		}
+		return user
 	} catch (err) {
-		log.error('check_user_error', err)
+		log.warn('check_user_error', err)
 	}
 }
 
@@ -86,7 +93,7 @@ export async function playTrack(id, endReason, startReason) {
  */
 export async function playChannel({id, slug}, index = 0) {
 	log.log('play_channel', {id, slug})
-	await leaveBroadcast() // actually only needed if we're listening
+	leaveBroadcast()
 	if (await needsUpdate(slug)) await pullTracks(slug)
 	const tracks = (
 		await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`
@@ -98,31 +105,14 @@ export async function playChannel({id, slug}, index = 0) {
 
 /** @param {string[]} ids */
 export async function setPlaylist(ids) {
-	const isShuffled = appState.shuffle || false
-
 	appState.playlist_tracks = ids
-	if (isShuffled) {
-		appState.playlist_tracks_shuffled = shuffleArray(ids)
-	}
+	appState.playlist_tracks_shuffled = shuffleArray(ids)
 }
 
 /** @returns {Promise<import('$lib/types').BroadcastWithChannel[]>} */
 export async function readBroadcastsWithChannel() {
-	const {data, error} = await sdk.supabase.from('broadcast').select(`
-		channel_id,
-		track_id,
-		track_played_at,
-		channels (
-			id,
-			name,
-			slug,
-			image,
-			description
-		)
-	`)
-	if (error) throw error
 	// @ts-expect-error supabase typing issue with nested relations
-	return data || []
+	return r4.broadcasts.readBroadcastsWithChannel()
 }
 
 /** @param {string[]} trackIds */
@@ -147,6 +137,13 @@ export async function toggleTheme() {
 
 export async function toggleQueuePanel() {
 	appState.queue_panel_visible = !appState.queue_panel_visible
+}
+
+export async function resetDatabase() {
+	Object.assign(appState, defaultAppState)
+	await new Promise((resolve) => setTimeout(resolve, 100))
+	await dropDb()
+	await migrateDb()
 }
 
 export function togglePlayerExpanded() {
@@ -253,4 +250,70 @@ export async function getEditCount() {
 
 export async function getEdits() {
 	return batchEdit.getEdits(pg)
+}
+
+/**
+ * @param {string} followerId - ID of the user's channel
+ * @param {string} channelId - ID of the channel to follow
+ */
+export async function addFollower(followerId, channelId) {
+	await pg.sql`
+		INSERT INTO followers (follower_id, channel_id, created_at, synced_at)
+		VALUES (${followerId}, ${channelId}, CURRENT_TIMESTAMP, NULL)
+		ON CONFLICT (follower_id, channel_id) DO NOTHING
+	`
+}
+
+/**
+ * @param {string} followerId - ID of the user's channel
+ * @param {string} channelId - ID of the channel to unfollow
+ */
+export async function removeFollower(followerId, channelId) {
+	await pg.sql`
+		DELETE FROM followers 
+		WHERE follower_id = ${followerId} AND channel_id = ${channelId}
+	`
+}
+
+/**
+ * @param {string} followerId - ID of the user's channel
+ * @returns {Promise<import('$lib/types').Channel[]>}
+ */
+export async function queryFollowers(followerId) {
+	const {rows} = await pg.sql`
+		SELECT c.*
+		FROM followers f
+		JOIN channels c ON f.channel_id = c.id
+		WHERE f.follower_id = ${followerId}
+		ORDER BY f.created_at DESC
+	`
+	return rows
+}
+
+/**
+ * Ensure followers are loaded for a user, auto-pulling if needed
+ * @param {string} followerId - ID of the user's channel
+ * @returns {Promise<import('$lib/types').Channel[]>}
+ */
+export async function ensureFollowers(followerId) {
+	const existing = await queryFollowers(followerId)
+	if (existing.length === 0 && followerId !== 'local-user') {
+		await pullFollowers(followerId)
+		return await queryFollowers(followerId)
+	}
+	return existing
+}
+
+/**
+ * @param {string} followerId - ID of the user's channel
+ * @param {string} channelId - ID of the channel to check
+ * @returns {Promise<boolean>}
+ */
+export async function isFollowing(followerId, channelId) {
+	const {rows} = await pg.sql`
+		SELECT 1 FROM followers 
+		WHERE follower_id = ${followerId} AND channel_id = ${channelId}
+		LIMIT 1
+	`
+	return rows.length > 0
 }

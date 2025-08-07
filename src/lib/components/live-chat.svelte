@@ -108,7 +108,6 @@
 
 	.message time {
 		opacity: 0.5;
-		font-size: 0.8rem;
 		margin-left: auto;
 		flex-shrink: 0;
 	}

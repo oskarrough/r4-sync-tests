@@ -11,7 +11,7 @@
 		track: Track
 		index: number
 		showImage?: boolean
-		children?: Snippet
+		children?: Snippet<[Track]>
 	}
 
 	let {track, index, showImage = true, children}: Props = $props()
@@ -44,25 +44,24 @@
 <article class:active>
 	<a href={permalink} onclick={click} ondblclick={doubleClick} data-sveltekit-preload-data="tap">
 		<span class="index">{index + 1}.</span>
-		{#if ytid && showImage}<img
-				loading="lazy"
+		{#if ytid && showImage && !appState.hide_track_artwork}<img
 				src={imageSrc}
 				alt={track.title}
 				class="artwork"
 			/>{/if}
 		<div>
 			<h3 class="title">{track.title}</h3>
-			<div class="description">
+			<p class="description">
 				<small>
 					<LinkEntities {track} text={track.description} />
 				</small>
 				{#if track.duration}<small>{track.duration}s</small>{/if}
-			</div>
+			</p>
 		</div>
 		<time>
 			{#if track.channel_slug}<small class="slug">@{track.channel_slug}</small>{/if}
-			<small>{formatDate(new Date(track.created_at))}</small></time
-		>
+			<small>{formatDate(new Date(track.created_at))}</small>
+		</time>
 	</a>
 	{@render children?.({track})}
 </article>
@@ -72,7 +71,7 @@
 		display: flex;
 		flex-flow: row nowrap;
 		gap: 0 0.5rem;
-		padding: 0.6rem 0.5rem 0.5rem 0.25rem;
+		padding: 0.5rem 0.5rem 0.5rem 0.5rem;
 		line-height: 1.2;
 		text-decoration: none;
 		cursor: default;
@@ -87,23 +86,27 @@
 		width: 2rem;
 		flex-shrink: 0;
 		color: var(--gray-6);
-		font-size: var(--font-size-micro);
+		/* font-size: var(--font-1); */
 		text-indent: 0.2em;
 	}
 
 	.artwork {
-		width: 3rem;
-		height: 1.8rem;
+		width: 2rem;
+		height: 2rem;
+		object-fit: cover;
+		object-position: center;
+		align-self: center;
 	}
 
 	.title {
-		font-size: var(--font-size-regular);
-		font-weight: 400;
-
 		.active & {
-			font-weight: 600;
-			color: var(--color-accent);
+			background: var(--color-accent);
+			color: var(--gray-1);
 		}
+	}
+
+	p {
+		margin: 0;
 	}
 
 	time {

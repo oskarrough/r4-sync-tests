@@ -1,8 +1,26 @@
-import adze, {setup} from 'adze'
+import adze, {setup, Formatter} from 'adze'
+
+const key = 'r5'
+
+class R5Formatter extends Formatter {
+	formatBrowser(data, timestamp, args) {
+		if (!data.namespace) return [key, ...args]
+		return [`${key}.${data.namespace?.[0]}`, ...args]
+	}
+
+	formatServer(data, timestamp, args) {
+		if (!data.namespace) return [key, ...args]
+		return [`${key}.${data.namespace?.[0]}`, ...args]
+	}
+}
 
 /** Access logs via store.logs */
 export const store = setup({
-	cache: true
+	cache: true,
+	format: 'r5',
+	formatters: {
+		r5: R5Formatter
+	}
 })
 
 /**
@@ -15,5 +33,4 @@ export const store = setup({
  * const slog = logger.ns('sync').seal()
  * slog.log('start') --> info #sync start
  */
-// export const logger = adze.withEmoji.seal()
 export const logger = adze.seal()

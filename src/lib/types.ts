@@ -49,24 +49,26 @@ export type Track = {
 }
 
 export interface AppState {
-	id?: number
-	playlist_tracks?: string[]
-	playlist_tracks_shuffled?: string[]
+	id: number
+	playlist_tracks: string[]
+	playlist_tracks_shuffled: string[]
 	playlist_track?: string
-	is_playing?: boolean
-	theme?: string
-	volume?: number
-	counter?: number
-	channels_display?: string
-	// the user's channels
-	channels?: string[]
-	shuffle?: boolean
+	is_playing: boolean
+	theme: string
+	volume: number
+	custom_css_variables: Record<string, string>
+	counter: number
+	channels_display: string
+	/** the user's channels */
+	channels: string[]
+	shuffle: boolean
 	broadcasting_channel_id?: string
 	listening_to_channel_id?: string
-	queue_panel_visible?: boolean
-	show_video_player?: boolean
+	queue_panel_visible: boolean
+	show_video_player: boolean
 	player_expanded?: boolean
-	shortcuts?: Record<string, string>
+	shortcuts: Record<string, string>
+	hide_track_artwork: boolean
 }
 
 export type KeyBindingsConfig = Record<string, string>
@@ -92,7 +94,7 @@ export interface Ok<T> {
 	value: T
 }
 
-export interface Error<E> {
+export interface Err<E> {
 	ok: false
 	error: E
 }
@@ -104,7 +106,7 @@ export function ok<T>(value: T): Ok<T> {
 	}
 }
 
-export function err<T>(error: T): Error<T> {
+export function err<T>(error: T): Err<T> {
 	return {
 		ok: false,
 		error

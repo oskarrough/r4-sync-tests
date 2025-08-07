@@ -3,11 +3,11 @@ import * as api from '$lib/api.js'
 import {appState} from '$lib/app-state.svelte'
 
 export const DEFAULT_KEY_BINDINGS = {
-	Escape: 'togglePlayerExpanded',
+	f: 'togglePlayerExpanded',
 	'$mod+k': 'openSearch',
 	'/': 'openSearch',
 	k: 'togglePlayPause',
-	j: 'toggleQueuePanel'
+	r: 'toggleQueuePanel'
 }
 
 export function initializeKeyboardShortcuts() {

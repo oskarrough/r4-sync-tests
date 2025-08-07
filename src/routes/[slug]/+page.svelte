@@ -5,11 +5,10 @@
 	import {pg} from '$lib/db'
 	import {incrementalLiveQuery} from '$lib/live-query'
 	import {setPlaylist, addToPlaylist} from '$lib/api'
-	import {pullTrackMetaYouTubeFromChannel} from '$lib/sync/youtube'
 	import {relativeDate, relativeDateSolar} from '$lib/dates'
 	import Icon from '$lib/components/icon.svelte'
 	import SearchInput from '$lib/components/search-input.svelte'
-	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
+	import ChannelHero from '$lib/components/channel-hero.svelte'
 	import ButtonPlay from '$lib/components/button-play.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
 
@@ -22,7 +21,6 @@
 	let trackIds = $state([])
 	let searchQuery = $state(data.search || '')
 	let debounceTimer = $state()
-	let updatingDurations = $state(false)
 
 	function debouncedSearch() {
 		clearTimeout(debounceTimer)
@@ -106,42 +104,12 @@
 		const url = `/${data.slug}${params.toString() ? `?${params}` : ''}`
 		goto(url, {replaceState: true})
 	}
-
-	async function updateDurations() {
-		if (!channel?.id) return
-		updatingDurations = true
-		try {
-			await pullTrackMetaYouTubeFromChannel(channel.id)
-		} catch (error) {
-			console.error('Failed to update durations:', error)
-		} finally {
-			updatingDurations = false
-		}
-	}
 </script>
-
-<header>
-	<form onsubmit={handleSubmit}>
-		<SearchInput
-			bind:value={searchQuery}
-			placeholder="Search tracks in {channel?.name || 'channel'}..."
-			oninput={debouncedSearch}
-		/>
-		<menu>
-			<button onclick={() => setPlaylist(trackIds)}>Play All</button>
-			<button onclick={() => addToPlaylist(trackIds)}>Add to queue</button>
-			<button onclick={updateDurations} disabled={updatingDurations}>
-				{updatingDurations ? '⏳' : '⏱️'} &darr; Pull durations
-			</button>
-			<a href="/{data.slug}/batch-edit" class="btn">Batch edit</a>
-		</menu>
-	</form>
-</header>
 
 {#if channel}
 	<article>
 		<header>
-			<ChannelAvatar id={channel.image} alt={channel.name} />
+			<ChannelHero {channel} />
 			<h1>
 				{channel.name}
 				<ButtonPlay {channel} />
@@ -156,22 +124,29 @@
 			<p>{channel.description}</p>
 			<p>
 				<small>
-					Last updated {relativeDate(latestTrackDate || channel.updated_at)}. Broadcasting since {relativeDateSolar(
-						channel.created_at
+					Broadcasting since {relativeDateSolar(channel.created_at)}. Updated {relativeDate(
+						latestTrackDate || channel.updated_at
 					)}.
 				</small>
 			</p>
 		</header>
 		<section>
 			{#if trackIds.length > 0}
-				<header>
-					<h2>
-						{channel.track_count} tracks
-						{#if searchQuery}
-							({trackIds.length} results for "<em>{searchQuery}</em>")
-						{/if}
-					</h2>
+				<header style="padding-top: 1rem">
+					<form onsubmit={handleSubmit}>
+						<SearchInput
+							bind:value={searchQuery}
+							placeholder="Search {channel?.name || 'channel'}..."
+							oninput={debouncedSearch}
+						/>
+						<menu>
+							<button onclick={() => setPlaylist(trackIds)}>Play All</button>
+							<button onclick={() => addToPlaylist(trackIds)}>Add to queue</button>
+							<a href="/{data.slug}/batch-edit" class="btn">Batch edit</a>
+						</menu>
+					</form>
 				</header>
+
 				<Tracklist ids={trackIds} />
 			{:else if !channel.tracks_synced_at}
 				<p>Tracks syncing…</p>
@@ -185,21 +160,17 @@
 {/if}
 
 <style>
-	header {
-		margin-bottom: 1rem;
-	}
-
 	header:has(form) {
 		position: sticky;
-		top: 0.5rem;
-		margin: 0.5rem;
+		top: -0.8rem;
+		margin: 0.5rem 0.5rem;
 		z-index: 1;
 	}
 
 	form {
 		display: flex;
 		flex-flow: row wrap;
-		gap: 0.2rem 1rem;
+		gap: 0.2rem 0.5rem;
 		margin-bottom: 1rem;
 		align-items: center;
 	}
@@ -208,12 +179,11 @@
 		flex: 1;
 	}
 
-	article header :global(img) {
-		border-radius: var(--border-radius);
+	article header :global(figure) {
 		margin: 1rem 1rem 0rem 1.5rem;
 		max-width: 60%;
 
-		@media (min-width: 600px) {
+		@media (min-width: 520px) {
 			max-width: calc(100vw - 2rem);
 			float: left;
 			max-width: 13rem;
@@ -227,10 +197,11 @@
 
 	h1 {
 		padding-top: 1rem;
+		font-size: var(--font-9);
 	}
 
 	h1 + p {
-		font-size: var(--font-size-title3);
+		font-size: var(--font-6);
 		line-height: 1.3;
 		max-width: 60ch;
 	}
@@ -244,12 +215,5 @@
 		justify-content: space-between;
 		align-items: center;
 		margin-right: 0.5rem;
-		border-bottom: 1px solid var(--gray-5);
-		margin-bottom: 0;
-	}
-
-	section h2 {
-		font-size: var(--font-size-regular);
-		margin: 0.5rem;
 	}
 </style>

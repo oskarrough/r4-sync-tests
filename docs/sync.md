@@ -25,3 +25,19 @@ sync() - orchestrates parallel channel pulling from both sources
 ## On-demand tracks
 
 Tracks are not included the `sync()` method, but loaded on-demand when user interacts with the channel. Then we call: `pullTracks(slug)` or `pullV1Tracks(id, firebase_id)`
+
+schema:
+
+- app_state: single row, all ui/player state
+- channels: radio stations with metadata
+- tracks: music tracks linked to channels
+- play_history: track playback events
+- track_meta: youtube/musicbrainz enrichment
+- followers: channel following relationships
+
+/src/lib/sync.js: remote/local synchronization
+
+- pullchannels/pulltracks from supabase
+- on-demand track loading
+- chunked processing (50 tracks)
+- legacy v1 firebase import

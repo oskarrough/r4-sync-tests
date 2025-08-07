@@ -27,6 +27,5 @@
 
 	input[type='search'] {
 		padding-left: 1.7rem;
-		font-size: var(--font-size-small);
 	}
 </style>

@@ -15,7 +15,9 @@
 	} = $props()
 
 	$effect(() => {
-		map?.setZoom(zoom)
+		if (map && zoom !== map.getZoom()) {
+			map.setZoom(zoom)
+		}
 	})
 
 	const dispatch = createEventDispatcher()
@@ -77,8 +79,8 @@
 			})
 		}
 
-		if (center) {
-			map.setView(center, zoom)
+		if (center && center.longitude && center.latitude) {
+			map.setView([center.latitude, center.longitude], zoom)
 		}
 
 		return {
@@ -133,12 +135,13 @@
 				}, 100)
 			}
 		}
+
 		if (validMarkers.length === 1) {
 			const {latitude, longitude} = validMarkers[0]
 			map.setView([latitude, longitude], zoom)
 		} else if (activeMarker) {
 			map.setView([activeMarker.latitude, activeMarker.longitude], zoom)
-		} else if (validMarkers.length > 1 || !zoom) {
+		} else if (validMarkers.length > 1 && !page?.url?.searchParams?.get('zoom')) {
 			map.fitBounds(markerGroup.getBounds().pad(0.2))
 		}
 	})

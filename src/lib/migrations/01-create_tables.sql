@@ -46,7 +46,8 @@ CREATE TABLE IF NOT EXISTS app_state (
 	playlist_tracks UUID[] DEFAULT ARRAY[]::UUID[],
 	playlist_track UUID references tracks(id),
 
-	channels UUID[] DEFAULT ARRAY[]::UUID[]	
+	channels UUID[] DEFAULT ARRAY[]::UUID[],
+	custom_css_variables JSONB DEFAULT '{}'::jsonb
 );
 
 INSERT INTO app_state (id) values (1) on conflict do nothing;

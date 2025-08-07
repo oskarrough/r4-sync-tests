@@ -1,20 +1,27 @@
 <script>
 	import {sdk} from '@radio4000/sdk'
-	import {pg} from '$lib/db'
 	import {logger} from '$lib/logger'
+	import {appState} from '$lib/app-state.svelte'
+	import {syncFollowers} from '$lib/sync/followers'
 	const log = logger.ns('auth').seal()
 
 	$effect(() => {
 		sdk.supabase.auth.onAuthStateChange(change)
 	})
 
-	async function change(detail) {
-		log.log('change', detail)
-		if (detail === 'signed out') {
+	async function change(event, session) {
+		log.log('change', event, session?.user?.email)
+		if (event === 'SIGNED_OUT') {
+			appState.channels = []
+		}
+		if (event === 'INITIAL_SESSION' && session?.user) {
 			try {
-				await pg.sql`update app_state set channels = null where id = 1`
+				const userChannelId = session.user.user_metadata?.channel_id
+				if (userChannelId) {
+					await syncFollowers(userChannelId)
+				}
 			} catch (err) {
-				log.error('change_error', err)
+				log.error('sync_followers_error', err)
 			}
 		}
 

@@ -1,6 +1,7 @@
-// place files you want to import through the `$lib` alias in this folder.
+// internal mindmap of available actions across the app
+// bird's eye view for opportunities in more elegant pipes and designs
 
-/** this is just an experiment, not used yet
+/**
 
 export {
 	db: {
@@ -11,32 +12,112 @@ export {
 	sync: {
 		pullChannels,
 		pullTracks,
-		needsUpdate
-	}
-	ui: {
+		pullChannel,
+		needsUpdate,
+		sync,
+		autoSync,
+		// followers
+		pullFollowers,
+		pushFollowers,
+		syncFollowers,
+		// metadata enrichment
+		pullTrackMetaYouTube,
+		pullTrackMetaYouTubeFromChannel,
+		pullMusicBrainz,
+		searchMusicBrainz,
+		// legacy
+		pullV1Channels,
+		pullV1Tracks,
+	},
+	api: {
+		// auth
+		checkUser,
+		// playback
+		playTrack,
+		playChannel,
+		setPlaylist,
+		addToPlaylist,
+		addPlayHistory,
+		// queries
+		queryTrackWithChannel,
+		queryChannelsWithTrackCounts,
+		queryFollowers,
+		ensureFollowers,
+		isFollowing,
+		// mutations
+		addFollower,
+		removeFollower,
+		toggleTheme,
+		toggleQueuePanel,
+		resetDatabase,
+		// ui shortcuts
 		togglePlayerExpanded,
 		openSearch,
 		togglePlayPause,
-		toggleQueuePanel,
-		toggleTheme,
-		addPlayHistory,
-		addToPlaylist,
-		playChannel,
-		playTrack
 	},
-	auth: {
-		checkUser
+	player: {
+		play,
+		pause,
+		togglePlay,
+		next,
+		previous,
+		toggleShuffle,
+		toggleVideo,
+		eject,
 	},
 	broadcast: {
 		joinBroadcast,
 		leaveBroadcast,
 		readBroadcastsWithChannel,
-		setupBroadcastSync,
-		startBroadcasting,
+		handleBroadcastStateChange,
+		handleTrackChange,
 		stopBroadcastSync,
-		stopBroadcasting,
-		syncPlayBroadcast
-	}
+		syncPlayBroadcast,
+	},
+	liveQuery: {
+		liveQuery,
+		incrementalLiveQuery,
+	},
+	appState: {
+		initAppState,
+		persistAppState,
+	},
+	utils: {
+		uuid,
+		delay,
+		getFirstRow,
+		trimWithEllipsis,
+		parseSearchTokens,
+		extractYouTubeId,
+		shuffleArray,
+		parseEntities,
+		extractHashtags,
+		batcher,
+	},
+	dates: {
+		formatDate,
+		relativeDate,
+		relativeDateSolar,
+	},
+	focus: {
+		forcefocus,
+		focusable_children,
+		trap,
+	},
+	keyboard: {
+		initializeKeyboardShortcuts,
+	},
+	spam: {
+		analyzeChannel,
+		analyzeChannels,
+		updateChannelSpam,
+		clearChannelSpam,
+		getChannelTracks,
+	},
+	types: {
+		ok,
+		err,
+	},
 }
 
 */

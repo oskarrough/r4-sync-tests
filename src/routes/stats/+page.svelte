@@ -182,12 +182,13 @@
 			</header>
 			<div class="tag-cloud">
 				{#each stats.topTags as { tag, count } (tag)}
-					<span
+					<a
+						href="/search?search={encodeURIComponent(tag)}"
 						class="tag"
 						style="font-size: {Math.min(2, 0.8 + count / 10)}em; opacity: {Math.min(
 							1,
 							0.4 + count / 20
-						)}">{tag}</span
+						)}">{tag}</a
 					>
 				{/each}
 			</div>
@@ -201,37 +202,5 @@
 		display: flex;
 		flex-direction: column;
 		gap: 3rem;
-	}
-
-	section header {
-		margin-bottom: 1rem;
-	}
-
-	h2 {
-		margin-bottom: 1rem;
-		font-size: 1.2em;
-	}
-
-	ol {
-		list-style: decimal;
-		padding-left: 1.5rem;
-	}
-
-	li {
-		margin-bottom: 0.5rem;
-	}
-
-	.tag-cloud {
-		line-height: 1.6;
-	}
-
-	.tag {
-		margin-right: 0.8rem;
-		margin-bottom: 0.4rem;
-		display: inline-block;
-	}
-
-	small {
-		opacity: 0.6;
 	}
 </style>

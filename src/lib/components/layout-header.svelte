@@ -25,10 +25,16 @@
 	<HeaderSearch />
 	<!-- <a href="/playground/spam-warrior" class="btn">Spam Warrior</a> -->
 
-	<div class="row right">
+	<menu class="row right">
 		{#if !preloading}
 			<LiveBroadcasts />
 			<BroadcastControls />
+			<a href="/stats" class="btn" class:active={page.route.id === '/stats'}>
+				<Icon icon="chart-scatter" size={20} />
+			</a>
+			<a href="/following" class="btn" class:active={page.route.id === '/following'}>
+				<Icon icon="favorite" size={20} />
+			</a>
 			<AddTrackModal />
 			<button onclick={toggleQueuePanel} class:active={appState.queue_panel_visible}>
 				<Icon icon="sidebar-fill-right" size={20} />
@@ -39,7 +45,7 @@
 		<a href="/settings" class="btn" class:active={page.route.id === '/settings'}>
 			<Icon icon="settings" size={20} />
 		</a>
-	</div>
+	</menu>
 </header>
 
 <style>
@@ -49,16 +55,14 @@
 		place-items: center;
 		gap: 0.2rem;
 		padding: 0.5rem;
-		background: light-dark(var(--gray-2), var(--gray-3));
-		border-bottom: 1px solid var(--gray-5);
+		background: var(--header-bg, var(--bg-2));
+		border-bottom: 1px solid var(--gray-7);
 
 		.right {
 			margin-left: auto;
 		}
 
 		a {
-			font-size: var(--font-size-small);
-			line-height: 2rem;
 			text-decoration: none;
 		}
 

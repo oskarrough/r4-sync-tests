@@ -5,9 +5,12 @@
 	import Tracklist from './tracklist.svelte'
 	import TrackCard from './track-card.svelte'
 	import Modal from './modal.svelte'
+	import SearchInput from './search-input.svelte'
+	import fuzzysort from 'fuzzysort'
 
 	let view = $state('queue') // 'queue' or 'history'
 	let showClearHistoryModal = $state(false)
+	let searchQuery = $state('')
 
 	/** @type {string[]} */
 	let trackIds = $derived(appState.playlist_tracks || [])
@@ -17,6 +20,28 @@
 
 	/** @type {(import('$lib/types').Track & import('$lib/types').PlayHistory)[]} */
 	let playHistory = $state([])
+
+	let filteredQueueTracks = $derived(
+		searchQuery
+			? fuzzysort
+					.go(searchQuery, queueTracks, {
+						keys: ['title', 'tags', 'channel_name'],
+						threshold: -10000
+					})
+					.map((result) => result.obj)
+			: queueTracks
+	)
+
+	let filteredPlayHistory = $derived(
+		searchQuery
+			? fuzzysort
+					.go(searchQuery, playHistory, {
+						keys: ['title', 'tags', 'channel_name'],
+						threshold: -10000
+					})
+					.map((result) => result.obj)
+			: playHistory
+	)
 
 	$effect(() => {
 		if (trackIds.length === 0) {
@@ -43,7 +68,7 @@
 			`SELECT twm.*, h.started_at, h.ended_at, h.ms_played, h.reason_start, h.reason_end, h.skipped
 			 FROM play_history h
 			 JOIN tracks_with_meta twm ON h.track_id = twm.id
-			 ORDER BY h.started_at ASC LIMIT 50`,
+			 ORDER BY h.started_at ASC`,
 			[],
 			(res) => {
 				playHistory = res.rows
@@ -64,10 +89,14 @@
 
 <aside>
 	<header>
-		<div class="view-buttons">
-			<button onclick={() => (view = 'queue')} class:active={view === 'queue'}>Queue</button>
-			<button onclick={() => (view = 'history')} class:active={view === 'history'}>History</button>
-		</div>
+		<menu>
+			<button onclick={() => (view = 'queue')} class:active={view === 'queue'}
+				>Queue ({queueTracks.length})</button
+			>
+			<button onclick={() => (view = 'history')} class:active={view === 'history'}
+				>History ({playHistory.length})</button
+			>
+		</menu>
 		{#if view === 'queue' && trackIds.length > 0}
 			<button onclick={clearQueue}>Clear</button>
 		{:else if view === 'history' && playHistory.length > 0}
@@ -76,19 +105,32 @@
 			>
 		{/if}
 	</header>
+	<div class="search-container">
+		<SearchInput bind:value={searchQuery} placeholder="Search {view}..." />
+	</div>
 	<main class="scroll">
 		{#if view === 'queue'}
-			{#if trackIds.length > 0}
-				<Tracklist tracks={queueTracks} />
-			{:else}
+			{#if filteredQueueTracks.length > 0}
+				<Tracklist tracks={filteredQueueTracks} />
+			{:else if trackIds.length > 0 && searchQuery}
+				<div class="empty-state">
+					<p>No tracks found</p>
+					<p><small>Try a different search term</small></p>
+				</div>
+			{:else if trackIds.length === 0}
 				<div class="empty-state">
 					<p>No tracks in queue</p>
 					<p><small>Select a channel to start playing</small></p>
 				</div>
+			{:else}
+				<div class="empty-state">
+					<p>No tracks found</p>
+					<p><small>Try a different search term</small></p>
+				</div>
 			{/if}
-		{:else if playHistory.length > 0}
+		{:else if filteredPlayHistory.length > 0}
 			<ul class="list tracks">
-				{#each playHistory as entry, index (index)}
+				{#each filteredPlayHistory as entry, index (index)}
 					<li>
 						<TrackCard track={entry} {index}>
 							<p class="history">
@@ -103,6 +145,11 @@
 					</li>
 				{/each}
 			</ul>
+		{:else if playHistory.length > 0 && searchQuery}
+			<div class="empty-state">
+				<p>No history found</p>
+				<p><small>Try a different search term</small></p>
+			</div>
 		{:else}
 			<div class="empty-state">
 				<p>No play history</p>
@@ -128,8 +175,8 @@
 		display: flex;
 		flex-direction: column;
 		height: 100%;
-		background: light-dark(var(--gray-1), var(--gray-2));
-		border-left: 1px solid var(--gray-5);
+		background: var(--aside-bg, var(--bg-2));
+		border-left: 1px solid var(--gray-6);
 
 		/* perf trick! */
 		contain: layout size;
@@ -140,22 +187,12 @@
 		align-items: center;
 		justify-content: space-between;
 		padding: 0.5rem;
-		border-bottom: 1px solid var(--gray-5);
-		background: light-dark(var(--gray-2), var(--gray-3));
-		font-size: var(--font-size-regular);
+		background: var(--aside-bg, var(--bg-3));
+		border-bottom: 1px solid var(--gray-7);
 	}
 
 	p.history {
 		margin: 0 0 0 0.5rem;
-	}
-
-	.view-buttons {
-		display: flex;
-		gap: 0.25rem;
-	}
-
-	.view-buttons button.active {
-		background: var(--gray-4);
 	}
 
 	main {
@@ -177,6 +214,15 @@
 		small {
 			color: var(--gray-9);
 		}
+	}
+
+	.search-container {
+		padding: 0.5rem;
+		border-bottom: 1px solid var(--gray-5);
+	}
+
+	.search-container :global(input) {
+		width: 100%;
 	}
 
 	.tracks :global(.slug) {

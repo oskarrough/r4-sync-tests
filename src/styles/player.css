@@ -9,19 +9,21 @@ media-control-bar {
 	--media-icon-color: var(--gray-12);
 	/* --media-control-height: 2rem; */
 	/* --media-control-background: transparent; */
-	--media-control-background: var(--button-bg);
-	--media-control-hover-background: transparent;
-	--media-control-background: var(--gray-1);
 	--media-control-padding: 0.5rem;
+	--media-control-background: transparent;
+	--media-control-hover-background: transparent;
 
 	--media-button-icon-width: 1.5rem;
 	--media-button-icon-height: 1.5rem;
 	--media-button-padding: 0 0.5rem;
 
-	--media-range-track-background: hsla(0, 0%, 0%, 0.2);
-	--media-range-track-background: var(--gray-11);
+	--media-range-track-background: var(--gray-12);
 	--media-loading-indicator-icon-width: 2rem;
 	--media-loading-indicator-icon-height: 2rem;
+}
+
+media-control-bar {
+	gap: 0.2rem;
 }
 
 media-time-display {
@@ -35,6 +37,15 @@ media-time-display {
 	}
 	p {
 		margin: 0;
+	}
+
+	media-volume-range {
+		display: none;
+	}
+	@media (min-width: 768px) {
+		media-volume-range {
+			display: initial;
+		}
 	}
 }
 
@@ -54,10 +65,6 @@ media-time-display {
 		max-width: none;
 		width: var(--size);
 		height: var(--size);
-	}
-
-	h3 {
-		font-size: inherit;
 	}
 
 	.text {
@@ -102,28 +109,23 @@ media-time-display {
 		width: auto;
 	}
 
-	@media (max-width: 700px) {
-		/* media-time-display, */
-		media-volume-range {
+	@media (max-width: 520px) {
+		.artwork,
+		.prev,
+		media-time-range {
 			display: none;
 		}
+	}
+
+	@media (max-width: 768px) {
 		media-time-range {
 			width: 60px;
 		}
-
 		media-mute-button,
 		button {
 			/* smaller */
 			padding-left: var(--gap);
 			padding-right: var(--gap);
-		}
-	}
-
-	@media (max-width: 500px) {
-		.artwork,
-		.prev,
-		media-time-range {
-			display: none;
 		}
 	}
 }
@@ -140,7 +142,7 @@ media-time-range {
 	display: flex;
 	flex-flow: column;
 	place-items: center;
-	padding: 2rem;
+	padding: 1rem;
 
 	.channel {
 		display: flex;
@@ -169,7 +171,7 @@ media-time-range {
 		/* avoid layout jumps when no track description */
 		/* min-height: 4rem; */
 		h3 + p small {
-			font-size: var(--font-size-regular);
+			/* font-size: var(--font-4); */
 		}
 	}
 
@@ -181,6 +183,7 @@ media-time-range {
 	youtube-video {
 		aspect-ratio: 16 / 9;
 		height: auto;
+		min-width: 200px;
 	}
 
 	/* hidden in expanded mode, because we have .timebar */
@@ -192,14 +195,16 @@ media-time-range {
 		margin-top: auto;
 		order: 5;
 
-		/* bigger menu */
-		media-mute-button,
-		button {
-			padding: 0.2rem 1rem;
-		}
-		svg {
-			width: 2rem;
-			height: 2rem;
+		@media (min-width: 768px) {
+			/* bigger menu */
+			media-mute-button,
+			button {
+				padding: 0.2rem 1rem;
+			}
+			svg {
+				width: 2rem;
+				height: 2rem;
+			}
 		}
 	}
 }

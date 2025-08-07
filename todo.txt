@@ -1,20 +1,64 @@
-IDEAS
+THINGS TO LOOK AT
 
 - edit track UI (for the ones you own)
-- how to deal with volume on mobile
+- v1 channels can't be bookmarked, they can't be broadcasted, because remote supabase doesn't know about their "foreign key".. ideas? r5 doesn't care whether it's v1 or v2, but remote postgres does. Maybe a system where the keys aren't proper ids, but just strings?
+- there's an issue with the app state playlist and shuffled playlist. when the playlist is set, we need to make sure the shuffled one is derived from it. else they might up pointing to diff lists
 - after adding a track the modal form resets, which is fine, but there's no clear ux to indicate that it was saved correctly. One idea is to add the <TrackCard> below. The r4-track-form thing must
-- mass tracks edit batch editor interface → comprehensive design in @batch-editing.md
-- themable ui, introduce semantic css variables
+- add app_state.hide_track_artwork setting and respect it in track cards etc. by default we show artwork
+- feature/batch-edit -> https://github.com/radio4000/r4-sync-tests/pull/16 -> mass tracks edit batch editor interface → comprehensive design in @batch-editing.md 
+- analyze https://svelte.dev/docs/svelte/$effect#When-not-to-use-$effect
+
+ARCHITECTURE IMPROVEMENTS (HIGHEST PRIORITY)
+
+- remove v1 firebase support entirely: delete /src/lib/v1.js, remove firebase_id branching (~300 LOC reduction)
+- implement event sourcing pattern: events table {type, payload, timestamp} for state changes, enables undo/replay
+- unify sync layer: single sync_operations queue table instead of scattered pull/push functions
+- split app_state monolith: separate tables for player_state, ui_prefs, auth_state (single responsibility)
+- fix broadcast anomaly: make it local-first with eventual sync like everything else
+
+ARCHITECTURE IMPROVEMENTS (HIGH PRIORITY)
+
+- implement command pattern: single execute({cmd: 'play', target}) dispatcher instead of scattered api functions
+- refactor persistAppState() to use parameterized queries instead of string concatenation
+- add validation layer at sync boundaries (remote->local) using lightweight lib like valibot
+- implement debounced persistence for app_state to reduce write frequency
+- implement backup/restore: export/import full pglite database as json or sql dump
+- consolidate migrations: merge 12 files into single schema.sql during prototype phase
+- define single source of truth: player state in memory only, prefs in app_state only, music in pglite only
+
+ARCHITECTURE IMPROVEMENTS (MEDIUM PRIORITY)
+
+- implement consistent error handling with ok/err return types for api & sync operations
+- add optimistic locking for app_state updates (version field, check before write)
+- add input validation for tracks (url, title), channels (name, slug) before db insert
+- enhance logger: add structured error logging with context, expose store.logs in devtools ui
+- document live query vs regular query patterns: live for shared state, regular for local view state
+- separate api layers: split ui operations (toggleTheme, openSearch) from data operations in api.js
+- fix transaction boundaries: ensure atomic updates for chunked sync operations
+- extract dom manipulation from data layer (document.querySelector in api.js)
+- consolidate duplicate query patterns: merge queryTrackWithChannel, queryChannelsWithTrackCounts into unified query()
+- standardize component data fetching patterns: extract search logic from ui concerns
+- extract reusable debouncing utility instead of per-component implementation
+- clarify data flow patterns - document and standardize when operations hit local vs remote database
+- implement sync resumption - track sync progress in db, allow continuation of interrupted syncs
+- create standardized loading/error boundaries for async operations in ui
+- consolidate follower sync logic into single flow, remove complex local-user migration
+- refactor broadcast architecture - remove module-level state, fix implicit dependencies, add cleanup on failures
+
+TERMINOLOGY & API REFACTORS (from index.ts review)
+
+- standardize query naming: either use query* prefix consistently or just function names
+- unify play actions: merge playTrack and playChannel into single play(entity) 
+- consolidate toggle actions: consider set* with boolean param for explicit state management
+- remove redundancy: togglePlayPause (api) vs togglePlay (player) - pick one location
+- rename readBroadcastsWithChannel to queryBroadcasts for consistency
+- group metadata enrichment functions (youtube, musicbrainz) under single namespace
+- move spam detection out of playground into proper module if keeping
+- split utils by domain: youtube utils, text parsing utils, array utils
+- standardize Channel vs Channels in function names (e.g., pullChannel vs pullChannels)
+
+HARD ONES, LOW PRIO
+
 - the <youtube-player> fires volumechange seemingly at will, many times on load, which currently overwrites any appState.volume the user might already have. In other words, your volume preferences is persisted, but also overwritten on load
-- set pwa theme color based on color scheme? https://github.com/w3c/manifest/issues/975 https://github.com/whatwg/html/pull/6569
-
-HARD ONES
-
 - find a way to share `track_meta` data between users. push it remote, how? security?
 
-DONE
-
-- run sync() on first load automatically for better ux
-- redo player by optimize player and header layout for mobile first!!!
-- refactor <Player /> with more sub-components?
-- refactor layout.svelte to more components

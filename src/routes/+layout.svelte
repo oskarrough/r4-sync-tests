@@ -2,7 +2,6 @@
 	import '../styles/style.css'
 	import 'leaflet/dist/leaflet.css'
 	import {pg} from '$lib/db'
-	import {stopBroadcasting} from '$lib/broadcast'
 	import LayoutHeader from '$lib/components/layout-header.svelte'
 	import LayoutFooter from '$lib/components/layout-footer.svelte'
 	import QueuePanel from '$lib/components/queue-panel.svelte'
@@ -10,10 +9,10 @@
 	import LiveChat from '$lib/components/live-chat.svelte'
 	import DraggablePanel from '$lib/components/draggable-panel.svelte'
 	import KeyboardShortcuts from '$lib/components/keyboard-shortcuts.svelte'
-	import {appState, initAppState, persistAppState} from '$lib/app-state.svelte'
+	import {appState, persistAppState} from '$lib/app-state.svelte'
 	import '@radio4000/components'
 	import {logger} from '$lib/logger'
-	import {onMount, untrack} from 'svelte'
+	import {onMount} from 'svelte'
 	import {checkUser} from '$lib/api'
 
 	const log = logger.ns('layout').seal()
@@ -25,23 +24,27 @@
 	const preloading = $derived(data.preloading)
 
 	onMount(async () => {
-		await initAppState()
 		await checkUser()
+		applyCustomCssVariables()
 		skipPersist = false
 	})
+
+	function applyCustomCssVariables() {
+		const root = document.documentElement
+		Object.entries(appState.custom_css_variables || {}).forEach(([name, value]) => {
+			if (value) root.style.setProperty(name, value)
+		})
+	}
 
 	$effect(() => {
 		if (skipPersist) return
 		// Take a snapshot to track all property changes
 		$state.snapshot(appState)
-		// Use untrack to prevent the persistence from causing reactivity loops
-		untrack(() => {
-			persistAppState()
-				.then(() => console.log('persisted'))
-				.catch((err) => {
-					console.error('Failed to persist app state from effect:', err)
-				})
-		})
+		persistAppState()
+			.then(() => log.log('persisted app_state'))
+			.catch((err) => {
+				log.error('Failed to persist app state from effect:', err)
+			})
 	})
 
 	// "Close" the database on page unload. I have not noticed any difference, but seems like a good thing to do.
@@ -49,7 +52,7 @@
 		const handler = async () => {
 			log.log('beforeunload_closing_db')
 			// event.preventDefault()
-			stopBroadcasting()
+			appState.broadcasting_channel_id = undefined
 			appState.is_playing = false
 			await pg.close()
 		}
@@ -58,39 +61,44 @@
 	})
 </script>
 
-<AuthListener />
-<KeyboardShortcuts />
+<svelte:boundary>
+	<AuthListener />
+	<KeyboardShortcuts />
 
-<div class={['layout', {asideVisible: appState.queue_panel_visible}]}>
-	<LayoutHeader {preloading} />
+	<div class={['layout', {asideVisible: appState.queue_panel_visible}]}>
+		<LayoutHeader {preloading} />
 
-	<div class="content">
-		<main class="scroll">
-			{#if preloading}
-				<center>
-					<p>Preparing R4&hellip;</p>
-				</center>
-			{:else}
-				{@render children()}
-			{/if}
-		</main>
+		<div class="content">
+			<main class="scroll">
+				{#if preloading}
+					<center>
+						<p>Preparing R4&hellip;</p>
+					</center>
+				{:else}
+					{@render children()}
+				{/if}
+			</main>
 
-		{#if appState.queue_panel_visible}
 			<QueuePanel />
-		{/if}
 
-		{#if chatPanelVisible}
-			<DraggablePanel title="R4 Chat">
-				<LiveChat />
-			</DraggablePanel>
-		{/if}
+			{#if chatPanelVisible}
+				<DraggablePanel title="R4 Chat">
+					<LiveChat />
+				</DraggablePanel>
+			{/if}
+		</div>
+
+		<LayoutFooter {preloading} />
 	</div>
-
-	<LayoutFooter {preloading} />
-</div>
+	{#snippet pending()}
+		<p>loading...</p>
+	{/snippet}
+</svelte:boundary>
 
 <style>
 	.layout {
+		--aside-width: min(60ch, 100%);
+
 		display: grid;
 		grid-template-rows: auto 1fr auto;
 		height: 100vh;
@@ -101,28 +109,31 @@
 		grid-template-columns: 1fr;
 		height: 100%;
 		overflow: hidden;
-	}
-
-	.asideVisible .content {
-		grid-template-columns: 1fr minmax(460px, 25vw);
+		position: relative;
 		> :global(aside) {
-			display: flex;
+			transform: translate3d(100%, 0, 0);
+			position: absolute;
+			right: 0;
+			top: 0;
+			bottom: 0;
+			width: var(--aside-width);
+			transition: transform 100ms ease-in;
 		}
 	}
 
-	.content > :global(aside) {
-		display: none;
+	.asideVisible .content {
+		grid-template-columns: 1fr var(--aside-width);
+		> :global(aside) {
+			display: flex;
+			transform: translate3d(0, 0, 0);
+			transition-duration: 200ms;
+			transition-timing-function: ease-out;
+		}
 	}
 
 	.scroll {
 		display: flex;
 		flex-direction: column;
 		flex-grow: 1;
-	}
-
-	@media (max-width: 768px) {
-		.content {
-			grid-template-columns: 1fr;
-		}
 	}
 </style>
