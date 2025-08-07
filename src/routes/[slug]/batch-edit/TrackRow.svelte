@@ -1,18 +1,5 @@
 <script>
-	let {
-		track,
-		isSelected,
-		selectedTracks,
-		editingCell,
-		editingValue,
-		getCurrentValue,
-		startEdit,
-		saveEdit,
-		handleKeydown,
-		focus,
-		onSelect,
-		data
-	} = $props()
+	let {track, isSelected, selectedTracks, inlineEdit, onSelect, data} = $props()
 
 	function handleCheckboxChange(e) {
 		if (e.target.checked) {
@@ -37,70 +24,19 @@
 		>
 	</div>
 
-	<div
-		class="col-title"
-		onclick={(e) => startEdit(track.id, 'title', getCurrentValue(track.id, 'title'), e)}
-	>
-		{#if editingCell?.trackId === track.id && editingCell?.field === 'title'}
-			<input
-				type="text"
-				bind:value={editingValue}
-				onblur={saveEdit}
-				onkeydown={handleKeydown}
-				class="inline-edit"
-				use:focus
-			/>
-		{:else}
-			{@const currentValue = getCurrentValue(track.id, 'title')}
-			<span class="editable" class:has-edit={currentValue !== (track.title || '')}>
-				{currentValue}
-			</span>
-		{/if}
+	<div class="col-title">
+		{@render inlineEdit(track.id, 'title')}
 	</div>
 
 	<div class="col-tags">{track.tags || ''}</div>
 	<div class="col-mentions">{track.mentions || ''}</div>
 
-	<div
-		class="col-description"
-		onclick={(e) => startEdit(track.id, 'description', getCurrentValue(track.id, 'description'), e)}
-	>
-		{#if editingCell?.trackId === track.id && editingCell?.field === 'description'}
-			<input
-				type="text"
-				bind:value={editingValue}
-				onblur={saveEdit}
-				onkeydown={handleKeydown}
-				class="inline-edit"
-				use:focus
-			/>
-		{:else}
-			{@const currentValue = getCurrentValue(track.id, 'description')}
-			<span class="editable" class:has-edit={currentValue !== (track.description || '')}>
-				{currentValue}
-			</span>
-		{/if}
+	<div class="col-description">
+		{@render inlineEdit(track.id, 'description')}
 	</div>
 
-	<div
-		class="col-url"
-		onclick={(e) => startEdit(track.id, 'url', getCurrentValue(track.id, 'url'), e)}
-	>
-		{#if editingCell?.trackId === track.id && editingCell?.field === 'url'}
-			<input
-				type="text"
-				bind:value={editingValue}
-				onblur={saveEdit}
-				onkeydown={handleKeydown}
-				class="inline-edit"
-				use:focus
-			/>
-		{:else}
-			{@const currentValue = getCurrentValue(track.id, 'url')}
-			<span class="editable" class:has-edit={currentValue !== (track.url || '')}>
-				{currentValue}
-			</span>
-		{/if}
+	<div class="col-url">
+		{@render inlineEdit(track.id, 'url')}
 	</div>
 
 	<div class="col-meta">

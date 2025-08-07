@@ -15,9 +15,7 @@
 	let showPreview = $state(false)
 	let updatingMeta = $state(false)
 
-	// TODO: Re-implement inline editing - track which cell is being edited and its value
-	// let editingCell = $state(null) // {trackId, field}
-	// let editingValue = $state('')
+	let editingCell = $state(null) // {trackId, field}
 
 	let filter = $state('all')
 
@@ -52,9 +50,14 @@
 		return filtered
 	})
 
-	// TODO: Re-implement getCurrentValue as simple function instead of derived
-	// Should check edits first, fallback to track data
 	function getCurrentValue(trackId, field) {
+		// Check if there's a staged edit for this track+field
+		const edit = edits?.find((e) => e.track_id === trackId && e.field === field)
+		if (edit) {
+			return edit.new_value
+		}
+
+		// Fallback to original track data
 		const track = tracks.find((t) => t.id === trackId)
 		return track?.[field] || ''
 	}
@@ -138,19 +141,20 @@
 		}
 	}
 
-	// TODO: Re-implement inline editing functions
-	// startEdit, saveEdit, cancelEdit, handleKeydown, focus
-	function startEdit() {
-		console.log('TODO: inline editing')
-	}
-	function saveEdit() {
-		console.log('TODO: inline editing')
-	}
-	function handleKeydown() {
-		console.log('TODO: inline editing')
-	}
-	function focus() {
-		console.log('TODO: inline editing')
+	async function stageFieldEdit(trackId, field, newValue) {
+		const track = tracks.find((t) => t.id === trackId)
+		if (!track) return
+
+		const originalValue = track[field] || ''
+		if (newValue === originalValue) return // No change
+
+		try {
+			await stageEdit(trackId, field, originalValue, newValue)
+			edits = await getEdits()
+			await invalidateAll()
+		} catch (error) {
+			console.error('Failed to stage edit:', error)
+		}
 	}
 
 	async function handlePullTracks() {
@@ -164,7 +168,51 @@
 	async function handlePullMeta() {
 		console.log('TODO: implement metadata pulling')
 	}
+
+	function focus(element) {
+		element?.focus()
+		element?.select()
+	}
 </script>
+
+{#snippet inlineEdit(trackId, field)}
+	{@const track = tracks.find((t) => t.id === trackId)}
+	{@const isEditing = editingCell?.trackId === trackId && editingCell?.field === field}
+	{@const currentValue = getCurrentValue(trackId, field)}
+
+	{#if isEditing}
+		<input
+			type="text"
+			value={currentValue}
+			onblur={(e) => {
+				editingCell = null
+				stageFieldEdit(trackId, field, e.target.value)
+			}}
+			onkeydown={(e) => {
+				if (e.key === 'Enter') {
+					e.preventDefault()
+					editingCell = null
+					stageFieldEdit(trackId, field, e.target.value)
+				} else if (e.key === 'Escape') {
+					e.preventDefault()
+					editingCell = null
+				}
+			}}
+			use:focus
+		/>
+	{:else}
+		<span
+			class="editable"
+			class:has-edit={currentValue !== (track?.[field] || '')}
+			onclick={(e) => {
+				e.stopPropagation()
+				editingCell = {trackId, field}
+			}}
+		>
+			{currentValue}
+		</span>
+	{/if}
+{/snippet}
 
 <svelte:head>
 	<title>Batch Edit - {channel?.name || 'Channel'}</title>
@@ -250,13 +298,7 @@
 					{track}
 					isSelected={selectedTracks.includes(track.id)}
 					{selectedTracks}
-					editingCell={null}
-					editingValue=""
-					{getCurrentValue}
-					{startEdit}
-					{saveEdit}
-					{handleKeydown}
-					{focus}
+					{inlineEdit}
 					onSelect={(e) => selectTrack(track.id, e)}
 					{data}
 				/>
@@ -331,5 +373,19 @@
 
 	:global(.col-date) {
 		flex: 0 0 100px;
+	}
+
+	.editable {
+		cursor: pointer;
+		padding: 2px;
+		border-radius: 2px;
+	}
+
+	.editable:hover {
+		background: var(--gray-1);
+	}
+
+	.editable.has-edit {
+		background: var(--yellow-1);
 	}
 </style>
