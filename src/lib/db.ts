@@ -22,7 +22,7 @@ import migration13sql from '$lib/migrations/13-create_track_edits.sql?raw'
 import migration14sql from '$lib/migrations/14-add_tags_mentions.sql?raw'
 
 // This will limit the amount of channels pulled.
-export const debugLimit = 2000
+export const debugLimit = 3000
 
 const migrations = [
 	{name: '01-create_tables', sql: migrationsql},
@@ -67,9 +67,9 @@ export async function dropDb() {
 	if (!pg) pg = await createPg()
 	// Clear tables
 	await pg.sql`DELETE FROM app_state;`
+	await pg.sql`DELETE FROM track_edits;`
 	await pg.sql`DELETE FROM tracks;`
 	await pg.sql`DELETE FROM channels;`
-	await pg.sql`DELETE FROM track_edits;`
 	// Then drop them
 	await pg.sql`drop table if exists app_state CASCADE;`
 	await pg.sql`drop table if exists tracks CASCADE;`

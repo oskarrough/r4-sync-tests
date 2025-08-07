@@ -2,19 +2,24 @@ import {pg, debugLimit} from '$lib/db'
 import {logger} from '$lib/logger'
 const log = logger.ns('sync').seal()
 
+/** @typedef {import('$lib/types').ChannelFirebase[]} ChannelFirebase */
+
 /**
- * Imports a local export of v1 channels, imports them
- * It will not overwrite existing channels when slug exists.
+ * Imports a local export of v1 channels
+ * on slug conflict, ignore
+ * ignores channels with > 3 tracks
+ * inserts into local db
  */
 export async function pullV1Channels({limit} = {limit: debugLimit}) {
-	const res = await fetch('/r5-channels.json')
-	const items = (await res.json()).slice(0, limit)
+	const res = await fetch('/channels-firebase-modified.json')
 
-	// Since we don't want to overwrite any existing local channels with v1 channels,
-	// we filter them out here.
-	const {rows} = await pg.sql`select slug from channels`
+	/** @type {ChannelFirebase} */
+	const items = (await res.json()).slice(0, limit)
+	const {rows: existingChannels} = await pg.sql`select slug from channels`
 	const channels = items.filter(
-		(item) => !rows.some((r) => r.slug === item.slug) && item.track_count > 3
+		(item) => 
+		!existingChannels.some((r) => r.slug === item.slug) // ignore already imported channels (v1 data is readyonly)
+		&& item.track_count && item.track_count > 3 // ignore almost empty channels
 	)
 
 	try {
@@ -22,8 +27,18 @@ export async function pullV1Channels({limit} = {limit: debugLimit}) {
 			for (const item of channels) {
 				try {
 					await tx.sql`
-					insert into channels (created_at, updated_at, slug, name, description, image, firebase_id)
-					values (${item.created_at}, ${item.updated_at || item.created_at}, ${item.slug}, ${item.name}, ${item.description}, ${item.image}, ${item.firebase_id}) on conflict (slug) do nothing
+					insert into channels (created_at, updated_at, slug, name, description, image, firebase_id, track_count)
+					values (
+						${item.created_at},
+						${item.updated_at || item.created_at},
+						${item.slug},
+						${item.name},
+						${item.description},
+						${item.image},
+						${item.firebase_id},
+						${item.track_count || 0}
+					)
+					on conflict (slug) do nothing
 					`
 				} catch (err) {
 					log.error('pull_v1_channels_error', item.slug, err)
@@ -40,7 +55,7 @@ export async function pullV1Channels({limit} = {limit: debugLimit}) {
  * Imports tracks from a v1 channel
  * @param {string} channelId
  * @param {string} channelFirebaseId
- * @param {typeof pg} [pg]
+ * @param {typeof pg} pg
  */
 export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
 	if (!pg) throw new Error('Missing pg')
@@ -92,11 +107,11 @@ async function readFirebaseChannelTracks(cid) {
 	const toObject = (value, id) => ({...value, id})
 	const toArray = (data) => Object.keys(data).map((id) => toObject(data[id], id))
 	const url = `https://radio4000.firebaseio.com/tracks.json?orderBy="channel"&startAt="${cid}"&endAt="${cid}"`
-	return (
-		fetch(url)
-			.then((res) => res.json())
-			.then(toArray)
-			// Firebase queries through REST are not sorted, so we sort..
-			.then((arr) => arr.sort((a, b) => a.created - b.created))
-	)
+	
+	const res = await fetch(url)
+	if (!res.ok) throw new Error(`Failed to fetch tracks: ${res.status}`)
+	const data = await res.json()
+	if (!data) return []
+	
+	return toArray(data).sort((a, b) => a.created - b.created)
 }

@@ -1,3 +1,16 @@
+// from r5-channels.json
+export interface ChannelFirebase {
+	firebase_id: string
+	created_at: number
+	updated_at: number
+	name: string
+	slug: string
+	description?: string,
+	image?: string
+	track_count?: number,
+	track_ids?: string[]
+}
+
 export interface Channel {
 	id: string
 	created_at: string
@@ -31,7 +44,6 @@ export type Track = {
 	id: string
 	created_at: string
 	updated_at: string
-	channel_id: string
 	url: string
 	title: string
 	description?: string
@@ -41,6 +53,7 @@ export type Track = {
 	// fields below this line do not exist on remote r4 track
 	busy?: boolean
 	// sometimes we include this, too
+	channel_id: string
 	channel_slug?: string
 	// when joined with track_meta table
 	duration: number

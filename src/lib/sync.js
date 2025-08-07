@@ -27,13 +27,13 @@ export async function pullChannels({limit = debugLimit} = {}) {
 	await pg.transaction(async (tx) => {
 		for (const channel of channels) {
 			await tx.sql`
-        INSERT INTO channels (id, name, slug, description, image, created_at, updated_at, latitude, longitude, url)
+        INSERT INTO channels (id, name, slug, description, image, created_at, updated_at, latitude, longitude, url, track_count)
         VALUES (
           ${channel.id}, ${channel.name}, ${channel.slug},
           ${channel.description}, ${channel.image},
           ${channel.created_at}, ${channel.updated_at},
           ${channel.latitude}, ${channel.longitude},
-          ${channel.url}
+          ${channel.url}, ${channel.track_count || 0}
         )
         ON CONFLICT (slug)  DO UPDATE SET
           id = EXCLUDED.id,
@@ -45,11 +45,12 @@ export async function pullChannels({limit = debugLimit} = {}) {
           latitude = EXCLUDED.latitude,
           longitude = EXCLUDED.longitude,
           url = EXCLUDED.url,
+          track_count = COALESCE(EXCLUDED.track_count, channels.track_count),
           firebase_id = NULL;
       `
 		}
 	})
-	log.log('pull_channels', channels?.length)
+	log.log('pull_channels', channels)
 }
 
 /**
