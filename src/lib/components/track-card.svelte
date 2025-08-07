@@ -49,14 +49,16 @@
 				alt={track.title}
 				class="artwork"
 			/>{/if}
-		<div>
+		<div class="text">
 			<h3 class="title">{track.title}</h3>
-			<p class="description">
-				<small>
-					<LinkEntities {track} text={track.description} />
-				</small>
-				{#if track.duration}<small>{track.duration}s</small>{/if}
-			</p>
+			{#if track.description}
+				<p class="description">
+					<small>
+						<LinkEntities {track} text={track.description} />
+					</small>
+					{#if track.duration}<small>{track.duration}s</small>{/if}
+				</p>
+			{/if}
 		</div>
 		<time>
 			{#if track.channel_slug}<small class="slug">@{track.channel_slug}</small>{/if}
@@ -96,6 +98,12 @@
 		object-fit: cover;
 		object-position: center;
 		align-self: center;
+	}
+
+	.text {
+		display: flex;
+		flex-flow: column;
+		justify-content: center;
 	}
 
 	.title {

@@ -28,23 +28,23 @@
 	<menu class="row right">
 		{#if !preloading}
 			<LiveBroadcasts />
+			<AddTrackModal />
 			<BroadcastControls />
-			<a href="/stats" class="btn" class:active={page.route.id === '/stats'}>
-				<Icon icon="chart-scatter" size={20} />
-			</a>
 			<a href="/following" class="btn" class:active={page.route.id === '/following'}>
 				<Icon icon="favorite" size={20} />
 			</a>
-			<AddTrackModal />
-			<button onclick={toggleQueuePanel} class:active={appState.queue_panel_visible}>
-				<Icon icon="sidebar-fill-right" size={20} />
-			</button>
+			<a href="/stats" class="btn" class:active={page.route.id === '/stats'}>
+				<Icon icon="chart-scatter" size={20} />
+			</a>
 			<!-- <button onclick={toggleChatPanel}>Chat</button> -->
 			<ThemeToggle />
 		{/if}
 		<a href="/settings" class="btn" class:active={page.route.id === '/settings'}>
 			<Icon icon="settings" size={20} />
 		</a>
+		<button onclick={toggleQueuePanel} class:active={appState.queue_panel_visible}>
+			<Icon icon="sidebar-fill-right" size={20} />
+		</button>
 	</menu>
 </header>
 

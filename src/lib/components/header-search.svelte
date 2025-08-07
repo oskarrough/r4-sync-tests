@@ -81,7 +81,7 @@
 <form onsubmit={handleSubmit}>
 	<SearchInput
 		value={searchQuery}
-		placeholder="Search or jump to…"
+		placeholder="Search radios & tracks"
 		oninput={(e) => debouncedSearch(e.target.value)}
 		onkeydown={handleKeydown}
 		DISABLEDlist="command-suggestions"
