@@ -36,6 +36,8 @@ export type Track = {
 	title: string
 	description?: string
 	discogs_url?: string
+	tags?: string[]
+	mentions?: string[]
 	// fields below this line do not exist on remote r4 track
 	busy?: boolean
 	// sometimes we include this, too

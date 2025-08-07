@@ -9,6 +9,7 @@
 	import {extractYouTubeId} from '$lib/utils'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import Icon from '$lib/components/icon.svelte'
+	import LinkEntities from '$lib/components/link-entities.svelte'
 
 	/** @typedef {import('$lib/types').Track} Track */
 	/** @typedef {import('$lib/types').Channel} Channel */
@@ -247,7 +248,9 @@
 				{/if}
 				<a href={`/${channel.slug}/tracks/${track.id}`}>{track.title}</a>
 			</h3>
-			{#if track.description}<p><small>{track.description}</small></p>{/if}
+			{#if track.description}
+				<p><small><LinkEntities text={track.description} {track} /></small></p>
+			{/if}
 		</div>
 	{/if}
 {/snippet}

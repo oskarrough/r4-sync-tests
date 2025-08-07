@@ -64,6 +64,7 @@ export async function pullTracks(slug) {
 		if (!channel) throw new Error(`sync:pull_tracks_error_404: ${slug}`)
 
 		if (channel.firebase_id) return await pullV1Tracks(channel.id, channel.firebase_id, pg)
+
 		/** @type {import('$lib/types').Track[]} */
 		const tracks = await r4.channels.readChannelTracks(slug)
 
@@ -76,19 +77,22 @@ export async function pullTracks(slug) {
 					(track) => tx.sql`
 	        INSERT INTO tracks (
 	          id, channel_id, url, title, description,
-	          discogs_url, created_at, updated_at
+	          discogs_url, created_at, updated_at, tags, mentions
 	        )
 	        VALUES (
 	          ${track.id}, ${channel.id}, ${track.url},
 	          ${track.title}, ${track.description},
-	          ${track.discogs_url}, ${track.created_at}, ${track.updated_at}
+	          ${track.discogs_url}, ${track.created_at}, ${track.updated_at},
+	          ${track.tags}, ${track.mentions}
 	        )
 	        ON CONFLICT (id) DO UPDATE SET
 	          url = EXCLUDED.url,
 	          title = EXCLUDED.title,
 	          description = EXCLUDED.description,
 	          discogs_url = EXCLUDED.discogs_url,
-	          updated_at = EXCLUDED.updated_at
+	          updated_at = EXCLUDED.updated_at,
+	          tags = EXCLUDED.tags,
+	          mentions = EXCLUDED.mentions
 	      `
 				)
 				await Promise.all(inserts)

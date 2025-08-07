@@ -1,5 +1,6 @@
 THINGS TO LOOK AT
 
+- edit track UI (for the ones you own)
 - go to /nomads, go to /settings, click reset, click browser back button, tracks are missing and stuck "syncing"
 - v1 channels can't be bookmarked, they can't be broadcasted, because remote supabase doesn't know about their "foreign key".. ideas? r5 doesn't care whether it's v1 or v2, but remote postgres does. Maybe a system where the keys aren't proper ids, but just strings?
 - there's an issue with the app state playlist and shuffled playlist. when the playlist is set, we need to make sure the shuffled one is derived from it. else they might up pointing to diff lists
@@ -61,4 +62,3 @@ HARD ONES, LOW PRIO
 
 - the <youtube-player> fires volumechange seemingly at will, many times on load, which currently overwrites any appState.volume the user might already have. In other words, your volume preferences is persisted, but also overwritten on load
 - find a way to share `track_meta` data between users. push it remote, how? security?
-

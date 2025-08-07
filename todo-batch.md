@@ -34,15 +34,50 @@ single user, local pglite. simple.
 
 ## build it
 
-1. basic table (no pagination needed for 3k rows)
-2. selection system (click, shift+click, filter)
-3. inline editing → draft to track_edits
-4. preview/apply/discard
+1. basic table (no pagination needed for 3k rows) ✓
+2. selection system (click, shift+click, filter) ✓
+3. inline editing → draft to track_edits ✓
+4. preview/apply/discard ✓
 5. tagcloud view
 6. bulk tag operations
 7. composable transforms
 
 build staging system first, optimize never.
+
+### completed features
+
+- ✓ database migration with track_edits table
+- ✓ api functions: stageEdit, commitEdits, discardEdits, getEditCount, getEdits
+- ✓ batch edit route at /{slug}/batch-edit with page loader
+- ✓ tracks table showing all tracks (title, tags, description, created)
+- ✓ selection system: click, shift+click, ctrl/cmd+click
+- ✓ bulk actions: add tags, set title prefix
+- ✓ preview/apply/discard workflow
+- ✓ real-time edit count monitoring
+- ✓ entry point link from channel page
+
+### completed
+
+- ✓ testing api functions with vitest + in-memory pglite
+
+## test coverage
+
+created comprehensive test suite for batch editing api:
+
+- ✓ staging edits correctly
+- ✓ updating existing edits on conflict (upsert behavior)
+- ✓ rejecting invalid field names
+- ✓ committing edits atomically with transaction
+- ✓ discarding staged edits
+- ✓ getting edit counts accurately
+- ✓ ordering edits by created_at desc
+- ✓ handling multiple field edits on same track
+
+all tests use in-memory pglite with isolated test data.
+
+## current status
+
+batch editing mvp is complete and tested. ready for user testing.
 
 ## api sketch
 

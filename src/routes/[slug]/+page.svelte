@@ -142,6 +142,7 @@
 						<menu>
 							<button onclick={() => setPlaylist(trackIds)}>Play All</button>
 							<button onclick={() => addToPlaylist(trackIds)}>Add to queue</button>
+							<!--<a href="/{data.slug}/batch-edit" class="btn">Batch edit</a>-->
 						</menu>
 					</form>
 				</header>

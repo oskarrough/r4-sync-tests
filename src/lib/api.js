@@ -1,11 +1,12 @@
-import {pg, dropDb, migrateDb} from '$lib/db'
-import {needsUpdate, pullTracks} from '$lib/sync'
-import {syncFollowers, pullFollowers} from '$lib/sync/followers'
-import {r4} from '$lib/r4'
-import {leaveBroadcast} from '$lib/broadcast'
-import {shuffleArray} from '$lib/utils'
+import * as batchEdit from './batch-edit.js'
 import {appState, defaultAppState} from '$lib/app-state.svelte'
+import {leaveBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
+import {needsUpdate, pullTracks, pullChannel} from '$lib/sync'
+import {pg, dropDb, migrateDb} from '$lib/db'
+import {r4} from '$lib/r4'
+import {shuffleArray} from '$lib/utils'
+import {syncFollowers, pullFollowers} from '$lib/sync/followers'
 
 const log = logger.ns('api').seal()
 
@@ -13,6 +14,30 @@ const log = logger.ns('api').seal()
  * @prop {string} id
  * @prop {string} email
  */
+
+/**
+ * Load and sync channel by slug, ensuring tracks are up to date
+ * @param {string} slug
+ * @returns {Promise<import('$lib/types').Channel>}
+ */
+export async function loadChannel(slug) {
+	let channel = (await pg.query('SELECT * FROM channels WHERE slug = $1', [slug])).rows[0]
+
+	if (!channel) {
+		try {
+			await pullChannel(slug)
+			channel = (await pg.query('SELECT * FROM channels WHERE slug = $1', [slug])).rows[0]
+		} catch (err) {
+			console.error('load_channel_error', err)
+		}
+	}
+
+	if (!channel) throw new Error('Channel not found')
+
+	if (await needsUpdate(slug)) pullTracks(slug)
+
+	return channel
+}
 
 export async function checkUser() {
 	try {
@@ -205,6 +230,26 @@ export async function queryChannelsWithTrackCounts() {
 		ORDER BY c.name
 	`
 	return rows
+}
+
+export async function stageEdit(trackId, field, oldValue, newValue) {
+	return batchEdit.stageEdit(pg, trackId, field, oldValue, newValue)
+}
+
+export async function commitEdits() {
+	return batchEdit.commitEdits(pg)
+}
+
+export async function discardEdits() {
+	return batchEdit.discardEdits(pg)
+}
+
+export async function getEditCount() {
+	return batchEdit.getEditCount(pg)
+}
+
+export async function getEdits() {
+	return batchEdit.getEdits(pg)
 }
 
 /**

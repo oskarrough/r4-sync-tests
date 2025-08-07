@@ -19,9 +19,8 @@
 	let filter = $state('all')
 	let shuffled = $state(true)
 
-	/** @type {'list' | 'grid' | 'map'}*/
-	let display = $derived(appState.channels_display || initialDisplay || 'list')
-
+	/** @type {'grid' | 'list' | 'map'}*/
+	let display = $derived(appState.channels_display || initialDisplay || 'grid')
 	const center = $derived(longitude && latitude ? {longitude, latitude} : null)
 
 	/*
@@ -29,7 +28,7 @@
 		async () => (await pg.sql`SELECT * FROM channels ORDER BY created_at DESC`).rows
 	)*/
 
-	const realChannels = $derived.by(() => processChannels(channels))
+	const realChannels = $derived.by(() => processChannels())
 
 	function filterChannels() {
 		return channels.filter((c) => {

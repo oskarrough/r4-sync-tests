@@ -11,16 +11,20 @@
 		return parts.join('')
 	}
 
-	const iconName = $derived(toImportName(icon))
 	let Icon = $state(null)
+	let currentIcon = $state('')
 
 	$effect(async () => {
+		if (icon === currentIcon) return
+		currentIcon = icon
+
 		if (!icon) {
 			Icon = null
 			return
 		}
 
 		try {
+			const iconName = toImportName(icon)
 			const module = await import('obra-icons-svelte')
 			Icon = module[iconName]
 		} catch {
