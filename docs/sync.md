@@ -35,11 +35,9 @@ schema:
 - track_meta: youtube/musicbrainz enrichment
 - followers: channel following relationships
 
-
 /src/lib/sync.js: remote/local synchronization
 
 - pullchannels/pulltracks from supabase
 - on-demand track loading
 - chunked processing (50 tracks)
 - legacy v1 firebase import
-

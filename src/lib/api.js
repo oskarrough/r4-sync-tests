@@ -35,7 +35,7 @@ export async function checkUser() {
 		}
 		return user
 	} catch (err) {
-		log.error('check_user_error', err)
+		log.warn('check_user_error', err)
 	}
 }
 
@@ -115,18 +115,10 @@ export async function toggleQueuePanel() {
 }
 
 export async function resetDatabase() {
-	// Clear appState
-	for (const key in appState) {
-		delete appState[key]
-	}
-
-	// Set defaults
 	Object.assign(appState, defaultAppState)
-
+	await new Promise((resolve) => setTimeout(resolve, 100))
 	await dropDb()
 	await migrateDb()
-	// add artificial delay for better ux
-	await new Promise((resolve) => setTimeout(resolve, 500))
 }
 
 export function togglePlayerExpanded() {

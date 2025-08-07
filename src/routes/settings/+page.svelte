@@ -40,6 +40,7 @@
 
 <article>
 	<menu>
+		<button onclick={logout}>Logout</button>
 		<button onclick={handleSync} data-loading={syncing} disabled={syncing}>
 			{#if syncing}
 				Syncing
@@ -54,13 +55,20 @@
 		</button>
 	</menu>
 
-	<menu>
-		<a href="/stats" class="btn">Stats</a>
-		<button onclick={logout}>Logout</button>
-	</menu>
-
 	<section>
 		<h2>Settings</h2>
+	</section>
+	<section>
+		<ThemeEditor />
+	</section>
+	<section>
+		<KeyboardEditor />
+	</section>
+	<section>
+		<PgliteRepl />
+	</section>
+	<section>
+		<h2>About</h2>
 		<p>
 			Just like <a href="https://radio4000.com">radio4000.com</a>, this web app pulls its data from
 			the Radio4000 PostgreSQL database. But it pulls it into another PostgreSQL database sitting
@@ -72,15 +80,7 @@
 			Interested? <a href="https://matrix.to/#/#radio4000:matrix.org" rel="noreferrer">Come chat</a>
 		</p>
 	</section>
-	<section>
-		<ThemeEditor />
-	</section>
-	<section>
-		<KeyboardEditor />
-	</section>
-	<section>
-		<PgliteRepl />
-	</section>
+
 	<!--<SyncDebug />-->
 </article>
 
