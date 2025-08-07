@@ -199,7 +199,7 @@ export async function sync() {
 export async function autoSync() {
 	const {rows} = await pg.sql`SELECT COUNT(*) as count FROM channels`
 	const channelCount = parseInt(rows[0].count)
-	if (channelCount) return
+	if (channelCount > 100) return
 	log.log('autosync')
 	await sync().catch((err) => log.error('auto_sync_error', err))
 }
