@@ -11,12 +11,12 @@
 	<section>
 		<header>
 			<menu>
-				<p>Staged Edits ({edits.length})</p>
+				<p>{edits.length} staged edits &rarr;</p>
 				<button onclick={togglePreview}>
-					{showPreview ? 'Hide' : 'Show'} Preview
+					{showPreview ? 'Hide' : 'Show'}
 				</button>
-				<button onclick={handleCommit}>Commit All Changes</button>
-				<button onclick={handleDiscard}>Discard All Changes</button>
+				<button onclick={handleCommit}>Commit</button>
+				<button onclick={handleDiscard}>Discard</button>
 			</menu>
 		</header>
 

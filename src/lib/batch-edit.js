@@ -1,3 +1,5 @@
+import {extractHashtags, ENTITY_REGEX} from '$lib/utils'
+
 const EDITABLE_FIELDS = ['title', 'description', 'url']
 
 export async function stageEdit(pg, trackId, field, oldValue, newValue) {
@@ -23,6 +25,15 @@ export async function commitEdits(pg) {
 				await tx.sql`UPDATE tracks SET title = ${edit.new_value} WHERE id = ${edit.track_id}`
 			} else if (edit.field === 'description') {
 				await tx.sql`UPDATE tracks SET description = ${edit.new_value} WHERE id = ${edit.track_id}`
+				// Extract tags and mentions from description
+				const tags = extractHashtags(edit.new_value)
+				const mentions = []
+				edit.new_value.replace(ENTITY_REGEX, (match, prefix, entity) => {
+					if (entity.startsWith('@')) {
+						mentions.push(entity.slice(1).toLowerCase())
+					}
+				})
+				await tx.sql`UPDATE tracks SET tags = ${tags}, mentions = ${mentions} WHERE id = ${edit.track_id}`
 			} else if (edit.field === 'url') {
 				await tx.sql`UPDATE tracks SET url = ${edit.new_value} WHERE id = ${edit.track_id}`
 			}

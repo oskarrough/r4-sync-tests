@@ -2,7 +2,6 @@
 	import {stageEdit, commitEdits, discardEdits, getEdits} from '$lib/api'
 	import {pullTracks} from '$lib/sync'
 	import {invalidateAll} from '$app/navigation'
-	import BulkActions from './BulkActions.svelte'
 	import EditPreview from './EditPreview.svelte'
 	import TrackRow from './TrackRow.svelte'
 
@@ -106,6 +105,7 @@
 					await stageEdit(trackId, field, track[field] || '', newValue)
 				}
 			}
+			await invalidateAll()
 		} catch (error) {
 			console.error('Bulk edit failed:', error)
 		}
@@ -115,6 +115,7 @@
 		try {
 			await commitEdits()
 			showPreview = false
+			await invalidateAll()
 		} catch (error) {
 			console.error('Commit failed:', error)
 		}
@@ -181,13 +182,13 @@
 	</nav>
 	<menu>
 		<select bind:value={filter}>
-			<option value="all">all tracks ({tracks.length})</option>
+			<option value="all">All ({tracks.length})</option>
+			<option value="missing-description">Empty description</option>
+			<option value="single-tag">1 tag</option>
+			<option value="no-tags">No tags</option>
+			<option value="no-meta">No metadata</option>
+			<option value="has-meta">Has metadata</option>
 			<option value="has-t-param">has &t= param</option>
-			<option value="missing-description">empty description</option>
-			<option value="no-tags">no tags</option>
-			<option value="single-tag">single tag</option>
-			<option value="no-meta">no metadata</option>
-			<option value="has-meta">has metadata</option>
 		</select>
 		<button onclick={handlePullTracks}>Pull tracks</button>
 		<button onclick={handlePullMeta} disabled={updatingMeta}>
@@ -206,14 +207,27 @@
 	{handleDiscard}
 />
 
-<BulkActions
-	{filteredTracks}
-	{hasSelection}
-	{selectedCount}
-	{bulkEdit}
-	{selectAll}
-	{clearSelection}
-/>
+{#if hasSelection}
+	<section class="bulkOperations">
+		<label>
+			Update the description for {selectedCount} tracks:
+			<input
+				type="text"
+				placeholder="Enter a description (any #tags or @mentions will be extracted)"
+				onchange={(e) => bulkEdit('description', e.target.value)}
+			/>
+		</label>
+	</section>
+{/if}
+
+<menu class="selection">
+	{#if hasSelection}
+		<span>{selectedCount} selected</span>
+		<button onclick={clearSelection}>Clear</button>
+	{:else}
+		<button onclick={selectAll}>Select all ({filteredTracks.length})</button>
+	{/if}
+</menu>
 
 <section class="tracks scroll">
 	{#if filteredTracks.length === 0}
@@ -256,6 +270,16 @@
 		margin-left: 0.5rem;
 		margin-bottom: 0.5rem;
 	}
+
+	.bulkOperations {
+		margin: 0.5rem;
+	}
+
+	.selection {
+		margin: 0 0.5rem 0.5rem;
+		align-items: center;
+	}
+
 	header nav {
 		display: flex;
 		flex-flow: row;
@@ -266,19 +290,15 @@
 		}
 	}
 
-	.tracks-list {
-		display: flex;
-		flex-direction: column;
-	}
-
 	.tracks-header {
+		border-top: 1px solid var(--gray-5);
 		display: flex;
 		position: sticky;
 		top: 0;
 		z-index: 1;
 		font-weight: bold;
-		background: var(--gray-1);
-		border-bottom: 1px solid var(--gray-4);
+		border-bottom: 1px solid var(--gray-5);
+		background: var(--bg-2);
 	}
 
 	:global(.col-checkbox),
