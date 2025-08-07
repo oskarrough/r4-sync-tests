@@ -10,6 +10,7 @@
 
 	let syncing = $state(false)
 	let resetting = $state(false)
+	const sha = $derived(__GIT_INFO__.sha)
 
 	async function handleSync() {
 		syncing = true
@@ -40,7 +41,6 @@
 
 <article>
 	<menu>
-		<button onclick={logout}>Logout</button>
 		<button onclick={handleSync} data-loading={syncing} disabled={syncing}>
 			{#if syncing}
 				Syncing
@@ -53,6 +53,7 @@
 		<button onclick={handleReset} data-loading={resetting} disabled={resetting} class="danger">
 			{#if resetting}Resetting...{:else}Reset local database{/if}
 		</button>
+		<button onclick={logout}>Logout</button>
 	</menu>
 
 	<section>
@@ -72,12 +73,22 @@
 		<p>
 			Just like <a href="https://radio4000.com">radio4000.com</a>, this web app pulls its data from
 			the Radio4000 PostgreSQL database. But it pulls it into another PostgreSQL database sitting
-			locally, directly in your browser via WASM. This makes it feel faster, hopefully.
+			locally, directly in your browser via WASM. This makes it feel faster, more app-feeling
+			hopefully. Pull channels from R4 (including version 1) by <em>syncing</em> above &uarr;
 		</p>
-		<p>Pull channels from R4 (including version 1) by <em>syncing</em> above &uarr;</p>
-		<p>Writes are done remotely.</p>
+		<br />
 		<p>
-			Interested? <a href="https://matrix.to/#/#radio4000:matrix.org" rel="noreferrer">Come chat</a>
+			<a href="https://matrix.to/#/#radio4000:matrix.org" rel="noreferrer">Chat with us</a>
+			•
+			{#if sha}
+				<a
+					href="https://github.com/radio4000/r4-sync-tests/commit/{sha}"
+					target="_blank"
+					rel="noreferrer"
+				>
+					Source at {sha}
+				</a>
+			{/if}
 		</p>
 	</section>
 
@@ -94,6 +105,7 @@
 	}
 	section {
 		margin-top: 2rem;
+		margin-left: 1rem;
 	}
 	p {
 		max-width: 100ch;
