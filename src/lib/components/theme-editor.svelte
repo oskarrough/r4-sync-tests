@@ -95,7 +95,10 @@
 				max={1.1}
 				step={0.05}
 				id={`${uid}--scaling`}
-				oninput={(e) => updateVariable('--scaling', e.target.value)}
+				oninput={(e) => {
+					console.log('Raw slider value:', e.target.value)
+					updateVariable('--scaling', e.target.value)
+				}}
 			/>
 			<span>{customVariables['--scaling'] || '1'}</span>
 			<small>scale the interface to your measure</small>

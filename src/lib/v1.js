@@ -17,9 +17,10 @@ export async function pullV1Channels({limit} = {limit: debugLimit}) {
 	const items = (await res.json()).slice(0, limit)
 	const {rows: existingChannels} = await pg.sql`select slug from channels`
 	const channels = items.filter(
-		(item) => 
-		!existingChannels.some((r) => r.slug === item.slug) // ignore already imported channels (v1 data is readyonly)
-		&& item.track_count && item.track_count > 3 // ignore almost empty channels
+		(item) =>
+			!existingChannels.some((r) => r.slug === item.slug) && // ignore already imported channels (v1 data is readyonly)
+			item.track_count &&
+			item.track_count > 3 // ignore almost empty channels
 	)
 
 	try {
@@ -107,11 +108,11 @@ async function readFirebaseChannelTracks(cid) {
 	const toObject = (value, id) => ({...value, id})
 	const toArray = (data) => Object.keys(data).map((id) => toObject(data[id], id))
 	const url = `https://radio4000.firebaseio.com/tracks.json?orderBy="channel"&startAt="${cid}"&endAt="${cid}"`
-	
+
 	const res = await fetch(url)
 	if (!res.ok) throw new Error(`Failed to fetch tracks: ${res.status}`)
 	const data = await res.json()
 	if (!data) return []
-	
+
 	return toArray(data).sort((a, b) => a.created - b.created)
 }

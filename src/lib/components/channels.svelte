@@ -34,7 +34,7 @@
 		return channels.filter((c) => {
 			if (filter === 'all') return true
 			if (filter === 'artwork' && !c.image) return false
-			if (filter === '10+' && (!c.track_count || c.track_count < 10)) return false
+			if (filter === '20+' && (!c.track_count || c.track_count < 20)) return false
 			if (filter === '100+' && (!c.track_count || c.track_count < 100)) return false
 			if (filter === '1000+' && (!c.track_count || c.track_count < 1000)) return false
 			return true
@@ -71,7 +71,7 @@
 			<label title="Channel filter">
 				<select bind:value={filter}>
 					<option value="all">All</option>
-					<option value="10+">10+ tracks</option>
+					<option value="20+">20+ tracks</option>
 					<option value="100+">100+ tracks</option>
 					<option value="1000+">1000+ tracks</option>
 					<option value="artwork">Has artwork</option>

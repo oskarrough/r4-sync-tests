@@ -5,9 +5,9 @@ export interface ChannelFirebase {
 	updated_at: number
 	name: string
 	slug: string
-	description?: string,
+	description?: string
 	image?: string
-	track_count?: number,
+	track_count?: number
 	track_ids?: string[]
 }
 

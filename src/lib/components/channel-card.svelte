@@ -27,7 +27,7 @@
 				{trimWithEllipsis(channel.description)}
 				{#if channel.track_count}
 					<small>({channel.track_count})</small>
-				{:else}{/if}
+				{/if}
 			</p>
 		</div>
 	</a>

@@ -36,16 +36,29 @@
 	}
 
 	let lastValue = value
-	function handleInput(event) {
-		if (Math.abs(value - lastValue) < step) return
-		playRandomClick()
-		lastValue = value
+	function handleInput() {
+		if (Math.abs(value - lastValue) >= step) {
+			playRandomClick()
+			lastValue = value
+		}
+	}
+
+	function handleChange(event) {
 		oninput?.(event)
 	}
 </script>
 
 <div class="container">
-	<input type="range" {min} {max} {step} bind:value oninput={handleInput} {...props} />
+	<input
+		type="range"
+		{min}
+		{max}
+		{step}
+		bind:value
+		oninput={handleInput}
+		onchange={handleChange}
+		{...props}
+	/>
 	<div class="marks" aria-hidden="true">
 		{#each {length: marks}, i (i)}
 			<div class="mark"></div>
