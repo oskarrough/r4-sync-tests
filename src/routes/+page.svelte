@@ -1,9 +1,12 @@
 <script>
+	import {invalidateAll} from '$app/navigation'
 	import {page} from '$app/state'
 	import {sync} from '$lib/sync'
 	import Icon from '$lib/components/icon.svelte'
 	import Channels from '$lib/components/channels.svelte'
 	import {liveQuery} from '$lib/live-query'
+
+	const {data} = $props()
 
 	const slug = $derived(page?.url?.searchParams?.get('slug'))
 	const display = $derived(page?.url?.searchParams?.get('display') || 'grid')
@@ -26,11 +29,14 @@
 		syncing = true
 		try {
 			await sync()
+			await invalidateAll()
 		} finally {
 			syncing = false
 		}
 	}
 </script>
+
+<Channels channels={data.channels} {slug} {display} {longitude} {latitude} {zoom} />
 
 {#if channelCount === 0}
 	<menu>
@@ -41,8 +47,6 @@
 		</button>
 	</menu>
 {/if}
-
-<Channels {slug} {display} {longitude} {latitude} {zoom} />
 
 <style>
 	menu {

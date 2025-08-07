@@ -1,27 +1,37 @@
 <script>
 	import {appState} from '$lib/app-state.svelte'
-	import {pg} from '$lib/db'
 	import {shuffleArray} from '$lib/utils'
 	import Icon from './icon.svelte'
 	import ChannelCard from './channel-card.svelte'
 	import MapComponent from './map.svelte'
 
-	const {slug: initialSlug, display: initialDisplay, longitude, latitude, zoom} = $props()
+	const {
+		channels = [],
+		slug: initialSlug,
+		display: initialDisplay,
+		longitude,
+		latitude,
+		zoom
+	} = $props()
 
-	const center = $derived(longitude && latitude ? {longitude, latitude} : null)
-
-	/** @type {'list' | 'grid' | 'map'}*/
-	let display = $derived(appState.channels_display || initialDisplay || 'list')
 	let limit = $state(15)
 	let perPage = $state(100)
 	let filter = $state('all')
 	let shuffled = $state(true)
 
+	/** @type {'list' | 'grid' | 'map'}*/
+	let display = $derived(appState.channels_display || initialDisplay || 'list')
+
+	const center = $derived(longitude && latitude ? {longitude, latitude} : null)
+
+	/*
 	const channelsPromise = $derived.by(
 		async () => (await pg.sql`SELECT * FROM channels ORDER BY created_at DESC`).rows
-	)
+	)*/
 
-	function filterChannels(channels) {
+	const realChannels = $derived.by(() => processChannels(channels))
+
+	function filterChannels() {
 		return channels.filter((c) => {
 			if (filter === 'all') return true
 			if (filter === 'artwork' && !c.image) return false
@@ -32,8 +42,8 @@
 		})
 	}
 
-	function processChannels(channels) {
-		const filtered = filterChannels(channels)
+	function processChannels() {
+		const filtered = filterChannels()
 		const processed = shuffled ? shuffleArray([...filtered]) : filtered
 		return {
 			filtered,
@@ -101,37 +111,29 @@
 		</div>
 	</menu>
 
-	{#await channelsPromise}
-		<p>Loading channels...</p>
-	{:then channels}
-		{@const processed = processChannels(channels)}
-
-		{#if display === 'map'}
-			{#if processed.mapMarkers}
-				<MapComponent urlMode markers={processed.mapMarkers} {center} {zoom}></MapComponent>
-			{/if}
-		{:else}
-			<ol class={display}>
-				{#each processed.displayed as channel (channel.id)}
-					<li>
-						<ChannelCard {channel} />
-					</li>
-				{/each}
-			</ol>
-			<footer>
-				{#if processed.displayed?.length > 0}
-					<p>
-						Showing {processed.displayed.length} of {processed.filtered.length} channels.
-						{#if processed.displayed.length < processed.filtered.length}
-							<button onclick={() => (limit = limit + perPage)}>Load {perPage} more</button>
-						{/if}
-					</p>
-				{/if}
-			</footer>
+	{#if display === 'map'}
+		{#if realChannels.mapMarkers}
+			<MapComponent urlMode markers={realChannels.mapMarkers} {center} {zoom}></MapComponent>
 		{/if}
-	{:catch error}
-		<p>Error loading channels: {error.message}</p>
-	{/await}
+	{:else}
+		<ol class={display}>
+			{#each realChannels.displayed as channel (channel.id)}
+				<li>
+					<ChannelCard {channel} />
+				</li>
+			{/each}
+		</ol>
+		<footer>
+			{#if realChannels.displayed?.length > 0}
+				<p>
+					Showing {realChannels.displayed.length} of {realChannels.filtered.length} channels.
+					{#if realChannels.displayed.length < realChannels.filtered.length}
+						<button onclick={() => (limit = limit + perPage)}>Load {perPage} more</button>
+					{/if}
+				</p>
+			{/if}
+		</footer>
+	{/if}
 </div>
 
 <style>
