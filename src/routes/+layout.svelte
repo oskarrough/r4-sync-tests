@@ -26,6 +26,10 @@
 	onMount(async () => {
 		await checkUser()
 		applyCustomCssVariables()
+		// Ensure channels_display has a value before persisting
+		if (!appState.channels_display) {
+			appState.channels_display = 'grid'
+		}
 		skipPersist = false
 	})
 

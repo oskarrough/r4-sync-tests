@@ -48,7 +48,7 @@
 	}
 </script>
 
-<div class="container">
+<div class="input-range">
 	<input
 		type="range"
 		{min}
@@ -67,11 +67,9 @@
 </div>
 
 <style>
-	.container {
+	.input-range {
 		position: relative;
 		display: flex;
-		max-width: 300px;
-		border: 1px solid;
 	}
 
 	input[type='range'] {
@@ -81,6 +79,7 @@
 		cursor: pointer;
 		position: relative;
 		z-index: 2;
+		accent-color: var(--color-accent);
 	}
 
 	.marks {

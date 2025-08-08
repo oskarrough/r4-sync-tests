@@ -4,6 +4,7 @@
 	import Icon from './icon.svelte'
 	import ChannelCard from './channel-card.svelte'
 	import MapComponent from './map.svelte'
+	import SpectrumScanner from './spectrum-scanner.svelte'
 
 	const {
 		channels = [],
@@ -19,7 +20,7 @@
 	let filter = $state('all')
 	let shuffled = $state(true)
 
-	/** @type {'grid' | 'list' | 'map'}*/
+	/** @type {'grid' | 'list' | 'map' | 'coordinates' | 'spectrum' | 'drift'}*/
 	let display = $derived(appState.channels_display || initialDisplay || 'grid')
 	const center = $derived(longitude && latitude ? {longitude, latitude} : null)
 
@@ -65,6 +66,16 @@
 	}
 </script>
 
+{#snippet displayBtn(prop, icon)}
+	<button
+		title={`View as ${prop}`}
+		class:active={display === prop}
+		onclick={() => setDisplay(prop)}
+	>
+		<Icon {icon} />
+	</button>
+{/snippet}
+
 <div class={`layout layout--${display}`}>
 	<menu>
 		<div class="filters">
@@ -86,27 +97,10 @@
 			</button>
 		</div>
 		<div class="display">
-			<button
-				title="View as list"
-				class:active={display === 'list'}
-				onclick={() => setDisplay('list')}
-			>
-				<Icon icon="unordered-list" />
-			</button>
-			<button
-				title="View as grid"
-				class:active={display === 'grid'}
-				onclick={() => setDisplay('grid')}
-			>
-				<Icon icon="grid" />
-			</button>
-			<button
-				title="View as map"
-				class:active={display === 'map'}
-				onclick={() => setDisplay('map')}
-			>
-				<Icon icon="map" />
-			</button>
+			{@render displayBtn('grid', 'grid')}
+			{@render displayBtn('list', 'unordered-list')}
+			{@render displayBtn('map', 'map')}
+			{@render displayBtn('tuner', 'radio')}
 		</div>
 	</menu>
 
@@ -114,6 +108,8 @@
 		{#if realChannels.mapMarkers}
 			<MapComponent urlMode markers={realChannels.mapMarkers} {center} {zoom}></MapComponent>
 		{/if}
+	{:else if display === 'tuner'}
+		<SpectrumScanner channels={realChannels.filtered} />
 	{:else}
 		<ol class={display}>
 			{#each realChannels.displayed as channel (channel.id)}

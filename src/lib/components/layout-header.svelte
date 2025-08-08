@@ -26,8 +26,7 @@
 	<!-- <a href="/playground/spam-warrior" class="btn">Spam Warrior</a> -->
 
 	<menu>
-		{#if !preloading}
-		{/if}
+		{#if !preloading}{/if}
 	</menu>
 	<menu class="row right">
 		{#if !preloading}
