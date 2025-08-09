@@ -93,30 +93,26 @@ export {
 		parseEntities,
 		extractHashtags,
 		batcher,
-	},
-	dates: {
-		formatDate,
-		relativeDate,
-		relativeDateSolar,
-	},
-	focus: {
-		forcefocus,
-		focusable_children,
-		trap,
-	},
-	keyboard: {
-		initializeKeyboardShortcuts,
-	},
-	spam: {
-		analyzeChannel,
-		analyzeChannels,
-		updateChannelSpam,
-		clearChannelSpam,
-		getChannelTracks,
-	},
-	types: {
-		ok,
-		err,
+		dates: {
+			formatDate,
+			relativeDate,
+			relativeDateSolar,
+		},
+		focus: {
+			forcefocus,
+			focusable_children,
+			trap,
+		},
+		keyboard: {
+			initializeKeyboardShortcuts,
+		},
+		spam: {
+			analyzeChannel,
+			analyzeChannels,
+			updateChannelSpam,
+			clearChannelSpam,
+			getChannelTracks,
+		},
 	},
 }
 
