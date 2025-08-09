@@ -33,7 +33,7 @@ export async function searchChannels(query) {
  * @param {string} [channelSlug] - optional channel slug to filter by
  * @returns {Promise<Array>} - track results
  */
-export async function searchTracks(query, channelSlug = null) {
+export async function searchTracks(query, channelSlug) {
 	const likeQuery = `%${query.toLowerCase()}%`
 
 	if (channelSlug) {

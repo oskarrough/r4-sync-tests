@@ -23,7 +23,7 @@ function callableObject(defaultFn, methods) {
 async function localChannels(params = {}) {
 	const {rows} = await pg.sql`
 		select * from channels 
-		where (${'name' in params} = false or name ilike ${`%${params.name}%`})
+		where (${'slug' in params} = false or slug = ${params.slug})
 		order by updated_at desc
 	`
 	return rows
@@ -35,7 +35,7 @@ async function localChannels(params = {}) {
 async function localTracks(params = {}) {
 	const {rows} = await pg.sql`
 		select * from tracks_with_meta
-		where (${'channel' in params} = false or channel_slug = ${params.channel})
+		where (${'slug' in params} = false or channel_slug = ${params.slug})
 		order by created_at desc
 	`
 	return rows
@@ -75,7 +75,7 @@ async function pullAndGetChannels(params = {slug: ''}) {
 async function pullTracksData(params = {slug: ''}) {
 	if (!params.slug) throw new Error('pull tracks requires channel slug')
 	await pullTracks(params.slug)
-	return await localTracks({channel: params.slug})
+	return await localTracks({slug: params.slug})
 }
 
 /**
@@ -100,7 +100,7 @@ async function pullV1TracksData(params = {}) {
 		throw new Error('v1 tracks requires channel and firebase params')
 	}
 	await pullV1Tracks(params.channel, params.firebase, pg)
-	return await localTracks({channel: params.channel})
+	return await localTracks({slug: params.channel})
 }
 
 // Create the source-first API with callable objects

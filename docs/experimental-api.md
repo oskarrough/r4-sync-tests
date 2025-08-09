@@ -18,11 +18,11 @@ import {r5} from '$lib/experimental-api'
 
 // local by default
 await r5.channels()
-await r5.tracks({channel: 'oskar'})
+await r5.tracks({slug: 'oskar'})
 
 // explicit sources
-await r5.channels.r4()        // fetch without storing
-await r5.channels.pull()       // fetch all sources, store, return
+await r5.channels.r4() // fetch without storing
+await r5.channels.pull({slug: 'optional-slug'}) // fetch all/specific, store, return
 await r5.tracks.v1({channel: 'oskar', firebase: 'id'})
 ```
 
@@ -31,9 +31,9 @@ await r5.tracks.v1({channel: 'oskar', firebase: 'id'})
 functions with methods attached via `Object.assign`:
 
 ```js
-r5.channels()         // calls localChannels
-r5.channels.r4()      // calls remoteChannels
-r5.search('query')    // calls performSearch
+r5.channels() // calls localChannels
+r5.channels.r4() // calls remoteChannels
+r5.search('query') // calls performSearch
 r5.search.tracks('q') // calls searchTracks
 ```
 
@@ -51,7 +51,8 @@ r4/v1 --pull--> local(pglite) <--query-- app
 
 - `pull()` returns data after storing (convenience over purity)
 - `sync()` in code pulls both v1 and r4 channels
-- tracks require channel slug for remote/pull operations
+- tracks require channel slug for remote/pull operations: `r5.tracks({slug: <required>})`
+- channels lookup by slug: `r5.channels({slug: <optional>})`
 - v1 channels identified by `firebase_id` column presence
 - search is fuzzy/user-facing, query is structured
 
