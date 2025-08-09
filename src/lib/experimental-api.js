@@ -2,9 +2,9 @@ import {pg, dropDb, exportDb, migrateDb} from '$lib/db'
 import {r4} from '$lib/r4'
 import {pullTracks, pullChannel, sync} from '$lib/sync'
 import {pullV1Channels, pullV1Tracks} from '$lib/v1'
-// import {play, pause, next, previous, eject, toggleShuffle, toggleVideo} from '$lib/player'
 import {setPlaylist, addToPlaylist} from '$lib/api'
 import {performSearch, searchChannels, searchTracks} from '$lib/search'
+// import {play, pause, next, previous, eject, toggleShuffle, toggleVideo} from '$lib/player'
 
 /**
  * Creates callable object - function with methods
@@ -95,9 +95,12 @@ async function pullV1ChannelsData(params = {}) {
 /**
  * Pull v1 tracks for a channel and return them
  */
-async function pullV1TracksData(channelId, firebaseId) {
-	await pullV1Tracks(channelId, firebaseId, pg)
-	return await localTracks({channel: channelId})
+async function pullV1TracksData(params = {}) {
+	if (!params.channel || !params.firebase) {
+		throw new Error('v1 tracks requires channel and firebase params')
+	}
+	await pullV1Tracks(params.channel, params.firebase, pg)
+	return await localTracks({channel: params.channel})
 }
 
 // Create the source-first API with callable objects
@@ -106,7 +109,7 @@ export const r5 = {
 		localChannels, // default: r5.channels()
 		{
 			local: localChannels,
-			remote: remoteChannels,
+			r4: remoteChannels,
 			pull: pullAndGetChannels,
 			v1: pullV1ChannelsData
 		}
@@ -116,7 +119,7 @@ export const r5 = {
 		localTracks, // default: r5.tracks()
 		{
 			local: localTracks,
-			remote: remoteTracks,
+			r4: remoteTracks,
 			pull: pullTracksData,
 			v1: pullV1TracksData
 		}
@@ -132,14 +135,14 @@ export const r5 = {
 	// 	pause,
 	// 	next,
 	// 	prev: previous,
-	// 	stop: eject
+	// 	stop: eject,
+	// 	shuffle: toggleShuffle
 	// },
 
 	queue: {
 		add: addToPlaylist,
 		set: setPlaylist,
 		clear: () => setPlaylist([])
-		// shuffle: toggleShuffle
 	},
 
 	search: callableObject(performSearch, {
