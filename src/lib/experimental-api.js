@@ -1,6 +1,6 @@
 import {pg, dropDb, exportDb, migrateDb} from '$lib/db'
 import {r4} from '$lib/r4'
-import {pullChannels, pullTracks, pullChannel, sync} from '$lib/sync'
+import {pullTracks, pullChannel, sync} from '$lib/sync'
 import {pullV1Channels, pullV1Tracks} from '$lib/v1'
 // import {play, pause, next, previous, eject, toggleShuffle, toggleVideo} from '$lib/player'
 import {setPlaylist, addToPlaylist} from '$lib/api'
@@ -60,7 +60,7 @@ async function remoteTracks(params = {slug: ''}) {
 /**
  * Pull channels from all sources, store locally, and return data
  */
-async function pullChannels(params = {slug: ''}) {
+async function pullAndGetChannels(params = {slug: ''}) {
 	if (params.slug) {
 		await pullChannel(params.slug)
 		return await localChannels({slug: params.slug})
@@ -107,7 +107,7 @@ export const r5 = {
 		{
 			local: localChannels,
 			remote: remoteChannels,
-			pull: pullChannels,
+			pull: pullAndGetChannels,
 			v1: pullV1ChannelsData
 		}
 	),

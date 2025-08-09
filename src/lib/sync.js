@@ -17,12 +17,7 @@ const log = logger.ns('sync').seal()
  */
 export async function pullChannels({limit = debugLimit} = {}) {
 	// Use the channels_with_tracks view to get only channels that have tracks
-	const {data: channels} = await r4.sdk.supabase
-		.from('channels_with_tracks')
-		.select('*')
-		.order('updated_at', {ascending: false})
-		.limit(limit)
-		.throwOnError()
+	const channels = await r4.channels.readChannels(limit)
 
 	await pg.transaction(async (tx) => {
 		for (const channel of channels) {

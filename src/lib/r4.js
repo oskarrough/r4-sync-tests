@@ -17,6 +17,15 @@ export const r4 = {
 	},
 
 	channels: {
+		readChannels: (limit = 2000) =>
+			unwrap(() =>
+				sdk.supabase
+					.from('channels_with_tracks')
+					.select('*')
+					.order('updated_at', {ascending: false})
+					.limit(limit)
+					.throwOnError()
+			),
 		readChannel: (...args) => unwrap(() => sdk.channels.readChannel(...args)),
 		readUserChannels: (...args) => unwrap(() => sdk.channels.readUserChannels(...args)),
 		readChannelTracks: (...args) => unwrap(() => sdk.channels.readChannelTracks(...args)),
