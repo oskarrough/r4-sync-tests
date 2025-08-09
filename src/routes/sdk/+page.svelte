@@ -47,13 +47,20 @@
 
 	async function updateSourceStatus() {
 		try {
-			// Update local status
-			const localChannels = await r5.db.pg.sql`select count(*) from channels`
-			const localTracks = await r5.db.pg.sql`select count(*) from tracks`
-			sourceStatus.local.channels = parseInt(localChannels.rows[0].count)
-			sourceStatus.local.tracks = parseInt(localTracks.rows[0].count)
+			const localChannels = await r5.channels()
+			sourceStatus.local.channels = localChannels.length
+			sourceStatus.local.tracks = (await r5.tracks()).length
 			sourceStatus.local.connected = true
-		} catch {
+			
+			// Count R4 channels (those WITHOUT firebase_id - they're v2/modern channels)
+			const r4Channels = localChannels.filter(c => !c.firebase_id)
+			sourceStatus.r4.channels = r4Channels.length
+			
+			// Count V1 channels (those WITH firebase_id - they're legacy channels)
+			const v1Channels = localChannels.filter(c => c.firebase_id)
+			sourceStatus.v1.channels = v1Channels.length
+		} catch (err) {
+			console.error('Failed to update local status:', err)
 			sourceStatus.local.connected = false
 		}
 
@@ -120,8 +127,11 @@
 		}
 	}
 
-	onMount(() => {
+	onMount(async () => {
+		await r5.db.migrate()
+
 		inputElement?.focus()
+
 		updateSourceStatus()
 
 		// Intercept console.log for batch progress
@@ -224,7 +234,7 @@
 			}
 		}
 
-		// Auto-scroll terminal
+		await updateSourceStatus()
 		await tick()
 		scrollTerminal()
 	}
@@ -255,11 +265,13 @@
 				const completion = completions[0].startsWith('r5 ')
 					? completions[0].slice(3)
 					: completions[0]
-				terminalInput = completion + ' '
+				terminalInput = completion
 			} else if (completions.length > 1) {
+				// Show only the unique parts for cleaner display
+				const displayCompletions = completions.map((c) => c.replace('r5 ', ''))
 				terminalOutput.push({
 					type: 'hint',
-					text: completions.join(', '),
+					text: displayCompletions.join('  '),
 					timestamp: new Date()
 				})
 				scrollTerminal()
@@ -299,7 +311,7 @@
 			<div>
 				<strong>R4</strong>
 				<div class="lamp r4 {sourceStatus.r4.connected ? 'connected' : 'disconnected'}"></div>
-				<small>ready</small>
+				<small>{sourceStatus.r4.channels} ch</small>
 				<button onclick={() => syncSource('r4')} disabled={syncInProgress.r4}>
 					{syncInProgress.r4 ? '⟳' : 'PULL'}
 				</button>
@@ -308,7 +320,7 @@
 			<div>
 				<strong>V1</strong>
 				<div class="lamp v1 {sourceStatus.v1.connected ? 'connected' : 'disconnected'}"></div>
-				<small>{sourceStatus.local.channels} ch</small>
+				<small>{sourceStatus.v1.channels} ch</small>
 				<button onclick={() => syncSource('v1')} disabled={syncInProgress.v1}>
 					{syncInProgress.v1 ? '⟳' : 'PULL'}
 				</button>

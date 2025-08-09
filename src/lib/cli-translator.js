@@ -197,7 +197,7 @@ export function getCompletions(partial) {
 	if (parts.length === 2) {
 		// Complete subcommands
 		const subcommands = ['channels', 'tracks', 'search', 'queue', 'db']
-		return subcommands.filter((cmd) => cmd.startsWith(parts[1]))
+		return subcommands.filter((cmd) => cmd.startsWith(parts[1])).map((cmd) => `r5 ${cmd}`)
 	}
 
 	if (parts.length === 3) {
@@ -206,23 +206,33 @@ export function getCompletions(partial) {
 		switch (subcommand) {
 			case 'channels': {
 				const channelSources = ['local', 'r4', 'pull', 'v1']
-				return channelSources.filter((src) => src.startsWith(partial_arg))
+				return channelSources
+					.filter((src) => src.startsWith(partial_arg))
+					.map((src) => `r5 channels ${src}`)
 			}
 			case 'tracks': {
 				const trackSources = ['local', 'r4', 'pull', 'v1']
-				return trackSources.filter((src) => src.startsWith(partial_arg))
+				return trackSources
+					.filter((src) => src.startsWith(partial_arg))
+					.map((src) => `r5 tracks ${src}`)
 			}
 			case 'search': {
-				const searchTypes = ['channels', 'tracks']
-				return searchTypes.filter((type) => type.startsWith(partial_arg))
+				const searchTypes = ['channels', 'tracks', 'all']
+				return searchTypes
+					.filter((type) => type.startsWith(partial_arg))
+					.map((type) => `r5 search ${type}`)
 			}
 			case 'queue': {
 				const queueActions = ['add', 'set', 'clear']
-				return queueActions.filter((action) => action.startsWith(partial_arg))
+				return queueActions
+					.filter((action) => action.startsWith(partial_arg))
+					.map((action) => `r5 queue ${action}`)
 			}
 			case 'db': {
 				const dbActions = ['reset', 'export', 'migrate']
-				return dbActions.filter((action) => action.startsWith(partial_arg))
+				return dbActions
+					.filter((action) => action.startsWith(partial_arg))
+					.map((action) => `r5 db ${action}`)
 			}
 		}
 	}
