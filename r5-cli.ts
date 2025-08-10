@@ -1,16 +1,13 @@
 #!/usr/bin/env bun
 
 /**
- * Node.js CLI for R5 experimental API
- * Usage: bun r5-cli.ts channels oskar
- * Usage: bun r5-cli.ts tracks local
- * Usage: bun r5-cli.ts search jazz
+ * Bun CLI for R5 API
+ * Usage: `bun r5-cli.ts help`
  */
 
 import {parseCommand} from './src/lib/cli-translator.js'
 import {migrateDb} from './src/lib/db.js'
 
-// Main CLI execution
 async function main() {
 	const args = process.argv.slice(2)
 
@@ -40,7 +37,7 @@ async function main() {
 			process.exit(1)
 		}
 
-		console.log('parsed command:', parsed)
+		console.log('parsed:', parsed.fn.name, parsed.args.length ? parsed.args : '')
 		// process.exit(0)
 		// return
 

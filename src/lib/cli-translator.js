@@ -1,9 +1,67 @@
 /**
  * CLI translator - converts GitHub CLI-style commands to r5 API calls
- * Example: "r5 channels" → {fn: r5.channels, args: []}
+ * Example: "r5 channels pull oskar" → {fn: r5.channels.pull, args: [{slug: "oskar"}]}
  */
 
 import {r5} from './experimental-api'
+
+const COMMANDS = {
+	channels: {
+		methods: ['local', 'r4', 'pull', 'v1'],
+		argTransforms: {
+			local: (args) => args[0] ? [{slug: args[0]}] : [],
+			r4: (args) => args[0] ? [{slug: args[0]}] : [],
+			pull: (args) => args[0] ? [{slug: args[0]}] : [],
+			v1: (args) => args[0] ? [{slug: args[0]}] : [],
+			default: (args) => args[0] ? [{slug: args[0]}] : []
+		}
+	},
+	tracks: {
+		methods: ['local', 'r4', 'pull', 'v1'],
+		argTransforms: {
+			local: (args) => args[0] ? [{slug: args[0]}] : [],
+			r4: (args) => [{slug: args[0]}],
+			pull: (args) => [{slug: args[0]}],
+			v1: (args) => {
+				const [channel, firebase] = args
+				if (!channel || !firebase) throw new Error('v1 tracks requires channel and firebase_id')
+				return [{channel, firebase}]
+			},
+			default: (args) => args[0] ? [{slug: args[0]}] : []
+		}
+	},
+	search: {
+		methods: ['channels', 'tracks'],
+		argTransforms: {
+			channels: (args) => {
+				const query = args.join(' ')
+				if (!query) throw new Error('search channels requires query')
+				return [query]
+			},
+			tracks: (args) => {
+				const query = args.join(' ')
+				if (!query) throw new Error('search tracks requires query')
+				return [query]
+			},
+			default: (args, method) => {
+				// "search jazz" -> search all with "jazz"
+				const query = [method, ...args].join(' ')
+				return [query]
+			}
+		}
+	},
+	pull: {
+		argTransforms: {
+			default: (args) => [args[0]]
+		}
+	},
+	db: {
+		methods: ['reset', 'export', 'migrate'],
+		argTransforms: {
+			default: () => []
+		}
+	}
+}
 
 /**
  * Parse CLI command into executable function and arguments
@@ -18,207 +76,55 @@ export function parseCommand(command) {
 		return {error: 'Commands must start with "r5"', raw}
 	}
 
-	const [, subcommand, ...args] = parts
+	const [, subcommand, method, ...args] = parts
 
 	if (!subcommand) {
 		return {error: 'Missing subcommand. Try: r5 channels, r5 tracks, r5 search', raw}
 	}
 
-	try {
-		switch (subcommand) {
-			case 'help':
-				return parseHelpCommand(args, raw)
-			case 'channels':
-				return parseChannelsCommand(args, raw)
-			case 'tracks':
-				return parseTracksCommand(args, raw)
-			case 'search':
-				return parseSearchCommand(args, raw)
-			case 'queue':
-				return parseQueueCommand(args, raw)
-			case 'db':
-				return parseDbCommand(args, raw)
-			case 'pull':
-				return parsePullCommand(args, raw)
-			default:
-				return {error: `Unknown subcommand: ${subcommand}`, raw}
+	if (subcommand === 'help') {
+		return {
+			fn: async () => `channels [local|r4|pull] [slug] - read channels (v1 no slug)
+  tracks local [slug], r4|pull <slug> - read tracks (v1 uses channel+firebase)
+  search [channels|tracks] <query>    - search channels & tracks
+  db [reset|migrate|export]           - database operations
+  pull <slug>                         - pull channel with all tracks
+  help                                - show this help`,
+			args: [],
+			raw
 		}
+	}
+
+	try {
+		const config = COMMANDS[subcommand]
+		if (!config) {
+			return {error: `Unknown subcommand: ${subcommand}`, raw}
+		}
+
+		// Get the target function from r5 API
+		let fn = r5[subcommand]
+		let transform = config.argTransforms?.default || (() => args)
+
+		// If method specified and exists, use it
+		if (method && config.methods?.includes(method)) {
+			fn = r5[subcommand][method]
+			transform = config.argTransforms?.[method] || config.argTransforms?.default || (() => args)
+		} else if (method && config.argTransforms) {
+			// Method not in allowed list, treat as argument
+			transform = config.argTransforms.default || (() => [method, ...args])
+			args.unshift(method)
+		}
+
+		if (!fn) {
+			return {error: `Function not found for: ${subcommand}${method ? ' ' + method : ''}`, raw}
+		}
+
+		const transformedArgs = transform(method && config.methods?.includes(method) ? args : [method, ...args].filter(Boolean), method)
+
+		return {fn, args: transformedArgs, raw}
 	} catch (err) {
 		return {error: err.message, raw}
 	}
-}
-
-function parseHelpCommand(args, raw) {
-	const helpText = `channels [local|r4|pull] [slug] - read channels (v1 no slug)
-  tracks local [slug], r4|pull <slug> - read tracks (v1 uses channel+firebase)
-  search [channels|tracks] <query>    - search channels & tracks
-  queue [add|set|clear]               - manage playlist queue
-  db [reset|migrate|export]           - database operations
-  pull <slug>                         - pull channel with all tracks
-  help                                - show this help`
-
-	return {
-		fn: async () => helpText,
-		args: [],
-		raw
-	}
-}
-
-function parseChannelsCommand(args, raw) {
-	const [source, ...rest] = args
-
-	switch (source) {
-		case undefined:
-			// r5 channels
-			return {fn: r5.channels, args: [], raw}
-		case 'local': {
-			// r5 channels local [slug]
-			const slug = rest[0]
-			return {fn: r5.channels.local, args: slug ? [{slug}] : [], raw}
-		}
-		case 'r4': {
-			// r5 channels r4 [slug]
-			const slug = rest[0]
-			return {fn: r5.channels.r4, args: slug ? [{slug}] : [], raw}
-		}
-		case 'pull': {
-			// r5 channels pull [slug]
-			const slug = rest[0]
-			return {fn: r5.channels.pull, args: slug ? [{slug}] : [], raw}
-		}
-		case 'v1': {
-			// r5 channels v1 [slug]
-			const slug = rest[0]
-			return {fn: r5.channels.v1, args: slug ? [slug] : [], raw}
-		}
-		default:
-			// r5 channels oskar (filter by slug)
-			return {fn: r5.channels, args: [{slug: source}], raw}
-	}
-}
-
-function parseTracksCommand(args, raw) {
-	const [action, ...rest] = args
-
-	switch (action) {
-		case undefined:
-			// r5 tracks
-			return {fn: r5.tracks, args: [], raw}
-		case 'local': {
-			// r5 tracks local [slug]
-			const slug = rest[0]
-			return {fn: r5.tracks.local, args: slug ? [{slug}] : [], raw}
-		}
-		case 'r4': {
-			// r5 tracks r4 <slug>
-			const slug = rest[0]
-			if (!slug) throw new Error('r4 tracks requires channel slug')
-			return {fn: r5.tracks.r4, args: [{slug: slug}], raw}
-		}
-		case 'pull': {
-			// r5 tracks pull <slug>
-			const slug = rest[0]
-			if (!slug) throw new Error('pull tracks requires channel slug')
-			return {fn: r5.tracks.pull, args: [{slug: slug}], raw}
-		}
-		case 'v1': {
-			// r5 tracks v1 channel firebase_id
-			const [v1Channel, firebaseId] = rest
-			if (!v1Channel || !firebaseId) {
-				throw new Error('v1 tracks requires channel and firebase_id')
-			}
-			return {fn: r5.tracks.v1, args: [{channel: v1Channel, firebase: firebaseId}], raw}
-		}
-		default:
-			// r5 tracks <slug>
-			return {fn: r5.tracks, args: [{slug: action}], raw}
-	}
-}
-
-function parseSearchCommand(args, raw) {
-	const [type, ...query] = args
-
-	if (!type) {
-		throw new Error('search requires a query')
-	}
-
-	switch (type) {
-		case 'channels': {
-			// r5 search channels jazz
-			const channelQuery = query.join(' ')
-			if (!channelQuery) throw new Error('search channels requires query')
-			return {fn: r5.search.channels, args: [channelQuery], raw}
-		}
-		case 'tracks': {
-			// r5 search tracks jazz
-			const trackQuery = query.join(' ')
-			if (!trackQuery) throw new Error('search tracks requires query')
-			return {fn: r5.search.tracks, args: [trackQuery], raw}
-		}
-		default: {
-			// r5 search jazz (search all)
-			const allQuery = [type, ...query].join(' ')
-			return {fn: r5.search, args: [allQuery], raw}
-		}
-	}
-}
-
-function parseQueueCommand(args, raw) {
-	const [action, ...rest] = args
-
-	switch (action) {
-		case 'add': {
-			// r5 queue add trackId
-			const trackId = rest[0]
-			if (!trackId) throw new Error('queue add requires track ID')
-			return {fn: r5.queue.add, args: [trackId], raw}
-		}
-		case 'set': {
-			// r5 queue set trackId1,trackId2
-			const trackIds = rest
-				.join(' ')
-				.split(',')
-				.map((id) => id.trim())
-			return {fn: r5.queue.set, args: [trackIds], raw}
-		}
-		case 'clear':
-			// r5 queue clear
-			return {fn: r5.queue.clear, args: [], raw}
-		default:
-			throw new Error(`Unknown queue action: ${action}`)
-	}
-}
-
-function parseDbCommand(args, raw) {
-	const [action] = args
-
-	switch (action) {
-		case undefined:
-			// r5 db (show available subcommands)
-			return {
-				fn: async () =>
-					'Available db commands:\n  reset   - reset database\n  export  - export database\n  migrate - run migrations',
-				args: [],
-				raw
-			}
-		case 'reset':
-			// r5 db reset
-			return {fn: r5.db.reset, args: [], raw}
-		case 'export':
-			// r5 db export
-			return {fn: r5.db.export, args: [], raw}
-		case 'migrate':
-			// r5 db migrate
-			return {fn: r5.db.migrate, args: [], raw}
-		default:
-			throw new Error(`Unknown db action: ${action}`)
-	}
-}
-
-function parsePullCommand(args, raw) {
-	const slug = args[0]
-	if (!slug) throw new Error('pull requires channel slug')
-	return {fn: r5.pull, args: [slug], raw}
 }
 
 /**
@@ -230,51 +136,25 @@ export function getCompletions(partial) {
 	const parts = partial.trim().split(/\s+/)
 
 	if (parts.length === 1) {
-		// Complete "r5"
 		return partial.startsWith('r') ? ['r5'] : []
 	}
 
 	if (parts.length === 2) {
-		// Complete subcommands
-		const subcommands = ['help', 'channels', 'tracks', 'search', 'queue', 'db', 'pull']
-		return subcommands.filter((cmd) => cmd.startsWith(parts[1])).map((cmd) => `r5 ${cmd}`)
+		const subcommands = Object.keys(COMMANDS).concat(['help'])
+		return subcommands
+			.filter(cmd => cmd.startsWith(parts[1]))
+			.map(cmd => `r5 ${cmd}`)
 	}
 
 	if (parts.length === 3) {
 		const [, subcommand, partial_arg] = parts
-
-		switch (subcommand) {
-			case 'channels': {
-				const channelSources = ['local', 'r4', 'pull', 'v1']
-				return channelSources
-					.filter((src) => src.startsWith(partial_arg))
-					.map((src) => `r5 channels ${src}`)
-			}
-			case 'tracks': {
-				const trackSources = ['local', 'r4', 'pull', 'v1']
-				return trackSources
-					.filter((src) => src.startsWith(partial_arg))
-					.map((src) => `r5 tracks ${src}`)
-			}
-			case 'search': {
-				const searchTypes = ['channels', 'tracks', 'all']
-				return searchTypes
-					.filter((type) => type.startsWith(partial_arg))
-					.map((type) => `r5 search ${type}`)
-			}
-			case 'queue': {
-				const queueActions = ['add', 'set', 'clear']
-				return queueActions
-					.filter((action) => action.startsWith(partial_arg))
-					.map((action) => `r5 queue ${action}`)
-			}
-			case 'db': {
-				const dbActions = ['reset', 'export', 'migrate']
-				return dbActions
-					.filter((action) => action.startsWith(partial_arg))
-					.map((action) => `r5 db ${action}`)
-			}
-		}
+		const config = COMMANDS[subcommand]
+		
+		if (!config?.methods) return []
+		
+		return config.methods
+			.filter(method => method.startsWith(partial_arg))
+			.map(method => `r5 ${subcommand} ${method}`)
 	}
 
 	return []
