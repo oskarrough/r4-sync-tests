@@ -63,6 +63,7 @@ export async function pullTracks(slug) {
 
 		/** @type {import('$lib/types').Track[]} */
 		const tracks = await r4.channels.readChannelTracks(slug)
+		console.log('pullTracks before insert', tracks)
 
 		// Insert tracks
 		await pg.transaction(async (tx) => {

@@ -47,13 +47,12 @@ export function parseCommand(command) {
 }
 
 function parseHelpCommand(args, raw) {
-	const helpText = `r5 api commands:
-  channels [local|r4|v1|pull]  - read channels
-  tracks [local|r4|v1|pull]    - read tracks  
-  search [channels|tracks] <q> - search channels & tracks
-  queue [add|set|clear]        - manage playlist queue
-  db [reset|migrate|export]    - database operations
-  help                         - show this help`
+	const helpText = `channels [local|r4|pull] [slug] - read channels (v1 no slug)
+  tracks local [slug], r4|pull <slug> - read tracks (v1 uses channel+firebase)
+  search [channels|tracks] <query>    - search channels & tracks
+  queue [add|set|clear]               - manage playlist queue
+  db [reset|migrate|export]           - database operations
+  help                                - show this help`
 
 	return {
 		fn: async () => helpText,
@@ -69,12 +68,16 @@ function parseChannelsCommand(args, raw) {
 		case undefined:
 			// r5 channels
 			return {fn: r5.channels, args: [], raw}
-		case 'local':
-			// r5 channels local
-			return {fn: r5.channels.local, args: [], raw}
-		case 'r4':
-			// r5 channels r4
-			return {fn: r5.channels.r4, args: [], raw}
+		case 'local': {
+			// r5 channels local [slug]
+			const slug = rest[0]
+			return {fn: r5.channels.local, args: slug ? [{slug}] : [], raw}
+		}
+		case 'r4': {
+			// r5 channels r4 [slug]
+			const slug = rest[0]
+			return {fn: r5.channels.r4, args: slug ? [{slug}] : [], raw}
+		}
 		case 'pull': {
 			// r5 channels pull [slug]
 			const slug = rest[0]
@@ -185,6 +188,14 @@ function parseDbCommand(args, raw) {
 	const [action] = args
 
 	switch (action) {
+		case undefined:
+			// r5 db (show available subcommands)
+			return {
+				fn: async () =>
+					'Available db commands:\n  reset   - reset database\n  export  - export database\n  migrate - run migrations',
+				args: [],
+				raw
+			}
 		case 'reset':
 			// r5 db reset
 			return {fn: r5.db.reset, args: [], raw}

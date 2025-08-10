@@ -124,6 +124,16 @@ async function fetchV1Tracks(params = {}) {
 	}))
 }
 
+/**
+ * Pull channel and its tracks - convenience method
+ */
+async function pullEverything(slug) {
+	if (!slug) throw new Error('pull requires channel slug')
+	await pullChannel(slug)
+	await pullTracks(slug)
+	return await localTracks({slug})
+}
+
 // Create the source-first API with callable objects
 export const r5 = {
 	channels: callableObject(
@@ -145,6 +155,11 @@ export const r5 = {
 			v1: fetchV1Tracks
 		}
 	),
+
+	pull: callableObject(pullEverything, {
+		channel: pullAndGetChannels,
+		tracks: pullAndGetTracks
+	}),
 
 	// Stateful operations
 	// player: {

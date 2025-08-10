@@ -1,6 +1,7 @@
 <script>
 	import {onMount} from 'svelte'
 	import {parseCommand} from '$lib/cli-translator'
+	import PgliteRepl from '$lib/components/pglite-repl.svelte'
 	import {r5} from '$lib/experimental-api'
 	import SourceStatus from '$lib/components/sdk-source-status.svelte'
 	import BatchProgress from '$lib/components/sdk-batch-progress.svelte'
@@ -18,11 +19,6 @@
 		local: {connected: true, channels: 0, tracks: 0, lastSync: null},
 		r4: {connected: false, channels: 0, tracks: 0, lastSync: null},
 		v1: {connected: false, channels: 0, tracks: 0, lastSync: null}
-	})
-	let syncInProgress = $state({
-		local: false,
-		r4: false,
-		v1: false
 	})
 
 	// Batch progress state
@@ -80,26 +76,6 @@
 		sourceStatus.v1.connected = sourceStatus.local.connected
 	}
 
-	async function syncSource(source) {
-		if (syncInProgress[source]) return
-
-		syncInProgress[source] = true
-
-		try {
-			switch (source) {
-				case 'r4':
-					await r5.channels.pull()
-					break
-				case 'v1':
-					await r5.channels.v1()
-					break
-			}
-		} finally {
-			syncInProgress[source] = false
-			await updateSourceStatus()
-		}
-	}
-
 	function parseBatcherLog(message) {
 		if (message.startsWith('batcher: processing')) {
 			// "batcher: processing 142 items in 3 batches (batchSize: 50, withinBatch: 1)"
@@ -131,7 +107,6 @@
 		}
 	}
 
-
 	async function handleCommand() {
 		if (!terminalInput.trim()) return
 
@@ -150,6 +125,16 @@
 		const command = terminalInput
 		terminalInput = ''
 		historyIndex = -1
+
+		// Check for common mistake: /search instead of search.
+		if (command.startsWith('/search')) {
+			terminalOutput.push({
+				type: 'hint',
+				text: 'Did you mean "search.tracks ..." or "search.channels ..."?',
+				timestamp: new Date()
+			})
+			return
+		}
 
 		// Parse and execute command
 		const parsed = parseCommand(`r5 ${command}`)
@@ -190,13 +175,21 @@
 				terminalOutput.splice(terminalOutput.indexOf(loadingEntry), 1)
 
 				// Add result
-				terminalOutput.push({
-					type: 'success',
-					text: `✓ ${Array.isArray(result) ? result.length : 1} results (${duration}ms)`,
-					timestamp: new Date(),
-					data: result,
-					showData: true
-				})
+				if (typeof result === 'string') {
+					terminalOutput.push({
+						type: 'success',
+						text: result,
+						timestamp: new Date()
+					})
+				} else {
+					terminalOutput.push({
+						type: 'success',
+						text: `✓ ${Array.isArray(result) ? result.length : 1} results (${duration}ms)`,
+						timestamp: new Date(),
+						data: result,
+						showData: true
+					})
+				}
 
 				// Refresh status if db was reset
 				if (
@@ -294,7 +287,7 @@
 
 <article class="sdk">
 	<header>
-		<h1>r5.explorer</h1>
+		<h1>r5.exe</h1>
 		<SourceStatus {sourceStatus} />
 	</header>
 
@@ -313,14 +306,16 @@
 
 		<ActivityMonitor {activityLog} />
 	</main>
+	<section class="repl">
+		<PgliteRepl />
+	</section>
+	<footer>
+		<p>tip: keep the browser console open</p>
+	</footer>
 </article>
 
 <style>
 	.sdk {
-		font-family: var(--monospace);
-		background: var(--gray-1);
-		color: var(--gray-12);
-		min-height: 100vh;
 		display: flex;
 		flex-direction: column;
 	}
@@ -331,12 +326,19 @@
 		border-bottom: 1px solid var(--gray-4);
 		display: flex;
 		justify-content: space-between;
-		align-items: center;
 	}
 
 	.sdk main {
 		flex: 1;
-		padding: 1rem;
+		padding: 0.5rem;
+		font-family: var(--monospace);
 	}
 
+	.sdk footer {
+		margin: 0 0.5rem;
+	}
+
+	.repl {
+		margin: 0.5rem;
+	}
 </style>

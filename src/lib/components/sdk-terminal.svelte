@@ -65,7 +65,7 @@
 </script>
 
 <section class="terminal">
-	<div class="output terminal-output">
+	<div class="output terminal-output scroll">
 		{#each terminalOutput as entry, i (i)}
 			<div class={entry.type}>
 				<span>{entry.text}</span>
@@ -78,7 +78,9 @@
 							<div>
 								{entry.data
 									.slice(0, 3)
-									.map((item) => (item.slug ? `@${item.slug}` : item.title || item.name))
+									.map(
+										(item) => item.title || item.name || (item.slug ? `@${item.slug}` : 'untitled')
+									)
 									.join(', ')}
 								{#if entry.data.length > 3}
 									and {entry.data.length - 3} more{/if}
@@ -116,7 +118,6 @@
 
 <style>
 	.terminal {
-		background: var(--gray-2);
 		border: 1px solid var(--gray-4);
 		height: 500px;
 		display: flex;
@@ -125,8 +126,7 @@
 
 	.terminal .output {
 		flex: 1;
-		padding: 1rem;
-		overflow-y: auto;
+		padding: 0.5rem;
 	}
 
 	.terminal .output > div {
@@ -137,24 +137,16 @@
 
 	.terminal .copy {
 		position: absolute;
-		right: 0.5rem;
+		right: 0rem;
 		top: 0;
-		background: var(--gray-3);
-		border: 1px solid var(--gray-5);
-		padding: 0.2rem 0.3rem;
-		cursor: pointer;
-		font-size: 0.8rem;
-		opacity: 0.6;
-		transition: opacity 0.2s;
 	}
 
 	.terminal .copy:hover {
-		opacity: 1;
 		background: var(--gray-4);
 	}
 
 	.terminal .success {
-		color: var(--color-green);
+		color: light-dark(var(--color-accent), var(--color-accent));
 	}
 
 	.terminal .error {
@@ -182,8 +174,8 @@
 
 	.terminal .input {
 		border-top: 1px solid var(--gray-4);
-		padding: 0.5rem 1rem;
-		background: var(--gray-1);
+		padding: 0.5rem;
+		background: var(--gray-3);
 	}
 
 	.terminal label {
