@@ -1,33 +1,20 @@
 import {pg, dropDb, exportDb, migrateDb} from './db.js'
-import {r4} from './r4.js'
+import {r4} from './r4'
 import {insertTracks, insertChannel, insertChannels} from './sync.js'
-import {pullV1Channels} from './v1.js'
-import {readFirebaseChannelTracks} from './v1.js'
+import {pullV1Channels, pullV1Tracks, readFirebaseChannelTracks} from './v1.js'
 import {performSearch, searchChannels, searchTracks} from './search.js'
 // import {setPlaylist, addToPlaylist} from './api.js'
 // import {play, pause, next, previous, eject, toggleShuffle, toggleVideo} from '$lib/player'
 
-/** @typedef {import('$lib/types').Track} Track */
-/** @typedef {import('$lib/types').Channel} Channel */
-
-/**
- * Creates callable object - function with methods
- * @template {Function} TCall
- * @template {Record<string, unknown>} TMethods
- * @param {TCall} defaultFn - called when object is invoked as function
- * @param {TMethods} methods - methods to attach to the function
- * @returns {TCall & TMethods}
- */
 function callableObject(defaultFn, methods) {
 	return Object.assign(defaultFn, methods)
 }
 
 /**
  * Query local channels
- * @param {{slug?: string, limit?: number}} params
- * @returns {Promise<import('$lib/types').Channel[]>}
+ * @returns {Promise<Channel[]>}
  */
-async function localChannels(params = {}) {
+async function localChannels(params: {slug?: string; limit?: number} = {}) {
 	const slug = params.slug
 	const limit = typeof params.limit === 'number' ? params.limit : 3000
 	if (!slug) {
@@ -44,10 +31,9 @@ async function localChannels(params = {}) {
 }
 
 /** Query local tracks
- * @param {{slug?: string, limit?: number}} params
- * @returns {Promise<import('$lib/types').Track[]>}
+ * @returns {Promise<Track[]>}
  */
-async function localTracks(params = {}) {
+async function localTracks(params: {slug?: string; limit?: number} = {}) {
 	const slugParam = params.slug
 	const limitParam = typeof params.limit === 'number' ? params.limit : 4000
 
@@ -70,7 +56,7 @@ async function localTracks(params = {}) {
 }
 
 /** Fetch channels from remote without storing */
-async function remoteChannels(params = {}) {
+async function remoteChannels(params: {slug?: string; limit?: number} = {}) {
 	if (params.slug) return await r4.channels.readChannel(params.slug)
 	return await r4.channels.readChannels(params.limit || 3000)
 }
@@ -81,26 +67,6 @@ async function remoteTracks(params = {}) {
 	return await r4.channels.readChannelTracks(params.slug, params.limit || 4000)
 }
 
-/**
- * Pull channel(s) from remote, store locally, and return data
- * @param {{slug?: string, limit?: number}} [params] - if slug provided, pulls single channel; otherwise pulls all channels
- * @returns {Promise<import('$lib/types').Channel[] | import('$lib/types').Channel>}
- */
-async function pullChannel(params = {}) {
-	const {slug, limit} = params
-	if (slug) {
-		const channel = await remoteChannels({slug})
-		if (!channel) throw new Error(`Channel not found: ${slug}`)
-		await insertChannel(channel)
-		const result = await localChannels({slug})
-		return result[0]
-	}
-	// Pull all channels
-	await pullChannels({limit})
-	await pullV1Channels().catch((err) => console.error('pull_v1_channels_error', err))
-	return await localChannels({limit})
-}
-
 /** Pull tracks from remote, store locally, and return data */
 /**
  * @param {{slug?: string, limit?: number}} [params]
@@ -109,19 +75,33 @@ async function pullChannel(params = {}) {
 async function pullTracks(params = {}) {
 	const {slug, limit} = params
 	if (!slug) throw new Error('pull tracks requires channel slug')
-	const tracks = await remoteTracks({slug, limit})
-	await insertTracks(slug, tracks)
+	const channel = (await localChannels({slug}))[0]
+	if (!channel) throw new Error(`sync:insert_tracks_error_404: ${slug}`)
+	if (channel.firebase_id) {
+		await pullV1Tracks(channel.id, channel.firebase_id, pg)
+	} else {
+		const tracks = await remoteTracks({slug, limit})
+		await insertTracks(slug, tracks)
+	}
 	return await localTracks({slug, limit})
 }
 
-/** Pull channels from remote, store locally, and return data */
 /**
- * @param {{limit?: number}} [params]
- * @returns {Promise<import('$lib/types').Channel[]>}
+ * Pull channel(s) from remote, store locally, and return data
+ * @param {{slug?: string, limit?: number}} [params] - if slug provided, pulls single channel; otherwise pulls all channels
+ * @returns {Promise<import('$lib/types').Channel[] | import('$lib/types').Channel>}
  */
 async function pullChannels(params = {}) {
-	const {limit = 3000} = params
-	const channels = await r4.channels.readChannels(limit)
+	const {slug, limit} = params
+	if (slug) {
+		const channel = await remoteChannels({slug})
+		if (!channel) throw new Error(`Channel not found: ${slug}`)
+		await insertChannel(channel)
+		const result = await localChannels({slug})
+		return result[0]
+	}
+	await pullV1Channels()
+	const channels = await r4.channels.readChannels(limit || 3000)
 	await insertChannels(channels)
 	return await localChannels({limit})
 }
@@ -186,9 +166,9 @@ async function fetchV1Tracks(params = {}) {
 async function pullEverything(slug) {
 	if (!slug) {
 		// Pull all channels when no slug provided
-		return await pullChannel()
+		return await pullChannels()
 	}
-	await pullChannel({slug})
+	await pullChannels({slug})
 	await pullTracks({slug})
 	return await localTracks({slug})
 }
@@ -200,7 +180,7 @@ export const r5 = {
 		{
 			local: localChannels,
 			r4: remoteChannels,
-			pull: pullChannel,
+			pull: pullChannels,
 			v1: fetchV1Channels
 		}
 	),
@@ -216,7 +196,7 @@ export const r5 = {
 	),
 
 	pull: callableObject(pullEverything, {
-		channel: pullChannel
+		channel: pullChannels
 	}),
 
 	search: callableObject(performSearch, {

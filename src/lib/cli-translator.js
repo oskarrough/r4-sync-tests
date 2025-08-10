@@ -3,7 +3,7 @@
  * Example: "r5 channels" → {fn: r5.channels, args: []}
  */
 
-import {r5} from './experimental-api.js'
+import {r5} from './experimental-api'
 
 /**
  * Parse CLI command into executable function and arguments

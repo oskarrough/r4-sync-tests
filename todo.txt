@@ -4,7 +4,7 @@ THINGS TO LOOK AT
 R5 API EXPERIMENT
 
 @experimenta-api.md
-@experimental-api.js
+@experimental-api
 cli-r5.ts
 
 - how can we replace stuff like `	const channels = await r4.channels.readUserChannels()` with the r5 api?

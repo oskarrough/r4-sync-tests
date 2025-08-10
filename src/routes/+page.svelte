@@ -1,7 +1,7 @@
 <script>
 	import {invalidateAll} from '$app/navigation'
 	import {page} from '$app/state'
-	import {r5} from '$lib/experimental-api.js'
+	import {r5} from '$lib/experimental-api'
 	import Icon from '$lib/components/icon.svelte'
 	import Channels from '$lib/components/channels.svelte'
 	import {liveQuery} from '$lib/live-query'

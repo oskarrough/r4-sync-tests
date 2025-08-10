@@ -1,8 +1,7 @@
 import {logger} from '$lib/logger'
 import {pg} from '$lib/db'
-import {pullV1Tracks} from '$lib/v1'
 import {r4} from '$lib/r4'
-import {r5} from './experimental-api.js'
+import {r5} from './experimental-api'
 const log = logger.ns('sync').seal()
 
 /**
@@ -56,8 +55,6 @@ export async function insertTracks(slug, tracks) {
 		const channel = (await pg.sql`update channels set busy = true where slug = ${slug} returning *`)
 			.rows[0]
 		if (!channel) throw new Error(`sync:insert_tracks_error_404: ${slug}`)
-
-		if (channel.firebase_id) return await pullV1Tracks(channel.id, channel.firebase_id, pg)
 
 		// Insert tracks
 		await pg.transaction(async (tx) => {

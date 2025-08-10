@@ -48,7 +48,7 @@ desktop-like control panel with:
 └──────────────────────────────┘
 ```
 
-**CLI translator**: converts github-cli style commands to `experimental-api.js` calls:
+**CLI translator**: converts github-cli style commands to `experimental-api` calls:
 
 - `r5 channels` → `r5.channels()`
 - `r5 channels local` → `r5.channels.local()`
@@ -225,7 +225,7 @@ console.log = (...args) => {
 ## references
 
 - see `docs/experimental-api.md` for api patterns
-- see `src/lib/experimental-api.js` for implementation
+- see `src/lib/experimental-api` for implementation
 - use `src/lib/batcher.js` for progress tracking
 - rely on `src/styles/variables.css` for colors
 

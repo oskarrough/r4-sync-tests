@@ -12,7 +12,7 @@ pull <slug>                         - pull channels with tracks
 db [reset|migrate|export]           - database operations
 ```
 
-1. see implementation in `src/lib/experimental-api.js`.
+1. see implementation in `src/lib/experimental-api`.
 2. see how the `cli-translator.js` translates cli commands to api methods
 3. see cli in `cli-r5.ts`
 

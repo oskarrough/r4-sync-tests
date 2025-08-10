@@ -43,7 +43,7 @@
 		}
 	}
 
-	async function pullChannel(slug) {
+	async function pullChannels(slug) {
 		await r5.tracks.pull({slug})
 		onSync()
 		await loadData()
@@ -138,7 +138,7 @@
 								{channel.firebase_id ? '(v1)' : '(r4)'}
 							</span>
 							<div class="actions">
-								<button onclick={() => pullChannel(channel.slug)}>pull</button>
+								<button onclick={() => pullChannels(channel.slug)}>pull</button>
 								<button onclick={() => playChannel(channel)}>play</button>
 							</div>
 						</div>
