@@ -52,12 +52,13 @@ export type Track = {
 	tags?: string[]
 	mentions?: string[]
 	// fields below this line do not exist on remote r4 track
+	firebase_id?: string
 	busy?: boolean
 	// sometimes we include this, too
-	channel_id: string
+	channel_id?: string
 	channel_slug?: string
 	// when joined with track_meta table
-	duration: number
+	duration?: number
 	youtube_data?: object
 	musicbrainz_data?: object
 }

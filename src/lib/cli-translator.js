@@ -38,6 +38,8 @@ export function parseCommand(command) {
 				return parseQueueCommand(args, raw)
 			case 'db':
 				return parseDbCommand(args, raw)
+			case 'pull':
+				return parsePullCommand(args, raw)
 			default:
 				return {error: `Unknown subcommand: ${subcommand}`, raw}
 		}
@@ -52,6 +54,7 @@ function parseHelpCommand(args, raw) {
   search [channels|tracks] <query>    - search channels & tracks
   queue [add|set|clear]               - manage playlist queue
   db [reset|migrate|export]           - database operations
+  pull <slug>                         - pull channel with all tracks
   help                                - show this help`
 
 	return {
@@ -210,6 +213,12 @@ function parseDbCommand(args, raw) {
 	}
 }
 
+function parsePullCommand(args, raw) {
+	const slug = args[0]
+	if (!slug) throw new Error('pull requires channel slug')
+	return {fn: r5.pull, args: [slug], raw}
+}
+
 /**
  * Get available completions for a partial command
  * @param {string} partial - Partial command string
@@ -225,7 +234,7 @@ export function getCompletions(partial) {
 
 	if (parts.length === 2) {
 		// Complete subcommands
-		const subcommands = ['help', 'channels', 'tracks', 'search', 'queue', 'db']
+		const subcommands = ['help', 'channels', 'tracks', 'search', 'queue', 'db', 'pull']
 		return subcommands.filter((cmd) => cmd.startsWith(parts[1])).map((cmd) => `r5 ${cmd}`)
 	}
 

@@ -58,6 +58,18 @@ TERMINOLOGY & API REFACTORS (from index.ts review)
 - split utils by domain: youtube utils, text parsing utils, array utils
 - standardize Channel vs Channels in function names (e.g., pullChannel vs pullChannels)
 
+CLI & LLM INTEGRATION LEARNINGS
+
+- migration check runs on every CLI command - should only migrate when needed, add --migrate flag or check if migrations are current
+- search functionality works but needed better context understanding - improve CLI help/examples for complex queries  
+- natural language search patterns unclear - document search operators (AND, OR, phrase matching) in CLI help
+- CLI could benefit from interactive mode for exploration (like `bun r5-cli.ts shell`)
+- consider adding search shortcuts: `bun r5-cli.ts jazz house` (implicit search tracks)
+- genre cross-analysis queries powerful but not obvious - add examples to CLI help
+- LLM integration reveals rich semantic connections - consider exposing more metadata fields for search
+- CLI output formatting could be improved for LLM parsing (consistent JSON structure)
+- consider adding `--format=table|json|compact` flags for different use cases
+
 HARD ONES, LOW PRIO
 
 - the <youtube-player> fires volumechange seemingly at will, many times on load, which currently overwrites any appState.volume the user might already have. In other words, your volume preferences is persisted, but also overwritten on load

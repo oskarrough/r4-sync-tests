@@ -1,10 +1,13 @@
-import {pg, dropDb, exportDb, migrateDb, debugLimit} from '$lib/db'
-import {r4} from '$lib/r4'
-import {pullTracks, pullChannel, sync} from '$lib/sync'
-import {readFirebaseChannelTracks} from '$lib/v1'
-import {setPlaylist, addToPlaylist} from '$lib/api'
-import {performSearch, searchChannels, searchTracks} from '$lib/search'
+import {pg, dropDb, exportDb, migrateDb, debugLimit} from './db.js'
+import {r4} from './r4.js'
+import {pullTracks, pullChannel, sync} from './sync.js'
+import {readFirebaseChannelTracks} from './v1.js'
+import {performSearch, searchChannels, searchTracks} from './search.js'
+// import {setPlaylist, addToPlaylist} from './api.js'
 // import {play, pause, next, previous, eject, toggleShuffle, toggleVideo} from '$lib/player'
+
+/** @typedef {import('$lib/types').Track} Track */
+/** @typedef {import('$lib/types').Channel} Channel */
 
 /**
  * Creates callable object - function with methods
@@ -17,10 +20,9 @@ function callableObject(defaultFn, methods) {
 
 /**
  * Query local channels
- * @param {Object} params - query parameters
  * @returns {Promise<import('$lib/types.ts').Channel[]>}
  */
-async function localChannels(params = {}) {
+async function localChannels(params = {slug: ''}) {
 	const {rows} = await pg.sql`
 		select * from channels 
 		where (${'slug' in params} = false or slug = ${params.slug})
@@ -29,10 +31,8 @@ async function localChannels(params = {}) {
 	return rows
 }
 
-/**
- * Query local tracks
- */
-async function localTracks(params = {}) {
+/** Query local tracks */
+async function localTracks(params = {slug: ''}) {
 	const {rows} = await pg.sql`
 		select * from tracks_with_meta
 		where (${'slug' in params} = false or channel_slug = ${params.slug})
@@ -41,17 +41,13 @@ async function localTracks(params = {}) {
 	return rows
 }
 
-/**
- * Fetch channels from remote without storing
- */
+/** Fetch channels from remote without storing */
 async function remoteChannels(params = {slug: '', limit: debugLimit}) {
 	if (params.slug) return await r4.channels.readChannel(params.slug)
 	return await r4.channels.readChannels(params.limit)
 }
 
-/**
- * Fetch tracks from remote without storing
- */
+/** Fetch tracks from remote without storing */
 async function remoteTracks(params = {slug: '', limit: debugLimit}) {
 	if (!params.slug) throw new Error('remote tracks requires channel slug')
 	return await r4.channels.readChannelTracks(params.slug, params.limit)
@@ -69,27 +65,26 @@ async function pullAndGetChannels(params = {slug: ''}) {
 	return await localChannels()
 }
 
-/**
- * Pull tracks from remote, store locally, and return data
- */
+/** Pull tracks from remote, store locally, and return data */
 async function pullAndGetTracks(params = {slug: ''}) {
 	if (!params.slug) throw new Error('pull tracks requires channel slug')
 	await pullTracks(params.slug)
 	return await localTracks({slug: params.slug})
 }
 
-/**
- * Fetch v1 channels without storing them
- */
+/** Fetch v1 channels without storing them */
 async function fetchV1Channels(params = {limit: debugLimit}) {
 	const res = await fetch('/channels-firebase-modified.json')
+
+	/** @type {import('$lib/types').ChannelFirebase[]} */
 	const items = await res.json()
+
 	// Apply limit and filter for non-empty channels
 	const channels = items
 		.slice(0, params.limit || debugLimit)
 		.filter((item) => item.track_count && item.track_count > 3)
 
-	// Transform to match channel schema for consistency
+	/** @type {Channel[]} */
 	return channels.map((item) => ({
 		id: item.firebase_id,
 		slug: item.slug,
@@ -102,17 +97,18 @@ async function fetchV1Channels(params = {limit: debugLimit}) {
 	}))
 }
 
-/**
- * Fetch v1 tracks without storing them
- */
-async function fetchV1Tracks(params = {}) {
+/** Fetch v1 tracks without storing them */
+async function fetchV1Tracks(params = {channel: '', firebase: ''}) {
 	if (!params.channel || !params.firebase) {
 		throw new Error('v1 tracks requires channel and firebase params')
 	}
+
+	// @todo use r5 tracks v1 <firebase_channel_id> for this
 	const v1Tracks = await readFirebaseChannelTracks(params.firebase)
 
-	// Transform to match track schema for consistency
-	return v1Tracks.map((track) => ({
+	/** @type {Track[]} */
+	const tracks = v1Tracks.map((track) => ({
+		id: track.id,
 		firebase_id: track.id,
 		channel_slug: params.channel,
 		url: track.url,
@@ -122,10 +118,11 @@ async function fetchV1Tracks(params = {}) {
 		created_at: new Date(track.created).toISOString(),
 		updated_at: new Date(track.updated || track.created).toISOString()
 	}))
+	return tracks
 }
 
-/**
- * Pull channel and its tracks - convenience method
+/** Pull channel and its tracks - convenience method
+ * @param {string} slug - channel slug
  */
 async function pullEverything(slug) {
 	if (!slug) throw new Error('pull requires channel slug')
@@ -161,6 +158,19 @@ export const r5 = {
 		tracks: pullAndGetTracks
 	}),
 
+	search: callableObject(performSearch, {
+		all: performSearch,
+		channels: searchChannels,
+		tracks: searchTracks
+	}),
+
+	db: {
+		pg,
+		export: exportDb,
+		reset: dropDb,
+		migrate: migrateDb
+	}
+
 	// Stateful operations
 	// player: {
 	// 	play: callableObject(play, {
@@ -175,22 +185,9 @@ export const r5 = {
 	// 	shuffle: toggleShuffle
 	// },
 
-	queue: {
-		add: addToPlaylist,
-		set: setPlaylist,
-		clear: () => setPlaylist([])
-	},
-
-	search: callableObject(performSearch, {
-		all: performSearch,
-		channels: searchChannels,
-		tracks: searchTracks
-	}),
-
-	db: {
-		pg,
-		export: exportDb,
-		reset: dropDb,
-		migrate: migrateDb
-	}
+	// queue: {
+	// 	add: addToPlaylist,
+	// 	set: setPlaylist,
+	// 	clear: () => setPlaylist([])
+	// },
 }

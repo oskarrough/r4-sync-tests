@@ -2,7 +2,9 @@ import {PGlite} from '@electric-sql/pglite'
 import {live} from '@electric-sql/pglite/live'
 import type {PGliteWithLive} from '@electric-sql/pglite/live'
 import {pg_trgm} from '@electric-sql/pglite/contrib/pg_trgm'
-import {logger} from '$lib/logger'
+import {logger} from './logger.js'
+
+const browser = typeof window !== 'undefined'
 
 const log = logger.ns('db').seal()
 
@@ -41,15 +43,15 @@ const migrations = [
 	{name: '14-add_tags_mentions', sql: migration14sql}
 ]
 
-// Switch between in-memory and OPFS persisted indexeddb for PostgreSQL
-const persist = true
-const dataDir = persist ? 'idb://radio4000test2' : 'memory://'
-
 // This will be null until createPg() is called
 export let pg: PGliteWithLive
 
-async function createPg(): Promise<PGliteWithLive> {
+/*
+ * @param {boolean} persist - Switch between in-memory and OPFS persisted indexeddb for PostgreSQL
+ */
+export async function createPg(persist = browser): Promise<PGliteWithLive> {
 	if (!pg) {
+		const dataDir = browser ? (persist ? 'idb://radio4000test2' : 'memory://') : './r5-cli-data'
 		pg = await PGlite.create({
 			// debug: 1,
 			dataDir: dataDir,

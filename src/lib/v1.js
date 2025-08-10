@@ -65,6 +65,7 @@ export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
 
 	/** @type {import('$lib/types').Track[]} */
 	const tracks = v1Tracks.map((track) => ({
+		id: track.id,
 		firebase_id: track.id,
 		channel_id: channelId,
 		url: track.url,
