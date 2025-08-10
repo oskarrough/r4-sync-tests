@@ -1,7 +1,8 @@
-import {r4} from '$lib/r4'
-import {pg, debugLimit} from '$lib/db'
-import {pullV1Tracks, pullV1Channels} from '$lib/v1'
 import {logger} from '$lib/logger'
+import {pg} from '$lib/db'
+import {pullV1Tracks} from '$lib/v1'
+import {r4} from '$lib/r4'
+import {r5} from './experimental-api.js'
 const log = logger.ns('sync').seal()
 
 /**
@@ -11,14 +12,10 @@ const log = logger.ns('sync').seal()
 */
 
 /**
- * Always pull channel metadata from Radio4000 into local database. Does not touch tracks.
- * @param {Object} options
- * @param {number} [options.limit=2000] - Number of channels to pull
+ * Insert channels data into local database
+ * @param {import('$lib/types').Channel[]} channels - Channel data to insert
  */
-export async function pullChannels({limit = debugLimit} = {}) {
-	// Use the channels_with_tracks view to get only channels that have tracks
-	const channels = await r4.channels.readChannels(limit)
-
+export async function insertChannels(channels) {
 	await pg.transaction(async (tx) => {
 		for (const channel of channels) {
 			await tx.sql`
@@ -45,7 +42,7 @@ export async function pullChannels({limit = debugLimit} = {}) {
       `
 		}
 	})
-	log.log('pull_channels', channels)
+	log.log('insert_channels', channels)
 }
 
 /**
@@ -108,11 +105,10 @@ export async function insertTracks(slug, tracks) {
 }
 
 /**
- * Pull a single channel by slug from Radio4000 into local database
- * @param {string} slug - Channel slug
+ * Insert channel data into local database
+ * @param {import('$lib/types').Channel} channel - Channel data to insert
  */
-export async function pullChannel(slug) {
-	const channel = await r4.channels.readChannel(slug)
+export async function insertChannel(channel) {
 	await pg.sql`
 			INSERT INTO channels (id, name, slug, description, image, created_at, updated_at)
 			VALUES (
@@ -179,20 +175,11 @@ export async function needsUpdate(slug) {
 	}
 }
 
-/** Pulls all channels into local db (v1+v2) */
-export async function sync() {
-	log.log('sync')
-	await Promise.all([
-		pullChannels().catch((err) => log.error('pull_channels_error', err)),
-		pullV1Channels().catch((err) => log.error('pull_v1_channels_error', err))
-	])
-}
-
 /** Sync if no channels exist locally */
-export async function autoSync() {
+export async function autoPull() {
 	const {rows} = await pg.sql`SELECT COUNT(*) as count FROM channels`
 	const channelCount = parseInt(rows[0].count)
 	if (channelCount > 100) return
-	log.log('autosync')
-	await sync().catch((err) => log.error('auto_sync_error', err))
+	log.log('autoPull')
+	await r5.channels.pull().catch((err) => log.error('auto_sync_error', err))
 }

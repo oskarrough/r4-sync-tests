@@ -2,7 +2,6 @@ import {r4} from '$lib/r4'
 import {pg} from '$lib/db'
 import {logger} from '$lib/logger'
 import {playTrack} from '$lib/api'
-import {pullChannel} from '$lib/sync'
 import {r5} from '$lib/experimental-api'
 import {appState} from '$lib/app-state.svelte'
 
@@ -120,7 +119,7 @@ async function createRemoteBroadcast(channelId, trackId) {
 
 			if (channel?.slug) {
 				try {
-					await pullChannel(channel.slug)
+					await r5.channels.pull({slug: channel.slug})
 					await r5.tracks.pull({slug: channel.slug})
 					log.log('track_synced_retrying_broadcast', {channelId, trackId, slug: channel.slug})
 
@@ -248,7 +247,7 @@ export async function syncPlayBroadcast(broadcast) {
 		// @ts-expect-error supabase
 		const slug = data?.channels?.slug
 		if (slug) {
-			await pullChannel(slug)
+			await r5.channels.pull({slug})
 			await r5.tracks.pull({slug})
 			await playTrack(track_id, '', 'broadcast_sync')
 			appState.listening_to_channel_id = broadcast.channel_id

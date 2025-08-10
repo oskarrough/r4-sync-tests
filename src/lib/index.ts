@@ -10,9 +10,6 @@ export {
 		exportDb,
 	},
 	sync: {
-		pullChannels,
-		pullTracks,
-		pullChannel,
 		needsUpdate,
 		sync,
 		autoSync,
