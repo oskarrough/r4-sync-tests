@@ -3,66 +3,13 @@
 	import {parseCommand} from '$lib/cli-translator'
 	import PgliteRepl from '$lib/components/pglite-repl.svelte'
 	import {r5} from '$lib/experimental-api'
-	import SourceStatus from '$lib/components/sdk-source-status.svelte'
 	import Terminal from '$lib/components/sdk-terminal.svelte'
-	import ActivityMonitor from '$lib/components/sdk-activity-monitor.svelte'
 
 	let terminalInput = $state('')
 	let terminalOutput = $state([])
 	let commandHistory = $state([])
 	let historyIndex = $state(-1)
 	let inputElement
-
-	// Source status state
-	let sourceStatus = $state({
-		local: {connected: true, channels: 0, tracks: 0, lastSync: null},
-		r4: {connected: false, channels: 0, tracks: 0, lastSync: null},
-		v1: {connected: false, channels: 0, tracks: 0, lastSync: null}
-	})
-
-	// Activity monitor
-	let activityLog = $state([])
-
-	function logActivity(operation, duration = null, source = 'local') {
-		const entry = {
-			timestamp: new Date(),
-			operation,
-			duration,
-			source
-		}
-		activityLog.unshift(entry)
-	}
-
-	async function updateSourceStatus() {
-		try {
-			const localChannels = await r5.channels()
-			sourceStatus.local.channels = localChannels.length
-			sourceStatus.local.tracks = (await r5.tracks()).length
-			sourceStatus.local.connected = true
-
-			// Count R4 channels (those WITHOUT firebase_id - they're v2/modern channels)
-			const r4Channels = localChannels.filter((c) => !c.firebase_id)
-			sourceStatus.r4.channels = r4Channels.length
-
-			// Count V1 channels (those WITH firebase_id - they're legacy channels)
-			const v1Channels = localChannels.filter((c) => c.firebase_id)
-			sourceStatus.v1.channels = v1Channels.length
-		} catch (err) {
-			console.error('Failed to update local status:', err)
-			sourceStatus.local.connected = false
-		}
-
-		try {
-			// Test R4 connection
-			await fetch('https://radio4000.com', {mode: 'no-cors'})
-			sourceStatus.r4.connected = true
-		} catch {
-			sourceStatus.r4.connected = false
-		}
-
-		// V1 is always considered connected if local has data
-		sourceStatus.v1.connected = sourceStatus.local.connected
-	}
 
 	async function handleCommand() {
 		if (!terminalInput.trim()) return
@@ -124,10 +71,6 @@
 
 				console.log(`[R5 SDK] Result (${duration}ms):`, result)
 
-				// Log to activity monitor
-				const source = command.includes('r4') ? 'r4' : command.includes('v1') ? 'v1' : 'local'
-				logActivity(`r5 ${command}`, duration, source)
-
 				// Remove loading entry
 				terminalOutput.splice(terminalOutput.indexOf(loadingEntry), 1)
 
@@ -167,28 +110,6 @@
 				})
 			}
 		}
-
-		await updateSourceStatus()
-	}
-
-	async function copyToClipboard(data) {
-		try {
-			const text = typeof data === 'string' ? data : JSON.stringify(data, null, 2)
-			await navigator.clipboard.writeText(text)
-			// Show brief feedback
-			const copyNotice = {
-				type: 'success',
-				text: '✓ copied to clipboard',
-				timestamp: new Date()
-			}
-			terminalOutput.push(copyNotice)
-			setTimeout(() => {
-				const index = terminalOutput.indexOf(copyNotice)
-				if (index > -1) terminalOutput.splice(index, 1)
-			}, 2000)
-		} catch (err) {
-			console.error('Failed to copy:', err)
-		}
 	}
 
 	onMount(async () => {
@@ -196,16 +117,11 @@
 
 		inputElement?.focus()
 
-		updateSourceStatus()
-
 		// Intercept console.log for batch progress
 		const originalLog = console.log
 		console.log = (...args) => {
 			originalLog(...args)
 		}
-
-		// Update status every 30 seconds
-		//const interval = setInterval(updateSourceStatus, 1000)
 
 		// Global keyboard shortcuts
 		const handleGlobalKeydown = (e) => {
@@ -241,7 +157,6 @@
 <article class="sdk">
 	<header>
 		<h1>r5.exe</h1>
-		<SourceStatus {sourceStatus} />
 	</header>
 
 	<main>
@@ -252,10 +167,7 @@
 			bind:historyIndex
 			bind:inputElement
 			onCommand={handleCommand}
-			onCopy={copyToClipboard}
 		/>
-
-		<ActivityMonitor {activityLog} />
 	</main>
 	<section class="repl">
 		<PgliteRepl />

@@ -48,10 +48,10 @@ async function main() {
 		if (typeof result === 'string') {
 			console.log(result)
 		} else if (Array.isArray(result)) {
-			console.log(`✓ ${result.length} results (${duration}ms)`)
+			console.log(`Found ${result.length} items (${duration}ms)`)
 			console.log(JSON.stringify(result, null, 2))
 		} else {
-			console.log(`✓ result (${duration}ms)`)
+			console.log(`Operation completed (${duration}ms)`)
 			console.log(JSON.stringify(result, null, 2))
 		}
 	} catch (error) {

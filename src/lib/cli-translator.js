@@ -9,17 +9,17 @@ const COMMANDS = {
 	channels: {
 		methods: ['local', 'r4', 'pull', 'v1'],
 		argTransforms: {
-			local: (args) => args[0] ? [{slug: args[0]}] : [],
-			r4: (args) => args[0] ? [{slug: args[0]}] : [],
-			pull: (args) => args[0] ? [{slug: args[0]}] : [],
-			v1: (args) => args[0] ? [{slug: args[0]}] : [],
-			default: (args) => args[0] ? [{slug: args[0]}] : []
+			local: (args) => (args[0] ? [{slug: args[0]}] : []),
+			r4: (args) => (args[0] ? [{slug: args[0]}] : []),
+			pull: (args) => (args[0] ? [{slug: args[0]}] : []),
+			v1: (args) => (args[0] ? [{slug: args[0]}] : []),
+			default: (args) => (args[0] ? [{slug: args[0]}] : [])
 		}
 	},
 	tracks: {
 		methods: ['local', 'r4', 'pull', 'v1'],
 		argTransforms: {
-			local: (args) => args[0] ? [{slug: args[0]}] : [],
+			local: (args) => (args[0] ? [{slug: args[0]}] : []),
 			r4: (args) => [{slug: args[0]}],
 			pull: (args) => [{slug: args[0]}],
 			v1: (args) => {
@@ -27,7 +27,7 @@ const COMMANDS = {
 				if (!channel || !firebase) throw new Error('v1 tracks requires channel and firebase_id')
 				return [{channel, firebase}]
 			},
-			default: (args) => args[0] ? [{slug: args[0]}] : []
+			default: (args) => (args[0] ? [{slug: args[0]}] : [])
 		}
 	},
 	search: {
@@ -79,17 +79,25 @@ export function parseCommand(command) {
 	const [, subcommand, method, ...args] = parts
 
 	if (!subcommand) {
-		return {error: 'Missing subcommand. Try: r5 channels, r5 tracks, r5 search', raw}
+		return {error: 'Missing subcommand. Try: r5 help', raw}
 	}
 
 	if (subcommand === 'help') {
 		return {
-			fn: async () => `channels [local|r4|pull] [slug] - read channels (v1 no slug)
-  tracks local [slug], r4|pull <slug> - read tracks (v1 uses channel+firebase)
-  search [channels|tracks] <query>    - search channels & tracks
-  db [reset|migrate|export]           - database operations
-  pull <slug>                         - pull channel with all tracks
-  help                                - show this help`,
+			fn: async () => `R5 - Local-First Music Player CLI
+
+Usage:
+  r5 channels [local|r4|pull] [<slug>]
+  r5 tracks (local [<slug>] | r4 <slug> | pull <slug> | v1 <channel> <firebase>)
+  r5 search [channels|tracks] <query>
+  r5 db (reset|migrate|export)
+  r5 pull <slug>
+
+Examples:
+  r5 channels ko002          List channel @ko002
+  r5 tracks r4 ko002         Get tracks from radio4000
+  r5 search jazz piano       Search everything for "jazz piano"
+  r5 db migrate              Run database migrations`,
 			args: [],
 			raw
 		}
@@ -98,7 +106,7 @@ export function parseCommand(command) {
 	try {
 		const config = COMMANDS[subcommand]
 		if (!config) {
-			return {error: `Unknown subcommand: ${subcommand}`, raw}
+			return {error: `Unknown subcommand: ${subcommand}. Try: r5 help`, raw}
 		}
 
 		// Get the target function from r5 API
@@ -119,7 +127,10 @@ export function parseCommand(command) {
 			return {error: `Function not found for: ${subcommand}${method ? ' ' + method : ''}`, raw}
 		}
 
-		const transformedArgs = transform(method && config.methods?.includes(method) ? args : [method, ...args].filter(Boolean), method)
+		const transformedArgs = transform(
+			method && config.methods?.includes(method) ? args : [method, ...args].filter(Boolean),
+			method
+		)
 
 		return {fn, args: transformedArgs, raw}
 	} catch (err) {
@@ -140,21 +151,29 @@ export function getCompletions(partial) {
 	}
 
 	if (parts.length === 2) {
-		const subcommands = Object.keys(COMMANDS).concat(['help'])
-		return subcommands
-			.filter(cmd => cmd.startsWith(parts[1]))
-			.map(cmd => `r5 ${cmd}`)
+		const patterns = {
+			channels: 'channels [local|r4|pull] [<slug>]',
+			tracks: 'tracks <method> [<args>]',
+			search: 'search [channels|tracks] <query>',
+			db: 'db <command>',
+			pull: 'pull <slug>',
+			help: 'help'
+		}
+
+		return Object.keys(patterns)
+			.filter((cmd) => cmd.startsWith(parts[1]))
+			.map((cmd) => `r5 ${patterns[cmd]}`)
 	}
 
 	if (parts.length === 3) {
 		const [, subcommand, partial_arg] = parts
 		const config = COMMANDS[subcommand]
-		
+
 		if (!config?.methods) return []
-		
+
 		return config.methods
-			.filter(method => method.startsWith(partial_arg))
-			.map(method => `r5 ${subcommand} ${method}`)
+			.filter((method) => method.startsWith(partial_arg))
+			.map((method) => `r5 ${subcommand} ${method}`)
 	}
 
 	return []

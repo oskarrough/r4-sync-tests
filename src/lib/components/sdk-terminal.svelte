@@ -7,8 +7,7 @@
 		commandHistory = $bindable(),
 		historyIndex = $bindable(),
 		inputElement = $bindable(),
-		onCommand,
-		onCopy
+		onCommand
 	} = $props()
 
 	function handleFormSubmit(event) {
@@ -70,9 +69,6 @@
 			<div class={entry.type}>
 				<span>{entry.text}</span>
 				{#if entry.showData && entry.data}
-					<button class="copy" onclick={() => onCopy(entry.data)} title="copy result">📋</button>
-				{/if}
-				{#if entry.showData && entry.data}
 					<div class="data">
 						{#if Array.isArray(entry.data)}
 							<div>
@@ -83,7 +79,7 @@
 									)
 									.join(', ')}
 								{#if entry.data.length > 3}
-									and {entry.data.length - 3} more{/if}
+									+ {entry.data.length - 3} more{/if}
 							</div>
 						{:else if typeof entry.data === 'object'}
 							<div>
@@ -133,16 +129,6 @@
 		margin-bottom: 0.2rem;
 		white-space: pre-wrap;
 		position: relative;
-	}
-
-	.terminal .copy {
-		position: absolute;
-		right: 0rem;
-		top: 0;
-	}
-
-	.terminal .copy:hover {
-		background: var(--gray-4);
 	}
 
 	.terminal .success {

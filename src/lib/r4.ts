@@ -10,7 +10,9 @@ import {debugLimit} from '$lib/db'
  * Generic unwrap function that preserves TypeScript types from SDK calls
  * Extracts data from {data, error} pattern and throws on error
  */
-async function unwrap<T>(fn: () => Promise<{data?: T | null; error?: any}>): Promise<T> {
+async function unwrap<T>(
+	fn: () => Promise<{data?: T | null; error?: {message: string}}>
+): Promise<T> {
 	const result = await fn()
 	if (result.error) throw result.error
 	if (result.data == null) throw new Error('No data returned')

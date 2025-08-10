@@ -65,7 +65,6 @@ TERMINOLOGY & API REFACTORS (from index.ts review)
 - unify play actions: merge playTrack and playChannel into single play(entity) 
 - consolidate toggle actions: consider set* with boolean param for explicit state management
 - remove redundancy: togglePlayPause (api) vs togglePlay (player) - pick one location
-- rename readBroadcastsWithChannel to queryBroadcasts for consistency
 - group metadata enrichment functions (youtube, musicbrainz) under single namespace
 - move spam detection out of playground into proper module if keeping
 - split utils by domain: youtube utils, text parsing utils, array utils
