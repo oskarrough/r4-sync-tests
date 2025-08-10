@@ -19,6 +19,7 @@ export interface Channel {
 	slug: string
 	description?: string
 	image?: string
+	url?: string
 	// custom ones
 	tracks_outdated?: boolean
 	track_count?: number

@@ -43,6 +43,9 @@
 			<!-- <button onclick={toggleChatPanel}>Chat</button> -->
 			<ThemeToggle />
 		{/if}
+		<a href="/sdk" class="btn" class:active={page.route.id === '/sdk'}>
+			<Icon icon="terminal" size={20} />
+		</a>
 		<a href="/settings" class="btn" class:active={page.route.id === '/settings'}>
 			<Icon icon="settings" size={20} />
 		</a>

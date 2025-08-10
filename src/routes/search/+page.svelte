@@ -54,17 +54,18 @@
 </svelte:head>
 
 <article use:trap>
-	{#if searchQuery && !isLoading && tracks.length > 0}
-		<menu>
+	<menu>
+		{#if searchQuery && !isLoading && tracks.length > 0}
 			<button type="button" onclick={() => setPlaylist(tracks.map((t) => t.id))}>Play all</button>
 			<button type="button" onclick={() => addToPlaylist(tracks.map((t) => t.id))}
 				>Add to queue</button
 			>
-			<small
-				>Showing {channels.length} channels and {tracks.length} tracks for "{searchQuery}"</small
-			>
-		</menu>
-	{/if}
+		{/if}
+		<small
+			>Found {channels.length} channels and {tracks.length} tracks for
+			<em>"{searchQuery}"</em></small
+		>
+	</menu>
 
 	{#if searchQuery && !isLoading}
 		{#if channels.length === 0 && tracks.length === 0}
@@ -74,7 +75,7 @@
 
 		{#if channels.length > 0}
 			<section>
-				<h2>{channels.length} Channels</h2>
+				<h2 style="margin-left:0.5rem">{channels.length} Channels</h2>
 				<ul class="grid">
 					{#each channels as channel (channel.id)}
 						<li>
