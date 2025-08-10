@@ -203,8 +203,6 @@ console.log = (...args) => {
 
 ### keyboard shortcuts
 
-- `/` - focus command input
-- `ctrl+k` - clear terminal
 - `tab` - autocomplete
 - `esc` - cancel operation
 

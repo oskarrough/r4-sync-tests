@@ -1,7 +1,11 @@
 <script>
 	import {onMount} from 'svelte'
-	import {parseCommand, getCompletions} from '$lib/cli-translator'
+	import {parseCommand} from '$lib/cli-translator'
 	import {r5} from '$lib/experimental-api'
+	import SourceStatus from '$lib/components/sdk-source-status.svelte'
+	import BatchProgress from '$lib/components/sdk-batch-progress.svelte'
+	import Terminal from '$lib/components/sdk-terminal.svelte'
+	import ActivityMonitor from '$lib/components/sdk-activity-monitor.svelte'
 
 	let terminalInput = $state('')
 	let terminalOutput = $state([])
@@ -51,13 +55,13 @@
 			sourceStatus.local.channels = localChannels.length
 			sourceStatus.local.tracks = (await r5.tracks()).length
 			sourceStatus.local.connected = true
-			
+
 			// Count R4 channels (those WITHOUT firebase_id - they're v2/modern channels)
-			const r4Channels = localChannels.filter(c => !c.firebase_id)
+			const r4Channels = localChannels.filter((c) => !c.firebase_id)
 			sourceStatus.r4.channels = r4Channels.length
-			
+
 			// Count V1 channels (those WITH firebase_id - they're legacy channels)
-			const v1Channels = localChannels.filter(c => c.firebase_id)
+			const v1Channels = localChannels.filter((c) => c.firebase_id)
 			sourceStatus.v1.channels = v1Channels.length
 		} catch (err) {
 			console.error('Failed to update local status:', err)
@@ -127,35 +131,6 @@
 		}
 	}
 
-	onMount(async () => {
-		await r5.db.migrate()
-
-		inputElement?.focus()
-
-		updateSourceStatus()
-
-		// Intercept console.log for batch progress
-		const originalLog = console.log
-		console.log = (...args) => {
-			if (args[0] && typeof args[0] === 'string' && args[0].startsWith('batcher:')) {
-				parseBatcherLog(args[0])
-			}
-			originalLog(...args)
-		}
-
-		// Update status every 30 seconds
-		const interval = setInterval(updateSourceStatus, 30000)
-
-		return () => {
-			clearInterval(interval)
-			console.log = originalLog
-		}
-	})
-
-	function handleFormSubmit(event) {
-		event.preventDefault()
-		handleCommand()
-	}
 
 	async function handleCommand() {
 		if (!terminalInput.trim()) return
@@ -222,6 +197,15 @@
 					data: result,
 					showData: true
 				})
+
+				// Refresh status if db was reset
+				if (
+					command.includes('db.reset') ||
+					command.includes('db reset') ||
+					command.includes('drop_tables')
+				) {
+					await r5.db.migrate()
+				}
 			} catch (error) {
 				// Remove loading entry
 				terminalOutput.splice(terminalOutput.indexOf(loadingEntry), 1)
@@ -235,62 +219,73 @@
 		}
 
 		await updateSourceStatus()
-		await tick()
-		scrollTerminal()
 	}
 
-	function handleKeydown(event) {
-		if (event.key === 'Enter') {
-			handleCommand()
-		} else if (event.key === 'ArrowUp') {
-			event.preventDefault()
-			if (historyIndex < commandHistory.length - 1) {
-				historyIndex++
-				terminalInput = commandHistory[historyIndex] || ''
+	async function copyToClipboard(data) {
+		try {
+			const text = typeof data === 'string' ? data : JSON.stringify(data, null, 2)
+			await navigator.clipboard.writeText(text)
+			// Show brief feedback
+			const copyNotice = {
+				type: 'success',
+				text: '✓ copied to clipboard',
+				timestamp: new Date()
 			}
-		} else if (event.key === 'ArrowDown') {
-			event.preventDefault()
-			if (historyIndex > 0) {
-				historyIndex--
-				terminalInput = commandHistory[historyIndex] || ''
-			} else if (historyIndex === 0) {
-				historyIndex = -1
-				terminalInput = ''
-			}
-		} else if (event.key === 'Tab') {
-			event.preventDefault()
-			const completions = getCompletions(`r5 ${terminalInput}`)
-			if (completions.length === 1) {
-				// Remove 'r5 ' prefix from completion
-				const completion = completions[0].startsWith('r5 ')
-					? completions[0].slice(3)
-					: completions[0]
-				terminalInput = completion
-			} else if (completions.length > 1) {
-				// Show only the unique parts for cleaner display
-				const displayCompletions = completions.map((c) => c.replace('r5 ', ''))
-				terminalOutput.push({
-					type: 'hint',
-					text: displayCompletions.join('  '),
-					timestamp: new Date()
-				})
-				scrollTerminal()
-			}
+			terminalOutput.push(copyNotice)
+			setTimeout(() => {
+				const index = terminalOutput.indexOf(copyNotice)
+				if (index > -1) terminalOutput.splice(index, 1)
+			}, 2000)
+		} catch (err) {
+			console.error('Failed to copy:', err)
 		}
 	}
 
-	function scrollTerminal() {
-		setTimeout(() => {
-			const terminal = document.querySelector('.terminal-output')
-			if (terminal) {
-				terminal.scrollTop = terminal.scrollHeight
-			}
-		}, 0)
-	}
+	onMount(async () => {
+		await r5.db.migrate()
 
-	async function tick() {
-		return new Promise((resolve) => setTimeout(resolve, 0))
-	}
+		inputElement?.focus()
+
+		updateSourceStatus()
+
+		// Intercept console.log for batch progress
+		const originalLog = console.log
+		console.log = (...args) => {
+			if (args[0] && typeof args[0] === 'string' && args[0].startsWith('batcher:')) {
+				parseBatcherLog(args[0])
+			}
+			originalLog(...args)
+		}
+
+		// Update status every 30 seconds
+		const interval = setInterval(updateSourceStatus, 30000)
+
+		// Global keyboard shortcuts
+		const handleGlobalKeydown = (e) => {
+			// / - focus command input
+			if (e.key === '/' && e.target.tagName !== 'INPUT') {
+				e.preventDefault()
+				inputElement?.focus()
+			}
+			// Ctrl+K - clear terminal
+			else if (e.key === 'k' && (e.ctrlKey || e.metaKey)) {
+				e.preventDefault()
+				terminalOutput = []
+			}
+			// Escape - blur input
+			else if (e.key === 'Escape' && document.activeElement === inputElement) {
+				inputElement?.blur()
+			}
+		}
+
+		document.addEventListener('keydown', handleGlobalKeydown)
+
+		return () => {
+			clearInterval(interval)
+			console.log = originalLog
+			document.removeEventListener('keydown', handleGlobalKeydown)
+		}
+	})
 </script>
 
 <svelte:head>
@@ -299,123 +294,24 @@
 
 <article class="sdk">
 	<header>
-		<h1>r5 sdk explorer</h1>
-
-		<section class="sources">
-			<div>
-				<strong>LOCAL</strong>
-				<div class="lamp local {sourceStatus.local.connected ? 'connected' : 'disconnected'}"></div>
-				<small>{sourceStatus.local.channels} ch, {sourceStatus.local.tracks} tr</small>
-			</div>
-
-			<div>
-				<strong>R4</strong>
-				<div class="lamp r4 {sourceStatus.r4.connected ? 'connected' : 'disconnected'}"></div>
-				<small>{sourceStatus.r4.channels} ch</small>
-				<button onclick={() => syncSource('r4')} disabled={syncInProgress.r4}>
-					{syncInProgress.r4 ? '⟳' : 'PULL'}
-				</button>
-			</div>
-
-			<div>
-				<strong>V1</strong>
-				<div class="lamp v1 {sourceStatus.v1.connected ? 'connected' : 'disconnected'}"></div>
-				<small>{sourceStatus.v1.channels} ch</small>
-				<button onclick={() => syncSource('v1')} disabled={syncInProgress.v1}>
-					{syncInProgress.v1 ? '⟳' : 'PULL'}
-				</button>
-			</div>
-		</section>
+		<h1>r5.explorer</h1>
+		<SourceStatus {sourceStatus} />
 	</header>
 
 	<main>
-		{#if batchProgress.active}
-			<section class="batch">
-				<p><strong>{batchProgress.operation}</strong></p>
-				<p>
-					batch {batchProgress.currentBatch}/{batchProgress.totalBatches}
-					<progress value={batchProgress.currentBatch} max={batchProgress.totalBatches}></progress>
-					{Math.round((batchProgress.currentBatch / batchProgress.totalBatches) * 100)}%
-				</p>
-				<p>▪▪▪●●●●●○○ ({batchProgress.currentBatch}/{batchProgress.totalBatches} batches)</p>
-				<p>items: {batchProgress.completedItems}/{batchProgress.totalItems}</p>
-				{#if batchProgress.errors > 0}
-					<p><em>errors: {batchProgress.errors}</em></p>
-				{/if}
-			</section>
-		{/if}
+		<BatchProgress {batchProgress} />
 
-		<section class="terminal">
-			<div class="output">
-				{#each terminalOutput as entry, i (i)}
-					<div class={entry.type}>
-						{entry.text}
-						{#if entry.showData && entry.data}
-							<div class="data">
-								{#if Array.isArray(entry.data)}
-									{#each entry.data.slice(0, 3) as item, j (j)}
-										<div>
-											{#if item.name || item.title}
-												<strong>{item.name || item.title}</strong>
-											{/if}
-											{#if item.slug}
-												<small>({item.slug})</small>
-											{/if}
-											{#if item.url}
-												<small>{item.url}</small>
-											{/if}
-										</div>
-									{/each}
-									{#if entry.data.length > 3}
-										<small>... and {entry.data.length - 3} more</small>
-									{/if}
-								{:else if typeof entry.data === 'object'}
-									<div>
-										{#if entry.data.name}
-											<strong>{entry.data.name}</strong>
-										{/if}
-										{#if entry.data.slug}
-											<small>({entry.data.slug})</small>
-										{/if}
-									</div>
-								{/if}
-							</div>
-						{/if}
-					</div>
-				{/each}
-			</div>
+		<Terminal
+			bind:terminalInput
+			bind:terminalOutput
+			bind:commandHistory
+			bind:historyIndex
+			bind:inputElement
+			onCommand={handleCommand}
+			onCopy={copyToClipboard}
+		/>
 
-			<form class="input" onsubmit={handleFormSubmit}>
-				<label>
-					<strong>r5</strong>
-					<input
-						bind:this={inputElement}
-						bind:value={terminalInput}
-						onkeydown={handleKeydown}
-						placeholder="channels"
-						autocomplete="off"
-						spellcheck="false"
-					/>
-				</label>
-			</form>
-		</section>
-
-		{#if activityLog.length > 0}
-			<section class="activity">
-				<h3>activity</h3>
-				<ul>
-					{#each activityLog as entry, i (i)}
-						<li class={entry.source}>
-							<small>{entry.timestamp.toLocaleTimeString()}</small>
-							<span>{entry.operation}</span>
-							{#if entry.duration}
-								<em>{entry.duration}ms</em>
-							{/if}
-						</li>
-					{/each}
-				</ul>
-			</section>
-		{/if}
+		<ActivityMonitor {activityLog} />
 	</main>
 </article>
 
@@ -430,7 +326,7 @@
 	}
 
 	.sdk header {
-		padding: 1rem;
+		padding: 0.5rem;
 		background: var(--gray-2);
 		border-bottom: 1px solid var(--gray-4);
 		display: flex;
@@ -443,184 +339,4 @@
 		padding: 1rem;
 	}
 
-	/* Sources status panel */
-	.sources {
-		display: flex;
-		flex-direction: column;
-		gap: 0.2rem;
-		font-size: 0.85rem;
-		min-width: 200px;
-	}
-
-	.sources > div {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.sources strong {
-		width: 3rem;
-	}
-
-	.sources button {
-		background: var(--gray-3);
-		border: 1px solid var(--gray-6);
-		padding: 0.2rem;
-		font-size: 0.75rem;
-		cursor: pointer;
-		min-width: 2.5rem;
-	}
-
-	.sources button:hover:not(:disabled) {
-		background: var(--gray-4);
-	}
-
-	.sources button:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
-		animation: spin 1s linear infinite;
-	}
-
-	/* Batch progress */
-	.batch {
-		background: var(--gray-2);
-		border: 1px solid var(--gray-4);
-		padding: 0.5rem;
-		margin-bottom: 1rem;
-	}
-
-	.batch progress {
-		width: 100px;
-		height: 0.5rem;
-	}
-
-	/* Terminal */
-	.terminal {
-		background: var(--gray-2);
-		border: 1px solid var(--gray-4);
-		height: 500px;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.terminal .output {
-		flex: 1;
-		padding: 1rem;
-		overflow-y: auto;
-	}
-
-	.terminal .output > div {
-		margin-bottom: 0.2rem;
-		white-space: pre-wrap;
-	}
-
-	.terminal .success {
-		color: var(--color-green);
-	}
-
-	.terminal .error {
-		color: var(--color-red);
-	}
-
-	.terminal .loading {
-		color: var(--color-yellow);
-	}
-
-	.terminal .hint {
-		color: var(--gray-8);
-	}
-
-	.terminal .data {
-		margin-left: 1rem;
-		opacity: 0.8;
-	}
-
-	.terminal .data > div {
-		border-left: 2px solid var(--gray-6);
-		padding-left: 0.5rem;
-		margin-bottom: 0.2rem;
-	}
-
-	.terminal .input {
-		border-top: 1px solid var(--gray-4);
-		padding: 0.5rem 1rem;
-		background: var(--gray-1);
-	}
-
-	.terminal label {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.terminal input {
-		flex: 1;
-		background: transparent;
-		border: none;
-		outline: none;
-	}
-
-	/* Activity monitor */
-	.activity ul {
-		list-style: none;
-		padding: 0;
-		margin: 0;
-	}
-
-	.activity li {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 0.2rem 0;
-	}
-
-	.activity li span {
-		flex: 1;
-	}
-
-	.activity li.r4 span {
-		color: var(--color-lavender);
-	}
-
-	.activity li.v1 span {
-		color: var(--color-orange);
-	}
-
-	/* Status lamps */
-	.lamp {
-		width: 0.6rem;
-		height: 0.6rem;
-		border-radius: 50%;
-		box-shadow: 0 0 0.3rem currentColor;
-	}
-
-	.lamp.local.connected {
-		background: var(--color-green);
-		color: var(--color-green);
-	}
-
-	.lamp.r4.connected {
-		background: var(--color-lavender);
-		color: var(--color-lavender);
-	}
-
-	.lamp.v1.connected {
-		background: var(--color-orange);
-		color: var(--color-orange);
-	}
-
-	.lamp.disconnected {
-		background: var(--gray-6);
-		color: var(--gray-6);
-		opacity: 0.3;
-	}
-
-	@keyframes spin {
-		from {
-			transform: rotate(0deg);
-		}
-		to {
-			transform: rotate(360deg);
-		}
-	}
 </style>

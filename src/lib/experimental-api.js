@@ -1,7 +1,7 @@
-import {pg, dropDb, exportDb, migrateDb} from '$lib/db'
+import {pg, dropDb, exportDb, migrateDb, debugLimit} from '$lib/db'
 import {r4} from '$lib/r4'
 import {pullTracks, pullChannel, sync} from '$lib/sync'
-import {pullV1Channels, pullV1Tracks} from '$lib/v1'
+import {readFirebaseChannelTracks} from '$lib/v1'
 import {setPlaylist, addToPlaylist} from '$lib/api'
 import {performSearch, searchChannels, searchTracks} from '$lib/search'
 // import {play, pause, next, previous, eject, toggleShuffle, toggleVideo} from '$lib/player'
@@ -44,17 +44,17 @@ async function localTracks(params = {}) {
 /**
  * Fetch channels from remote without storing
  */
-async function remoteChannels(params = {slug: ''}) {
+async function remoteChannels(params = {slug: '', limit: debugLimit}) {
 	if (params.slug) return await r4.channels.readChannel(params.slug)
-	return await r4.channels.readChannels()
+	return await r4.channels.readChannels(params.limit)
 }
 
 /**
  * Fetch tracks from remote without storing
  */
-async function remoteTracks(params = {slug: ''}) {
-	if (params.slug) return await r4.channels.readChannelTracks(params.slug)
-	throw new Error('remote tracks requires channel slug')
+async function remoteTracks(params = {slug: '', limit: debugLimit}) {
+	if (!params.slug) throw new Error('remote tracks requires channel slug')
+	return await r4.channels.readChannelTracks(params.slug, params.limit)
 }
 
 /**
@@ -72,35 +72,56 @@ async function pullAndGetChannels(params = {slug: ''}) {
 /**
  * Pull tracks from remote, store locally, and return data
  */
-async function pullTracksData(params = {slug: ''}) {
+async function pullAndGetTracks(params = {slug: ''}) {
 	if (!params.slug) throw new Error('pull tracks requires channel slug')
 	await pullTracks(params.slug)
 	return await localTracks({slug: params.slug})
 }
 
 /**
- * Pull v1 channels and return them
+ * Fetch v1 channels without storing them
  */
-async function pullV1ChannelsData(params = {}) {
-	await pullV1Channels(params)
-	// Return only v1 channels (those with firebase_id)
-	const {rows} = await pg.sql`
-		select * from channels 
-		where firebase_id is not null
-		order by updated_at desc
-	`
-	return rows
+async function fetchV1Channels(params = {limit: debugLimit}) {
+	const res = await fetch('/channels-firebase-modified.json')
+	const items = await res.json()
+	// Apply limit and filter for non-empty channels
+	const channels = items
+		.slice(0, params.limit || debugLimit)
+		.filter((item) => item.track_count && item.track_count > 3)
+
+	// Transform to match channel schema for consistency
+	return channels.map((item) => ({
+		id: item.firebase_id,
+		slug: item.slug,
+		name: item.name,
+		description: item.description || '',
+		created_at: new Date(item.created_at).toISOString(),
+		updated_at: new Date(item.updated_at).toISOString(),
+		firebase_id: item.firebase_id,
+		track_count: item.track_count
+	}))
 }
 
 /**
- * Pull v1 tracks for a channel and return them
+ * Fetch v1 tracks without storing them
  */
-async function pullV1TracksData(params = {}) {
+async function fetchV1Tracks(params = {}) {
 	if (!params.channel || !params.firebase) {
 		throw new Error('v1 tracks requires channel and firebase params')
 	}
-	await pullV1Tracks(params.channel, params.firebase, pg)
-	return await localTracks({slug: params.channel})
+	const v1Tracks = await readFirebaseChannelTracks(params.firebase)
+
+	// Transform to match track schema for consistency
+	return v1Tracks.map((track) => ({
+		firebase_id: track.id,
+		channel_slug: params.channel,
+		url: track.url,
+		title: track.title,
+		description: track.body || '',
+		discogs_url: track.discogsUrl || '',
+		created_at: new Date(track.created).toISOString(),
+		updated_at: new Date(track.updated || track.created).toISOString()
+	}))
 }
 
 // Create the source-first API with callable objects
@@ -111,7 +132,7 @@ export const r5 = {
 			local: localChannels,
 			r4: remoteChannels,
 			pull: pullAndGetChannels,
-			v1: pullV1ChannelsData
+			v1: fetchV1Channels
 		}
 	),
 
@@ -120,8 +141,8 @@ export const r5 = {
 		{
 			local: localTracks,
 			r4: remoteTracks,
-			pull: pullTracksData,
-			v1: pullV1TracksData
+			pull: pullAndGetTracks,
+			v1: fetchV1Tracks
 		}
 	),
 

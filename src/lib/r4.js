@@ -1,4 +1,5 @@
 import {sdk} from '@radio4000/sdk'
+import {debugLimit} from '$lib/db'
 
 /**
  * Radio4000 API wrapper that throws on errors instead of returning {data, error}
@@ -17,7 +18,7 @@ export const r4 = {
 	},
 
 	channels: {
-		readChannels: (limit = 2000) =>
+		readChannels: (limit = debugLimit) =>
 			unwrap(() =>
 				sdk.supabase
 					.from('channels_with_tracks')

@@ -104,7 +104,7 @@ export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
  * Fetches all v1 tracks from a v1 channel id
  * @param {string} cid
  */
-async function readFirebaseChannelTracks(cid) {
+export async function readFirebaseChannelTracks(cid) {
 	const toObject = (value, id) => ({...value, id})
 	const toArray = (data) => Object.keys(data).map((id) => toObject(data[id], id))
 	const url = `https://radio4000.firebaseio.com/tracks.json?orderBy="channel"&startAt="${cid}"&endAt="${cid}"`

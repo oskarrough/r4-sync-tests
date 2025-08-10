@@ -26,6 +26,8 @@ export function parseCommand(command) {
 
 	try {
 		switch (subcommand) {
+			case 'help':
+				return parseHelpCommand(args, raw)
 			case 'channels':
 				return parseChannelsCommand(args, raw)
 			case 'tracks':
@@ -41,6 +43,22 @@ export function parseCommand(command) {
 		}
 	} catch (err) {
 		return {error: err.message, raw}
+	}
+}
+
+function parseHelpCommand(args, raw) {
+	const helpText = `r5 api commands:
+  channels [local|r4|v1|pull]  - read channels
+  tracks [local|r4|v1|pull]    - read tracks  
+  search [channels|tracks] <q> - search channels & tracks
+  queue [add|set|clear]        - manage playlist queue
+  db [reset|migrate|export]    - database operations
+  help                         - show this help`
+
+	return {
+		fn: async () => helpText,
+		args: [],
+		raw
 	}
 }
 
@@ -196,7 +214,7 @@ export function getCompletions(partial) {
 
 	if (parts.length === 2) {
 		// Complete subcommands
-		const subcommands = ['channels', 'tracks', 'search', 'queue', 'db']
+		const subcommands = ['help', 'channels', 'tracks', 'search', 'queue', 'db']
 		return subcommands.filter((cmd) => cmd.startsWith(parts[1])).map((cmd) => `r5 ${cmd}`)
 	}
 
