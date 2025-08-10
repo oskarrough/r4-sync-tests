@@ -1,5 +1,5 @@
-import {loadChannel} from '$lib/api'
 import {pg} from '$lib/db'
+import {r5} from '$lib/experimental-api'
 import {error} from '@sveltejs/kit'
 import {getEdits} from '$lib/api'
 
@@ -15,7 +15,7 @@ export async function load({parent, params}) {
 		edits = []
 
 	try {
-		channel = await loadChannel(slug)
+		channel = await r5.channels.pull({slug})
 	} catch {
 		error(404, 'Channel not found')
 	}

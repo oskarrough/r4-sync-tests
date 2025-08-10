@@ -51,7 +51,6 @@ ARCHITECTURE IMPROVEMENTS (MEDIUM PRIORITY)
 - separate api layers: split ui operations (toggleTheme, openSearch) from data operations in api.js
 - fix transaction boundaries: ensure atomic updates for chunked sync operations
 - extract dom manipulation from data layer (document.querySelector in api.js)
-- consolidate duplicate query patterns: merge queryTrackWithChannel, queryChannelsWithTrackCounts into unified query()
 - standardize component data fetching patterns: extract search logic from ui concerns
 - extract reusable debouncing utility instead of per-component implementation
 - clarify data flow patterns - document and standardize when operations hit local vs remote database

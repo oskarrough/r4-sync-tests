@@ -2,9 +2,10 @@ import * as batchEdit from './batch-edit.js'
 import {appState, defaultAppState} from '$lib/app-state.svelte'
 import {leaveBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
-import {needsUpdate, pullTracks, pullChannel} from '$lib/sync'
+import {needsUpdate} from '$lib/sync'
 import {pg, dropDb, migrateDb} from '$lib/db'
 import {r4} from '$lib/r4'
+import {r5} from '$lib/experimental-api'
 import {shuffleArray} from '$lib/utils'
 import {syncFollowers, pullFollowers} from '$lib/sync/followers'
 
@@ -14,30 +15,6 @@ const log = logger.ns('api').seal()
  * @prop {string} id
  * @prop {string} email
  */
-
-/**
- * Load and sync channel by slug, ensuring tracks are up to date
- * @param {string} slug
- * @returns {Promise<import('$lib/types').Channel>}
- */
-export async function loadChannel(slug) {
-	let channel = (await pg.query('SELECT * FROM channels WHERE slug = $1', [slug])).rows[0]
-
-	if (!channel) {
-		try {
-			await pullChannel(slug)
-			channel = (await pg.query('SELECT * FROM channels WHERE slug = $1', [slug])).rows[0]
-		} catch (err) {
-			console.error('load_channel_error', err)
-		}
-	}
-
-	if (!channel) throw new Error('Channel not found')
-
-	if (await needsUpdate(slug)) pullTracks(slug)
-
-	return channel
-}
 
 export async function checkUser() {
 	try {
@@ -94,7 +71,7 @@ export async function playTrack(id, endReason, startReason) {
 export async function playChannel({id, slug}, index = 0) {
 	log.log('play_channel', {id, slug})
 	leaveBroadcast()
-	if (await needsUpdate(slug)) await pullTracks(slug)
+	if (await needsUpdate(slug)) await r5.pull.channel({slug})
 	const tracks = (
 		await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`
 	).rows
@@ -107,12 +84,6 @@ export async function playChannel({id, slug}, index = 0) {
 export async function setPlaylist(ids) {
 	appState.playlist_tracks = ids
 	appState.playlist_tracks_shuffled = shuffleArray(ids)
-}
-
-/** @returns {Promise<import('$lib/types').BroadcastWithChannel[]>} */
-export async function readBroadcastsWithChannel() {
-	// @ts-expect-error supabase typing issue with nested relations
-	return r4.broadcasts.readBroadcastsWithChannel()
 }
 
 /** @param {string[]} trackIds */
@@ -210,26 +181,6 @@ export async function addPlayHistory({previousTrackId, nextTrackId, endReason, s
 			)
 		`
 	}
-}
-
-/** @param {string} trackId */
-export async function queryTrackWithChannel(trackId) {
-	const track = (await pg.sql`select * from tracks where id = ${trackId}`).rows[0]
-	const channel = (await pg.sql`select * from channels where id = ${track.channel_id}`).rows[0]
-	return {track, channel}
-}
-
-export async function queryChannelsWithTrackCounts() {
-	const {rows} = await pg.sql`
-		SELECT
-			c.*,
-			COUNT(t.id) as track_count
-		FROM channels c
-		LEFT JOIN tracks t ON c.id = t.channel_id
-		GROUP BY c.id
-		ORDER BY c.name
-	`
-	return rows
 }
 
 export async function stageEdit(trackId, field, oldValue, newValue) {

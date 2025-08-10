@@ -49,21 +49,18 @@ export async function pullChannels({limit = debugLimit} = {}) {
 }
 
 /**
- * Pull all tracks for a channel from Radio4000 into local database
+ * Insert tracks data into local database
  * @param {string} slug - Channel slug
+ * @param {import('$lib/types').Track[]} tracks - Track data to insert
  */
-export async function pullTracks(slug) {
+export async function insertTracks(slug, tracks) {
 	try {
 		// Get the channel
 		const channel = (await pg.sql`update channels set busy = true where slug = ${slug} returning *`)
 			.rows[0]
-		if (!channel) throw new Error(`sync:pull_tracks_error_404: ${slug}`)
+		if (!channel) throw new Error(`sync:insert_tracks_error_404: ${slug}`)
 
 		if (channel.firebase_id) return await pullV1Tracks(channel.id, channel.firebase_id, pg)
-
-		/** @type {import('$lib/types').Track[]} */
-		const tracks = await r4.channels.readChannelTracks(slug)
-		console.log('pullTracks before insert', tracks)
 
 		// Insert tracks
 		await pg.transaction(async (tx) => {
@@ -99,7 +96,7 @@ export async function pullTracks(slug) {
 					await new Promise((resolve) => setTimeout(resolve, 0))
 				}
 			}
-			log.log('pull_tracks', channel.slug, tracks?.length)
+			log.log('insert_tracks', channel.slug, tracks?.length)
 		})
 		// Mark as successfully synced
 		await pg.sql`update channels set busy = false, tracks_synced_at = CURRENT_TIMESTAMP, track_count = ${tracks.length} where slug = ${slug}`

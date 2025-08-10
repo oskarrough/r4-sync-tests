@@ -1,6 +1,6 @@
 <script>
 	import {stageEdit, commitEdits, discardEdits, getEdits} from '$lib/api'
-	import {pullTracks} from '$lib/sync'
+	import {r5} from '$lib/experimental-api'
 	import {invalidateAll} from '$app/navigation'
 	import EditPreview from './EditPreview.svelte'
 	import TrackRow from './TrackRow.svelte'
@@ -159,7 +159,7 @@
 
 	async function handlePullTracks() {
 		try {
-			await pullTracks(data.slug)
+			await r5.tracks.pull({slug: data.slug})
 		} catch (error) {
 			console.error('Pull tracks failed:', error)
 		}

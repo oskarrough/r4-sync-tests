@@ -2,7 +2,7 @@
 	import {tick} from 'svelte'
 	import 'media-chrome'
 	import 'youtube-video-element'
-	import {togglePlayerExpanded, queryTrackWithChannel} from '$lib/api'
+	import {togglePlayerExpanded} from '$lib/api'
 	import {togglePlay, next, previous, toggleShuffle, play, pause} from '$lib/api/player'
 	import {appState} from '$lib/app-state.svelte'
 	import {logger} from '$lib/logger'
@@ -10,6 +10,7 @@
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import Icon from '$lib/components/icon.svelte'
 	import LinkEntities from '$lib/components/link-entities.svelte'
+	import {r5} from '$lib/experimental-api'
 
 	/** @typedef {import('$lib/types').Track} Track */
 	/** @typedef {import('$lib/types').Channel} Channel */
@@ -68,10 +69,8 @@
 	/** @param {string} tid */
 	async function setChannelFromTrack(tid) {
 		if (!tid || tid === track?.id) return
-		const result = await queryTrackWithChannel(tid)
-		if (!result) return
-		track = result.track
-		channel = result.channel
+		track = (await r5.tracks({slug: tid}))[0]
+		channel = (await r5.channels({slug: track.channel_slug}))[0]
 	}
 
 	function handlePlay() {

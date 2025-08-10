@@ -1,7 +1,7 @@
 <script>
 	import {trap} from '$lib/focus'
 	import {page} from '$app/state'
-	import {performSearch} from '$lib/search'
+	import {r5} from '$lib/experimental-api'
 	import {setPlaylist, addToPlaylist} from '$lib/api'
 	import ChannelCard from '$lib/components/channel-card.svelte'
 	import TrackCard from '$lib/components/track-card.svelte'
@@ -38,7 +38,7 @@
 		isLoading = true
 
 		try {
-			const results = await performSearch(searchQuery)
+			const results = await r5.search(searchQuery)
 			channels = results.channels
 			tracks = results.tracks
 		} catch (error) {

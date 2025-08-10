@@ -39,7 +39,6 @@ export {
 		addToPlaylist,
 		addPlayHistory,
 		// queries
-		queryTrackWithChannel,
 		queryChannelsWithTrackCounts,
 		queryFollowers,
 		ensureFollowers,
@@ -68,7 +67,6 @@ export {
 	broadcast: {
 		joinBroadcast,
 		leaveBroadcast,
-		readBroadcastsWithChannel,
 		handleBroadcastStateChange,
 		handleTrackChange,
 		stopBroadcastSync,

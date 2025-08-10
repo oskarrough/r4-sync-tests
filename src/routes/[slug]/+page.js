@@ -1,4 +1,4 @@
-import {loadChannel} from '$lib/api'
+import {r5} from '$lib/experimental-api'
 import {error} from '@sveltejs/kit'
 
 /** @type {import('./$types').PageLoad} */
@@ -11,8 +11,9 @@ export async function load({parent, params, url}) {
 	const dir = url.searchParams.get('dir') || 'desc'
 
 	try {
-		const channel = await loadChannel(slug)
-		return {channel, slug, search, order, dir}
+		const channels = await r5.channels.pull({slug})
+		if (!channels.length) error(404, 'Channel not found')
+		return {channel: channels[0], slug, search, order, dir}
 	} catch {
 		error(404, 'Channel not found')
 	}

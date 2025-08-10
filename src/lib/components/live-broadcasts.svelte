@@ -8,7 +8,7 @@
 		leaveBroadcast,
 		syncPlayBroadcast
 	} from '$lib/broadcast'
-	import {readBroadcastsWithChannel} from '$lib/api'
+	import {r4} from '$lib/r4'
 	import {appState} from '$lib/app-state.svelte'
 	import ChannelAvatar from './channel-avatar.svelte'
 	import {logger} from '$lib/logger'
@@ -70,7 +70,7 @@
 
 	$effect(() => {
 		// Initial load.
-		readBroadcastsWithChannel().then(async (data) => {
+		r4.broadcasts.readBroadcastsWithChannel().then(async (data) => {
 			activeBroadcasts = data
 			await updateChannelBroadcastStatus(data)
 		})
@@ -107,7 +107,7 @@
 							await syncPlayBroadcast(payload.new)
 						}
 					}
-					activeBroadcasts = await readBroadcastsWithChannel()
+					activeBroadcasts = await r4.broadcasts.readBroadcastsWithChannel()
 					await updateChannelBroadcastStatus(activeBroadcasts)
 				}
 			)

@@ -1,6 +1,6 @@
 <script>
 	import {pg} from '$lib/db'
-	import {pullTracks} from '$lib/sync'
+	import {r5} from '$lib/experimental-api'
 	import {pullTrackMetaYouTubeFromChannel} from '$lib/sync/youtube'
 	import {incrementalLiveQuery} from '$lib/live-query'
 	import SvelteVirtualList from '@humanspeak/svelte-virtual-list'
@@ -89,7 +89,7 @@
 					</p>
 
 					<menu>
-						<button onclick={() => pullTracks(channel.slug)}>&darr; Pull tracks</button>
+						<button onclick={() => r5.tracks.pull({slug: channel.slug})}>&darr; Pull tracks</button>
 						<button
 							onclick={() => updateDurations(channel.id)}
 							disabled={channel.busy || !channel.tracks_synced_at}
