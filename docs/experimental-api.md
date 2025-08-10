@@ -1,68 +1,30 @@
 # r5 experimental api
 
-source-first api for music data. see implementation in `src/lib/experimental-api.js`.
+source-first api for music data.
 
-## pattern
+Most methods follow the pattern `r5.<resource>[.<source>]([<params>])`.
 
 ```
-r5.<resource>[.<source>]([<params>])
+channels [local|r4|pull] [slug] 	- read channels
+tracks local [slug], r4|pull <slug> - read tracks
+search [channels|tracks] <query>    - search channels & tracks
+pull <slug>                         - pull channels with tracks
+db [reset|migrate|export]           - database operations
 ```
 
-resources: `channels`, `tracks`, `search`, `queue`, `db`  
-sources: `local` (default), `r4` (radio4000 api), `v1` (firebase), `pull` (fetch+store+return)
+1. see implementation in `src/lib/experimental-api.js`.
+2. see how the `cli-translator.js` translates cli commands to api methods
+3. see cli in `cli-r5.ts`
 
 ## examples
 
 ```js
 import {r5} from '$lib/experimental-api'
-
-// local by default
-await r5.channels()
-await r5.tracks({slug: 'oskar'})
-
-// explicit sources
-await r5.channels.r4() // fetch without storing
-await r5.channels.pull({slug: 'optional-slug'}) // fetch all/specific, store, return
-await r5.tracks.v1({channel: 'oskar', firebase: 'id'})
+await r5.channels({limit: 50})
+await r5.tracks({slug: 'ko002', limit: 100})
+await r5.channels.r4({limit: 50}) // fetch without inserting
+await r5.tracks.v1({channel: 'ko002', firebase: 'id', limit: 100})
+await r5.channels.pull({slug: 'optional-slug', limit: 50}) // fetch all/single, insert, return
+await r5.tracks.pull({slug: 'required-slug', limit: 50}) // pulls tracks for a single channel (requires slug), insert, return
+await r5.pull('ko002') // convenience, pulls channel+tracks, returns local data
 ```
-
-## callable objects
-
-functions with methods attached via `Object.assign`:
-
-```js
-r5.channels() // calls localChannels
-r5.channels.r4() // calls remoteChannels
-r5.search('query') // calls performSearch
-r5.search.tracks('q') // calls searchTracks
-```
-
-## data flow
-
-```
-r4/v1 --pull--> local(pglite) <--query-- app
-```
-
-- writes go remote (when authenticated)
-- reads always local (instant)
-- pull syncs remote to local
-
-## non-obvious behaviors
-
-- `pull()` returns data after storing (convenience over purity)
-- `sync()` in code pulls both v1 and r4 channels
-- tracks require channel slug for remote/pull operations: `r5.tracks({slug: <required>})`
-- channels lookup by slug: `r5.channels({slug: <optional>})`
-- v1 channels identified by `firebase_id` column presence
-- search is fuzzy/user-facing, query is structured
-
-## performance
-
-- local: instant (browser postgres)
-- r4: network round-trip
-- v1: static json (fast, stale)
-- pull: network + db write
-
-## future
-
-player api commented out, waiting for module. broadcasts, push operations, followers pending.

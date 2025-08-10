@@ -7,7 +7,7 @@ const log = logger.ns('sync').seal()
 /**
  * Imports a local export of v1 channels
  * on slug conflict, ignore
- * ignores channels with > 3 tracks
+ * ignores channels with <= 3 tracks
  * inserts into local db
  */
 export async function pullV1Channels({limit} = {limit: debugLimit}) {
@@ -106,7 +106,9 @@ export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
  * @param {string} cid
  */
 export async function readFirebaseChannelTracks(cid) {
+	/** @param {any} value @param {string} id */
 	const toObject = (value, id) => ({...value, id})
+	/** @param {Record<string, any>} data */
 	const toArray = (data) => Object.keys(data).map((id) => toObject(data[id], id))
 	const url = `https://radio4000.firebaseio.com/tracks.json?orderBy="channel"&startAt="${cid}"&endAt="${cid}"`
 
