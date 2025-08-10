@@ -10,13 +10,7 @@ function callableObject(defaultFn, methods) {
 	return Object.assign(defaultFn, methods)
 }
 
-/**
- * Query local channels
- * @returns {Promise<Channel[]>}
- */
-async function localChannels(params: {slug?: string; limit?: number} = {}) {
-	const slug = params.slug
-	const limit = typeof params.limit === 'number' ? params.limit : 3000
+async function localChannels({slug, limit = 3000} = {}) {
 	if (!slug) {
 		return (await pg.sql` select * from channels order by updated_at desc limit ${limit} `).rows
 	}
@@ -30,51 +24,35 @@ async function localChannels(params: {slug?: string; limit?: number} = {}) {
 	).rows
 }
 
-/** Query local tracks
- * @returns {Promise<Track[]>}
- */
-async function localTracks(params: {slug?: string; limit?: number} = {}) {
-	const slugParam = params.slug
-	const limitParam = typeof params.limit === 'number' ? params.limit : 4000
-
-	if (!slugParam) {
+async function localTracks({slug, limit = 4000} = {}) {
+	if (!slug) {
 		const {rows} = await pg.sql`
 			select * from tracks_with_meta
 			order by created_at desc
-			limit ${limitParam}
+			limit ${limit}
 		`
 		return rows
 	}
 
 	const {rows} = await pg.sql`
 		select * from tracks_with_meta
-		where channel_slug = ${slugParam}
+		where channel_slug = ${slug}
 		order by created_at desc
-		limit ${limitParam}
+		limit ${limit}
 	`
 	return rows
 }
 
-/** Fetch channels from remote without storing */
-async function remoteChannels(params: {slug?: string; limit?: number} = {}) {
-	if (params.slug) return await r4.channels.readChannel(params.slug)
-	return await r4.channels.readChannels(params.limit || 3000)
+async function remoteChannels({slug, limit = 3000} = {}) {
+	if (slug) return await r4.channels.readChannel(slug)
+	return await r4.channels.readChannels(limit)
 }
 
-/** Fetch tracks from remote without storing */
-async function remoteTracks(params = {}) {
-	if (!params.slug) throw new Error('remote tracks requires channel slug')
-	return await r4.channels.readChannelTracks(params.slug, params.limit || 4000)
+async function remoteTracks({slug, limit = 4000} = {}) {
+	return await r4.channels.readChannelTracks(slug, limit)
 }
 
-/** Pull tracks from remote, store locally, and return data */
-/**
- * @param {{slug?: string, limit?: number}} [params]
- * @returns {Promise<import('$lib/types').Track[]>}
- */
-async function pullTracks(params = {}) {
-	const {slug, limit} = params
-	if (!slug) throw new Error('pull tracks requires channel slug')
+async function pullTracks({slug, limit} = {}) {
 	const channel = (await localChannels({slug}))[0]
 	if (!channel) throw new Error(`sync:insert_tracks_error_404: ${slug}`)
 	if (channel.firebase_id) {
@@ -86,13 +64,7 @@ async function pullTracks(params = {}) {
 	return await localTracks({slug, limit})
 }
 
-/**
- * Pull channel(s) from remote, store locally, and return data
- * @param {{slug?: string, limit?: number}} [params] - if slug provided, pulls single channel; otherwise pulls all channels
- * @returns {Promise<import('$lib/types').Channel[] | import('$lib/types').Channel>}
- */
-async function pullChannels(params = {}) {
-	const {slug, limit} = params
+async function pullChannels({slug, limit = 3000} = {}) {
 	if (slug) {
 		const channel = await remoteChannels({slug})
 		if (!channel) throw new Error(`Channel not found: ${slug}`)
@@ -101,29 +73,20 @@ async function pullChannels(params = {}) {
 		return result[0]
 	}
 	await pullV1Channels()
-	const channels = await r4.channels.readChannels(limit || 3000)
+	const channels = await r4.channels.readChannels(limit)
 	await insertChannels(channels)
 	return await localChannels({limit})
 }
 
-/** Fetch v1 channels without storing them */
-async function fetchV1Channels(params = {}) {
-	const {slug, limit = 5000} = params
-
+async function fetchV1Channels({slug, limit = 5000} = {}) {
 	const res = await fetch('/channels-firebase-modified.json')
 
-	/** @type {import('$lib/types').ChannelFirebase[]} */
 	const items = await res.json()
-
-	// Apply slug filter if provided
 	const filtered = slug ? items.filter((item) => item.slug === slug) : items
-
-	// Apply limit and filter for non-empty channels
 	const channels = filtered
 		.slice(0, limit)
 		.filter((item) => item.track_count && item.track_count > 3)
 
-	/** @type {Channel[]} */
 	return channels.map((item) => ({
 		id: item.firebase_id,
 		slug: item.slug,
@@ -136,20 +99,13 @@ async function fetchV1Channels(params = {}) {
 	}))
 }
 
-/** Fetch v1 tracks without storing them */
-async function fetchV1Tracks(params = {}) {
-	if (!params.channel || !params.firebase) {
-		throw new Error('v1 tracks requires channel and firebase params')
-	}
+async function fetchV1Tracks({channel, firebase, limit} = {}) {
+	const v1Tracks = await readFirebaseChannelTracks(firebase)
 
-	// @todo use r5 tracks v1 <firebase_channel_id> for this
-	const v1Tracks = await readFirebaseChannelTracks(params.firebase)
-
-	/** @type {Track[]} */
 	const mapped = v1Tracks.map((track) => ({
 		id: track.id,
 		firebase_id: track.id,
-		channel_slug: params.channel,
+		channel_slug: channel,
 		url: track.url,
 		title: track.title,
 		description: track.body || '',
@@ -157,12 +113,9 @@ async function fetchV1Tracks(params = {}) {
 		created_at: new Date(track.created).toISOString(),
 		updated_at: new Date(track.updated || track.created).toISOString()
 	}))
-	return typeof params.limit === 'number' ? mapped.slice(0, params.limit) : mapped
+	return limit ? mapped.slice(0, limit) : mapped
 }
 
-/** Pull channel and its tracks - convenience method
- * @param {string} [slug] - channel slug, if not provided pulls all channels
- */
 async function pullEverything(slug) {
 	if (!slug) {
 		// Pull all channels when no slug provided
