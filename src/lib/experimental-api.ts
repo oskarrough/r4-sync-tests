@@ -3,8 +3,6 @@ import {r4} from './r4'
 import {insertTracks, insertChannel, insertChannels} from './sync.js'
 import {pullV1Channels, pullV1Tracks, readFirebaseChannelTracks} from './v1.js'
 import {performSearch, searchChannels, searchTracks} from './search.js'
-// import {setPlaylist, addToPlaylist} from './api.js'
-// import {play, pause, next, previous, eject, toggleShuffle, toggleVideo} from '$lib/player'
 
 function callableObject(defaultFn, methods) {
 	return Object.assign(defaultFn, methods)
@@ -165,23 +163,4 @@ export const r5 = {
 		migrate: migrateDb
 	}
 
-	// Stateful operations
-	// player: {
-	// 	play: callableObject(play, {
-	// 		track: (track) => play({track}),
-	// 		channel: (channel) => play({channel}),
-	// 		resume: () => play()
-	// 	}),
-	// 	pause,
-	// 	next,
-	// 	prev: previous,
-	// 	stop: eject,
-	// 	shuffle: toggleShuffle
-	// },
-
-	// queue: {
-	// 	add: addToPlaylist,
-	// 	set: setPlaylist,
-	// 	clear: () => setPlaylist([])
-	// },
 }
