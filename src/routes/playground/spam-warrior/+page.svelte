@@ -346,7 +346,7 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 	.sql-output {
 		width: 100%;
 		height: 8rem;
-		font-family: monospace;
+		font-family: var(--monospace);
 		padding: 0.5rem;
 	}
 
