@@ -251,7 +251,7 @@
 		}
 
 		// Update status every 30 seconds
-		const interval = setInterval(updateSourceStatus, 30000)
+		//const interval = setInterval(updateSourceStatus, 1000)
 
 		// Global keyboard shortcuts
 		const handleGlobalKeydown = (e) => {
@@ -274,7 +274,6 @@
 		document.addEventListener('keydown', handleGlobalKeydown)
 
 		return () => {
-			clearInterval(interval)
 			console.log = originalLog
 			document.removeEventListener('keydown', handleGlobalKeydown)
 		}

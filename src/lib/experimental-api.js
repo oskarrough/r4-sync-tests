@@ -1,4 +1,4 @@
-import {pg, dropDb, exportDb, migrateDb, debugLimit} from './db.js'
+import {pg, dropDb, exportDb, migrateDb} from './db.js'
 import {r4} from './r4.js'
 import {insertTracks, insertChannel, insertChannels} from './sync.js'
 import {pullV1Channels} from './v1.js'
@@ -28,15 +28,19 @@ function callableObject(defaultFn, methods) {
  * @returns {Promise<import('$lib/types').Channel[]>}
  */
 async function localChannels(params = {}) {
-	const slugParam = params.slug || null
-	const limitParam = typeof params.limit === 'number' ? params.limit : 1000
-	const {rows} = await pg.sql`
+	const slug = params.slug
+	const limit = typeof params.limit === 'number' ? params.limit : 3000
+	if (!slug) {
+		return (await pg.sql` select * from channels order by updated_at desc limit ${limit} `).rows
+	}
+	return (
+		await pg.sql`
         select * from channels
-        where (${slugParam} is null or slug = ${slugParam})
+        where slug = ${slug}
         order by updated_at desc
-        limit ${limitParam}
+        limit ${limit}
     `
-	return rows
+	).rows
 }
 
 /** Query local tracks
@@ -44,27 +48,37 @@ async function localChannels(params = {}) {
  * @returns {Promise<import('$lib/types').Track[]>}
  */
 async function localTracks(params = {}) {
-	const slugParam = params.slug || null
-	const limitParam = typeof params.limit === 'number' ? params.limit : 1000
+	const slugParam = params.slug
+	const limitParam = typeof params.limit === 'number' ? params.limit : 4000
+
+	if (!slugParam) {
+		const {rows} = await pg.sql`
+			select * from tracks_with_meta
+			order by created_at desc
+			limit ${limitParam}
+		`
+		return rows
+	}
+
 	const {rows} = await pg.sql`
-        select * from tracks_with_meta
-        where (${slugParam} is null or channel_slug = ${slugParam})
-        order by created_at desc
-        limit ${limitParam}
-    `
+		select * from tracks_with_meta
+		where channel_slug = ${slugParam}
+		order by created_at desc
+		limit ${limitParam}
+	`
 	return rows
 }
 
 /** Fetch channels from remote without storing */
-async function remoteChannels(params = {slug: '', limit: debugLimit}) {
+async function remoteChannels(params = {}) {
 	if (params.slug) return await r4.channels.readChannel(params.slug)
-	return await r4.channels.readChannels(params.limit)
+	return await r4.channels.readChannels(params.limit || 3000)
 }
 
 /** Fetch tracks from remote without storing */
-async function remoteTracks(params = {slug: '', limit: debugLimit}) {
+async function remoteTracks(params = {}) {
 	if (!params.slug) throw new Error('remote tracks requires channel slug')
-	return await r4.channels.readChannelTracks(params.slug, params.limit)
+	return await r4.channels.readChannelTracks(params.slug, params.limit || 4000)
 }
 
 /**
@@ -95,7 +109,7 @@ async function pullChannel(params = {}) {
 async function pullTracks(params = {}) {
 	const {slug, limit} = params
 	if (!slug) throw new Error('pull tracks requires channel slug')
-	const tracks = await remoteTracks({slug, limit: debugLimit})
+	const tracks = await remoteTracks({slug, limit})
 	await insertTracks(slug, tracks)
 	return await localTracks({slug, limit})
 }
@@ -106,22 +120,27 @@ async function pullTracks(params = {}) {
  * @returns {Promise<import('$lib/types').Channel[]>}
  */
 async function pullChannels(params = {}) {
-	const {limit = debugLimit} = params
+	const {limit = 3000} = params
 	const channels = await r4.channels.readChannels(limit)
 	await insertChannels(channels)
 	return await localChannels({limit})
 }
 
 /** Fetch v1 channels without storing them */
-async function fetchV1Channels(params = {limit: debugLimit}) {
+async function fetchV1Channels(params = {}) {
+	const {slug, limit = 5000} = params
+
 	const res = await fetch('/channels-firebase-modified.json')
 
 	/** @type {import('$lib/types').ChannelFirebase[]} */
 	const items = await res.json()
 
+	// Apply slug filter if provided
+	const filtered = slug ? items.filter((item) => item.slug === slug) : items
+
 	// Apply limit and filter for non-empty channels
-	const channels = items
-		.slice(0, params.limit || debugLimit)
+	const channels = filtered
+		.slice(0, limit)
 		.filter((item) => item.track_count && item.track_count > 3)
 
 	/** @type {Channel[]} */
@@ -138,7 +157,7 @@ async function fetchV1Channels(params = {limit: debugLimit}) {
 }
 
 /** Fetch v1 tracks without storing them */
-async function fetchV1Tracks(params = {channel: '', firebase: '', limit: undefined}) {
+async function fetchV1Tracks(params = {}) {
 	if (!params.channel || !params.firebase) {
 		throw new Error('v1 tracks requires channel and firebase params')
 	}
@@ -162,10 +181,13 @@ async function fetchV1Tracks(params = {channel: '', firebase: '', limit: undefin
 }
 
 /** Pull channel and its tracks - convenience method
- * @param {string} slug - channel slug
+ * @param {string} [slug] - channel slug, if not provided pulls all channels
  */
 async function pullEverything(slug) {
-	if (!slug) throw new Error('pull requires channel slug')
+	if (!slug) {
+		// Pull all channels when no slug provided
+		return await pullChannel()
+	}
 	await pullChannel({slug})
 	await pullTracks({slug})
 	return await localTracks({slug})

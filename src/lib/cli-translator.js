@@ -3,7 +3,7 @@
  * Example: "r5 channels" → {fn: r5.channels, args: []}
  */
 
-import {r5} from '$lib/experimental-api'
+import {r5} from './experimental-api.js'
 
 /**
  * Parse CLI command into executable function and arguments
@@ -86,9 +86,11 @@ function parseChannelsCommand(args, raw) {
 			const slug = rest[0]
 			return {fn: r5.channels.pull, args: slug ? [{slug}] : [], raw}
 		}
-		case 'v1':
-			// r5 channels v1
-			return {fn: r5.channels.v1, args: [], raw}
+		case 'v1': {
+			// r5 channels v1 [slug]
+			const slug = rest[0]
+			return {fn: r5.channels.v1, args: slug ? [slug] : [], raw}
+		}
 		default:
 			// r5 channels oskar (filter by slug)
 			return {fn: r5.channels, args: [{slug: source}], raw}

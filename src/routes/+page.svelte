@@ -1,7 +1,7 @@
 <script>
 	import {invalidateAll} from '$app/navigation'
 	import {page} from '$app/state'
-	import {sync} from '$lib/sync'
+	import {r5} from '$lib/experimental-api.js'
 	import Icon from '$lib/components/icon.svelte'
 	import Channels from '$lib/components/channels.svelte'
 	import {liveQuery} from '$lib/live-query'
@@ -28,7 +28,7 @@
 	async function pullRadios() {
 		syncing = true
 		try {
-			await sync()
+			await r5.pull()
 			await invalidateAll()
 		} finally {
 			syncing = false

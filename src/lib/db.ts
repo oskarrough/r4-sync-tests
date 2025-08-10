@@ -111,15 +111,9 @@ export async function migrateDb() {
 	const appliedMigrationNames = result.rows.map((x) => x.name)
 
 	// Debug: Check what tables actually exist
-	const [tablesResult] = await pg.exec(`
-		SELECT table_name
-		FROM information_schema.tables
-		WHERE table_schema = 'public'
-		AND table_type = 'BASE TABLE'
-	`)
 	log.log('migrate_applied', {
-		migrations: appliedMigrationNames,
-		tables: tablesResult.rows.map((r) => r.table_name)
+		// migrations: appliedMigrationNames,
+		// tables: tablesResult.rows.map((r) => r.table_name)
 	})
 
 	// Apply new migrations
