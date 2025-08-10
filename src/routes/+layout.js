@@ -2,7 +2,6 @@ import {browser} from '$app/environment'
 import {pg, migrateDb} from '$lib/db'
 import {r4} from '$lib/r4'
 import {r5} from '$lib/experimental-api'
-import {autoSync} from '$lib/sync'
 import {initAppState} from '$lib/app-state.svelte'
 import {logger} from '$lib/logger'
 
@@ -20,7 +19,7 @@ export async function load() {
 		try {
 			await migrateDb()
 			await initAppState()
-			await autoSync()
+			//await autoSync()
 			// @ts-expect-error debugging
 			window.r5 = {pg, r4, r5}
 		} catch (err) {

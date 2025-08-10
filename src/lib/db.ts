@@ -22,7 +22,7 @@ import migration13sql from '$lib/migrations/13-create_track_edits.sql?raw'
 import migration14sql from '$lib/migrations/14-add_tags_mentions.sql?raw'
 
 // This will limit the amount of channels pulled.
-export const debugLimit = 3000
+export const debugLimit = 20
 
 const migrations = [
 	{name: '01-create_tables', sql: migrationsql},
