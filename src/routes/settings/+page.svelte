@@ -2,7 +2,6 @@
 	import {sdk} from '@radio4000/sdk'
 	import KeyboardEditor from '$lib/components/keyboard-editor.svelte'
 	import ThemeEditor from '$lib/components/theme-editor.svelte'
-	/*import SyncDebug from '$lib/components/sync-debug.svelte'*/
 
 	const sha = $derived(__GIT_INFO__.sha)
 
@@ -50,8 +49,6 @@
 			{/if}
 		</p>
 	</section>
-
-	<!--<SyncDebug />-->
 </article>
 
 <style>

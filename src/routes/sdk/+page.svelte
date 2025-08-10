@@ -4,7 +4,6 @@
 	import PgliteRepl from '$lib/components/pglite-repl.svelte'
 	import {r5} from '$lib/experimental-api'
 	import SourceStatus from '$lib/components/sdk-source-status.svelte'
-	import BatchProgress from '$lib/components/sdk-batch-progress.svelte'
 	import Terminal from '$lib/components/sdk-terminal.svelte'
 	import ActivityMonitor from '$lib/components/sdk-activity-monitor.svelte'
 
@@ -19,17 +18,6 @@
 		local: {connected: true, channels: 0, tracks: 0, lastSync: null},
 		r4: {connected: false, channels: 0, tracks: 0, lastSync: null},
 		v1: {connected: false, channels: 0, tracks: 0, lastSync: null}
-	})
-
-	// Batch progress state
-	let batchProgress = $state({
-		active: false,
-		operation: '',
-		currentBatch: 0,
-		totalBatches: 0,
-		totalItems: 0,
-		completedItems: 0,
-		errors: 0
 	})
 
 	// Activity monitor
@@ -74,37 +62,6 @@
 
 		// V1 is always considered connected if local has data
 		sourceStatus.v1.connected = sourceStatus.local.connected
-	}
-
-	function parseBatcherLog(message) {
-		if (message.startsWith('batcher: processing')) {
-			// "batcher: processing 142 items in 3 batches (batchSize: 50, withinBatch: 1)"
-			const match = message.match(/processing (\d+) items in (\d+) batches/)
-			if (match) {
-				batchProgress.active = true
-				batchProgress.totalItems = parseInt(match[1])
-				batchProgress.totalBatches = parseInt(match[2])
-				batchProgress.currentBatch = 0
-				batchProgress.completedItems = 0
-				batchProgress.errors = 0
-				batchProgress.operation = 'processing items'
-			}
-		} else if (message.startsWith('batcher: batch ')) {
-			// "batcher: batch 2/3 - processing 50 items"
-			const match = message.match(/batch (\d+)\/(\d+) - processing (\d+) items/)
-			if (match) {
-				batchProgress.currentBatch = parseInt(match[1])
-				const batchItems = parseInt(match[3])
-				batchProgress.completedItems = (parseInt(match[1]) - 1) * batchItems
-
-				// Hide visualizer when complete
-				if (batchProgress.currentBatch >= batchProgress.totalBatches) {
-					setTimeout(() => {
-						batchProgress.active = false
-					}, 2000)
-				}
-			}
-		}
 	}
 
 	async function handleCommand() {
@@ -244,9 +201,6 @@
 		// Intercept console.log for batch progress
 		const originalLog = console.log
 		console.log = (...args) => {
-			if (args[0] && typeof args[0] === 'string' && args[0].startsWith('batcher:')) {
-				parseBatcherLog(args[0])
-			}
 			originalLog(...args)
 		}
 
@@ -291,8 +245,6 @@
 	</header>
 
 	<main>
-		<BatchProgress {batchProgress} />
-
 		<Terminal
 			bind:terminalInput
 			bind:terminalOutput

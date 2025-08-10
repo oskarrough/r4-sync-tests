@@ -4,15 +4,8 @@
 /**
 
 export {
-	db: {
-		migrateDb,
-		dropDb,
-		exportDb,
-	},
 	sync: {
 		needsUpdate,
-		sync,
-		autoSync,
 		// followers
 		pullFollowers,
 		pushFollowers,
@@ -22,9 +15,6 @@ export {
 		pullTrackMetaYouTubeFromChannel,
 		pullMusicBrainz,
 		searchMusicBrainz,
-		// legacy
-		pullV1Channels,
-		pullV1Tracks,
 	},
 	api: {
 		// auth
@@ -36,7 +26,6 @@ export {
 		addToPlaylist,
 		addPlayHistory,
 		// queries
-		queryChannelsWithTrackCounts,
 		queryFollowers,
 		ensureFollowers,
 		isFollowing,
@@ -97,16 +86,6 @@ export {
 			forcefocus,
 			focusable_children,
 			trap,
-		},
-		keyboard: {
-			initializeKeyboardShortcuts,
-		},
-		spam: {
-			analyzeChannel,
-			analyzeChannels,
-			updateChannelSpam,
-			clearChannelSpam,
-			getChannelTracks,
 		},
 	},
 }

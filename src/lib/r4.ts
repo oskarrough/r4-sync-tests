@@ -24,7 +24,7 @@ export const r4 = {
 	},
 
 	channels: {
-		readChannels: (limit = debugLimit) => 
+		readChannels: (limit = debugLimit) =>
 			sdk.supabase
 				.from('channels_with_tracks')
 				.select('*')
