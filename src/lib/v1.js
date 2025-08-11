@@ -15,10 +15,10 @@ export async function pullV1Channels({limit} = {limit: debugLimit}) {
 
 	/** @type {ChannelFirebase} */
 	const items = (await res.json()).slice(0, limit)
-	const {rows: existingChannels} = await pg.sql`select slug from channels`
+	const {rows: existingChannels} = await pg.sql`select slug, firebase_id from channels`
 	const channels = items.filter(
 		(item) =>
-			!existingChannels.some((r) => r.slug === item.slug) && // ignore already imported channels (v1 data is readyonly)
+			!existingChannels.some((r) => r.slug === item.slug || r.firebase_id === item.firebase_id) && // ignore already imported channels
 			item.track_count &&
 			item.track_count > 3 // ignore almost empty channels
 	)
