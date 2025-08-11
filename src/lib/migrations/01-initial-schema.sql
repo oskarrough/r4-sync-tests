@@ -13,7 +13,6 @@ CREATE TABLE IF NOT EXISTS channels (
 	broadcasting BOOLEAN,
 	spam BOOLEAN,
 	track_count INTEGER DEFAULT 0,
-	-- from migration 07
 	latitude DOUBLE PRECISION,
 	longitude DOUBLE PRECISION,
 	url TEXT
@@ -31,7 +30,6 @@ CREATE TABLE IF NOT EXISTS tracks (
 	description TEXT,
 	discogs_url TEXT,
 	firebase_id TEXT unique,
-	-- from migration 14
 	tags TEXT[],
 	mentions TEXT[]
 );
@@ -43,41 +41,30 @@ CREATE TABLE IF NOT EXISTS app_state (
 	theme TEXT,
 	counter INTEGER DEFAULT 0,
 	channels_display TEXT,
-
 	is_playing BOOLEAN DEFAULT false,
 	volume NUMERIC DEFAULT 0.5,
 	muted BOOLEAN DEFAULT false,
 	shuffle BOOLEAN DEFAULT false,
 	show_video_player BOOLEAN default false,
 	player_expanded BOOLEAN default false,
-
-	playlist_tracks UUID[] DEFAULT ARRAY[]::UUID[],
-	playlist_track UUID references tracks(id),
-
-	channels UUID[] DEFAULT ARRAY[]::UUID[],
-	custom_css_variables JSONB DEFAULT '{}'::jsonb,
-	
-	-- from migration 02
 	queue_panel_visible BOOLEAN DEFAULT false,
-	
-	-- from migration 03
-	broadcasting_channel_id UUID,
-	listening_to_channel_id UUID,
-	
-	-- from migration 04
-	playlist_tracks_shuffled UUID[] DEFAULT ARRAY[]::UUID[],
-	
-	-- from migration 05
+	hide_track_artwork BOOLEAN DEFAULT false,
+	custom_css_variables JSONB DEFAULT '{}'::jsonb,
 	shortcuts JSONB DEFAULT '{
 	  "Escape": "togglePlayerExpanded",
 	  "f": "togglePlayerExpanded",
 	  "$mod+k": "openSearch",
+	  "/": "openSearch",
 	  "k": "togglePlayPause",
-	  "j": "toggleQueuePanel"
+	  "r": "toggleQueuePanel"
 	}'::jsonb,
-	
-	-- from migration 12
-	hide_track_artwork BOOLEAN DEFAULT false
+
+	playlist_track UUID references tracks(id),
+	playlist_tracks UUID[] DEFAULT ARRAY[]::UUID[],
+	playlist_tracks_shuffled UUID[] DEFAULT ARRAY[]::UUID[],
+	channels UUID[] DEFAULT ARRAY[]::UUID[],
+	broadcasting_channel_id UUID,
+	listening_to_channel_id UUID
 );
 
 INSERT INTO app_state (id) values (1) on conflict do nothing;

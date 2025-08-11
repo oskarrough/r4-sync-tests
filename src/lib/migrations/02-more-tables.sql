@@ -1,4 +1,3 @@
--- Play history table (from migration 06)
 CREATE TABLE IF NOT EXISTS play_history (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     track_id UUID REFERENCES tracks(id) ON DELETE CASCADE,
@@ -14,7 +13,6 @@ CREATE TABLE IF NOT EXISTS play_history (
 CREATE INDEX IF NOT EXISTS idx_play_history_track_id ON play_history(track_id);
 CREATE INDEX IF NOT EXISTS idx_play_history_started_at ON play_history(started_at DESC);
 
--- Track metadata table (from migration 09)
 CREATE TABLE IF NOT EXISTS track_meta (
   ytid TEXT PRIMARY KEY,
   duration INTEGER,
@@ -35,7 +33,6 @@ CREATE INDEX idx_track_meta_musicbrainz_data ON track_meta USING GIN (musicbrain
 -- Index for common queries
 CREATE INDEX idx_track_meta_ytid ON track_meta (ytid);
 
--- Followers table (from migration 11)
 CREATE TABLE IF NOT EXISTS followers (
     follower_id TEXT NOT NULL,
     channel_id UUID NOT NULL REFERENCES channels (id) ON DELETE CASCADE,
@@ -49,7 +46,7 @@ CREATE INDEX IF NOT EXISTS idx_followers_channel_id ON followers (channel_id);
 -- Index for querying followings by follower
 CREATE INDEX IF NOT EXISTS idx_followers_follower_id ON followers (follower_id);
 
--- Track edits staging table (from migration 13)
+-- Track edits staging table for batch editing
 CREATE TABLE IF NOT EXISTS track_edits (
   track_id UUID REFERENCES tracks(id),
   field TEXT NOT NULL,
