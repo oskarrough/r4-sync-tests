@@ -28,8 +28,9 @@ export interface Channel {
 	latitude?: number
 	longitude?: number
 
-	// Link to v1 channel  (locally only channels that did not migrate to v2 will have this field)
+	// Link to v1 channel
 	firebase_id?: string
+	source?: string // set to "v1" for firebase ones
 
 	// for broadcasting
 	broadcasting?: boolean

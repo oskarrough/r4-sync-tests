@@ -53,6 +53,7 @@ async function remoteTracks({slug, limit = 4000} = {}) {
 }
 
 async function pullTracks({slug, limit} = {}) {
+	console.log('pullTracks', slug)
 	const channel = (await localChannels({slug}))[0]
 	if (!channel) throw new Error(`pull_tracks:channel_not_found: ${slug}`)
 
@@ -60,10 +61,9 @@ async function pullTracks({slug, limit} = {}) {
 		return await localTracks({slug, limit})
 	}
 
-	if (channel.firebase_id) {
+	if (channel.source === 'v1') {
 		const v1Tracks = await fetchV1Tracks({firebase: channel.firebase_id})
 		const tracks = migrateTracks(v1Tracks, channel.id)
-		console.log('migratedtracks', tracks)
 		await insertTracks(slug, tracks)
 	} else {
 		const tracks = await remoteTracks({slug, limit})
@@ -79,7 +79,6 @@ async function pullChannels({slug, limit = 3000} = {}) {
 		if (local.length) {
 			// Update in background if outdated
 			if (await outdated(slug)) {
-				// @todo also update channel here? why not..
 				pullTracks({slug}).catch(console.error)
 			}
 			return local
@@ -113,8 +112,9 @@ async function pullChannels({slug, limit = 3000} = {}) {
 }
 
 async function pullEverything(slug) {
-	console.log('pullEverything', slug)
 	if (!slug) {
+		console.log('did you mean r5 channels pull?')
+		return
 		// Pull all channels when no slug provided
 		const channels = await pullChannels()
 		return {channels, tracks: []}
@@ -131,9 +131,7 @@ async function pullEverything(slug) {
  */
 async function outdated(slug) {
 	try {
-		const {
-			rows: [channel]
-		} = await pg.sql`select * from channels where slug = ${slug}`
+		const channel = (await r5.channels({slug}))[0]
 		const {id} = channel
 		if (!id || !channel.tracks_synced_at) return true
 
@@ -178,7 +176,6 @@ async function outdated(slug) {
  * @param {import('$lib/types').Channel[]} channels - Channel data to insert
  */
 async function insertChannels(channels) {
-	console.log('inserting', channels)
 	await pg.transaction(async (tx) => {
 		for (const channel of channels) {
 			await tx.sql`
@@ -264,6 +261,26 @@ async function insertTracks(slug, tracks) {
 	}
 }
 
+async function getV1Channels({slug, limit = 5000} = {}) {
+	const res = await fetch('/channels-firebase-modified.json')
+	const items = await res.json()
+	const filtered = slug ? items.filter((item) => item.slug === slug) : items
+	const channels = filtered
+		.slice(0, limit)
+		.filter((item) => item.track_count && item.track_count > 3)
+	return channels.map((item) => ({
+		id: crypto.randomUUID(),
+		slug: item.slug,
+		name: item.name,
+		description: item.description || '',
+		created_at: new Date(item.created_at).toISOString(),
+		updated_at: new Date(item.updated_at).toISOString(),
+		firebase_id: item.firebase_id,
+		track_count: item.track_count,
+		source: 'v1'
+	}))
+}
+
 // Create the source-first API with callable objects
 export const r5 = {
 	channels: callableObject(
@@ -272,26 +289,9 @@ export const r5 = {
 			local: localChannels,
 			r4: remoteChannels,
 			pull: pullChannels,
+			v1: getV1Channels,
 			insert: insertChannels,
-			outdated,
-			v1: async ({slug, limit = 5000} = {}) => {
-				const res = await fetch('/channels-firebase-modified.json')
-				const items = await res.json()
-				const filtered = slug ? items.filter((item) => item.slug === slug) : items
-				const channels = filtered
-					.slice(0, limit)
-					.filter((item) => item.track_count && item.track_count > 3)
-				return channels.map((item) => ({
-					id: crypto.randomUUID(),
-					slug: item.slug,
-					name: item.name,
-					description: item.description || '',
-					created_at: new Date(item.created_at).toISOString(),
-					updated_at: new Date(item.updated_at).toISOString(),
-					firebase_id: item.firebase_id,
-					track_count: item.track_count
-				}))
-			}
+			outdated
 		}
 	),
 
@@ -306,9 +306,7 @@ export const r5 = {
 		}
 	),
 
-	pull: callableObject(pullEverything, {
-		channel: pullChannels
-	}),
+	pull: pullEverything,
 
 	search: callableObject(performSearch, {
 		all: performSearch,

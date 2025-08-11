@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS channels (
 	image TEXT,
 	busy BOOLEAN,
 	firebase_id TEXT unique,
+	source TEXT,
 	tracks_synced_at TIMESTAMP WITH TIME ZONE,
 	broadcasting BOOLEAN,
 	spam BOOLEAN,

@@ -12,13 +12,12 @@ export async function load({parent, params, url}) {
 
 	try {
 		const channel = (await r5.channels.pull({slug}))[0]
-		const tracks = await r5.tracks.pull({slug})
-		console.log('here', channel, tracks)
-		// if (!channels.length) error(404, 'Channel not found')
+		const tracks = await r5.tracks({slug})
+		console.log({tracks})
+		if (!tracks.length) await r5.tracks.pull({slug})
 		return {channel, slug, search, order, dir}
 	} catch (err) {
-		console.log(err)
-		console.log(err.message)
-		error(404, `Channel not found: ${err}`)
+		console.error(err)
+		error(404, `Channel not found: ${err.message}`)
 	}
 }

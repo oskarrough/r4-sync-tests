@@ -38,7 +38,7 @@
 
 <Channels channels={data.channels} {slug} {display} {longitude} {latitude} {zoom} />
 
-{#if channelCount === 0}
+{#if channelCount < 100}
 	<menu>
 		<button onclick={pullRadios} disabled={syncing}>
 			<Icon icon="cloud-download-alt">
