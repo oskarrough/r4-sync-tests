@@ -2,7 +2,7 @@
 	import {onMount} from 'svelte'
 	import {parseCommand} from '$lib/cli-translator'
 	import PgliteRepl from '$lib/components/pglite-repl.svelte'
-	import {r5} from '$lib/experimental-api'
+	import {r5} from '$lib/r5'
 	import Terminal from '$lib/components/sdk-terminal.svelte'
 
 	let terminalInput = $state('')

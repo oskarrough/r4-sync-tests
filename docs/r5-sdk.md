@@ -20,7 +20,7 @@ db [reset|migrate|export]           - database operations
 ## examples
 
 ```js
-import {r5} from '$lib/experimental-api'
+import {r5} from '$lib/r5'
 await r5.channels({limit: 50})
 await r5.tracks({slug: 'ko002', limit: 100})
 await r5.channels.r4({limit: 50}) // fetch without inserting

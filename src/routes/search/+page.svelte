@@ -1,7 +1,7 @@
 <script>
 	import {trap} from '$lib/focus'
 	import {page} from '$app/state'
-	import {r5} from '$lib/experimental-api'
+	import {r5} from '$lib/r5'
 	import {setPlaylist, addToPlaylist} from '$lib/api'
 	import ChannelCard from '$lib/components/channel-card.svelte'
 	import TrackCard from '$lib/components/track-card.svelte'

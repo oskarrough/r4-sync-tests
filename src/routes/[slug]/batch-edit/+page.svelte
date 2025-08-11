@@ -1,6 +1,6 @@
 <script>
 	import {stageEdit, commitEdits, discardEdits, getEdits} from '$lib/api'
-	import {r5} from '$lib/experimental-api'
+	import {r5} from '$lib/r5'
 	import {invalidateAll} from '$app/navigation'
 	import EditPreview from './EditPreview.svelte'
 	import TrackRow from './TrackRow.svelte'

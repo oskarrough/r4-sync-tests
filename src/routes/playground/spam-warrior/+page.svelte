@@ -9,7 +9,7 @@
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
 	import {pg} from '$lib/db'
-	import {r5} from '$lib/experimental-api'
+	import {r5} from '$lib/r5'
 
 	/** @type {Array<import('$lib/types').Channel & {spamAnalysis: {confidence: number, reasons: string[], isSpam: boolean}}>} */
 	let allChannels = $state([])
