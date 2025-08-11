@@ -28,7 +28,7 @@
 	async function pullRadios() {
 		syncing = true
 		try {
-			await r5.pull()
+			await r5.channels.pull()
 			await invalidateAll()
 		} finally {
 			syncing = false

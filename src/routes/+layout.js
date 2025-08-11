@@ -16,7 +16,7 @@ async function autoPull() {
 	const channelCount = parseInt(rows[0].count)
 	if (channelCount > 100) return
 	log.log('autoPull')
-	await r5.pull().catch((err) => log.error('auto_sync_error', err))
+	await r5.channels.pull().catch((err) => log.error('auto_sync_error', err))
 }
 
 /** @type {import('./$types').LayoutLoad} */

@@ -50,16 +50,12 @@ const COMMANDS = {
 			}
 		}
 	},
-	pull: {
-		argTransforms: {
-			default: (args) => [args[0]]
-		}
-	},
 	db: {
 		methods: ['reset', 'export', 'migrate'],
 		argTransforms: {
 			default: () => []
-		}
+		},
+		defaultHelp: 'Available commands: reset, export, migrate'
 	}
 }
 
@@ -87,15 +83,17 @@ export function parseCommand(command) {
 			fn: async () => `R5 - Local-First Music Player CLI
 
 Usage:
-  r5 channels [local|r4|pull] [<slug>]
+  r5 channels [local|r4|pull|v1] [<slug>]
   r5 tracks (local [<slug>] | r4 <slug> | pull <slug> | v1 <channel> <firebase>)
   r5 search [channels|tracks] <query>
   r5 db (reset|migrate|export)
-  r5 pull <slug>
 
 Examples:
-  r5 channels ko002          List channel @ko002
-  r5 tracks r4 ko002         Get tracks from radio4000
+  r5 channels ko002          List local channel @ko002
+  r5 channels pull           Pull all channels from remote
+  r5 channels pull ko002     Pull channel @ko002 from remote
+  r5 channels v1 ko002       List v1 (firebase) channel @ko002
+  r5 tracks pull ko002       Pull tracks for @ko002 from remote
   r5 search jazz piano       Search everything for "jazz piano"
   r5 db migrate              Run database migrations`,
 			args: [],
@@ -121,6 +119,13 @@ Examples:
 			// Method not in allowed list, treat as argument
 			transform = config.argTransforms.default || (() => [method, ...args])
 			args.unshift(method)
+		} else if (!method && config.defaultHelp) {
+			// No method specified but command has subcommands
+			return {
+				fn: async () => config.defaultHelp,
+				args: [],
+				raw
+			}
 		}
 
 		if (!fn) {
@@ -152,11 +157,10 @@ export function getCompletions(partial) {
 
 	if (parts.length === 2) {
 		const patterns = {
-			channels: 'channels [local|r4|pull] [<slug>]',
+			channels: 'channels [local|r4|pull|v1] [<slug>]',
 			tracks: 'tracks <method> [<args>]',
 			search: 'search [channels|tracks] <query>',
 			db: 'db <command>',
-			pull: 'pull <slug>',
 			help: 'help'
 		}
 

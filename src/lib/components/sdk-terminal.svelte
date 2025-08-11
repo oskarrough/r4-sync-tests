@@ -74,8 +74,8 @@
 							<div>
 								{entry.data
 									.slice(0, 3)
-									.map(
-										(item) => item.title || item.name || (item.slug ? `@${item.slug}` : 'untitled')
+									.map((item) =>
+										item.slug ? `@${item.slug}` : item.title || item.name || 'untitled'
 									)
 									.join(', ')}
 								{#if entry.data.length > 3}
