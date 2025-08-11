@@ -28,7 +28,7 @@ export async function load() {
 		try {
 			await migrateDb()
 			await initAppState()
-			await autoPull()
+			//await autoPull()
 			// @ts-expect-error debugging
 			window.r5 = {pg, r4, r5}
 		} catch (err) {

@@ -56,9 +56,14 @@ async function pullTracks({slug, limit} = {}) {
 	const channel = (await localChannels({slug}))[0]
 	if (!channel) throw new Error(`sync:insert_tracks_error_404: ${slug}`)
 
+	if (!(await outdated(slug))) {
+		return await localTracks({slug, limit})
+	}
+
 	if (channel.firebase_id) {
 		const v1Tracks = await fetchV1Tracks({firebase: channel.firebase_id})
 		const tracks = migrateTracks(v1Tracks, channel.id)
+		console.log('migratedtracks', tracks)
 		await insertTracks(slug, tracks)
 	} else {
 		const tracks = await remoteTracks({slug, limit})
@@ -69,19 +74,46 @@ async function pullTracks({slug, limit} = {}) {
 
 async function pullChannels({slug, limit = 3000} = {}) {
 	if (slug) {
-		const channel = await remoteChannels({slug})
-		if (!channel) throw new Error(`Channel not found: ${slug}`)
-		await insertChannels([channel])
-		const result = await localChannels({slug})
-		return result[0]
+		// Check local first
+		const local = await localChannels({slug})
+		if (local.length) {
+			// Update in background if outdated
+			if (await outdated(slug)) {
+				// @todo also update channel here? why not..
+				pullTracks({slug}).catch(console.error)
+			}
+			return local
+		}
+
+		// Try r4
+		try {
+			const channel = await remoteChannels({slug})
+			if (channel) {
+				await insertChannels([channel])
+				return await localChannels({slug})
+			}
+		} catch {
+			// Channel not found in r4, continue to v1
+		}
+
+		// Try v1
+		const v1Channels = await r5.channels.v1({slug})
+		if (v1Channels.length) {
+			await insertChannels(v1Channels)
+			return await localChannels({slug})
+		}
+
+		throw new Error(`Channel not found: ${slug}`)
 	}
-	await pullV1Channels()
+
 	const channels = await r4.channels.readChannels(limit)
 	await insertChannels(channels)
+	await pullV1Channels() // must happen after r4 is inserted, so it skips v1 channels already existing in r4
 	return await localChannels({limit})
 }
 
 async function pullEverything(slug) {
+	console.log('pullEverything', slug)
 	if (!slug) {
 		// Pull all channels when no slug provided
 		return await pullChannels()
@@ -145,19 +177,19 @@ async function outdated(slug) {
  * @param {import('$lib/types').Channel[]} channels - Channel data to insert
  */
 async function insertChannels(channels) {
+	console.log('inserting', channels)
 	await pg.transaction(async (tx) => {
 		for (const channel of channels) {
 			await tx.sql`
-        INSERT INTO channels (id, name, slug, description, image, created_at, updated_at, latitude, longitude, url, track_count)
+        INSERT INTO channels (id, name, slug, description, image, created_at, updated_at, latitude, longitude, url, track_count, firebase_id)
         VALUES (
           ${channel.id}, ${channel.name}, ${channel.slug},
           ${channel.description}, ${channel.image},
           ${channel.created_at}, ${channel.updated_at},
           ${channel.latitude}, ${channel.longitude},
-          ${channel.url}, ${channel.track_count || 0}
+          ${channel.url}, ${channel.track_count || 0}, ${channel.firebase_id || null}
         )
-        ON CONFLICT (slug)  DO UPDATE SET
-          id = EXCLUDED.id,
+        ON CONFLICT (slug) DO UPDATE SET
           name = EXCLUDED.name,
           description = EXCLUDED.description,
           image = EXCLUDED.image,
@@ -167,7 +199,7 @@ async function insertChannels(channels) {
           longitude = EXCLUDED.longitude,
           url = EXCLUDED.url,
           track_count = COALESCE(EXCLUDED.track_count, channels.track_count),
-          firebase_id = NULL;
+          firebase_id = COALESCE(EXCLUDED.firebase_id, channels.firebase_id);
       `
 		}
 	})
@@ -249,7 +281,7 @@ export const r5 = {
 					.slice(0, limit)
 					.filter((item) => item.track_count && item.track_count > 3)
 				return channels.map((item) => ({
-					id: item.firebase_id,
+					id: crypto.randomUUID(),
 					slug: item.slug,
 					name: item.name,
 					description: item.description || '',

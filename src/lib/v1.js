@@ -110,7 +110,7 @@ export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
 export async function fetchV1Tracks({firebase, channel, limit} = {}) {
 	const v1Tracks = await readFirebaseChannelTracks(firebase)
 	const mapped = v1Tracks.map((track) => ({
-		id: track.id,
+		id: crypto.randomUUID(),
 		firebase_id: track.id,
 		channel_slug: channel,
 		url: track.url,
@@ -131,7 +131,7 @@ export async function fetchV1Tracks({firebase, channel, limit} = {}) {
  */
 export function migrateTracks(v1Tracks, channelId) {
 	return v1Tracks.map((track) => ({
-		id: track.firebase_id || track.id,
+		id: crypto.randomUUID(),
 		firebase_id: track.firebase_id || track.id,
 		channel_id: channelId,
 		url: track.url,

@@ -34,8 +34,8 @@ export const r4 = {
 					.order('updated_at', {ascending: false})
 					.limit(limit)
 			),
-		readChannel: (...args: Parameters<typeof sdk.channels.readChannel>) =>
-			unwrap(() => sdk.channels.readChannel(...args)),
+		readChannel: (slug: string) =>
+			unwrap(() => sdk.supabase.from('channels_with_tracks').select('*').eq('slug', slug).single()),
 		readUserChannels: (...args: Parameters<typeof sdk.channels.readUserChannels>) =>
 			unwrap(() => sdk.channels.readUserChannels(...args)),
 		readChannelTracks: (...args: Parameters<typeof sdk.channels.readChannelTracks>) =>
