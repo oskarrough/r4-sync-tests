@@ -3,7 +3,7 @@
 
 	let {
 		terminalInput = $bindable(),
-		terminalOutput = $bindable(),
+		terminalOutput,
 		commandHistory = $bindable(),
 		historyIndex = $bindable(),
 		inputElement = $bindable(),
@@ -43,11 +43,7 @@
 				terminalInput = completion
 			} else if (completions.length > 1) {
 				const displayCompletions = completions.map((c) => c.replace('r5 ', ''))
-				terminalOutput.push({
-					type: 'hint',
-					text: displayCompletions.join('  '),
-					timestamp: new Date()
-				})
+				onCommand('hint', displayCompletions.join('  '))
 				setTimeout(scrollTerminal, 0)
 			}
 		}

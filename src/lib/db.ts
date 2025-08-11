@@ -13,7 +13,7 @@ import migration02sql from '$lib/migrations/02-more-tables.sql?raw'
 import migration03sql from '$lib/migrations/03-functions-and-views.sql?raw'
 
 // This will limit the amount of channels pulled.
-export const debugLimit = 20
+export const debugLimit = 4000
 
 const migrations = [
 	{name: '01-initial-schema', sql: migration01sql},

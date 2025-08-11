@@ -6,109 +6,117 @@
 	import Terminal from '$lib/components/sdk-terminal.svelte'
 
 	let terminalInput = $state('')
-	let terminalOutput = $state([])
+	let baseOutput = $state([])
 	let commandHistory = $state([])
 	let historyIndex = $state(-1)
+	let executingCommand = $state(null)
 	let inputElement
 
-	async function handleCommand() {
+	let commandValidation = $derived.by(() => {
+		if (!terminalInput.trim()) return null
+		if (terminalInput.startsWith('/search')) {
+			return {error: 'Did you mean "search.tracks ..." or "search.channels ..."?'}
+		}
+		return parseCommand(`r5 ${terminalInput}`)
+	})
+
+	let terminalOutput = $derived([
+		...baseOutput,
+		...(executingCommand
+			? [
+					{
+						type: 'loading',
+						text: '⟳ executing...',
+						timestamp: new Date()
+					}
+				]
+			: [])
+	])
+
+	function formatResult(result, duration) {
+		if (typeof result === 'string') {
+			return {
+				type: 'success',
+				text: result,
+				timestamp: new Date()
+			}
+		}
+		return {
+			type: 'success',
+			text: `✓ ${Array.isArray(result) ? result.length : 1} results (${duration}ms)`,
+			timestamp: new Date(),
+			data: result,
+			showData: true
+		}
+	}
+
+	function handleCommand(type, text) {
+		if (type === 'hint') {
+			baseOutput.push({type, text, timestamp: new Date()})
+			return
+		}
+		executeCommand()
+	}
+
+	async function executeCommand() {
 		if (!terminalInput.trim()) return
 
-		// Add command to output
-		terminalOutput.push({
+		const command = terminalInput
+		const validation = commandValidation
+
+		baseOutput.push({
 			type: 'command',
-			text: `r5 ${terminalInput}`,
+			text: `r5 ${command}`,
 			timestamp: new Date()
 		})
 
-		// Add to history
-		commandHistory.unshift(terminalInput)
+		commandHistory.unshift(command)
 		if (commandHistory.length > 100) commandHistory.pop()
 
-		// Clear input and reset history
-		const command = terminalInput
 		terminalInput = ''
 		historyIndex = -1
 
-		// Check for common mistake: /search instead of search.
-		if (command.startsWith('/search')) {
-			terminalOutput.push({
+		if (validation?.error) {
+			baseOutput.push({
 				type: 'hint',
-				text: 'Did you mean "search.tracks ..." or "search.channels ..."?',
+				text: validation.error,
 				timestamp: new Date()
 			})
 			return
 		}
 
-		// Parse and execute command
-		const parsed = parseCommand(`r5 ${command}`)
+		if (!validation) return
 
-		if (parsed.error) {
-			terminalOutput.push({
+		executingCommand = command
+
+		try {
+			const startTime = performance.now()
+			console.log(
+				`r5.terminal executing: ${command}`,
+				validation.fn.name || validation.fn,
+				validation.args
+			)
+			const result = await validation.fn(...validation.args)
+			const duration = Math.round(performance.now() - startTime)
+			console.log(`r5.terminal result (${duration}ms):`, result)
+
+			baseOutput.push(formatResult(result, duration))
+
+			if (
+				command.includes('db.reset') ||
+				command.includes('db reset') ||
+				command.includes('drop_tables')
+			) {
+				await r5.db.migrate()
+			}
+		} catch (error) {
+			baseOutput.push({
 				type: 'error',
-				text: parsed.error,
+				text: `✗ ${error.message}`,
 				timestamp: new Date()
 			})
-		} else {
-			// Show loading
-			const loadingEntry = {
-				type: 'loading',
-				text: '⟳ executing...',
-				timestamp: new Date()
-			}
-			terminalOutput.push(loadingEntry)
-
-			try {
-				const startTime = performance.now()
-
-				// Console logging for introspection
-				console.log(`[R5 SDK] Executing: ${command}`)
-				console.log(`[R5 SDK] Function:`, parsed.fn.name || parsed.fn)
-				console.log(`[R5 SDK] Args:`, parsed.args)
-
-				const result = await parsed.fn(...parsed.args)
-				const duration = Math.round(performance.now() - startTime)
-
-				console.log(`[R5 SDK] Result (${duration}ms):`, result)
-
-				// Remove loading entry
-				terminalOutput.splice(terminalOutput.indexOf(loadingEntry), 1)
-
-				// Add result
-				if (typeof result === 'string') {
-					terminalOutput.push({
-						type: 'success',
-						text: result,
-						timestamp: new Date()
-					})
-				} else {
-					terminalOutput.push({
-						type: 'success',
-						text: `✓ ${Array.isArray(result) ? result.length : 1} results (${duration}ms)`,
-						timestamp: new Date(),
-						data: result,
-						showData: true
-					})
-				}
-
-				// Refresh status if db was reset
-				if (
-					command.includes('db.reset') ||
-					command.includes('db reset') ||
-					command.includes('drop_tables')
-				) {
-					await r5.db.migrate()
-				}
-			} catch (error) {
-				// Remove loading entry
-				terminalOutput.splice(terminalOutput.indexOf(loadingEntry), 1)
-
-				terminalOutput.push({
-					type: 'error',
-					text: `✗ ${error.message}`,
-					timestamp: new Date()
-				})
-			}
+		} finally {
+			executingCommand = null
 		}
 	}
 
@@ -162,7 +170,7 @@
 	<main>
 		<Terminal
 			bind:terminalInput
-			bind:terminalOutput
+			{terminalOutput}
 			bind:commandHistory
 			bind:historyIndex
 			bind:inputElement

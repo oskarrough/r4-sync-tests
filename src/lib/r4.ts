@@ -27,12 +27,13 @@ export const r4 = {
 
 	channels: {
 		readChannels: (limit = debugLimit) =>
-			sdk.supabase
-				.from('channels_with_tracks')
-				.select('*')
-				.order('updated_at', {ascending: false})
-				.limit(limit)
-				.throwOnError(),
+			unwrap(() =>
+				sdk.supabase
+					.from('channels_with_tracks')
+					.select('*')
+					.order('updated_at', {ascending: false})
+					.limit(limit)
+			),
 		readChannel: (...args: Parameters<typeof sdk.channels.readChannel>) =>
 			unwrap(() => sdk.channels.readChannel(...args)),
 		readUserChannels: (...args: Parameters<typeof sdk.channels.readUserChannels>) =>
