@@ -1,0 +1,33 @@
+● Update Todos
+  ⎿  ☐ Analyze readFirebaseChannelTracks, fetchV1Tracks, pullV1Tracks, and insertTracks for consolidation opportunities
+
+● Analysis of the four track functions:
+
+  Layers:
+  1. readFirebaseChannelTracks - Raw firebase data fetch
+  2. fetchV1Tracks - Maps to API format (channel_slug)
+  3. pullV1Tracks - Maps to DB format (channel_id) + chunked DB insert with V1-specific logic
+  4. insertTracks - General-purpose track insert (expects R4 format with id, tags, mentions)
+
+  Key differences:
+  - pullV1Tracks uses firebase_id field and different conflict resolution
+  - insertTracks expects R4 track format (id, tags, mentions) vs V1 format (no id field)
+  - pullV1Tracks has channel status management (busy, tracks_synced_at)
+
+  Consolidation opportunity:
+  pullV1Tracks could use fetchV1Tracks + a V1-specific insert function, but the mapping differs:
+  - fetchV1Tracks → channel_slug (for API)
+  - pullV1Tracks → channel_id (for DB)
+
+  The chunked insertion logic is duplicated between pullV1Tracks and insertTracks, but they handle different data formats and conflict strategies.
+
+● Update Todos
+  ⎿  ☒ Analyze readFirebaseChannelTracks, fetchV1Tracks, pullV1Tracks, and insertTracks for consolidation opportunities
+
+● Cleanup opportunities:
+
+  1. Extract common chunked insert pattern - both pullV1Tracks and insertTracks use identical chunking logic
+  2. Consolidate V1 track mapping - pullV1Tracks could reuse fetchV1Tracks with a mapping adapter
+  3. Separate concerns - pullV1Tracks mixes fetching, mapping, and inserting
+
+  The functions serve distinct purposes but share implementation patterns. The chunked insertion logic is the clearest candidate for extraction.

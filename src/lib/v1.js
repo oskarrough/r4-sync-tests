@@ -102,6 +102,50 @@ export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
 }
 
 /**
+ * Fetches V1 tracks and maps them for API consumption
+ * @param {string} firebase - firebase channel id
+ * @param {string} channel - channel slug
+ * @param {number} [limit] - optional limit
+ */
+export async function fetchV1Tracks({firebase, channel, limit} = {}) {
+	const v1Tracks = await readFirebaseChannelTracks(firebase)
+	const mapped = v1Tracks.map((track) => ({
+		id: track.id,
+		firebase_id: track.id,
+		channel_slug: channel,
+		url: track.url,
+		title: track.title,
+		description: track.body || '',
+		discogs_url: track.discogsUrl || '',
+		created_at: new Date(track.created).toISOString(),
+		updated_at: new Date(track.updated || track.created).toISOString()
+	}))
+	return limit ? mapped.slice(0, limit) : mapped
+}
+
+/**
+ * Migrates v1 tracks to Track type for database insertion
+ * @param {Array} v1Tracks - Raw v1 track data
+ * @param {string} channelId - The channel.id for database insertion
+ * @returns {import('$lib/types').Track[]} Tracks ready for insertion
+ */
+export function migrateTracks(v1Tracks, channelId) {
+	return v1Tracks.map((track) => ({
+		id: track.firebase_id || track.id,
+		firebase_id: track.firebase_id || track.id,
+		channel_id: channelId,
+		url: track.url,
+		title: track.title,
+		description: track.description || track.body || '',
+		discogs_url: track.discogs_url || track.discogsUrl || '',
+		created_at: track.created_at || new Date(track.created).toISOString(),
+		updated_at: track.updated_at || new Date(track.updated || track.created).toISOString(),
+		tags: null,
+		mentions: null
+	}))
+}
+
+/**
  * Fetches all v1 tracks from a v1 channel id
  * @param {string} cid
  */

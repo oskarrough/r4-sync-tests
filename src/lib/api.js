@@ -2,7 +2,6 @@ import * as batchEdit from './batch-edit.js'
 import {appState, defaultAppState} from '$lib/app-state.svelte'
 import {leaveBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
-import {needsUpdate} from '$lib/sync'
 import {pg, dropDb, migrateDb} from '$lib/db'
 import {r4} from '$lib/r4'
 import {r5} from '$lib/experimental-api'
@@ -71,7 +70,7 @@ export async function playTrack(id, endReason, startReason) {
 export async function playChannel({id, slug}, index = 0) {
 	log.log('play_channel', {id, slug})
 	leaveBroadcast()
-	if (await needsUpdate(slug)) await r5.pull.channel({slug})
+	if (await r5.channels.outdated(slug)) await r5.pull.channel({slug})
 	const tracks = (
 		await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`
 	).rows
