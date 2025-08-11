@@ -11,6 +11,7 @@
 	import Icon from '$lib/components/icon.svelte'
 	import LinkEntities from '$lib/components/link-entities.svelte'
 	import {r5} from '$lib/r5'
+	import {pg} from '$lib/db'
 
 	/** @typedef {import('$lib/types').Track} Track */
 	/** @typedef {import('$lib/types').Channel} Channel */
@@ -69,7 +70,7 @@
 	/** @param {string} tid */
 	async function setChannelFromTrack(tid) {
 		if (!tid || tid === track?.id) return
-		track = (await r5.tracks({slug: tid}))[0]
+		track = (await pg.sql`select * from tracks_with_meta where id = ${tid}`).rows[0]
 		channel = (await r5.channels({slug: track.channel_slug}))[0]
 	}
 
