@@ -7,12 +7,16 @@ import {r5} from './r5'
 
 const COMMANDS = {
 	channels: {
-		methods: ['local', 'r4', 'pull', 'v1'],
+		methods: ['local', 'r4', 'pull', 'v1', 'outdated'],
 		argTransforms: {
 			local: (args) => (args[0] ? [{slug: args[0]}] : []),
 			r4: (args) => (args[0] ? [{slug: args[0]}] : []),
 			pull: (args) => (args[0] ? [{slug: args[0]}] : []),
 			v1: (args) => (args[0] ? [{slug: args[0]}] : []),
+			outdated: (args) => {
+				if (!args[0]) throw new Error('outdated requires channel slug')
+				return [args[0]]
+			},
 			default: (args) => (args[0] ? [{slug: args[0]}] : [])
 		}
 	},
@@ -83,7 +87,7 @@ export function parseCommand(command) {
 			fn: async () => `R5 - Local-First Music Player CLI
 
 Usage:
-  r5 channels [local|r4|pull|v1] [<slug>]
+  r5 channels [local|r4|pull|v1|outdated] [<slug>]
   r5 tracks (local [<slug>] | r4 <slug> | pull <slug> | v1 <channel> <firebase>)
   r5 search [channels|tracks] <query>
   r5 db (reset|migrate|export)
@@ -93,6 +97,7 @@ Examples:
   r5 channels pull           Pull all channels from remote
   r5 channels pull ko002     Pull channel @ko002 from remote
   r5 channels v1 ko002       List v1 (firebase) channel @ko002
+  r5 channels outdated ko002 Check if @ko002 needs updating
   r5 tracks pull ko002       Pull tracks for @ko002 from remote
   r5 search jazz piano       Search everything for "jazz piano"
   r5 db migrate              Run database migrations`,
@@ -157,7 +162,7 @@ export function getCompletions(partial) {
 
 	if (parts.length === 2) {
 		const patterns = {
-			channels: 'channels [local|r4|pull|v1] [<slug>]',
+			channels: 'channels [local|r4|pull|v1|outdated] [<slug>]',
 			tracks: 'tracks <method> [<args>]',
 			search: 'search [channels|tracks] <query>',
 			db: 'db <command>',

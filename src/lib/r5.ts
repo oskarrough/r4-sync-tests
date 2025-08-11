@@ -54,7 +54,7 @@ async function remoteTracks({slug, limit = 4000} = {}) {
 
 async function pullTracks({slug, limit} = {}) {
 	const channel = (await localChannels({slug}))[0]
-	if (!channel) throw new Error(`sync:insert_tracks_error_404: ${slug}`)
+	if (!channel) throw new Error(`pull_tracks:channel_not_found: ${slug}`)
 
 	if (!(await outdated(slug))) {
 		return await localTracks({slug, limit})
@@ -87,9 +87,9 @@ async function pullChannels({slug, limit = 3000} = {}) {
 
 		// Try r4
 		try {
-			const channel = await remoteChannels({slug})
-			if (channel) {
-				await insertChannels([channel])
+			const channels = await remoteChannels({slug})
+			if (channels.length) {
+				await insertChannels(channels)
 				return await localChannels({slug})
 			}
 		} catch {
@@ -103,7 +103,7 @@ async function pullChannels({slug, limit = 3000} = {}) {
 			return await localChannels({slug})
 		}
 
-		throw new Error(`Channel not found: ${slug}`)
+		throw new Error(`pull_channels:channel_not_found: ${slug}`)
 	}
 
 	const channels = await r4.channels.readChannels(limit)
@@ -116,11 +116,12 @@ async function pullEverything(slug) {
 	console.log('pullEverything', slug)
 	if (!slug) {
 		// Pull all channels when no slug provided
-		return await pullChannels()
+		const channels = await pullChannels()
+		return {channels, tracks: []}
 	}
-	await pullChannels({slug})
-	await pullTracks({slug})
-	return await localTracks({slug})
+	const channels = await pullChannels({slug})
+	const tracks = await pullTracks({slug})
+	return {channels, tracks}
 }
 
 /**

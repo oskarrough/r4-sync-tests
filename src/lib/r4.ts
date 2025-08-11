@@ -35,7 +35,7 @@ export const r4 = {
 					.limit(limit)
 			),
 		readChannel: (slug: string) =>
-			unwrap(() => sdk.supabase.from('channels_with_tracks').select('*').eq('slug', slug).single()),
+			unwrap(() => sdk.supabase.from('channels_with_tracks').select('*').eq('slug', slug)),
 		readUserChannels: (...args: Parameters<typeof sdk.channels.readUserChannels>) =>
 			unwrap(() => sdk.channels.readUserChannels(...args)),
 		readChannelTracks: (...args: Parameters<typeof sdk.channels.readChannelTracks>) =>
