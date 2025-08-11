@@ -1,25 +1,37 @@
 import {describe, it, expect, beforeEach, afterEach} from 'vitest'
-import migrationsql from '$lib/migrations/01-create_tables.sql?raw'
-import migration13sql from '$lib/migrations/13-create_track_edits.sql?raw'
-import migration14sql from '$lib/migrations/14-add_tags_mentions.sql?raw'
 import {PGlite} from '@electric-sql/pglite'
+import {live} from '@electric-sql/pglite/live'
+import {pg_trgm} from '@electric-sql/pglite/contrib/pg_trgm'
+import migration01sql from '$lib/migrations/01-initial-schema.sql?raw'
+import migration02sql from '$lib/migrations/02-more-tables.sql?raw'
+import migration03sql from '$lib/migrations/03-functions-and-views.sql?raw'
 import {stageEdit, commitEdits, discardEdits, getEditCount, getEdits} from './batch-edit.js'
 
-/** @type {import('@electric-sql/pglite').PGlite} */
+const migrations = [
+	{name: '01-initial-schema', sql: migration01sql},
+	{name: '02-more-tables', sql: migration02sql},
+	{name: '03-functions-and-views', sql: migration03sql}
+]
+
+/** @type {import('@electric-sql/pglite/live').PGliteWithLive} */
 let testPg
 /** @type {string} */
 let testChannelId
 
 beforeEach(async () => {
-	// Create in-memory PGlite instance for testing
+	// Create fresh in-memory database for each test
 	testPg = await PGlite.create({
-		dataDir: 'memory://'
+		dataDir: 'memory://',
+		extensions: {
+			live,
+			pg_trgm
+		}
 	})
 
-	// Apply minimal subset of migrations needed for these tests
-	await testPg.exec(migrationsql)
-	await testPg.exec(migration14sql)
-	await testPg.exec(migration13sql)
+	// Apply migrations manually for test isolation
+	for (const migration of migrations) {
+		await testPg.exec(migration.sql)
+	}
 
 	// Seed a channel to satisfy FK on tracks
 	const channelResult = await testPg.sql`

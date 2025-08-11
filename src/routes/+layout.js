@@ -1,7 +1,7 @@
 import {browser} from '$app/environment'
 import {pg, migrateDb} from '$lib/db'
 import {r4} from '$lib/r4'
-import {r5} from '$lib/experimental-api'
+import {r5} from '$lib/r5'
 import {initAppState} from '$lib/app-state.svelte'
 import {logger} from '$lib/logger'
 

@@ -1,5 +1,5 @@
 import {pg, dropDb, exportDb, migrateDb} from './db.js'
-import {r4} from './r4'
+import {r4} from './r4.js'
 import {pullV1Channels, fetchV1Tracks, migrateTracks} from './v1.js'
 import {performSearch, searchChannels, searchTracks} from './search.js'
 import {logger} from '$lib/logger'

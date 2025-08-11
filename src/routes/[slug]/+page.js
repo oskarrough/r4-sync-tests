@@ -1,4 +1,4 @@
-import {r5} from '$lib/experimental-api'
+import {r5} from '$lib/r5'
 import {error} from '@sveltejs/kit'
 
 /** @type {import('./$types').PageLoad} */

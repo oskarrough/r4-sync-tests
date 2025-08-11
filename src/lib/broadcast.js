@@ -2,7 +2,7 @@ import {r4} from '$lib/r4'
 import {pg} from '$lib/db'
 import {logger} from '$lib/logger'
 import {playTrack} from '$lib/api'
-import {r5} from '$lib/experimental-api'
+import {r5} from '$lib/r5'
 import {appState} from '$lib/app-state.svelte'
 
 const log = logger.ns('broadcast').seal()

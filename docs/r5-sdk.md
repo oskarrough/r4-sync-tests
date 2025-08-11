@@ -1,16 +1,11 @@
-# r5 experimental api
+# r5 sdk
 
-source-first api for music data.
-`src/lib/experimental-api`
-
-## Sources
+This sdk/api wraps v1 (firebase), r4 (supabase) with r5 (local) into one, unified API. The idea is that you only need to use this to interact with data from all sources:
 
 - $lib/db -> Local Postgres db
 - $lib/r4 -> Remote Postgres via Supabase (v2)
 - `channels-firebase-modified.json` -> Local v1 Firebase export (legacy channels)
 - `./cli-r5.ts` -> CLI
-
-## API
 
 Most methods follow the pattern `r5.<resource>[.<source>]([<params>])`.
 
@@ -34,16 +29,3 @@ await r5.channels.pull({slug: 'optional-slug', limit: 50}) // fetch all/single, 
 await r5.tracks.pull({slug: 'required-slug', limit: 50}) // pulls tracks for a single channel (requires slug), insert, return
 await r5.pull('ko002') // convenience, pulls channel+tracks, returns local data
 ```
-
-## On-demand tracks
-
-Tracks are not included the `pull()` method, but loaded on-demand when user interacts with the channel.
-
-schema:
-
-- app_state: single row, all ui/player state
-- channels: radio stations with metadata
-- tracks: music tracks linked to channels
-- play_history: track playback events
-- track_meta: youtube/musicbrainz enrichment
-- followers: channel following relationships

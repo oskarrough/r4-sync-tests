@@ -3,7 +3,7 @@
  * Example: "r5 channels pull oskar" → {fn: r5.channels.pull, args: [{slug: "oskar"}]}
  */
 
-import {r5} from './experimental-api'
+import {r5} from './r5'
 
 const COMMANDS = {
 	channels: {

@@ -1,7 +1,7 @@
 import {pg} from '$lib/db'
 import {error} from '@sveltejs/kit'
 import {logger} from '$lib/logger'
-import {r5} from '$lib/experimental-api'
+import {r5} from '$lib/r5'
 
 /**
  * Wait for the db to be ready, query track + channel locally
