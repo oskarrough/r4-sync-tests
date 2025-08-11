@@ -8,39 +8,17 @@ const browser = typeof window !== 'undefined'
 
 const log = logger.ns('db').seal()
 
-import migrationsql from '$lib/migrations/01-create_tables.sql?raw'
-import migration02sql from '$lib/migrations/02-add_queue_panel_visibility.sql?raw'
-import migration03sql from '$lib/migrations/03-add_broadcasts_table.sql?raw'
-import migration04sql from '$lib/migrations/04-add_shuffle_queue.sql?raw'
-import migration05sql from '$lib/migrations/05-add_shortcuts.sql?raw'
-import migration06sql from '$lib/migrations/06-create_play_history.sql?raw'
-import migration07sql from '$lib/migrations/07-add_channel-coordinates-url.sql?raw'
-import migration08sql from '$lib/migrations/08-enable_pg_trgm.sql?raw'
-import migration09sql from '$lib/migrations/09-create_track_meta.sql?raw'
-import migration10sql from '$lib/migrations/10-create_ytid_function_and_view.sql?raw'
-import migration11sql from '$lib/migrations/11-create_followers.sql?raw'
-import migration12sql from '$lib/migrations/12-add_hide_track_artwork.sql?raw'
-import migration13sql from '$lib/migrations/13-create_track_edits.sql?raw'
-import migration14sql from '$lib/migrations/14-add_tags_mentions.sql?raw'
+import migration01sql from '$lib/migrations/01-initial-schema.sql?raw'
+import migration02sql from '$lib/migrations/02-more-tables.sql?raw'
+import migration03sql from '$lib/migrations/03-functions-and-views.sql?raw'
 
 // This will limit the amount of channels pulled.
 export const debugLimit = 20
 
 const migrations = [
-	{name: '01-create_tables', sql: migrationsql},
-	{name: '02-add_queue_panel_visibility', sql: migration02sql},
-	{name: '03-add_broadcast_fields', sql: migration03sql},
-	{name: '04-add_shuffle_queue', sql: migration04sql},
-	{name: '05-add_shortcuts', sql: migration05sql},
-	{name: '06-add_play_history', sql: migration06sql},
-	{name: '07-add_channel-coordinates-url', sql: migration07sql},
-	{name: '08-enable_pg_trgm', sql: migration08sql},
-	{name: '09-create_track_meta', sql: migration09sql},
-	{name: '10-create_ytid_function_and_view', sql: migration10sql},
-	{name: '11-create_followers', sql: migration11sql},
-	{name: '12-add_hide_track_artwork', sql: migration12sql},
-	{name: '13-create_track_edits', sql: migration13sql},
-	{name: '14-add_tags_mentions', sql: migration14sql}
+	{name: '01-initial-schema', sql: migration01sql},
+	{name: '02-more-tables', sql: migration02sql},
+	{name: '03-functions-and-views', sql: migration03sql}
 ]
 
 // This will be null until createPg() is called
