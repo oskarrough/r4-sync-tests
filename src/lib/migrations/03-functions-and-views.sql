@@ -1,3 +1,6 @@
+-- Enable pg_trgm extension for fuzzy text search 
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 -- Create function to extract YouTube ID from URL
 CREATE OR REPLACE FUNCTION ytid(url TEXT) RETURNS TEXT AS $$
 BEGIN
@@ -12,8 +15,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
--- Create view that joins tracks with their metadata
-CREATE VIEW tracks_with_meta AS
+-- Create view that joins tracks with their metadata 
+CREATE OR REPLACE VIEW tracks_with_meta AS
 SELECT 
   t.*,
   tm.ytid,
