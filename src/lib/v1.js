@@ -52,7 +52,7 @@ export async function pullV1Channels({limit} = {limit: debugLimit}) {
 	} catch (err) {
 		log.error('pull_v1_channels_error', err)
 	}
-	log.log('pull_v1_channels', channels)
+	log.log('pull_v1_channels', channels.length)
 }
 
 /**
