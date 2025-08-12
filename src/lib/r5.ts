@@ -245,12 +245,12 @@ async function insertTracks(slug, tracks) {
 		})
 		// Mark as successfully synced
 		await pg.sql`update channels set busy = false, tracks_synced_at = CURRENT_TIMESTAMP, track_count = ${tracks.length} where slug = ${slug}`
+		log.log('inserted tracks', slug, tracks.length)
 	} catch (error) {
 		// On error, just mark as not busy (tracks_synced_at stays NULL for retry)
 		await pg.sql`update channels set busy = false where slug = ${slug}`
 		throw error
 	}
-	log.log('inserted tracks', channel.slug, tracks?.length)
 }
 
 // To access the local json file in both browser and bun/node
