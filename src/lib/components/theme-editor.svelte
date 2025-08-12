@@ -169,7 +169,7 @@
 	form label {
 		user-select: none;
 		&::after {
-			content: "→";
+			content: '→';
 			margin: 0 1rem 0 0.1em;
 			display: inline-block;
 		}

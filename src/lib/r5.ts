@@ -1,8 +1,8 @@
-import {pg, dropDb, exportDb, migrateDb} from './db.js'
+import {pg, dropDb, exportDb, migrateDb, debugLimit} from './db.js'
 import {r4} from './r4.js'
-import {pullV1Channels, fetchV1Tracks, migrateTracks} from './v1.js'
 import {performSearch, searchChannels, searchTracks} from './search.js'
-import {logger} from '$lib/logger'
+import {logger} from './logger'
+import type {ChannelFirebase, Track} from './types'
 
 const log = logger.ns('r5').seal()
 
@@ -63,8 +63,13 @@ async function pullTracks({slug, limit} = {}) {
 		return await localTracks({slug, limit})
 	}
 
+	// Never re-sync v1 channels if they already have tracks
 	if (channel.source === 'v1') {
-		const v1Tracks = await fetchV1Tracks({firebase: channel.firebase_id, channel: slug})
+		const existingTracks = await localTracks({slug, limit: 1})
+		if (existingTracks.length > 0) {
+			return await localTracks({slug, limit})
+		}
+		const v1Tracks = await fetchV1Tracks({firebase: channel.firebase_id, slug})
 		const tracks = migrateTracks(v1Tracks, channel.id)
 		await insertTracks(slug, tracks)
 	} else {
@@ -81,7 +86,7 @@ async function pullChannels({slug = '', limit = 3000} = {}) {
 		if (local.length) {
 			// Update in background if outdated
 			if (await outdated(slug)) {
-				pullTracks({slug}).catch(log.error)
+				pullTracks({slug}).catch((error) => log.error(error))
 			}
 			return local
 		}
@@ -109,7 +114,7 @@ async function pullChannels({slug = '', limit = 3000} = {}) {
 
 	const channels = await r4.channels.readChannels(limit)
 	await insertChannels(channels)
-	await pullV1Channels() // must happen after r4 is inserted, so it skips v1 channels already existing in r4
+	await pullV1Channels({limit}) // must happen after r4 is inserted, so it skips v1 channels already existing in r4
 	return await localChannels({limit})
 }
 
@@ -164,7 +169,7 @@ async function outdated(slug: string): Promise<boolean> {
 
 /**
  * Insert channels data into local database
- * @param {import('$lib/types').Channel[]} channels - Channel data to insert
+ * @param {Channel[]} channels - Channel data to insert
  */
 async function insertChannels(channels) {
 	await pg.transaction(async (tx) => {
@@ -199,7 +204,7 @@ async function insertChannels(channels) {
 /**
  * Insert tracks data into local database
  * @param {string} slug - Channel slug
- * @param {import('$lib/types').Track[]} tracks - Track data to insert
+ * @param {Track[]} tracks - Track data to insert
  */
 async function insertTracks(slug, tracks) {
 	try {
@@ -208,11 +213,27 @@ async function insertTracks(slug, tracks) {
 			.rows[0]
 		if (!channel) throw new Error(`insert_tracks_error_404: ${slug}`)
 
+		// Skip v1 re-imports
+		let tracksToInsert = tracks
+		if (channel.source === 'v1') {
+			const existing = await pg.sql`
+				SELECT firebase_id FROM tracks 
+				WHERE channel_id = ${channel.id} AND firebase_id IS NOT NULL
+			`
+			if (existing.rows.length) {
+				const existingIds = new Set(existing.rows.map((r) => r.firebase_id))
+				const before = tracks.length
+				tracksToInsert = tracks.filter((t) => !existingIds.has(t.firebase_id))
+				const skipped = before - tracksToInsert.length
+				if (skipped) console.log(`Skipping ${skipped} duplicate v1 tracks for ${slug}`)
+			}
+		}
+
 		// Insert tracks
 		await pg.transaction(async (tx) => {
 			const CHUNK_SIZE = 50
-			for (let i = 0; i < tracks.length; i += CHUNK_SIZE) {
-				const chunk = tracks.slice(i, i + CHUNK_SIZE)
+			for (let i = 0; i < tracksToInsert.length; i += CHUNK_SIZE) {
+				const chunk = tracksToInsert.slice(i, i + CHUNK_SIZE)
 				const inserts = chunk.map(
 					(track) => tx.sql`
 	        INSERT INTO tracks (
@@ -244,8 +265,8 @@ async function insertTracks(slug, tracks) {
 			}
 		})
 		// Mark as successfully synced
-		await pg.sql`update channels set busy = false, tracks_synced_at = CURRENT_TIMESTAMP, track_count = ${tracks.length} where slug = ${slug}`
-		log.log('inserted tracks', slug, tracks.length)
+		await pg.sql`update channels set busy = false, tracks_synced_at = CURRENT_TIMESTAMP, track_count = ${tracksToInsert.length} where slug = ${slug}`
+		log.log('inserted tracks', slug, tracksToInsert.length)
 	} catch (error) {
 		// On error, just mark as not busy (tracks_synced_at stays NULL for retry)
 		await pg.sql`update channels set busy = false where slug = ${slug}`
@@ -274,21 +295,125 @@ async function getV1Channels({slug = '', limit = 5000} = {}) {
 		const channels = filtered
 			.slice(0, limit)
 			.filter((item) => item.track_count && item.track_count > 3)
-		return channels.map((item) => ({
-			id: crypto.randomUUID(),
-			slug: item.slug,
-			name: item.name,
-			description: item.description || '',
-			created_at: new Date(item.created_at).toISOString(),
-			updated_at: new Date(item.updated_at).toISOString(),
-			firebase_id: item.firebase_id,
-			track_count: item.track_count,
-			source: 'v1'
-		}))
+		return channels.map(parseFirebaseChannel)
 	} catch (err) {
 		log.error(err)
 		throw err
 	}
+}
+
+function parseFirebaseChannel(item: ChannelFirebase) {
+	return {
+		id: crypto.randomUUID(),
+		firebase_id: item.firebase_id,
+		slug: item.slug,
+		name: item.name,
+		description: item.description || '',
+		image: item.image,
+		track_count: item.track_count || 0,
+		source: 'v1',
+		created_at: new Date(item.created_at).toISOString(),
+		updated_at: new Date(item.updated_at || item.created_at).toISOString()
+	}
+}
+
+function parseFirebaseTrack(track: Record<string, unknown>, slug: string): Track {
+	return {
+		id: crypto.randomUUID(),
+		firebase_id: track.id,
+		channel_slug: slug,
+		url: track.url,
+		title: track.title,
+		description: track.body || '',
+		discogs_url: track.discogsUrl || '',
+		source: 'v1',
+		created_at: new Date(track.created).toISOString(),
+		updated_at: new Date(track.updated || track.created).toISOString()
+	}
+}
+
+/**
+ * Imports a local export of v1 channels using insertChannels
+ * on slug conflict, update existing
+ * ignores channels with <= 3 tracks
+ */
+async function pullV1Channels({limit = debugLimit} = {}) {
+	const browser = typeof window !== 'undefined'
+	const res = browser
+		? await fetch('/channels-firebase-modified.json')
+		: await fetch('file://' + process.cwd() + '/static/channels-firebase-modified.json')
+
+	const items: ChannelFirebase[] = (await res.json()).slice(0, limit)
+
+	const {rows: existingChannels} = await pg.sql`select slug, firebase_id from channels`
+	const filteredItems = items.filter(
+		(item) =>
+			!existingChannels.some((r) => r.slug === item.slug || r.firebase_id === item.firebase_id) &&
+			item.track_count &&
+			item.track_count > 3
+	)
+
+	const channels = filteredItems.map(parseFirebaseChannel)
+	try {
+		await insertChannels(channels)
+	} catch (err) {
+		log.error('pull_v1_channels_error', err)
+	}
+	log.log('pull_v1_channels', channels.length)
+}
+
+/**
+ * Fetches V1 tracks and maps them for API consumption
+ * @param {Object} params
+ * @param {string} params.firebase - firebase channel id
+ * @param {string} params.slug - channel slug
+ * @param {number} [params.limit] - optional limit
+ */
+async function fetchV1Tracks({firebase, slug, limit} = {}) {
+	const v1Tracks = await readFirebaseChannelTracks(firebase)
+	const mapped = v1Tracks.map((t) => parseFirebaseTrack(t, slug))
+	return limit ? mapped.slice(0, limit) : mapped
+}
+
+/**
+ * Migrates v1 tracks to Track type for database insertion
+ * @param {Array} v1Tracks - Raw v1 track data
+ * @param {string} channelId - The channel.id for database insertion
+ * @returns {Track[]} Tracks ready for insertion
+ */
+function migrateTracks(v1Tracks, channelId) {
+	return v1Tracks.map((track) => ({
+		id: crypto.randomUUID(),
+		firebase_id: track.firebase_id || track.id,
+		channel_id: channelId,
+		url: track.url,
+		title: track.title,
+		description: track.description || track.body || '',
+		discogs_url: track.discogs_url || track.discogsUrl || '',
+		created_at: track.created_at || new Date(track.created).toISOString(),
+		updated_at: track.updated_at || new Date(track.updated || track.created).toISOString(),
+		tags: null,
+		mentions: null
+	}))
+}
+
+/**
+ * Fetches all v1 tracks from a v1 channel id
+ * @param {string} cid
+ */
+async function readFirebaseChannelTracks(cid) {
+	/** @param {any} value @param {string} id */
+	const toObject = (value, id) => ({...value, id})
+	/** @param {Record<string, any>} data */
+	const toArray = (data) => Object.keys(data).map((id) => toObject(data[id], id))
+	const url = `https://radio4000.firebaseio.com/tracks.json?orderBy="channel"&startAt="${cid}"&endAt="${cid}"`
+
+	const res = await fetch(url)
+	if (!res.ok) throw new Error(`Failed to fetch tracks: ${res.status}`)
+	const data = await res.json()
+	if (!data) return []
+
+	return toArray(data).sort((a, b) => a.created - b.created)
 }
 
 // Create the source-first API with callable objects
