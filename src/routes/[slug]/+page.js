@@ -12,9 +12,11 @@ export async function load({parent, params, url}) {
 
 	try {
 		const channel = (await r5.channels.pull({slug}))[0]
-		const tracks = await r5.tracks({slug})
-		console.log({tracks})
-		if (!tracks.length) await r5.tracks.pull({slug})
+		// channels.pull already triggers track sync if needed
+		// For new channels with no tracks yet, wait for the sync
+		if (!channel.tracks_synced_at) {
+			await r5.tracks.pull({slug})
+		}
 		return {channel, slug, search, order, dir}
 	} catch (err) {
 		console.error(err)

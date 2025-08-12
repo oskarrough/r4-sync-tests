@@ -63,15 +63,13 @@ async function pullTracks({slug, limit} = {}) {
 		return await localTracks({slug, limit})
 	}
 
-	// Never re-sync v1 channels if they already have tracks
 	if (channel.source === 'v1') {
-		const existingTracks = await localTracks({slug, limit: 1})
-		if (existingTracks.length > 0) {
-			return await localTracks({slug, limit})
-		}
-		const v1Tracks = await fetchV1Tracks({firebase: channel.firebase_id, slug})
-		const tracks = migrateTracks(v1Tracks, channel.id)
-		await insertTracks(slug, tracks)
+		const v1Tracks = await fetchV1Tracks({
+			firebase: channel.firebase_id,
+			slug,
+			channelId: channel.id
+		})
+		await insertTracks(slug, v1Tracks)
 	} else {
 		const tracks = await remoteTracks({slug, limit})
 		await insertTracks(slug, tracks)
@@ -86,6 +84,7 @@ async function pullChannels({slug = '', limit = 3000} = {}) {
 		if (local.length) {
 			// Update in background if outdated
 			if (await outdated(slug)) {
+				console.log('pullChannels -> outdated -> pullTracks non-async')
 				pullTracks({slug}).catch((error) => log.error(error))
 			}
 			return local
@@ -317,11 +316,11 @@ function parseFirebaseChannel(item: ChannelFirebase) {
 	}
 }
 
-function parseFirebaseTrack(track: Record<string, unknown>, slug: string): Track {
+function parseFirebaseTrack(track: Record<string, unknown>, channelId: string): Track {
 	return {
 		id: crypto.randomUUID(),
 		firebase_id: track.id,
-		channel_slug: slug,
+		channel_id: channelId,
 		url: track.url,
 		title: track.title,
 		description: track.body || '',
@@ -338,12 +337,7 @@ function parseFirebaseTrack(track: Record<string, unknown>, slug: string): Track
  * ignores channels with <= 3 tracks
  */
 async function pullV1Channels({limit = debugLimit} = {}) {
-	const browser = typeof window !== 'undefined'
-	const res = browser
-		? await fetch('/channels-firebase-modified.json')
-		: await fetch('file://' + process.cwd() + '/static/channels-firebase-modified.json')
-
-	const items: ChannelFirebase[] = (await res.json()).slice(0, limit)
+	const items: ChannelFirebase[] = (await readv1()).slice(0, limit)
 
 	const {rows: existingChannels} = await pg.sql`select slug, firebase_id from channels`
 	const filteredItems = items.filter(
@@ -366,35 +360,13 @@ async function pullV1Channels({limit = debugLimit} = {}) {
  * Fetches V1 tracks and maps them for API consumption
  * @param {Object} params
  * @param {string} params.firebase - firebase channel id
- * @param {string} params.slug - channel slug
+ * @param {string} params.channelId - channel uuid
  * @param {number} [params.limit] - optional limit
  */
-async function fetchV1Tracks({firebase, slug, limit} = {}) {
+async function fetchV1Tracks({firebase, channelId, limit} = {}) {
 	const v1Tracks = await readFirebaseChannelTracks(firebase)
-	const mapped = v1Tracks.map((t) => parseFirebaseTrack(t, slug))
+	const mapped = v1Tracks.map((t) => parseFirebaseTrack(t, channelId))
 	return limit ? mapped.slice(0, limit) : mapped
-}
-
-/**
- * Migrates v1 tracks to Track type for database insertion
- * @param {Array} v1Tracks - Raw v1 track data
- * @param {string} channelId - The channel.id for database insertion
- * @returns {Track[]} Tracks ready for insertion
- */
-function migrateTracks(v1Tracks, channelId) {
-	return v1Tracks.map((track) => ({
-		id: crypto.randomUUID(),
-		firebase_id: track.firebase_id || track.id,
-		channel_id: channelId,
-		url: track.url,
-		title: track.title,
-		description: track.description || track.body || '',
-		discogs_url: track.discogs_url || track.discogsUrl || '',
-		created_at: track.created_at || new Date(track.created).toISOString(),
-		updated_at: track.updated_at || new Date(track.updated || track.created).toISOString(),
-		tags: null,
-		mentions: null
-	}))
 }
 
 /**

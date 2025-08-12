@@ -14,6 +14,7 @@ cli-r5.ts
 
 ## Todos
 
+- change <slug>/page.js load function to maybe not block the whole page? too slow. render async
 - edit track UI (for the ones you own)
 - go to /nomads, go to /settings, click reset, click browser back button, tracks are missing and stuck "syncing"
 - run `bun run check` and slowly get rid of these warnings
