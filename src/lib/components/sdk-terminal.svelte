@@ -100,7 +100,7 @@
 				bind:this={inputElement}
 				bind:value={terminalInput}
 				onkeydown={handleKeydown}
-				placeholder="channels"
+				placeholder="help"
 				autocomplete="off"
 				spellcheck="false"
 			/>

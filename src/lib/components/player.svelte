@@ -114,12 +114,11 @@
 		await tick()
 		const playerState = yt?.api?.getPlayerState?.()
 		if (playerState === 5 && !didPlay) {
-			log.log('prebuffering')
+			//log.log('prebuffering')
 			play(yt)
 			setTimeout(() => {
 				pause(yt)
-				//appState.is_playing = false
-				log.log('prebuffering complete')
+				//log.log('prebuffering complete')
 			}, 200)
 		}
 	}

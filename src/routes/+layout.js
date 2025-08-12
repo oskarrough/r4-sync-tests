@@ -21,21 +21,21 @@ async function autoPull() {
 
 /** @type {import('./$types').LayoutLoad} */
 export async function load() {
-	log.log('load')
+	log.log('preloading')
 	let preloading = true
 
 	if (browser) {
 		try {
 			await migrateDb()
 			await initAppState()
-			//await autoPull()
+			await autoPull()
 			// @ts-expect-error debugging
-			window.r5 = {pg, r4, r5}
+			window.r5 = {pg, r5, r4}
 		} catch (err) {
-			log.error('load_error', err)
+			log.error('preloading_error', err)
 		} finally {
 			preloading = false
-			log.log('load_done')
+			log.log('preloading_done')
 		}
 	}
 

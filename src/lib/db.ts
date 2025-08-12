@@ -57,7 +57,7 @@ export async function dropDb() {
 	await pg.sql`drop table if exists migrations CASCADE;`
 	await pg.sql`drop table if exists track_meta CASCADE;`
 	await pg.sql`drop table if exists track_edits CASCADE;`
-	log.log('drop_tables')
+	log.log('dropped db')
 }
 
 export async function exportDb() {
@@ -75,8 +75,6 @@ export async function exportDb() {
 /** Runs a list of SQL migrations on the database */
 export async function migrateDb() {
 	if (!pg) pg = await createPg()
-
-	// Create migrations table if it doesn't exist
 	await pg.exec(`
 		create table if not exists migrations (
 			id serial primary key,
@@ -84,29 +82,19 @@ export async function migrateDb() {
 			applied_at timestamp default current_timestamp
 		);
 	`)
-
 	const [result] = await pg.exec('select name from migrations')
 	const appliedMigrationNames = result.rows.map((x) => x.name)
-
-	// Debug: Check what tables actually exist
-	log.log('migrate_applied', {
-		// migrations: appliedMigrationNames,
-		// tables: tablesResult.rows.map((r) => r.table_name)
-	})
-
-	// Apply new migrations
 	for (const migration of migrations) {
-		if (appliedMigrationNames.includes(migration.name)) {
-			// already applied
-		} else {
+		if (!appliedMigrationNames.includes(migration.name)) {
 			try {
 				await pg.exec(migration.sql)
 				await pg.query('insert into migrations (name) values ($1);', [migration.name])
-				log.log(`migrate_applied ${migration.name}`)
+				log.debug(`migration_applied ${migration.name}`)
 			} catch (err) {
-				log.error('migrate_error', err, migration, appliedMigrationNames)
+				log.error('migration_error', err, migration, appliedMigrationNames)
 				throw err
 			}
 		}
 	}
+	log.debug('migrated db')
 }

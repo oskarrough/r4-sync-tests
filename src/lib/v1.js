@@ -11,7 +11,10 @@ const log = logger.ns('sync').seal()
  * inserts into local db
  */
 export async function pullV1Channels({limit} = {limit: debugLimit}) {
-	const res = await fetch('/channels-firebase-modified.json')
+	const browser = typeof window !== 'undefined'
+	const res = browser
+		? await fetch('/channels-firebase-modified.json')
+		: await fetch('file://' + process.cwd() + '/static/channels-firebase-modified.json')
 
 	/** @type {ChannelFirebase} */
 	const items = (await res.json()).slice(0, limit)
