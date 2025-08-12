@@ -2,7 +2,9 @@ import {PGlite} from '@electric-sql/pglite'
 import {live} from '@electric-sql/pglite/live'
 import type {PGliteWithLive} from '@electric-sql/pglite/live'
 import {pg_trgm} from '@electric-sql/pglite/contrib/pg_trgm'
-import {logger} from '$lib/logger'
+import {logger} from './logger.js'
+
+const browser = typeof window !== 'undefined'
 
 const log = logger.ns('db').seal()
 
@@ -11,7 +13,7 @@ import migration02sql from '$lib/migrations/02-more-tables.sql?raw'
 import migration03sql from '$lib/migrations/03-functions-and-views.sql?raw'
 
 // This will limit the amount of channels pulled.
-export const debugLimit = 3000
+export const debugLimit = 40
 
 const migrations = [
 	{name: '01-initial-schema', sql: migration01sql},
@@ -19,15 +21,15 @@ const migrations = [
 	{name: '03-functions-and-views', sql: migration03sql}
 ]
 
-// Switch between in-memory and OPFS persisted indexeddb for PostgreSQL
-const persist = true
-const dataDir = persist ? 'idb://radio4000test2' : 'memory://'
-
 // This will be null until createPg() is called
 export let pg: PGliteWithLive
 
-async function createPg(): Promise<PGliteWithLive> {
+/*
+ * @param {boolean} persist - Switch between in-memory and OPFS persisted indexeddb for PostgreSQL
+ */
+export async function createPg(persist = browser): Promise<PGliteWithLive> {
 	if (!pg) {
+		const dataDir = browser ? (persist ? 'idb://radio4000test2' : 'memory://') : './r5-cli-data'
 		pg = await PGlite.create({
 			// debug: 1,
 			dataDir: dataDir,
@@ -55,7 +57,7 @@ export async function dropDb() {
 	await pg.sql`drop table if exists migrations CASCADE;`
 	await pg.sql`drop table if exists track_meta CASCADE;`
 	await pg.sql`drop table if exists track_edits CASCADE;`
-	log.log('drop_tables')
+	log.log('dropped db')
 }
 
 export async function exportDb() {
@@ -73,8 +75,6 @@ export async function exportDb() {
 /** Runs a list of SQL migrations on the database */
 export async function migrateDb() {
 	if (!pg) pg = await createPg()
-
-	// Create migrations table if it doesn't exist
 	await pg.exec(`
 		create table if not exists migrations (
 			id serial primary key,
@@ -82,35 +82,19 @@ export async function migrateDb() {
 			applied_at timestamp default current_timestamp
 		);
 	`)
-
 	const [result] = await pg.exec('select name from migrations')
 	const appliedMigrationNames = result.rows.map((x) => x.name)
-
-	// Debug: Check what tables actually exist
-	const [tablesResult] = await pg.exec(`
-		SELECT table_name
-		FROM information_schema.tables
-		WHERE table_schema = 'public'
-		AND table_type = 'BASE TABLE'
-	`)
-	log.log('migrate_applied', {
-		migrations: appliedMigrationNames,
-		tables: tablesResult.rows.map((r) => r.table_name)
-	})
-
-	// Apply new migrations
 	for (const migration of migrations) {
-		if (appliedMigrationNames.includes(migration.name)) {
-			// already applied
-		} else {
+		if (!appliedMigrationNames.includes(migration.name)) {
 			try {
 				await pg.exec(migration.sql)
 				await pg.query('insert into migrations (name) values ($1);', [migration.name])
-				log.log(`migrate_applied ${migration.name}`)
+				log.debug(`migration_applied ${migration.name}`)
 			} catch (err) {
-				log.error('migrate_error', err, migration, appliedMigrationNames)
+				log.error('migration_error', err, migration, appliedMigrationNames)
 				throw err
 			}
 		}
 	}
+	log.debug('migrated db')
 }

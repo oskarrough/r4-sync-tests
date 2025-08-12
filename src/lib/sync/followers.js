@@ -85,6 +85,8 @@ export async function pushFollowers(userChannelId, channelIds) {
  * @param {string} userChannelId - ID of the user's channel
  */
 export async function syncFollowers(userChannelId) {
+	console.log('r5.followers.sync', userChannelId)
+
 	// 1. Get local favorites before sync
 	const {rows: localFavorites} = await pg.sql`
 		SELECT channel_id FROM followers WHERE follower_id = 'local-user'

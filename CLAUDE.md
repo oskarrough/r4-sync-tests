@@ -17,7 +17,7 @@ SvelteKit + Svelte 5 runes, PGlite (client-side postgres), @radio4000/sdk, jsdoc
 /src/lib/db.ts         -- local db, schema
 /src/lib/migrations/   -- sql migration files
 /src/lib/api.js        -- reusable data operations
-/src/lib/sync.js       -- local/remote data synchronization
+/src/lib/r5.ts         -- local/remote data synchronization
 /src/lib/live-query.js -- local, reactive db queries
 /src/lib/utils.js      -- the odd reusable function
 /src/lib/components    -- where components go

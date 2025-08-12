@@ -1,7 +1,23 @@
 THINGS TO LOOK AT
 
+
+R5 API EXPERIMENT
+
+@experimenta-api.md
+@experimental-api
+cli-r5.ts
+
+- how can we replace stuff like `	const channels = await r4.channels.readUserChannels()` with the r5 api?
+- slowly implement it. search for usage of $lib/api, querying channels and tracks, and use r5 instead.
+- extend r5api with player api commented out, waiting for module. broadcasts, push operations, followers pending.
+- implement "queue" to the r5 api
+
+## Todos
+
+- change <slug>/page.js load function to maybe not block the whole page? too slow. render async
 - edit track UI (for the ones you own)
 - go to /nomads, go to /settings, click reset, click browser back button, tracks are missing and stuck "syncing"
+- run `bun run check` and slowly get rid of these warnings
 - v1 channels can't be bookmarked, they can't be broadcasted, because remote supabase doesn't know about their "foreign key".. ideas? r5 doesn't care whether it's v1 or v2, but remote postgres does. Maybe a system where the keys aren't proper ids, but just strings?
 - there's an issue with the app state playlist and shuffled playlist. when the playlist is set, we need to make sure the shuffled one is derived from it. else they might up pointing to diff lists
 - after adding a track the modal form resets, which is fine, but there's no clear ux to indicate that it was saved correctly. One idea is to add the <TrackCard> below. The r4-track-form thing must
@@ -37,7 +53,6 @@ ARCHITECTURE IMPROVEMENTS (MEDIUM PRIORITY)
 - separate api layers: split ui operations (toggleTheme, openSearch) from data operations in api.js
 - fix transaction boundaries: ensure atomic updates for chunked sync operations
 - extract dom manipulation from data layer (document.querySelector in api.js)
-- consolidate duplicate query patterns: merge queryTrackWithChannel, queryChannelsWithTrackCounts into unified query()
 - standardize component data fetching patterns: extract search logic from ui concerns
 - extract reusable debouncing utility instead of per-component implementation
 - clarify data flow patterns - document and standardize when operations hit local vs remote database
@@ -52,11 +67,22 @@ TERMINOLOGY & API REFACTORS (from index.ts review)
 - unify play actions: merge playTrack and playChannel into single play(entity) 
 - consolidate toggle actions: consider set* with boolean param for explicit state management
 - remove redundancy: togglePlayPause (api) vs togglePlay (player) - pick one location
-- rename readBroadcastsWithChannel to queryBroadcasts for consistency
 - group metadata enrichment functions (youtube, musicbrainz) under single namespace
 - move spam detection out of playground into proper module if keeping
 - split utils by domain: youtube utils, text parsing utils, array utils
 - standardize Channel vs Channels in function names (e.g., pullChannel vs pullChannels)
+
+CLI & LLM INTEGRATION LEARNINGS
+
+- migration check runs on every CLI command - should only migrate when needed, add --migrate flag or check if migrations are current
+- search functionality works but needed better context understanding - improve CLI help/examples for complex queries  
+- natural language search patterns unclear - document search operators (AND, OR, phrase matching) in CLI help
+- CLI could benefit from interactive mode for exploration (like `bun r5-cli.ts shell`)
+- consider adding search shortcuts: `bun r5-cli.ts jazz house` (implicit search tracks)
+- genre cross-analysis queries powerful but not obvious - add examples to CLI help
+- LLM integration reveals rich semantic connections - consider exposing more metadata fields for search
+- CLI output formatting could be improved for LLM parsing (consistent JSON structure)
+- consider adding `--format=table|json|compact` flags for different use cases
 
 HARD ONES, LOW PRIO
 

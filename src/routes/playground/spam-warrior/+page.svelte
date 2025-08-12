@@ -9,8 +9,7 @@
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
 	import {pg} from '$lib/db'
-	import {queryChannelsWithTrackCounts} from '$lib/api.js'
-	import {pullTracks} from '$lib/sync.js'
+	import {r5} from '$lib/r5'
 
 	/** @type {Array<import('$lib/types').Channel & {spamAnalysis: {confidence: number, reasons: string[], isSpam: boolean}}>} */
 	let allChannels = $state([])
@@ -61,7 +60,7 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 	async function loadChannels() {
 		loading = true
 		try {
-			const rawChannels = await queryChannelsWithTrackCounts()
+			const rawChannels = await r5.channels()
 			const analyzedChannels = analyzeChannels(rawChannels)
 			allChannels = analyzedChannels
 
@@ -124,7 +123,7 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 				batchProgress = `Fetching ${i + 1}/${batch.length}: ${channel.name}`
 
 				try {
-					await pullTracks(channel.slug)
+					await r5.tracks.pull({slug: channel.slug})
 					// Refresh the track count for this channel
 					const {rows} = await pg.sql`
 						SELECT COUNT(t.id) as track_count
@@ -346,7 +345,7 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 	.sql-output {
 		width: 100%;
 		height: 8rem;
-		font-family: monospace;
+		font-family: var(--monospace);
 		padding: 0.5rem;
 	}
 

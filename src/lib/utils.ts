@@ -8,23 +8,6 @@ export async function delay(ms: number) {
 	})
 }
 
-/**
- * Awaits a query and returns the first row or undefined. Use for getFirstRow(pg.sql`select * from channels where id = 1`) style queries
- * @template T
- * @param {Promise<{rows: T[]}>} query
- * @returns {Promise<T|undefined>}
- */
-export async function getFirstRow(query) {
-	try {
-		const result = await query
-		if (result.rows) return result.rows[0]
-		return undefined
-	} catch (err) {
-		console.error('Query error:', err)
-		return undefined
-	}
-}
-
 export function trimWithEllipsis(text?: string, maxLength: number = 267) {
 	return !text || text.length <= maxLength ? text || '' : text.substring(0, maxLength) + '…'
 }
@@ -49,12 +32,10 @@ export function extractYouTubeId(url) {
 	return null
 }
 
-/**
-  Takes an array and returns a shuffled version.Uses http://bost.ocks.org/mike/shuffle/
-*/
-export function shuffleArray(array) {
+/** Takes an array and returns a shuffled version.Uses http://bost.ocks.org/mike/shuffle/ */
+export function shuffleArray<T>(arr: Array<T>) {
 	// Return a new array.
-	array = array.slice()
+	const array = arr.slice()
 
 	let m = array.length
 	let t

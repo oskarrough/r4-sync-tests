@@ -2,6 +2,9 @@
 	"name": "r5",
 	"version": "0.0.1",
 	"type": "module",
+	"bin": {
+		"r5": "./r5-cli.ts"
+	},
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",

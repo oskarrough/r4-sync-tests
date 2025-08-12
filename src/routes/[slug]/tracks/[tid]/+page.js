@@ -1,7 +1,7 @@
 import {pg} from '$lib/db'
 import {error} from '@sveltejs/kit'
 import {logger} from '$lib/logger'
-import {pullTracks} from '$lib/sync'
+import {r5} from '$lib/r5'
 
 /**
  * Wait for the db to be ready, query track + channel locally
@@ -16,7 +16,7 @@ export async function load({parent, params}) {
 	const {rows} = await pg.query('SELECT * FROM tracks_with_meta WHERE id = $1 limit 1', [tid])
 	let track = rows[0]
 	if (!rows.length) {
-		await pullTracks(slug)
+		await r5.tracks.pull({slug})
 		const results = await pg.query('SELECT * FROM tracks_with_meta WHERE id = $1 limit 1', [tid])
 		if (!results.rows) error(404, 'Track not found')
 		track = results.rows[0]

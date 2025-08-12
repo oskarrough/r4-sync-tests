@@ -9,7 +9,6 @@
 	import Icon from '$lib/components/icon.svelte'
 	import LiveBroadcasts from '$lib/components/live-broadcasts.svelte'
 	import TestCounter from '$lib/components/test-counter.svelte'
-	import ThemeToggle from '$lib/components/theme-toggle.svelte'
 
 	const {preloading} = $props()
 </script>
@@ -41,8 +40,10 @@
 				<Icon icon="chart-scatter" size={20} />
 			</a>
 			<!-- <button onclick={toggleChatPanel}>Chat</button> -->
-			<ThemeToggle />
 		{/if}
+		<a href="/sdk" class="btn" class:active={page.route.id === '/sdk'}>
+			<Icon icon="terminal" size={20} />
+		</a>
 		<a href="/settings" class="btn" class:active={page.route.id === '/settings'}>
 			<Icon icon="settings" size={20} />
 		</a>

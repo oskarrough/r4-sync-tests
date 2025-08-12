@@ -11,6 +11,7 @@
 	import ChannelHero from '$lib/components/channel-hero.svelte'
 	import ButtonPlay from '$lib/components/button-play.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
+	import LinkEntities from '$lib/components/link-entities.svelte'
 
 	let {data} = $props()
 
@@ -121,7 +122,10 @@
 					</a>
 				{/if}
 			</h1>
-			<p>{channel.description}</p>
+			<p><LinkEntities text={channel.description} /></p>
+			{#if channel.url}
+				<p><a href={channel.url} target="_blank" rel="noopener">{channel.url}</a></p>
+			{/if}
 			<p>
 				<small>
 					Broadcasting since {relativeDateSolar(channel.created_at)}. Updated {relativeDate(
@@ -149,7 +153,7 @@
 
 				<Tracklist ids={trackIds} />
 			{:else if !channel.tracks_synced_at}
-				<p>Tracks syncing…</p>
+				<p style="margin-top:1rem; margin-left: 0.5rem;">Tracks syncing…</p>
 			{:else}
 				<p>No tracks found{searchQuery ? ` for "${searchQuery}"` : ''}</p>
 			{/if}
@@ -184,10 +188,11 @@
 	}
 
 	article header :global(figure) {
-		margin: 1rem 1rem 0rem 1.5rem;
+		margin: 0.5rem 1rem 0rem 1rem;
 		max-width: 60%;
 
 		@media (min-width: 520px) {
+			margin: 0.5rem 1rem 0rem 0.5rem;
 			max-width: calc(100vw - 2rem);
 			float: left;
 			max-width: 13rem;

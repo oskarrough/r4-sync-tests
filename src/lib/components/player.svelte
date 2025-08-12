@@ -2,7 +2,7 @@
 	import {tick} from 'svelte'
 	import 'media-chrome'
 	import 'youtube-video-element'
-	import {togglePlayerExpanded, queryTrackWithChannel} from '$lib/api'
+	import {togglePlayerExpanded} from '$lib/api'
 	import {togglePlay, next, previous, toggleShuffle, play, pause} from '$lib/api/player'
 	import {appState} from '$lib/app-state.svelte'
 	import {logger} from '$lib/logger'
@@ -10,6 +10,8 @@
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import Icon from '$lib/components/icon.svelte'
 	import LinkEntities from '$lib/components/link-entities.svelte'
+	import {r5} from '$lib/r5'
+	import {pg} from '$lib/db'
 
 	/** @typedef {import('$lib/types').Track} Track */
 	/** @typedef {import('$lib/types').Channel} Channel */
@@ -68,10 +70,8 @@
 	/** @param {string} tid */
 	async function setChannelFromTrack(tid) {
 		if (!tid || tid === track?.id) return
-		const result = await queryTrackWithChannel(tid)
-		if (!result) return
-		track = result.track
-		channel = result.channel
+		track = (await pg.sql`select * from tracks_with_meta where id = ${tid}`).rows[0]
+		channel = (await r5.channels({slug: track.channel_slug}))[0]
 	}
 
 	function handlePlay() {
@@ -114,12 +114,11 @@
 		await tick()
 		const playerState = yt?.api?.getPlayerState?.()
 		if (playerState === 5 && !didPlay) {
-			log.log('prebuffering')
+			//log.log('prebuffering')
 			play(yt)
 			setTimeout(() => {
 				pause(yt)
-				//appState.is_playing = false
-				log.log('prebuffering complete')
+				//log.log('prebuffering complete')
 			}, 200)
 		}
 	}

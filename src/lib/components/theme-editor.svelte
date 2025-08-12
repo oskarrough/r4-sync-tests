@@ -1,6 +1,7 @@
 <script>
 	import {appState} from '$lib/app-state.svelte'
 	import InputRange from '$lib/components/input-range.svelte'
+	import ThemeToggle from '$lib/components/theme-toggle.svelte'
 
 	const uid = $props.id()
 
@@ -68,6 +69,10 @@
 	</header>
 
 	<form>
+		<div>
+			<label>theme</label>
+			<ThemeToggle />
+		</div>
 		{#each cssVariables as variable (variable.name)}
 			<div>
 				<label for={`${uid}-${variable.name}`}>{variable.label}</label>
@@ -161,15 +166,20 @@
 		align-items: flex-start;
 	}
 
+	form label {
+		user-select: none;
+		&::after {
+			content: '→';
+			margin: 0 1rem 0 0.1em;
+			display: inline-block;
+		}
+	}
+
 	form > div {
 		display: grid;
 		grid-template-columns: auto auto 1fr;
 		gap: 0 0.5rem;
 		align-items: center;
-	}
-
-	label {
-		user-select: none;
 	}
 
 	small {
