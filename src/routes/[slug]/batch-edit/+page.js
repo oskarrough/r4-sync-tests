@@ -1,6 +1,6 @@
 import {r5} from '$lib/r5'
 import {error} from '@sveltejs/kit'
-import {getEdits} from '$lib/api'
+import {getEdits, getAppliedEdits} from '$lib/api'
 
 /** @type {import('./$types').PageLoad} */
 export async function load({parent, params}) {
@@ -21,12 +21,16 @@ export async function load({parent, params}) {
 		error(404, 'Channel not found')
 	}
 
+	console.log(channel)
+
 	let edits = await getEdits()
+	let appliedEdits = await getAppliedEdits()
 
 	return {
 		slug,
 		channel,
 		tracks,
-		edits
+		edits,
+		appliedEdits
 	}
 }

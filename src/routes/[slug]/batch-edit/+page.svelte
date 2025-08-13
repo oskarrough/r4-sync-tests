@@ -1,5 +1,5 @@
 <script>
-	import {stageEdit, commitEdits, discardEdits, getEdits} from '$lib/api'
+	import {stageEdit, commitEdits, discardEdits, getEdits, getAppliedEdits, undoEdit} from '$lib/api'
 	import {r5} from '$lib/r5'
 	import {SvelteSet, SvelteMap} from 'svelte/reactivity'
 	import TrackRow from './TrackRow.svelte'
@@ -7,14 +7,15 @@
 
 	let {data} = $props()
 
-	let {channel, tracks, edits} = $derived(data)
+	let {channel, tracks} = $derived(data)
+	let edits = $state(data.edits)
+	let appliedEdits = $state(data.appliedEdits)
+	const readonly = $derived(channel?.source === 'v1')
 
 	/** @type {import('$lib/types').Track[]} */
 	let selectedTracks = $state([])
 
 	let hasEdits = $derived(edits?.length > 0)
-	let showSidebar = $state(false)
-	let updatingMeta = $state(false)
 
 	// Allow multiple cells to be edited simultaneously
 	let editingCells = new SvelteSet() // Set of 'trackId-field' strings
@@ -37,30 +38,24 @@
 
 	let filteredTracks = $derived.by(() => {
 		if (!tracks) return []
-
-		let filtered = tracks
-
-		if (filter !== 'all') {
-			filtered = tracks.filter((track) => {
-				switch (filter) {
-					case 'has-t-param':
-						return track.url?.includes('&t=')
-					case 'missing-description':
-						return !track.description?.trim()
-					case 'no-tags':
-						return !track.tags?.length
-					case 'single-tag':
-						return track.tags?.length === 1
-					case 'no-meta':
-						return !track.title && !track.description
-					case 'has-meta':
-						return track.title || track.description
-					default:
-						return true
-				}
-			})
-		}
-		return filtered
+		return tracks.filter((track) => {
+			switch (filter) {
+				case 'has-t-param':
+					return track.url?.includes('&t=')
+				case 'missing-description':
+					return !track.description?.trim()
+				case 'no-tags':
+					return !track.tags?.length
+				case 'single-tag':
+					return track.tags?.length === 1
+				case 'no-meta':
+					return !track.title && !track.description
+				case 'has-meta':
+					return track.title || track.description
+				default:
+					return true
+			}
+		})
 	})
 
 	function selectTrack(trackId, event) {
@@ -99,26 +94,11 @@
 		selectedTracks = []
 	}
 
-	async function bulkEdit(field, newValue) {
-		if (!hasSelection) return
-
-		try {
-			for (const trackId of selectedTracks) {
-				const track = tracks.find((t) => t.id === trackId)
-				if (track) {
-					await stageEdit(trackId, field, track[field] || '', newValue)
-				}
-			}
-		} catch (error) {
-			console.error('Bulk edit failed:', error)
-		}
-	}
-
 	async function handleCommit() {
 		try {
 			await commitEdits()
-			showSidebar = false
-			edits = []
+			edits = await getEdits()
+			appliedEdits = await getAppliedEdits()
 			editingCells.clear()
 		} catch (error) {
 			console.error('Commit failed:', error)
@@ -128,20 +108,21 @@
 	async function handleDiscard() {
 		try {
 			await discardEdits()
-			showSidebar = false
-			edits = []
+			edits = await getEdits()
 			editingCells.clear()
 		} catch (error) {
 			console.error('Discard failed:', error)
 		}
 	}
 
-	$effect(() => {
-		if (hasEdits && !showSidebar && edits?.length > 5) {
-			// Auto-show sidebar when many edits accumulate
-			showSidebar = true
+	async function handleUndo(trackId, field) {
+		try {
+			await undoEdit(trackId, field)
+			appliedEdits = await getAppliedEdits()
+		} catch (error) {
+			console.error('Undo failed:', error)
 		}
-	})
+	}
 
 	async function stageFieldEdit(trackId, field, newValue) {
 		const track = tracks.find((t) => t.id === trackId)
@@ -172,10 +153,6 @@
 			console.error('Pull tracks failed:', error)
 		}
 	}
-
-	async function handlePullMeta() {
-		console.log('TODO: implement metadata pulling')
-	}
 </script>
 
 <svelte:head>
@@ -186,9 +163,7 @@
 	<nav>
 		<a href="/{data.slug}">@{channel?.name}</a> / batch edit
 		{#if hasEdits}
-			<button onclick={() => (showSidebar = !showSidebar)} class="edits-toggle">
-				{edits.length} edits {showSidebar ? '→' : '←'}
-			</button>
+			<span>{edits.length} edits</span>
 		{/if}
 		<p>
 			<strong
@@ -199,7 +174,7 @@
 	</nav>
 	<menu>
 		<select bind:value={filter}>
-			<option value="all">All ({tracks.length})</option>
+			<option value="all">All tracks</option>
 			<option value="missing-description">Empty description</option>
 			<option value="single-tag">1 tag</option>
 			<option value="no-tags">No tags</option>
@@ -208,43 +183,32 @@
 			<option value="has-t-param">has &t= param</option>
 		</select>
 		<button onclick={handlePullTracks}>Pull tracks</button>
+		<!--
 		<button onclick={handlePullMeta} disabled={updatingMeta}>
 			{updatingMeta ? '⏳ Pulling...' : '⏱️ Pull metadata (YouTube + MusicBrainz)'}
 		</button>
+		-->
 	</menu>
 </header>
 
-{#if hasSelection}
-	<section class="bulkOperations">
-		<label>
-			Update the description for {selectedCount} tracks:
-			<input
-				type="text"
-				placeholder="Enter a description (any #tags or @mentions will be extracted)"
-				onchange={(e) => bulkEdit('description', e.target.value)}
-			/>
-		</label>
-	</section>
-{/if}
-
-<menu class="selection">
-	{#if hasSelection}
-		<span>{selectedCount} selected</span>
-		<button onclick={clearSelection}>Clear</button>
-	{:else}
-		<button onclick={selectAll}>Select all ({filteredTracks.length})</button>
-	{/if}
-</menu>
-
-<div class="batch-edit-layout" class:sidebar-visible={showSidebar}>
+<div class="batch-edit-layout">
 	<main class="tracks-container">
-		<section class="tracks scroll">
+		<section class="tracks">
 			{#if filteredTracks.length === 0}
 				<p>no tracks found</p>
 			{:else}
 				<div class="tracks-list">
 					<div class="tracks-header">
-						<div class="col-checkbox"></div>
+						<div class="col-checkbox">
+							<menu class="selection">
+								{#if hasSelection}
+									<span>{selectedCount} selected</span>
+									<button onclick={clearSelection}>Clear</button>
+								{:else}
+									<button onclick={selectAll}>All ({filteredTracks.length})</button>
+								{/if}
+							</menu>
+						</div>
 						<div class="col-link"></div>
 						<div class="col-url">url</div>
 						<div class="col-title">title</div>
@@ -254,7 +218,7 @@
 						<div class="col-meta">meta</div>
 						<div class="col-date">created</div>
 					</div>
-					<ol class="list">
+					<ol class="list scroll">
 						{#each filteredTracks as track (track.id)}
 							<li>
 								<TrackRow
@@ -278,48 +242,45 @@
 
 	<EditsPanel
 		{edits}
+		{appliedEdits}
 		{tracks}
-		{showSidebar}
-		onClose={() => (showSidebar = false)}
+		{readonly}
 		onCommit={handleCommit}
 		onDiscard={handleDiscard}
+		onUndo={handleUndo}
 	/>
 </div>
 
 <style>
-	header {
-		margin-left: 0.5rem;
-		margin-bottom: 0.5rem;
-	}
-
-	.bulkOperations {
-		margin: 0.5rem;
-	}
-
-	.selection {
-		margin: 0 0.5rem 0.5rem;
-		align-items: center;
-	}
-
 	header nav {
 		display: flex;
-		flex-flow: row;
 		align-items: center;
-		margin: 0.5rem 0 0.5rem 0;
 		p {
 			margin: 0 0 0 auto;
 		}
 	}
 
 	.tracks-header {
-		border-top: 1px solid var(--gray-5);
 		display: flex;
 		position: sticky;
 		top: 0;
 		z-index: 1;
 		font-weight: bold;
-		border-bottom: 1px solid var(--gray-5);
-		background: var(--bg-2);
+		background: var(--bg-3);
+		border-bottom: 1px solid var(--gray-7);
+	}
+
+	.batch-edit-layout {
+		border-top: 1px solid var(--gray-5);
+		display: grid;
+		grid-template-columns: 1fr min(400px, 40%);
+		height: 100%;
+		position: relative;
+	}
+
+	.tracks-container {
+		min-width: 0;
+		overflow: hidden;
 	}
 
 	:global(.col-checkbox),
@@ -352,31 +313,5 @@
 
 	:global(.col-date) {
 		flex: 0 0 100px;
-	}
-
-	.batch-edit-layout {
-		display: grid;
-		grid-template-columns: 1fr;
-		height: 100%;
-		position: relative;
-	}
-
-	.batch-edit-layout.sidebar-visible {
-		grid-template-columns: 1fr min(400px, 40%);
-	}
-
-	.tracks-container {
-		min-width: 0;
-		overflow: hidden;
-	}
-
-	.edits-toggle {
-		background: var(--accent);
-		color: white;
-		border: none;
-		padding: 0.25rem 0.5rem;
-		border-radius: 3px;
-		font-size: 0.85rem;
-		margin-left: 1rem;
 	}
 </style>

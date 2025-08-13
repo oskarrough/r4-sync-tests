@@ -57,45 +57,27 @@
 	</span>
 {:else}
 	<span class="editable" onclick={startEdit}>
-		{currentValue}
+		{currentValue}&nbsp;
 	</span>
 {/if}
 
 <style>
 	.editable {
 		cursor: pointer;
-		padding: 0.1rem 0.2rem;
-		border-radius: 2px;
 		display: block;
 		width: 100%;
-	}
-
-	.editable:hover {
-		background: var(--gray-1);
 	}
 
 	.diff {
 		background: var(--yellow-1);
 	}
 
-	.diff del {
-		color: var(--gray-6);
-		text-decoration: line-through;
-		opacity: 0.7;
-	}
-
 	.diff ins {
-		color: var(--green-9);
-		text-decoration: none;
-		font-weight: 500;
 		margin-left: 0.25rem;
 	}
 
 	.inline-input {
 		width: 100%;
-		border: 1px solid var(--accent);
-		background: var(--bg-1);
-		padding: 0.1rem 0.2rem;
 		font: inherit;
 	}
 </style>

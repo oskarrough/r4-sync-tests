@@ -201,6 +201,14 @@ export async function getEdits() {
 	return batchEdit.getEdits(pg)
 }
 
+export async function undoEdit(trackId, field) {
+	return batchEdit.undoEdit(pg, trackId, field)
+}
+
+export async function getAppliedEdits() {
+	return batchEdit.getAppliedEdits(pg)
+}
+
 /**
  * @param {string} followerId - ID of the user's channel
  * @param {string} channelId - ID of the channel to follow

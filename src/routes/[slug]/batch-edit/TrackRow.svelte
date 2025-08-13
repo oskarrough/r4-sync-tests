@@ -82,8 +82,7 @@
 	.track-row {
 		display: flex;
 		place-items: center;
-		cursor: pointer;
-		min-height: 2rem;
+		min-height: 2.5rem;
 	}
 
 	.col-checkbox,
