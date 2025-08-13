@@ -55,7 +55,7 @@ body {
 }
 
 ::selection {
-	background: var(--color-accent);
+	/* background: var(--color-accent); */
 }
 
 .scroll {
@@ -149,7 +149,7 @@ figure {
 }
 .list > div:hover,
 .list > li:hover {
-	background: light-dark(var(--gray-2), var(--gray-3));
+	background: light-dark(var(--gray-2), var(--gray-2));
 }
 
 .grid {

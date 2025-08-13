@@ -94,7 +94,6 @@ export async function addToPlaylist(trackIds) {
 export async function toggleTheme() {
 	const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light'
 	const newTheme = currentTheme === 'light' ? 'dark' : 'light'
-
 	if (newTheme === 'dark') {
 		document.documentElement.classList.remove('light')
 		document.documentElement.classList.add('dark')
@@ -102,7 +101,7 @@ export async function toggleTheme() {
 		document.documentElement.classList.remove('dark')
 		document.documentElement.classList.add('light')
 	}
-	appState.theme = newTheme
+	//appState.theme = newTheme
 }
 
 export async function toggleQueuePanel() {

@@ -45,6 +45,8 @@ media-time-display {
 	@media (min-width: 768px) {
 		media-volume-range {
 			display: initial;
+			margin-left: 0.2rem;
+			margin-right: 0.2rem;
 		}
 	}
 }
