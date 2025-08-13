@@ -86,6 +86,8 @@ async function pullChannels({slug = '', limit = 3000} = {}) {
 			if (await outdated(slug)) {
 				console.log('pullChannels -> outdated -> pullTracks non-async')
 				pullTracks({slug}).catch((error) => log.error(error))
+			} else {
+				console.log('not outdated')
 			}
 			return local
 		}
@@ -142,7 +144,7 @@ async function outdated(slug: string): Promise<boolean> {
 		if (!localLatest) return true
 
 		// v1 channels dont need updating because it is in read-only state since before this project
-		if (channel.firebase_id && localLatest) return false
+		if (channel.source === 'v1' && localLatest) return false
 
 		// Get latest remote track update
 		const {data: remoteLatest} = await r4.sdk.supabase
@@ -158,8 +160,8 @@ async function outdated(slug: string): Promise<boolean> {
 		const remoteMsRemoved = new Date(remoteLatest.updated_at).setMilliseconds(0)
 		const localMsRemoved = new Date(localLatest.updated_at).setMilliseconds(0)
 		const toleranceMs = 20 * 1000
-		const x = remoteMsRemoved - localMsRemoved > toleranceMs
-		return x
+		const isOutdated = remoteMsRemoved - localMsRemoved > toleranceMs
+		return isOutdated
 	} catch (error) {
 		log.error('needs_update_error', error)
 		return true // On error, suggest update to be safe
