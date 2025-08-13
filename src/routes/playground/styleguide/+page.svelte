@@ -37,6 +37,10 @@
 	]
 </script>
 
+<svelte:head>
+	<title>Styleguide - R5</title>
+</svelte:head>
+
 <div class="styleguide">
 	<h1>Styleguide</h1>
 

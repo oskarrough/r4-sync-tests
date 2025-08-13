@@ -137,6 +137,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Stats - R5</title>
+</svelte:head>
+
 <article>
 	<section>
 		<header>

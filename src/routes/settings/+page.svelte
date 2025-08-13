@@ -10,6 +10,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Settings & About - R5</title>
+</svelte:head>
+
 <article>
 	<section>
 		<h2>Settings</h2>

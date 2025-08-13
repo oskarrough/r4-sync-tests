@@ -16,6 +16,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Command Terminal - R5</title>
+</svelte:head>
+
 <div bind:this={container} use:trap>
 	<input type="search" placeholder="Search..." />
 

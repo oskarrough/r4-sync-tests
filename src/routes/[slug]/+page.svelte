@@ -107,6 +107,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>{channel?.name || 'Channel'} - R5</title>
+</svelte:head>
+
 {#if channel}
 	<article>
 		<header>

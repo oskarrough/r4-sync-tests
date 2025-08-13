@@ -36,6 +36,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>R5</title>
+</svelte:head>
+
 <Channels channels={data.channels} {slug} {display} {longitude} {latitude} {zoom} />
 
 {#if channelCount < 100}

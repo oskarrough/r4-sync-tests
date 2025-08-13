@@ -20,6 +20,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Playground - R5</title>
+</svelte:head>
+
 <h1>playground</h1>
 
 <section>

@@ -8,6 +8,10 @@
 	let {track, channel} = data
 </script>
 
+<svelte:head>
+	<title>{track?.title || 'Track'} by {channel?.name || 'Channel'} - R5</title>
+</svelte:head>
+
 <article>
 	<header>
 		<p><a href="/{channel.slug}">@{channel.slug}</a> / {track.title}</p>

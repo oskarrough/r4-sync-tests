@@ -50,7 +50,7 @@
 </script>
 
 <svelte:head>
-	<title>Search - Radio4000</title>
+	<title>Search - R5</title>
 </svelte:head>
 
 <article use:trap>

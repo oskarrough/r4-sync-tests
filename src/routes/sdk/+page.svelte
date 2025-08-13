@@ -159,7 +159,7 @@
 </script>
 
 <svelte:head>
-	<title>R5 SDK Explorer</title>
+	<title>SDK - R5</title>
 </svelte:head>
 
 <article class="sdk">

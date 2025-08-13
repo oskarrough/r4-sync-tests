@@ -3,6 +3,10 @@
 	//import IconR4 from '$lib/icon-r4.svelte'
 </script>
 
+<svelte:head>
+	<title>Login - R5</title>
+</svelte:head>
+
 <div class="wrap">
 	<!--<img src="https://assets.radio4000.com/icon-r4.svg" alt="Radio4000">-->
 	<!--<IconR4 />-->
