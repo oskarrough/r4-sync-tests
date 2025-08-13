@@ -51,7 +51,7 @@
 	<div class="content scroll">
 		{#if edits.length > 0}
 			<section>
-				<h3>Pending Edits</h3>
+				<h3>Pending edits</h3>
 				<ol class="list">
 					{#each edits as edit (edit.track_id + edit.field)}
 						{@const track = tracks.find((t) => t.id === edit.track_id)}
