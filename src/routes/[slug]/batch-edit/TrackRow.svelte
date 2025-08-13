@@ -1,5 +1,17 @@
 <script>
-	let {track, isSelected, selectedTracks, inlineEdit, onSelect, data} = $props()
+	import InlineEditCell from './InlineEditCell.svelte'
+
+	let {
+		track,
+		isSelected,
+		selectedTracks,
+		onSelect,
+		data,
+		editingCells,
+		editsMap,
+		stageFieldEdit,
+		tracks
+	} = $props()
 
 	function handleCheckboxChange(e) {
 		if (e.target.checked) {
@@ -24,20 +36,39 @@
 		>
 	</div>
 
-	<div class="col-title">
-		{@render inlineEdit(track.id, 'title')}
+	<div class="col-url">
+		<InlineEditCell
+			trackId={track.id}
+			field="url"
+			{editingCells}
+			{editsMap}
+			{stageFieldEdit}
+			{tracks}
+		/>
 	</div>
-
-	<div class="col-tags">{track.tags || ''}</div>
-	<div class="col-mentions">{track.mentions || ''}</div>
+	<div class="col-title">
+		<InlineEditCell
+			trackId={track.id}
+			field="title"
+			{editingCells}
+			{editsMap}
+			{stageFieldEdit}
+			{tracks}
+		/>
+	</div>
 
 	<div class="col-description">
-		{@render inlineEdit(track.id, 'description')}
+		<InlineEditCell
+			trackId={track.id}
+			field="description"
+			{editingCells}
+			{editsMap}
+			{stageFieldEdit}
+			{tracks}
+		/>
 	</div>
-
-	<div class="col-url">
-		{@render inlineEdit(track.id, 'url')}
-	</div>
+	<div class="col-tags">{track.tags || ''}</div>
+	<div class="col-mentions">{track.mentions || ''}</div>
 
 	<div class="col-meta">
 		{#if track.has_youtube_meta}<span class="meta-indicator yt">Y</span>{/if}
@@ -50,7 +81,9 @@
 <style>
 	.track-row {
 		display: flex;
+		place-items: center;
 		cursor: pointer;
+		min-height: 2rem;
 	}
 
 	.col-checkbox,

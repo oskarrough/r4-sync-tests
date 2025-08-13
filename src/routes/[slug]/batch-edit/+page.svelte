@@ -1,26 +1,39 @@
 <script>
 	import {stageEdit, commitEdits, discardEdits, getEdits} from '$lib/api'
 	import {r5} from '$lib/r5'
-	import {invalidateAll} from '$app/navigation'
-	import EditPreview from './EditPreview.svelte'
+	import {SvelteSet, SvelteMap} from 'svelte/reactivity'
 	import TrackRow from './TrackRow.svelte'
+	import EditsPanel from './EditsPanel.svelte'
 
 	let {data} = $props()
 
-	let {channel, editCount, edits, tracks} = $derived(data)
+	let {channel, tracks, edits} = $derived(data)
+
+	/** @type {import('$lib/types').Track[]} */
 	let selectedTracks = $state([])
 
-	let hasEdits = $derived(editCount > 0)
-
-	let showPreview = $state(false)
+	let hasEdits = $derived(edits?.length > 0)
+	let showSidebar = $state(false)
 	let updatingMeta = $state(false)
 
-	let editingCell = $state(null) // {trackId, field}
+	// Allow multiple cells to be edited simultaneously
+	let editingCells = new SvelteSet() // Set of 'trackId-field' strings
 
 	let filter = $state('all')
 
 	let selectedCount = $derived(selectedTracks.length)
 	let hasSelection = $derived(selectedCount > 0)
+
+	// Create a derived map for efficient edit lookups
+	let editsMap = $derived.by(() => {
+		const map = new SvelteMap()
+		if (edits) {
+			for (const edit of edits) {
+				map.set(`${edit.track_id}-${edit.field}`, edit)
+			}
+		}
+		return map
+	})
 
 	let filteredTracks = $derived.by(() => {
 		if (!tracks) return []
@@ -49,18 +62,6 @@
 		}
 		return filtered
 	})
-
-	function getCurrentValue(trackId, field) {
-		// Check if there's a staged edit for this track+field
-		const edit = edits?.find((e) => e.track_id === trackId && e.field === field)
-		if (edit) {
-			return edit.new_value
-		}
-
-		// Fallback to original track data
-		const track = tracks.find((t) => t.id === trackId)
-		return track?.[field] || ''
-	}
 
 	function selectTrack(trackId, event) {
 		if (event.shiftKey && selectedTracks.length > 0) {
@@ -108,7 +109,6 @@
 					await stageEdit(trackId, field, track[field] || '', newValue)
 				}
 			}
-			await invalidateAll()
 		} catch (error) {
 			console.error('Bulk edit failed:', error)
 		}
@@ -117,8 +117,9 @@
 	async function handleCommit() {
 		try {
 			await commitEdits()
-			showPreview = false
-			await invalidateAll()
+			showSidebar = false
+			edits = []
+			editingCells.clear()
 		} catch (error) {
 			console.error('Commit failed:', error)
 		}
@@ -127,31 +128,38 @@
 	async function handleDiscard() {
 		try {
 			await discardEdits()
-			showPreview = false
-			await invalidateAll()
+			showSidebar = false
+			edits = []
+			editingCells.clear()
 		} catch (error) {
 			console.error('Discard failed:', error)
 		}
 	}
 
-	async function togglePreview() {
-		showPreview = !showPreview
-		if (showPreview) {
-			edits = await getEdits()
+	$effect(() => {
+		if (hasEdits && !showSidebar && edits?.length > 5) {
+			// Auto-show sidebar when many edits accumulate
+			showSidebar = true
 		}
-	}
+	})
 
 	async function stageFieldEdit(trackId, field, newValue) {
 		const track = tracks.find((t) => t.id === trackId)
 		if (!track) return
 
 		const originalValue = track[field] || ''
-		if (newValue === originalValue) return // No change
+		if (newValue === originalValue) {
+			// Remove edit if value reverted to original
+			const existingEdit = editsMap.get(`${trackId}-${field}`)
+			if (existingEdit) {
+				edits = edits.filter((e) => !(e.track_id === trackId && e.field === field))
+			}
+			return
+		}
 
 		try {
 			await stageEdit(trackId, field, originalValue, newValue)
 			edits = await getEdits()
-			await invalidateAll()
 		} catch (error) {
 			console.error('Failed to stage edit:', error)
 		}
@@ -168,51 +176,7 @@
 	async function handlePullMeta() {
 		console.log('TODO: implement metadata pulling')
 	}
-
-	function focus(element) {
-		element?.focus()
-		element?.select()
-	}
 </script>
-
-{#snippet inlineEdit(trackId, field)}
-	{@const track = tracks.find((t) => t.id === trackId)}
-	{@const isEditing = editingCell?.trackId === trackId && editingCell?.field === field}
-	{@const currentValue = getCurrentValue(trackId, field)}
-
-	{#if isEditing}
-		<input
-			type="text"
-			value={currentValue}
-			onblur={(e) => {
-				editingCell = null
-				stageFieldEdit(trackId, field, e.target.value)
-			}}
-			onkeydown={(e) => {
-				if (e.key === 'Enter') {
-					e.preventDefault()
-					editingCell = null
-					stageFieldEdit(trackId, field, e.target.value)
-				} else if (e.key === 'Escape') {
-					e.preventDefault()
-					editingCell = null
-				}
-			}}
-			use:focus
-		/>
-	{:else}
-		<span
-			class="editable"
-			class:has-edit={currentValue !== (track?.[field] || '')}
-			onclick={(e) => {
-				e.stopPropagation()
-				editingCell = {trackId, field}
-			}}
-		>
-			{currentValue}
-		</span>
-	{/if}
-{/snippet}
 
 <svelte:head>
 	<title>Batch Edit - {channel?.name || 'Channel'}</title>
@@ -221,6 +185,11 @@
 <header>
 	<nav>
 		<a href="/{data.slug}">@{channel?.name}</a> / batch edit
+		{#if hasEdits}
+			<button onclick={() => (showSidebar = !showSidebar)} class="edits-toggle">
+				{edits.length} edits {showSidebar ? '→' : '←'}
+			</button>
+		{/if}
 		<p>
 			<strong
 				>IMPORTANT: This is local-only. No remote data is overwritten. It is safe to play. you can
@@ -245,16 +214,6 @@
 	</menu>
 </header>
 
-<EditPreview
-	{showPreview}
-	{edits}
-	{tracks}
-	{hasEdits}
-	{togglePreview}
-	{handleCommit}
-	{handleDiscard}
-/>
-
 {#if hasSelection}
 	<section class="bulkOperations">
 		<label>
@@ -277,35 +236,55 @@
 	{/if}
 </menu>
 
-<section class="tracks scroll">
-	{#if filteredTracks.length === 0}
-		<p>no tracks found</p>
-	{:else}
-		<div class="tracks-list">
-			<div class="tracks-header">
-				<div class="col-checkbox"></div>
-				<div class="col-link"></div>
-				<div class="col-title">title</div>
-				<div class="col-tags">tags</div>
-				<div class="col-mentions">mentions</div>
-				<div class="col-description">description</div>
-				<div class="col-url">url</div>
-				<div class="col-meta">meta</div>
-				<div class="col-date">created</div>
-			</div>
-			{#each filteredTracks as track (track.id)}
-				<TrackRow
-					{track}
-					isSelected={selectedTracks.includes(track.id)}
-					{selectedTracks}
-					{inlineEdit}
-					onSelect={(e) => selectTrack(track.id, e)}
-					{data}
-				/>
-			{/each}
-		</div>
-	{/if}
-</section>
+<div class="batch-edit-layout" class:sidebar-visible={showSidebar}>
+	<main class="tracks-container">
+		<section class="tracks scroll">
+			{#if filteredTracks.length === 0}
+				<p>no tracks found</p>
+			{:else}
+				<div class="tracks-list">
+					<div class="tracks-header">
+						<div class="col-checkbox"></div>
+						<div class="col-link"></div>
+						<div class="col-url">url</div>
+						<div class="col-title">title</div>
+						<div class="col-description">description</div>
+						<div class="col-tags">tags</div>
+						<div class="col-mentions">mentions</div>
+						<div class="col-meta">meta</div>
+						<div class="col-date">created</div>
+					</div>
+					<ol class="list">
+						{#each filteredTracks as track (track.id)}
+							<li>
+								<TrackRow
+									{track}
+									isSelected={selectedTracks.includes(track.id)}
+									{selectedTracks}
+									onSelect={(e) => selectTrack(track.id, e)}
+									{data}
+									{editingCells}
+									{editsMap}
+									{stageFieldEdit}
+									{tracks}
+								/>
+							</li>
+						{/each}
+					</ol>
+				</div>
+			{/if}
+		</section>
+	</main>
+
+	<EditsPanel
+		{edits}
+		{tracks}
+		{showSidebar}
+		onClose={() => (showSidebar = false)}
+		onCommit={handleCommit}
+		onDiscard={handleDiscard}
+	/>
+</div>
 
 <style>
 	header {
@@ -352,7 +331,7 @@
 	:global(.col-url),
 	:global(.col-meta),
 	:global(.col-date) {
-		padding: 0.5rem;
+		padding: 0.2rem;
 		flex: 1;
 		text-align: left;
 	}
@@ -375,17 +354,29 @@
 		flex: 0 0 100px;
 	}
 
-	.editable {
-		cursor: pointer;
-		padding: 2px;
-		border-radius: 2px;
+	.batch-edit-layout {
+		display: grid;
+		grid-template-columns: 1fr;
+		height: 100%;
+		position: relative;
 	}
 
-	.editable:hover {
-		background: var(--gray-1);
+	.batch-edit-layout.sidebar-visible {
+		grid-template-columns: 1fr min(400px, 40%);
 	}
 
-	.editable.has-edit {
-		background: var(--yellow-1);
+	.tracks-container {
+		min-width: 0;
+		overflow: hidden;
+	}
+
+	.edits-toggle {
+		background: var(--accent);
+		color: white;
+		border: none;
+		padding: 0.25rem 0.5rem;
+		border-radius: 3px;
+		font-size: 0.85rem;
+		margin-left: 1rem;
 	}
 </style>

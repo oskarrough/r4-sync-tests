@@ -1,4 +1,3 @@
-import {pg} from '$lib/db'
 import {r5} from '$lib/r5'
 import {error} from '@sveltejs/kit'
 import {getEdits} from '$lib/api'
@@ -9,34 +8,25 @@ export async function load({parent, params}) {
 
 	const {slug} = params
 
-	let channel = {},
-		tracks = [],
-		editCount = 0,
-		edits = []
-
+	let channel
+	let tracks
 	try {
-		channel = await r5.channels.pull({slug})
+		channel = (await r5.channels.pull({slug}))[0]
+		if (!channel.tracks_synced_at) {
+			tracks = await r5.tracks.pull({slug})
+		} else {
+			tracks = await r5.tracks({slug})
+		}
 	} catch {
 		error(404, 'Channel not found')
 	}
 
-	try {
-		const tracksResult =
-			await pg.sql`SELECT * from tracks where channel_id = ${channel.id} ORDER BY created_at DESC`
-		tracks = tracksResult.rows
-	} catch (error) {
-		error(400, `Error fetching tracks: ${error.message}`)
-	}
-
-	const editCountResult = await pg.sql`SELECT COUNT(*) as count FROM track_edits`
-	editCount = editCountResult.rows[0]?.count || 0
-	edits = await getEdits()
+	let edits = await getEdits()
 
 	return {
-		channel,
 		slug,
-		editCount,
-		edits,
-		tracks
+		channel,
+		tracks,
+		edits
 	}
 }
