@@ -1,4 +1,3 @@
-import * as batchEdit from './batch-edit.js'
 import {appState, defaultAppState} from '$lib/app-state.svelte'
 import {leaveBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
@@ -179,34 +178,6 @@ export async function addPlayHistory({previousTrackId, nextTrackId, endReason, s
 			)
 		`
 	}
-}
-
-export async function stageEdit(trackId, field, oldValue, newValue) {
-	return batchEdit.stageEdit(pg, trackId, field, oldValue, newValue)
-}
-
-export async function commitEdits() {
-	return batchEdit.commitEdits(pg)
-}
-
-export async function discardEdits() {
-	return batchEdit.discardEdits(pg)
-}
-
-export async function getEditCount() {
-	return batchEdit.getEditCount(pg)
-}
-
-export async function getEdits() {
-	return batchEdit.getEdits(pg)
-}
-
-export async function undoEdit(trackId, field) {
-	return batchEdit.undoEdit(pg, trackId, field)
-}
-
-export async function getAppliedEdits() {
-	return batchEdit.getAppliedEdits(pg)
 }
 
 /**

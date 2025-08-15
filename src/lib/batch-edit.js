@@ -1,4 +1,5 @@
 import {sdk} from '@radio4000/sdk'
+import {identifier} from '@electric-sql/pglite/template'
 
 const EDITABLE_FIELDS = ['title', 'description', 'url']
 
@@ -37,13 +38,7 @@ export async function commitEdits(pg) {
 		// Update local DB to match remote
 		await pg.transaction(async (tx) => {
 			for (const [field, value] of Object.entries(changes)) {
-				if (field === 'title') {
-					await tx.sql`UPDATE tracks SET title = ${value} WHERE id = ${trackId}`
-				} else if (field === 'description') {
-					await tx.sql`UPDATE tracks SET description = ${value} WHERE id = ${trackId}`
-				} else if (field === 'url') {
-					await tx.sql`UPDATE tracks SET url = ${value} WHERE id = ${trackId}`
-				}
+				await tx.sql`UPDATE tracks SET ${identifier(field)} = ${value} WHERE id = ${trackId}`
 			}
 		})
 	}
@@ -89,15 +84,7 @@ export async function undoEdit(pg, trackId, field) {
 	if (error) throw error
 
 	// Revert local change
-	await pg.transaction(async (tx) => {
-		if (field === 'title') {
-			await tx.sql`UPDATE tracks SET title = ${edit.old_value} WHERE id = ${trackId}`
-		} else if (field === 'description') {
-			await tx.sql`UPDATE tracks SET description = ${edit.old_value} WHERE id = ${trackId}`
-		} else if (field === 'url') {
-			await tx.sql`UPDATE tracks SET url = ${edit.old_value} WHERE id = ${trackId}`
-		}
-	})
+	await pg.sql`UPDATE tracks SET ${identifier(field)} = ${edit.old_value} WHERE id = ${trackId}`
 
 	// Remove the edit record
 	await pg.sql`DELETE FROM track_edits WHERE track_id = ${trackId} AND field = ${field} AND status = 'applied'`

@@ -50,15 +50,19 @@ export async function dropDb() {
 	// Clear tables
 	await pg.sql`DELETE FROM app_state;`
 	await pg.sql`DELETE FROM track_edits;`
+	await pg.sql`DELETE FROM followers;`
+	await pg.sql`DELETE FROM play_history;`
 	await pg.sql`DELETE FROM tracks;`
 	await pg.sql`DELETE FROM channels;`
 	// Then drop them
 	await pg.sql`drop table if exists app_state CASCADE;`
+	await pg.sql`drop table if exists track_edits CASCADE;`
+	await pg.sql`drop table if exists followers CASCADE;`
+	await pg.sql`drop table if exists play_history CASCADE;`
 	await pg.sql`drop table if exists tracks CASCADE;`
 	await pg.sql`drop table if exists channels CASCADE;`
 	await pg.sql`drop table if exists migrations CASCADE;`
 	await pg.sql`drop table if exists track_meta CASCADE;`
-	await pg.sql`drop table if exists track_edits CASCADE;`
 	log.log('dropped db')
 }
 

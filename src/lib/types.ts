@@ -76,7 +76,7 @@ export interface AppState {
 	counter: number
 	channels_display: string
 	/** the user's channels */
-	channels: string[]
+	channels?: string[]
 	shuffle: boolean
 	broadcasting_channel_id?: string
 	listening_to_channel_id?: string
