@@ -14,6 +14,8 @@ cli-r5.ts
 
 ## Todos
 
+- consider integrating "bandsintown" as a third-party API similar to musicbrainz, youtube meta
+- implement discogs (see components.radio4000.com, where it's already kinda done)
 - change <slug>/page.js load function to maybe not block the whole page? too slow. render async
 - edit track UI (for the ones you own)
 - go to /nomads, go to /settings, click reset, click browser back button, tracks are missing and stuck "syncing"
