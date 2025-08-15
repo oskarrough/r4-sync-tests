@@ -1,17 +1,7 @@
 <script>
 	import InlineEditCell from './InlineEditCell.svelte'
 
-	let {
-		track,
-		isSelected,
-		selectedTracks,
-		onSelect,
-		data,
-		editingCells,
-		edits,
-		stageFieldEdit,
-		tracks
-	} = $props()
+	let {track, isSelected, selectedTracks, onSelect, data, edits, onEdit} = $props()
 
 	function handleCheckboxChange(e) {
 		if (e.target.checked) {
@@ -37,35 +27,14 @@
 	</div>
 
 	<div class="col-url">
-		<InlineEditCell
-			trackId={track.id}
-			field="url"
-			{editingCells}
-			{edits}
-			{stageFieldEdit}
-			{tracks}
-		/>
+		<InlineEditCell {track} field="url" {edits} {onEdit} />
 	</div>
 	<div class="col-title">
-		<InlineEditCell
-			trackId={track.id}
-			field="title"
-			{editingCells}
-			{edits}
-			{stageFieldEdit}
-			{tracks}
-		/>
+		<InlineEditCell {track} field="title" {edits} {onEdit} />
 	</div>
 
 	<div class="col-description">
-		<InlineEditCell
-			trackId={track.id}
-			field="description"
-			{editingCells}
-			{edits}
-			{stageFieldEdit}
-			{tracks}
-		/>
+		<InlineEditCell {track} field="description" {edits} {onEdit} />
 	</div>
 	<div class="col-tags">{track.tags || ''}</div>
 	<div class="col-mentions">{track.mentions || ''}</div>

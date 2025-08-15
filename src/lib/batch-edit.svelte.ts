@@ -1,13 +1,11 @@
 import {sdk} from '@radio4000/sdk'
 import {identifier} from '@electric-sql/pglite/template'
-import {SvelteSet, SvelteMap} from 'svelte/reactivity'
+import {SvelteMap} from 'svelte/reactivity'
 import {pg} from './db'
 
 const EDITABLE_FIELDS = ['title', 'description', 'url']
 
 class BatchEdit {
-	editingCells = new SvelteSet()
-
 	async stageFieldEdit(trackId, field, originalValue, newValue) {
 		if (newValue === originalValue) {
 			// Remove edit if value reverted to original
@@ -20,12 +18,10 @@ class BatchEdit {
 
 	async commit() {
 		await this.commitEdits()
-		this.editingCells.clear()
 	}
 
 	async discard() {
 		await this.discardEdits()
-		this.editingCells.clear()
 	}
 
 	async deletePendingEdit(trackId, field) {

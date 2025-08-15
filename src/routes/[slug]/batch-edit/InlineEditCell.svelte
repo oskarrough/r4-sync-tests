@@ -1,28 +1,26 @@
 <script>
-	let {trackId, field, editingCells, edits, stageFieldEdit, tracks} = $props()
+	let {track, field, edits, onEdit} = $props()
 
-	let cellKey = $derived(`${trackId}-${field}`)
-	let isEditing = $derived(editingCells.has(cellKey))
+	let isEditing = $state(false)
 
-	let track = $derived(tracks.find((t) => t.id === trackId))
 	let originalValue = $derived(track?.[field] || '')
 
-	let edit = $derived(edits.find((e) => e.track_id === trackId && e.field === field))
+	let edit = $derived(edits.find((e) => e.track_id === track.id && e.field === field))
 	let currentValue = $derived(edit ? edit.new_value : originalValue)
 	let isDiff = $derived(!!edit)
 
 	function startEdit(e) {
 		e.stopPropagation()
-		editingCells.add(cellKey)
+		isEditing = true
 	}
 
 	function stopEdit() {
-		editingCells.delete(cellKey)
+		isEditing = false
 	}
 
 	async function commitEdit(value) {
 		stopEdit()
-		await stageFieldEdit(trackId, field, value)
+		await onEdit(track.id, field, value)
 	}
 
 	function handleKeydown(e) {

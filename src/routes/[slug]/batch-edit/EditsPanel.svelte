@@ -4,7 +4,7 @@
 		canEdit,
 		edits,
 		appliedEdits = [],
-		tracks,
+		tracksMap,
 		onCommit,
 		onDiscard,
 		onUndo,
@@ -12,7 +12,7 @@
 	} = $props()
 
 	function getTrackTitle(trackId) {
-		const track = tracks.find((t) => t.id === trackId)
+		const track = tracksMap.get(trackId)
 		return track?.title || `Track ${trackId}`
 	}
 
@@ -95,49 +95,38 @@
 
 		{#if appliedEdits.length > 0}
 			<section>
-				<h3>Applied edits (can undo)</h3>
-				<ol class="list">
-					{#each appliedEdits as edit (edit.track_id + edit.field)}
-						<li>
-							<div class="diff-header">
-								{getTrackTitle(edit.track_id)}
-								<code>{edit.field}</code>
-								{#if canEdit}
-									<button
-										class="undo-btn"
-										onclick={() => onUndo(edit.track_id, edit.field)}
-										title="Undo this edit"
-									>
-										↶ Undo
-									</button>
-								{/if}
-							</div>
-							<div class="diff-body">
-								<div class="diff-line removed">- {edit.old_value || '(empty)'}</div>
-								<div class="diff-line added">+ {edit.new_value}</div>
-							</div>
-						</li>
-					{/each}
-				</ol>
+				<details>
+					<summary>Applied edits ({appliedEdits.length}) - can undo</summary>
+					<ol class="list">
+						{#each appliedEdits as edit (edit.track_id + edit.field)}
+							<li>
+								<div class="diff-header">
+									{getTrackTitle(edit.track_id)}
+									<code>{edit.field}</code>
+									{#if canEdit}
+										<button
+											class="undo-btn"
+											onclick={() => onUndo(edit.track_id, edit.field)}
+											title="Undo this edit"
+										>
+											↶ Undo
+										</button>
+									{/if}
+								</div>
+								<div class="diff-body">
+									<div class="diff-line removed">- {edit.old_value || '(empty)'}</div>
+									<div class="diff-line added">+ {edit.new_value}</div>
+								</div>
+							</li>
+						{/each}
+					</ol>
+				</details>
 			</section>
 		{/if}
 	</main>
 </aside>
 
 <style>
-	.warn,
-	.error {
-		padding: 0.2rem 0.5rem;
-	}
-	.warn {
-		background: var(--color-yellow);
-		color: var(--gray-1);
-	}
-	.error {
-		background: var(--color-red);
-		color: var(--gray-1);
-	}
-
 	aside {
 		display: flex;
 		flex-direction: column;
@@ -167,11 +156,26 @@
 	}
 
 	section {
-		margin-top: 4rem;
+		margin-top: 1rem;
 	}
 
+	.warn,
+	.error {
+		padding: 0.2rem 0.5rem;
+	}
+	.warn {
+		background: var(--color-yellow);
+		color: var(--gray-1);
+	}
+	.error {
+		background: var(--color-red);
+		color: var(--gray-1);
+	}
+
+	summary,
 	main h3 {
-		/* color: var(--gray-9); */
+		font-weight: 500;
+		color: var(--gray-10);
 		margin: 0 0.5rem;
 	}
 

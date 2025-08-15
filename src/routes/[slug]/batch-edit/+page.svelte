@@ -22,6 +22,8 @@
 	let selectedCount = $derived(selectedTracks.length)
 	let hasSelection = $derived(selectedCount > 0)
 
+	let tracksMap = $derived(new Map(tracks?.map((t) => [t.id, t]) || []))
+
 	let filteredTracks = $derived.by(() => {
 		if (!tracks) return []
 		return tracks.filter((track) => {
@@ -80,7 +82,7 @@
 		selectedTracks = []
 	}
 
-	async function stageFieldEdit(trackId, field, newValue) {
+	async function onEdit(trackId, field, newValue) {
 		const track = tracks.find((t) => t.id === trackId)
 		if (!track) return
 		const originalValue = track[field] || ''
@@ -164,10 +166,8 @@
 									{selectedTracks}
 									onSelect={(e) => selectTrack(track.id, e)}
 									{data}
-									editingCells={batchEdit.editingCells}
 									{edits}
-									{stageFieldEdit}
-									{tracks}
+									{onEdit}
 								/>
 							</li>
 						{/each}
@@ -180,7 +180,7 @@
 	<EditsPanel
 		{edits}
 		{appliedEdits}
-		{tracks}
+		{tracksMap}
 		{readonly}
 		{canEdit}
 		onCommit={() => batchEdit.commit()}
