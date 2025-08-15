@@ -1,5 +1,20 @@
 <script>
-	let {readonly, edits, appliedEdits = [], tracks, onCommit, onDiscard, onUndo} = $props()
+	let {
+		readonly,
+		canEdit,
+		edits,
+		appliedEdits = [],
+		tracks,
+		onCommit,
+		onDiscard,
+		onUndo,
+		onDelete
+	} = $props()
+
+	function getTrackTitle(trackId) {
+		const track = tracks.find((t) => t.id === trackId)
+		return track?.title || `Track ${trackId}`
+	}
 
 	let error = $state('')
 	let isCommitting = $state(false)
@@ -30,35 +45,43 @@
 </script>
 
 <aside>
-	{#if !readonly}
-		<header>
-			<h3>Preview {edits.length} {edits.length === 1 ? 'edit' : 'edits'}</h3>
+	<header>
+		<h3>Preview {edits.length} {edits.length === 1 ? 'edit' : 'edits'}</h3>
+		{#if canEdit}
 			<menu>
 				<button type="button" onclick={handleDiscard}>Discard</button>
 				<button type="button" onclick={handleCommit} disabled={isCommitting}>
 					{isCommitting ? 'Committing...' : 'Commit'}
 				</button>
 			</menu>
-		</header>
-	{:else}
-		<p>v1 radios must be migrated to v2 before they can be updated</p>
-	{/if}
+		{/if}
+	</header>
+
+	<div class="warn">
+		{#if readonly}
+			<p>v1 radios must be migrated to v2 before they can be updated</p>
+		{:else}
+			<p>You are not authorized to edit this channel</p>
+		{/if}
+	</div>
 
 	{#if error}
 		<p class="error">{error}</p>
 	{/if}
 
-	<div class="content scroll">
+	<main class="scroll">
 		{#if edits.length > 0}
 			<section>
 				<h3>Pending edits</h3>
 				<ol class="list">
 					{#each edits as edit (edit.track_id + edit.field)}
-						{@const track = tracks.find((t) => t.id === edit.track_id)}
 						<li>
 							<div class="diff-header">
-								{track?.title || `Track ${edit.track_id}`}
+								{getTrackTitle(edit.track_id)}
 								<code>{edit.field}</code>
+								{#if canEdit}
+									<button onclick={() => onDelete(edit.track_id, edit.field)}>Delete</button>
+								{/if}
 							</div>
 							<div class="diff-body">
 								<div class="diff-line removed">- {edit.old_value || '(empty)'}</div>
@@ -75,18 +98,19 @@
 				<h3>Applied edits (can undo)</h3>
 				<ol class="list">
 					{#each appliedEdits as edit (edit.track_id + edit.field)}
-						{@const track = tracks.find((t) => t.id === edit.track_id)}
 						<li>
 							<div class="diff-header">
-								{track?.title || `Track ${edit.track_id}`}
+								{getTrackTitle(edit.track_id)}
 								<code>{edit.field}</code>
-								<button
-									class="undo-btn"
-									onclick={() => onUndo(edit.track_id, edit.field)}
-									title="Undo this edit"
-								>
-									↶ Undo
-								</button>
+								{#if canEdit}
+									<button
+										class="undo-btn"
+										onclick={() => onUndo(edit.track_id, edit.field)}
+										title="Undo this edit"
+									>
+										↶ Undo
+									</button>
+								{/if}
 							</div>
 							<div class="diff-body">
 								<div class="diff-line removed">- {edit.old_value || '(empty)'}</div>
@@ -97,10 +121,23 @@
 				</ol>
 			</section>
 		{/if}
-	</div>
+	</main>
 </aside>
 
 <style>
+	.warn,
+	.error {
+		padding: 0.2rem 0.5rem;
+	}
+	.warn {
+		background: var(--color-yellow);
+		color: var(--gray-1);
+	}
+	.error {
+		background: var(--color-red);
+		color: var(--gray-1);
+	}
+
 	aside {
 		display: flex;
 		flex-direction: column;
@@ -109,8 +146,8 @@
 		border-left: 1px solid var(--gray-6);
 	}
 
-	header {
-		padding: 0.2rem;
+	aside > header {
+		padding: 0.5rem;
 		background: var(--bg-3);
 		border-bottom: 1px solid var(--gray-7);
 		display: flex;
@@ -124,23 +161,26 @@
 		gap: 0.5rem;
 	}
 
-	.content {
+	main {
 		flex: 1;
-		padding: 0.5rem 0;
+		/* padding: 0.5rem 0; */
 	}
 
-	.content section {
-		margin-bottom: 2rem;
+	section {
+		margin-top: 4rem;
 	}
 
-	.content h3 {
-		color: var(--gray-9);
+	main h3 {
+		/* color: var(--gray-9); */
 		margin: 0 0.5rem;
 	}
 
 	.list {
 		margin: 0;
-		padding: 0;
+
+		li:first-child {
+			border-top: 1px solid var(--gray-4);
+		}
 	}
 
 	.diff-header {
@@ -155,23 +195,16 @@
 	}
 
 	.diff-line {
-		padding: 0.2rem 0.5rem;
+		padding: 0 0.5rem;
 	}
 
 	.diff-line.removed {
-		background-color: light-dark(#ffeef0, transparent);
-		color: #d1242f;
+		background-color: light-dark(var(--color-red), transparent);
+		color: var(--color-red);
 	}
 
 	.diff-line.added {
-		background-color: light-dark(#e6ffed, transparent);
-		color: #28a745;
-	}
-
-	.error {
-		padding: 0.2rem;
-		background: #ffeef0;
-		color: #d1242f;
-		border-bottom: 1px solid var(--gray-6);
+		background-color: light-dark(var(--color-green), transparent);
+		color: var(--color-green);
 	}
 </style>

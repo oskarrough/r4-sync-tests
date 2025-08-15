@@ -5,7 +5,7 @@ import {pg_trgm} from '@electric-sql/pglite/contrib/pg_trgm'
 import migration01sql from '$lib/migrations/01-initial-schema.sql?raw'
 import migration02sql from '$lib/migrations/02-more-tables.sql?raw'
 import migration03sql from '$lib/migrations/03-functions-and-views.sql?raw'
-import {stageEdit, commitEdits, discardEdits, getEditCount, getEdits} from './batch-edit.js'
+import {stageEdit, commitEdits, discardEdits, getEditCount, getEdits} from './batch-edit.svelte.js'
 
 const migrations = [
 	{name: '01-initial-schema', sql: migration01sql},

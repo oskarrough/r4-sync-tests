@@ -1,40 +1,26 @@
 <script>
-	import {stageEdit, commitEdits, discardEdits, getEdits, getAppliedEdits, undoEdit} from '$lib/api'
 	import {r5} from '$lib/r5'
-	import {SvelteSet, SvelteMap} from 'svelte/reactivity'
+	import {appState} from '$lib/app-state.svelte'
+	import {batchEdit} from '$lib/batch-edit.svelte'
 	import TrackRow from './TrackRow.svelte'
 	import EditsPanel from './EditsPanel.svelte'
 
 	let {data} = $props()
 
 	let {channel, tracks} = $derived(data)
-	let edits = $state(data.edits)
-	let appliedEdits = $state(data.appliedEdits)
 	const readonly = $derived(channel?.source === 'v1')
+	const canEdit = $derived(!readonly && appState.channels && appState.channels.includes(channel.id))
+
+	let {edits, appliedEdits} = $derived(data)
+	let hasEdits = $derived(edits?.length > 0)
 
 	/** @type {import('$lib/types').Track[]} */
 	let selectedTracks = $state([])
-
-	let hasEdits = $derived(edits?.length > 0)
-
-	// Allow multiple cells to be edited simultaneously
-	let editingCells = new SvelteSet() // Set of 'trackId-field' strings
 
 	let filter = $state('all')
 
 	let selectedCount = $derived(selectedTracks.length)
 	let hasSelection = $derived(selectedCount > 0)
-
-	// Create a derived map for efficient edit lookups
-	let editsMap = $derived.by(() => {
-		const map = new SvelteMap()
-		if (edits) {
-			for (const edit of edits) {
-				map.set(`${edit.track_id}-${edit.field}`, edit)
-			}
-		}
-		return map
-	})
 
 	let filteredTracks = $derived.by(() => {
 		if (!tracks) return []
@@ -94,63 +80,14 @@
 		selectedTracks = []
 	}
 
-	async function handleCommit() {
-		try {
-			await commitEdits()
-			edits = await getEdits()
-			appliedEdits = await getAppliedEdits()
-			editingCells.clear()
-		} catch (error) {
-			console.error('Commit failed:', error)
-		}
-	}
-
-	async function handleDiscard() {
-		try {
-			await discardEdits()
-			edits = await getEdits()
-			editingCells.clear()
-		} catch (error) {
-			console.error('Discard failed:', error)
-		}
-	}
-
-	async function handleUndo(trackId, field) {
-		try {
-			await undoEdit(trackId, field)
-			appliedEdits = await getAppliedEdits()
-		} catch (error) {
-			console.error('Undo failed:', error)
-		}
-	}
-
 	async function stageFieldEdit(trackId, field, newValue) {
 		const track = tracks.find((t) => t.id === trackId)
 		if (!track) return
-
 		const originalValue = track[field] || ''
-		if (newValue === originalValue) {
-			// Remove edit if value reverted to original
-			const existingEdit = editsMap.get(`${trackId}-${field}`)
-			if (existingEdit) {
-				edits = edits.filter((e) => !(e.track_id === trackId && e.field === field))
-			}
-			return
-		}
-
 		try {
-			await stageEdit(trackId, field, originalValue, newValue)
-			edits = await getEdits()
+			await batchEdit.stageFieldEdit(trackId, field, originalValue, newValue)
 		} catch (error) {
 			console.error('Failed to stage edit:', error)
-		}
-	}
-
-	async function handlePullTracks() {
-		try {
-			await r5.tracks.pull({slug: data.slug})
-		} catch (error) {
-			console.error('Pull tracks failed:', error)
 		}
 	}
 </script>
@@ -182,7 +119,7 @@
 			<option value="has-meta">Has metadata</option>
 			<option value="has-t-param">has &t= param</option>
 		</select>
-		<button onclick={handlePullTracks}>Pull tracks</button>
+		<button onclick={() => r5.tracks.pull({slug: data.slug})}>Pull tracks</button>
 		<!--
 		<button onclick={handlePullMeta} disabled={updatingMeta}>
 			{updatingMeta ? '⏳ Pulling...' : '⏱️ Pull metadata (YouTube + MusicBrainz)'}
@@ -227,8 +164,8 @@
 									{selectedTracks}
 									onSelect={(e) => selectTrack(track.id, e)}
 									{data}
-									{editingCells}
-									{editsMap}
+									editingCells={batchEdit.editingCells}
+									{edits}
 									{stageFieldEdit}
 									{tracks}
 								/>
@@ -245,9 +182,11 @@
 		{appliedEdits}
 		{tracks}
 		{readonly}
-		onCommit={handleCommit}
-		onDiscard={handleDiscard}
-		onUndo={handleUndo}
+		{canEdit}
+		onCommit={() => batchEdit.commit()}
+		onDiscard={() => batchEdit.discard()}
+		onUndo={(trackId, field) => batchEdit.undo(trackId, field)}
+		onDelete={(trackId, field) => batchEdit.deletePendingEdit(trackId, field)}
 	/>
 </div>
 

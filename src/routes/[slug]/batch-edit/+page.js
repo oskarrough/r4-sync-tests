@@ -1,6 +1,6 @@
 import {r5} from '$lib/r5'
 import {error} from '@sveltejs/kit'
-import {getEdits, getAppliedEdits} from '$lib/api'
+import {batchEdit} from '$lib/batch-edit.svelte'
 
 /** @type {import('./$types').PageLoad} */
 export async function load({parent, params}) {
@@ -23,14 +23,15 @@ export async function load({parent, params}) {
 
 	console.log(channel)
 
-	let edits = await getEdits()
-	let appliedEdits = await getAppliedEdits()
+	// Get edits and tracks for this channel
+	const {edits, appliedEdits, tracks: editedTracks} = await batchEdit.getEditsForChannel(channel.id)
 
 	return {
 		slug,
 		channel,
 		tracks,
 		edits,
-		appliedEdits
+		appliedEdits,
+		editedTracks
 	}
 }

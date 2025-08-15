@@ -1,5 +1,5 @@
 <script>
-	let {trackId, field, editingCells, editsMap, stageFieldEdit, tracks} = $props()
+	let {trackId, field, editingCells, edits, stageFieldEdit, tracks} = $props()
 
 	let cellKey = $derived(`${trackId}-${field}`)
 	let isEditing = $derived(editingCells.has(cellKey))
@@ -7,9 +7,9 @@
 	let track = $derived(tracks.find((t) => t.id === trackId))
 	let originalValue = $derived(track?.[field] || '')
 
-	let edit = $derived(editsMap.get(cellKey))
+	let edit = $derived(edits.find((e) => e.track_id === trackId && e.field === field))
 	let currentValue = $derived(edit ? edit.new_value : originalValue)
-	let isDiff = $derived(editsMap.has(cellKey))
+	let isDiff = $derived(!!edit)
 
 	function startEdit(e) {
 		e.stopPropagation()

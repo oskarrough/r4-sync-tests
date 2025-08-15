@@ -8,7 +8,7 @@
 		onSelect,
 		data,
 		editingCells,
-		editsMap,
+		edits,
 		stageFieldEdit,
 		tracks
 	} = $props()
@@ -41,7 +41,7 @@
 			trackId={track.id}
 			field="url"
 			{editingCells}
-			{editsMap}
+			{edits}
 			{stageFieldEdit}
 			{tracks}
 		/>
@@ -51,7 +51,7 @@
 			trackId={track.id}
 			field="title"
 			{editingCells}
-			{editsMap}
+			{edits}
 			{stageFieldEdit}
 			{tracks}
 		/>
@@ -62,7 +62,7 @@
 			trackId={track.id}
 			field="description"
 			{editingCells}
-			{editsMap}
+			{edits}
 			{stageFieldEdit}
 			{tracks}
 		/>
