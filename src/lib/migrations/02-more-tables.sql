@@ -52,6 +52,10 @@ CREATE TABLE IF NOT EXISTS track_edits (
   field TEXT NOT NULL,
   old_value TEXT,
   new_value TEXT,
+  status TEXT DEFAULT 'pending',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (track_id, field)
 );
+
+-- Index for querying by status
+CREATE INDEX IF NOT EXISTS idx_track_edits_status ON track_edits (status);

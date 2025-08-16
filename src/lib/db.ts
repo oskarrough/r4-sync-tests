@@ -11,7 +11,6 @@ const log = logger.ns('db').seal()
 import migration01sql from '$lib/migrations/01-initial-schema.sql?raw'
 import migration02sql from '$lib/migrations/02-more-tables.sql?raw'
 import migration03sql from '$lib/migrations/03-functions-and-views.sql?raw'
-import migration04sql from '$lib/migrations/04-track-edits-status.sql?raw'
 
 // This will limit the amount of channels pulled.
 export const debugLimit = 40
@@ -19,8 +18,7 @@ export const debugLimit = 40
 const migrations = [
 	{name: '01-initial-schema', sql: migration01sql},
 	{name: '02-more-tables', sql: migration02sql},
-	{name: '03-functions-and-views', sql: migration03sql},
-	{name: '04-track-edits-status', sql: migration04sql}
+	{name: '03-functions-and-views', sql: migration03sql}
 ]
 
 // This will be null until createPg() is called
