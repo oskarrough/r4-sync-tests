@@ -1,66 +1,50 @@
 <script>
-	import {stageEdit, commitEdits, discardEdits, getEdits} from '$lib/api'
 	import {r5} from '$lib/r5'
-	import {invalidateAll} from '$app/navigation'
-	import EditPreview from './EditPreview.svelte'
+	import {appState} from '$lib/app-state.svelte'
+	import {batchEdit} from '$lib/batch-edit.svelte'
 	import TrackRow from './TrackRow.svelte'
+	import EditsPanel from './EditsPanel.svelte'
 
 	let {data} = $props()
 
-	let {channel, editCount, edits, tracks} = $derived(data)
+	let {channel, tracks} = $derived(data)
+	const readonly = $derived(channel?.source === 'v1')
+	const canEdit = $derived(!readonly && appState.channels && appState.channels.includes(channel.id))
+
+	let {edits, appliedEdits} = $derived(data)
+	let hasEdits = $derived(edits?.length > 0)
+
+	/** @type {import('$lib/types').Track[]} */
 	let selectedTracks = $state([])
-
-	let hasEdits = $derived(editCount > 0)
-
-	let showPreview = $state(false)
-	let updatingMeta = $state(false)
-
-	let editingCell = $state(null) // {trackId, field}
 
 	let filter = $state('all')
 
 	let selectedCount = $derived(selectedTracks.length)
 	let hasSelection = $derived(selectedCount > 0)
 
+	let tracksMap = $derived(new Map(tracks?.map((t) => [t.id, t]) || []))
+
 	let filteredTracks = $derived.by(() => {
 		if (!tracks) return []
-
-		let filtered = tracks
-
-		if (filter !== 'all') {
-			filtered = tracks.filter((track) => {
-				switch (filter) {
-					case 'has-t-param':
-						return track.url?.includes('&t=')
-					case 'missing-description':
-						return !track.description?.trim()
-					case 'no-tags':
-						return !track.tags?.length
-					case 'single-tag':
-						return track.tags?.length === 1
-					case 'no-meta':
-						return !track.title && !track.description
-					case 'has-meta':
-						return track.title || track.description
-					default:
-						return true
-				}
-			})
-		}
-		return filtered
+		return tracks.filter((track) => {
+			switch (filter) {
+				case 'has-t-param':
+					return track.url?.includes('&t=')
+				case 'missing-description':
+					return !track.description?.trim()
+				case 'no-tags':
+					return !track.tags?.length
+				case 'single-tag':
+					return track.tags?.length === 1
+				case 'no-meta':
+					return !track.title && !track.description
+				case 'has-meta':
+					return track.title || track.description
+				default:
+					return true
+			}
+		})
 	})
-
-	function getCurrentValue(trackId, field) {
-		// Check if there's a staged edit for this track+field
-		const edit = edits?.find((e) => e.track_id === trackId && e.field === field)
-		if (edit) {
-			return edit.new_value
-		}
-
-		// Fallback to original track data
-		const track = tracks.find((t) => t.id === trackId)
-		return track?.[field] || ''
-	}
 
 	function selectTrack(trackId, event) {
 		if (event.shiftKey && selectedTracks.length > 0) {
@@ -98,121 +82,17 @@
 		selectedTracks = []
 	}
 
-	async function bulkEdit(field, newValue) {
-		if (!hasSelection) return
-
-		try {
-			for (const trackId of selectedTracks) {
-				const track = tracks.find((t) => t.id === trackId)
-				if (track) {
-					await stageEdit(trackId, field, track[field] || '', newValue)
-				}
-			}
-			await invalidateAll()
-		} catch (error) {
-			console.error('Bulk edit failed:', error)
-		}
-	}
-
-	async function handleCommit() {
-		try {
-			await commitEdits()
-			showPreview = false
-			await invalidateAll()
-		} catch (error) {
-			console.error('Commit failed:', error)
-		}
-	}
-
-	async function handleDiscard() {
-		try {
-			await discardEdits()
-			showPreview = false
-			await invalidateAll()
-		} catch (error) {
-			console.error('Discard failed:', error)
-		}
-	}
-
-	async function togglePreview() {
-		showPreview = !showPreview
-		if (showPreview) {
-			edits = await getEdits()
-		}
-	}
-
-	async function stageFieldEdit(trackId, field, newValue) {
+	async function onEdit(trackId, field, newValue) {
 		const track = tracks.find((t) => t.id === trackId)
 		if (!track) return
-
 		const originalValue = track[field] || ''
-		if (newValue === originalValue) return // No change
-
 		try {
-			await stageEdit(trackId, field, originalValue, newValue)
-			edits = await getEdits()
-			await invalidateAll()
+			await batchEdit.stageFieldEdit(trackId, field, originalValue, newValue)
 		} catch (error) {
 			console.error('Failed to stage edit:', error)
 		}
 	}
-
-	async function handlePullTracks() {
-		try {
-			await r5.tracks.pull({slug: data.slug})
-		} catch (error) {
-			console.error('Pull tracks failed:', error)
-		}
-	}
-
-	async function handlePullMeta() {
-		console.log('TODO: implement metadata pulling')
-	}
-
-	function focus(element) {
-		element?.focus()
-		element?.select()
-	}
 </script>
-
-{#snippet inlineEdit(trackId, field)}
-	{@const track = tracks.find((t) => t.id === trackId)}
-	{@const isEditing = editingCell?.trackId === trackId && editingCell?.field === field}
-	{@const currentValue = getCurrentValue(trackId, field)}
-
-	{#if isEditing}
-		<input
-			type="text"
-			value={currentValue}
-			onblur={(e) => {
-				editingCell = null
-				stageFieldEdit(trackId, field, e.target.value)
-			}}
-			onkeydown={(e) => {
-				if (e.key === 'Enter') {
-					e.preventDefault()
-					editingCell = null
-					stageFieldEdit(trackId, field, e.target.value)
-				} else if (e.key === 'Escape') {
-					e.preventDefault()
-					editingCell = null
-				}
-			}}
-			use:focus
-		/>
-	{:else}
-		<span
-			class="editable"
-			class:has-edit={currentValue !== (track?.[field] || '')}
-			onclick={(e) => {
-				e.stopPropagation()
-				editingCell = {trackId, field}
-			}}
-		>
-			{currentValue}
-		</span>
-	{/if}
-{/snippet}
 
 <svelte:head>
 	<title>Batch Edit - {channel?.name || 'Channel'}</title>
@@ -221,6 +101,9 @@
 <header>
 	<nav>
 		<a href="/{data.slug}">@{channel?.name}</a> / batch edit
+		{#if hasEdits}
+			<span>{edits.length} edits</span>
+		{/if}
 		<p>
 			<strong
 				>IMPORTANT: This is local-only. No remote data is overwritten. It is safe to play. you can
@@ -230,7 +113,7 @@
 	</nav>
 	<menu>
 		<select bind:value={filter}>
-			<option value="all">All ({tracks.length})</option>
+			<option value="all">All tracks</option>
 			<option value="missing-description">Empty description</option>
 			<option value="single-tag">1 tag</option>
 			<option value="no-tags">No tags</option>
@@ -238,109 +121,105 @@
 			<option value="has-meta">Has metadata</option>
 			<option value="has-t-param">has &t= param</option>
 		</select>
-		<button onclick={handlePullTracks}>Pull tracks</button>
+		<button onclick={() => r5.tracks.pull({slug: data.slug})}>Pull tracks</button>
+		<!--
 		<button onclick={handlePullMeta} disabled={updatingMeta}>
 			{updatingMeta ? '⏳ Pulling...' : '⏱️ Pull metadata (YouTube + MusicBrainz)'}
 		</button>
+		-->
 	</menu>
 </header>
 
-<EditPreview
-	{showPreview}
-	{edits}
-	{tracks}
-	{hasEdits}
-	{togglePreview}
-	{handleCommit}
-	{handleDiscard}
-/>
+<div class="batch-edit-layout">
+	<main class="tracks-container">
+		<section class="tracks">
+			{#if filteredTracks.length === 0}
+				<p>no tracks found</p>
+			{:else}
+				<div class="tracks-list">
+					<div class="tracks-header">
+						<div class="col-checkbox">
+							<menu class="selection">
+								{#if hasSelection}
+									<span>{selectedCount} selected</span>
+									<button onclick={clearSelection}>Clear</button>
+								{:else}
+									<button onclick={selectAll}>All ({filteredTracks.length})</button>
+								{/if}
+							</menu>
+						</div>
+						<div class="col-link"></div>
+						<div class="col-url">url</div>
+						<div class="col-title">title</div>
+						<div class="col-description">description</div>
+						<div class="col-tags">tags</div>
+						<div class="col-mentions">mentions</div>
+						<div class="col-meta">meta</div>
+						<div class="col-date">created</div>
+					</div>
+					<ol class="list scroll">
+						{#each filteredTracks as track (track.id)}
+							<li>
+								<TrackRow
+									{track}
+									isSelected={selectedTracks.includes(track.id)}
+									{selectedTracks}
+									onSelect={(e) => selectTrack(track.id, e)}
+									{data}
+									{edits}
+									{onEdit}
+								/>
+							</li>
+						{/each}
+					</ol>
+				</div>
+			{/if}
+		</section>
+	</main>
 
-{#if hasSelection}
-	<section class="bulkOperations">
-		<label>
-			Update the description for {selectedCount} tracks:
-			<input
-				type="text"
-				placeholder="Enter a description (any #tags or @mentions will be extracted)"
-				onchange={(e) => bulkEdit('description', e.target.value)}
-			/>
-		</label>
-	</section>
-{/if}
-
-<menu class="selection">
-	{#if hasSelection}
-		<span>{selectedCount} selected</span>
-		<button onclick={clearSelection}>Clear</button>
-	{:else}
-		<button onclick={selectAll}>Select all ({filteredTracks.length})</button>
-	{/if}
-</menu>
-
-<section class="tracks scroll">
-	{#if filteredTracks.length === 0}
-		<p>no tracks found</p>
-	{:else}
-		<div class="tracks-list">
-			<div class="tracks-header">
-				<div class="col-checkbox"></div>
-				<div class="col-link"></div>
-				<div class="col-title">title</div>
-				<div class="col-tags">tags</div>
-				<div class="col-mentions">mentions</div>
-				<div class="col-description">description</div>
-				<div class="col-url">url</div>
-				<div class="col-meta">meta</div>
-				<div class="col-date">created</div>
-			</div>
-			{#each filteredTracks as track (track.id)}
-				<TrackRow
-					{track}
-					isSelected={selectedTracks.includes(track.id)}
-					{selectedTracks}
-					{inlineEdit}
-					onSelect={(e) => selectTrack(track.id, e)}
-					{data}
-				/>
-			{/each}
-		</div>
-	{/if}
-</section>
+	<EditsPanel
+		{edits}
+		{appliedEdits}
+		{tracksMap}
+		{readonly}
+		{canEdit}
+		onCommit={() => batchEdit.commit()}
+		onDiscard={() => batchEdit.discard()}
+		onUndo={(trackId, field) => batchEdit.undo(trackId, field)}
+		onDelete={(trackId, field) => batchEdit.deletePendingEdit(trackId, field)}
+	/>
+</div>
 
 <style>
-	header {
-		margin-left: 0.5rem;
-		margin-bottom: 0.5rem;
-	}
-
-	.bulkOperations {
-		margin: 0.5rem;
-	}
-
-	.selection {
-		margin: 0 0.5rem 0.5rem;
-		align-items: center;
-	}
-
 	header nav {
 		display: flex;
-		flex-flow: row;
 		align-items: center;
-		margin: 0.5rem 0 0.5rem 0;
 		p {
 			margin: 0 0 0 auto;
 		}
 	}
 
 	.tracks-header {
-		border-top: 1px solid var(--gray-5);
 		display: flex;
 		position: sticky;
 		top: 0;
 		z-index: 1;
 		font-weight: bold;
-		border-bottom: 1px solid var(--gray-5);
-		background: var(--bg-2);
+		background: var(--bg-3);
+		border-bottom: 1px solid var(--gray-7);
+	}
+
+	.batch-edit-layout {
+		border-top: 1px solid var(--gray-5);
+		display: grid;
+		grid-template-columns: 1fr min(400px, 40%);
+		height: 100%;
+		position: relative;
+	}
+
+	.tracks-container {
+		min-width: 0;
+		overflow: hidden;
 	}
 
 	:global(.col-checkbox),
@@ -352,7 +231,7 @@
 	:global(.col-url),
 	:global(.col-meta),
 	:global(.col-date) {
-		padding: 0.5rem;
+		padding: 0.2rem;
 		flex: 1;
 		text-align: left;
 	}
@@ -373,19 +252,5 @@
 
 	:global(.col-date) {
 		flex: 0 0 100px;
-	}
-
-	.editable {
-		cursor: pointer;
-		padding: 2px;
-		border-radius: 2px;
-	}
-
-	.editable:hover {
-		background: var(--gray-1);
-	}
-
-	.editable.has-edit {
-		background: var(--yellow-1);
 	}
 </style>

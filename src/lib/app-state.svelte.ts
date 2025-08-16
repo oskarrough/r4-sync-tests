@@ -56,8 +56,8 @@ export async function persistAppState() {
 	try {
 		// see $lib/types appState
 		const channelsArray =
-			appState.channels.length > 0
-				? `ARRAY[${appState.channels.map((id) => `'${id}'`).join(',')}]::uuid[]`
+			appState.channels && appState.channels.length > 0
+				? `ARRAY[${appState.channels?.map((id) => `'${id}'`).join(',')}]::uuid[]`
 				: 'ARRAY[]::uuid[]'
 		const playlistTracksArray =
 			appState.playlist_tracks.length > 0

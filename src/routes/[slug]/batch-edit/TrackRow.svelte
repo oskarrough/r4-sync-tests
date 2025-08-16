@@ -1,5 +1,7 @@
 <script>
-	let {track, isSelected, selectedTracks, inlineEdit, onSelect, data} = $props()
+	import InlineEditCell from './InlineEditCell.svelte'
+
+	let {track, isSelected, selectedTracks, onSelect, data, edits, onEdit} = $props()
 
 	function handleCheckboxChange(e) {
 		if (e.target.checked) {
@@ -24,20 +26,18 @@
 		>
 	</div>
 
-	<div class="col-title">
-		{@render inlineEdit(track.id, 'title')}
+	<div class="col-url">
+		<InlineEditCell {track} field="url" {edits} {onEdit} />
 	</div>
-
-	<div class="col-tags">{track.tags || ''}</div>
-	<div class="col-mentions">{track.mentions || ''}</div>
+	<div class="col-title">
+		<InlineEditCell {track} field="title" {edits} {onEdit} />
+	</div>
 
 	<div class="col-description">
-		{@render inlineEdit(track.id, 'description')}
+		<InlineEditCell {track} field="description" {edits} {onEdit} />
 	</div>
-
-	<div class="col-url">
-		{@render inlineEdit(track.id, 'url')}
-	</div>
+	<div class="col-tags">{track.tags || ''}</div>
+	<div class="col-mentions">{track.mentions || ''}</div>
 
 	<div class="col-meta">
 		{#if track.has_youtube_meta}<span class="meta-indicator yt">Y</span>{/if}
@@ -50,7 +50,8 @@
 <style>
 	.track-row {
 		display: flex;
-		cursor: pointer;
+		place-items: center;
+		min-height: 2.5rem;
 	}
 
 	.col-checkbox,

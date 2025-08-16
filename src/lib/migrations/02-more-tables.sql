@@ -27,11 +27,11 @@ CREATE TABLE IF NOT EXISTS track_meta (
 );
 
 -- Index for JSON queries
-CREATE INDEX idx_track_meta_youtube_data ON track_meta USING GIN (youtube_data);
-CREATE INDEX idx_track_meta_musicbrainz_data ON track_meta USING GIN (musicbrainz_data);
+CREATE INDEX IF NOT EXISTS idx_track_meta_youtube_data ON track_meta USING GIN (youtube_data);
+CREATE INDEX IF NOT EXISTS idx_track_meta_musicbrainz_data ON track_meta USING GIN (musicbrainz_data);
 
 -- Index for common queries
-CREATE INDEX idx_track_meta_ytid ON track_meta (ytid);
+CREATE INDEX IF NOT EXISTS idx_track_meta_ytid ON track_meta (ytid);
 
 CREATE TABLE IF NOT EXISTS followers (
     follower_id TEXT NOT NULL,
@@ -52,6 +52,10 @@ CREATE TABLE IF NOT EXISTS track_edits (
   field TEXT NOT NULL,
   old_value TEXT,
   new_value TEXT,
+  status TEXT DEFAULT 'pending',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (track_id, field)
 );
+
+-- Index for querying by status
+CREATE INDEX IF NOT EXISTS idx_track_edits_status ON track_edits (status);

@@ -2,6 +2,7 @@ import {pg, dropDb, exportDb, migrateDb, debugLimit} from './db.js'
 import {r4} from './r4.js'
 import {performSearch, searchChannels, searchTracks} from './search.js'
 import {logger} from './logger'
+import {ENTITY_REGEX} from './utils.js'
 import type {ChannelFirebase, Track} from './types'
 
 const log = logger.ns('r5').seal()
@@ -319,6 +320,21 @@ function parseFirebaseChannel(item: ChannelFirebase) {
 }
 
 function parseFirebaseTrack(track: Record<string, unknown>, channelId: string): Track {
+	const description = (track.body || '') as string
+
+	// Extract tags and mentions using the same regex as link-entities.svelte
+	const tags = []
+	const mentions = []
+
+	description.replace(ENTITY_REGEX, (match, prefix, entity) => {
+		if (entity.startsWith('#')) {
+			tags.push(entity.toLowerCase())
+		} else if (entity.startsWith('@')) {
+			mentions.push(entity.slice(1).toLowerCase())
+		}
+		return match
+	})
+
 	return {
 		id: crypto.randomUUID(),
 		firebase_id: track.id,
@@ -328,6 +344,8 @@ function parseFirebaseTrack(track: Record<string, unknown>, channelId: string): 
 		description: track.body || '',
 		discogs_url: track.discogsUrl || '',
 		source: 'v1',
+		tags: tags.length > 0 ? tags : null,
+		mentions: mentions.length > 0 ? mentions : null,
 		created_at: new Date(track.created).toISOString(),
 		updated_at: new Date(track.updated || track.created).toISOString()
 	}
