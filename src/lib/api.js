@@ -100,7 +100,7 @@ export async function toggleTheme() {
 		document.documentElement.classList.remove('dark')
 		document.documentElement.classList.add('light')
 	}
-	//appState.theme = newTheme
+	appState.theme = newTheme
 }
 
 export async function toggleQueuePanel() {
