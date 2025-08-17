@@ -14,11 +14,12 @@
 	async function change(event, session) {
 		log.log('change', event, session?.user)
 
-		appState.user = session?.user
+		if (appState.user !== session?.user) {
+			appState.user = session?.user
+		}
 
 		if (event === 'SIGNED_OUT') {
-			//appState.user = null
-			appState.channels = []
+			if (appState.channels?.length) appState.channels = []
 		}
 
 		if (event === 'INITIAL_SESSION' && session?.user) {
