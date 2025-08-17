@@ -147,7 +147,7 @@
 		</menu>
 
 		<div class="signal-meter">
-			{#each signalBars as bar (bar.id)}
+			{#each signalBars as bar, i (i)}
 				<div class="bar" class:active={bar.active} style="height: {bar.height}px"></div>
 			{/each}
 		</div>
