@@ -28,7 +28,9 @@ export const defaultAppState = {
 	listening_to_channel_id: undefined,
 
 	theme: 'dark',
-	hide_track_artwork: false
+	hide_track_artwork: false,
+
+	user: null
 }
 
 export const appState: AppState = $state({...defaultAppState})

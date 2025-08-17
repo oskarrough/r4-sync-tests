@@ -85,6 +85,12 @@ export interface AppState {
 	player_expanded?: boolean
 	shortcuts: Record<string, string>
 	hide_track_artwork: boolean
+	user?: User
+}
+
+interface User {
+	id: string
+	email: string
 }
 
 export type KeyBindingsConfig = Record<string, string>
