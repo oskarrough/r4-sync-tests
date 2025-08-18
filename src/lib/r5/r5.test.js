@@ -1,6 +1,6 @@
 import {describe, it, expect, beforeEach} from 'vitest'
-import {r5} from './r5'
-import {dropDb, migrateDb, createPg} from './r5/db.js'
+import {r5} from '.'
+import {dropDb, migrateDb, createPg} from './db.js'
 
 const R4_SLUG = 'ko002'
 const V1_SLUG = 'ucfm'
