@@ -61,8 +61,9 @@ export function setPg(instance) {
 	pg = instance
 }
 
-export async function dropDb() {
-	if (!pg) pg = await createPg()
+export async function drop() {
+	pg = await createPg()
+	// creating a new instance with the same filename doesn't create a new db!
 	// Clear tables
 	await pg.sql`DELETE FROM app_state;`
 	await pg.sql`DELETE FROM track_edits;`
@@ -79,10 +80,11 @@ export async function dropDb() {
 	await pg.sql`drop table if exists channels CASCADE;`
 	await pg.sql`drop table if exists migrations CASCADE;`
 	await pg.sql`drop table if exists track_meta CASCADE;`
+
 	log.log('dropped db')
 }
 
-export async function exportDb() {
+export async function exportDatabase() {
 	if (!pg) throw new Error('Database not initialized')
 	const file = await pg.dumpDataDir()
 	// Download the dump
@@ -95,7 +97,7 @@ export async function exportDb() {
 }
 
 /** Runs a list of SQL migrations on the database */
-export async function migrateDb() {
+export async function migrate() {
 	if (!pg) pg = await createPg()
 	await pg.exec(`
 		create table if not exists migrations (
@@ -121,15 +123,8 @@ export async function migrateDb() {
 	log.debug('migrated db')
 }
 
-// Legacy API for backward compatibility (these just call the above functions)
-export function reset() {
-	return dropDb()
-}
-
-export function migrate() {
-	return migrateDb()
-}
-
-export function exportDatabase() {
-	return exportDb()
+export async function reset() {
+	await drop()
+	await migrate()
+	log.log('reset db')
 }

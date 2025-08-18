@@ -1,17 +1,16 @@
 import {describe, it, expect, beforeEach} from 'vitest'
 import {r5} from '.'
-import {dropDb, migrateDb, createPg} from './db.js'
+import {createPg, reset} from './db.js'
 
 const R4_SLUG = 'ko002'
 const V1_SLUG = 'ucfm'
 
 describe('r5 API', () => {
 	beforeEach(async () => {
-		await dropDb()
-		await migrateDb()
 		// Ensure pg is initialized and set for tests
 		const testPg = await createPg(false) // memory mode for tests
 		r5.db.setPg(testPg)
+		await reset()
 	})
 
 	describe('r5.channels.local', () => {

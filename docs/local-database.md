@@ -6,8 +6,8 @@ Migrations must be written in a way that they can be run multiple times e.g. `if
 When creating new tables:
 
 - update or create a new migration in ./src/lib/migrations/
-- reference the migration in ./src/lib/db
-- add the table(s) to `dropDb()` function
+- reference the migration in ./src/lib/r5/db
+- add the table(s) to `drop()` function
 
 ## PGlite API Quick Reference
 

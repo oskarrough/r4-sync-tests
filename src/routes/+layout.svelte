@@ -59,7 +59,7 @@
 			// event.preventDefault()
 			appState.broadcasting_channel_id = undefined
 			appState.is_playing = false
-			await pg.close()
+			//await pg.close()
 		}
 		window.addEventListener('beforeunload', handler)
 		return () => window.removeEventListener('beforeunload', handler)
