@@ -8,7 +8,6 @@ import {downloadChannel} from './src/lib/r5/download.js'
 // Shared options
 const sourceOpt = {
 	choices: ['local', 'r4', 'v1'] as const,
-	default: 'local',
 	describe: 'Source to use'
 }
 const jsonOpt = {type: 'boolean', default: false, describe: 'Output as JSON'} as const
@@ -106,6 +105,9 @@ cli.command('channels <command>', 'Manage channels', (yargs) => {
 					.group(['source', 'limit', 'json'], 'Options:'),
 			async (argv) => {
 				try {
+					if (!argv.source) {
+						throw new Error('Please specify --source (local, r4, or v1)')
+					}
 					const opts = argv.slug ? {slug: argv.slug} : {limit: argv.limit}
 					const results = await sources.channels[argv.source](opts)
 					outputResults(results, formatChannel, argv.json, argv.limit)
@@ -157,6 +159,9 @@ cli.command('tracks <command>', 'Manage tracks', (yargs) => {
 					.group(['source', 'limit', 'json'], 'Options:'),
 			async (argv) => {
 				try {
+					if (!argv.source) {
+						throw new Error('Please specify --source (local, r4, or v1)')
+					}
 					const opts = argv.slug ? {slug: argv.slug, limit: argv.limit} : {limit: argv.limit}
 					const results = await sources.tracks[argv.source](opts)
 					outputResults(results, formatTrack, argv.json, argv.limit)

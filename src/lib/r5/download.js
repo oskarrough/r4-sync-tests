@@ -11,7 +11,7 @@ import {extractYouTubeId} from '../utils.js'
 async function downloadAudio(url, filepath, metadataDescription = '', premium = false, poToken) {
 	const args = [
 		'-f',
-		'bestaudio[ext=m4a]',
+		'bestaudio/best',
 		'--no-playlist',
 		'--restrict-filenames',
 		'--output',
@@ -21,9 +21,7 @@ async function downloadAudio(url, filepath, metadataDescription = '', premium = 
 		'--embed-metadata',
 		'--quiet',
 		'--progress',
-		url,
-		'--cookies-from-browser',
-		'firefox'
+		url
 	]
 
 	if (premium) {
@@ -33,6 +31,8 @@ async function downloadAudio(url, filepath, metadataDescription = '', premium = 
 			)
 		}
 		args.push(
+			'--cookies-from-browser',
+			'firefox',
 			'--extractor-args',
 			`youtube:player-client=web_music;po_token=web_music.gvs+${poToken}`
 		)
@@ -98,7 +98,7 @@ async function downloadTrack(track, folderPath, options = {}) {
 		return {success: true, filename}
 	} catch (error) {
 		const errorMsg = error.stderr?.toString() || error.message || 'Unknown error'
-		console.error(`Failed to download "${track.title}": ${errorMsg}`)
+		console.error(`Failed to download "${track.title}" (${track.url}): ${errorMsg}`)
 		return {success: false, error: errorMsg}
 	}
 }
@@ -119,27 +119,20 @@ export async function downloadChannel(slug, folderPath, options = {}) {
 		console.log(`Would create folder: ${tracksFolder}`)
 	}
 
-	// Fetch tracks with fallback priority: r4 > v1 > local
+	// Use pull to sync tracks from remote to local, then get from local
 	console.log(`Fetching tracks for channel: ${slug}`)
 	let tracks = []
-	let source = 'unknown'
 
 	try {
-		tracks = await r5.tracks.r4({slug})
-		if (!tracks?.length) throw new Error('No tracks from r4')
-		source = 'r4'
-	} catch {
-		try {
-			tracks = await r5.tracks.v1({slug})
-			if (!tracks?.length) throw new Error('No tracks from v1')
-			source = 'v1'
-		} catch {
-			tracks = await r5.tracks.local({slug})
-			source = 'local'
-		}
+		// Pull channel and tracks from appropriate source (uses channel.source field)
+		tracks = await r5.tracks.pull({slug})
+		console.log(`Found ${tracks.length} tracks (synced to local)`)
+	} catch (error) {
+		console.log(`Pull failed: ${error.message}. Trying local fallback...`)
+		// Fallback to local only if pull fails
+		tracks = await r5.tracks.local({slug})
+		console.log(`Found ${tracks.length} tracks from local`)
 	}
-
-	console.log(`Found ${tracks.length} tracks from ${source}`)
 
 	if (!tracks?.length) {
 		console.log('No tracks found in any source')
