@@ -61,9 +61,12 @@ const cli = yargs(hideBin(process.argv))
 	.version('1.0.0')
 	.help()
 	.usage('$0 <command> [options]')
+	.example('$0 search ko002', 'Search everything for "ko002"')
+	.example('$0 search "#am" --tracks', 'Search only tracks for "#am"')
+	.example('$0 search canopy -c', 'Search only channels for "canopy"')
+	.example('$0 search "@oskar dance"', 'Search "dance" in oskar\'s channel')
 	.example('$0 tracks list ko002 --limit 5', 'List 5 tracks from channel')
 	.example('$0 channels list --json | jq ".[].slug"', 'Get all channel slugs')
-	.example('$0 tracks list ko002 --json > tracks.txt', 'Save tracks to file')
 	.demandCommand(1, 'You need at least one command')
 	.strict()
 
@@ -186,47 +189,63 @@ cli.command(
 	}
 )
 
-// Search commands
-const searchHandlers = {
-	channels: r5.search.channels,
-	tracks: r5.search.tracks,
-	all: r5.search.all
-}
-
+// Search command with optional filters
 cli.command(
-	'search [type] <query>',
+	'search <query>',
 	'Search channels and tracks',
 	(yargs) =>
 		yargs
-			.positional('type', {
-				choices: ['all', 'channels', 'tracks'] as const,
-				default: 'all',
-				describe: 'What to search'
+			.positional('query', {describe: 'Search query', type: 'string'})
+			.option('channels', {
+				alias: 'c',
+				type: 'boolean',
+				describe: 'Search only channels'
 			})
-			.positional('query', {describe: 'Search query', type: 'string', demandOption: true})
-			.option('json', jsonOpt),
+			.option('tracks', {
+				alias: 't',
+				type: 'boolean',
+				describe: 'Search only tracks'
+			})
+			.option('json', jsonOpt)
+			.check((argv) => {
+				if (argv.channels && argv.tracks) {
+					throw new Error('Cannot specify both --channels and --tracks')
+				}
+				return true
+			}),
 	async (argv) => {
 		try {
-			if (!argv.query?.trim()) {
-				throw new Error('Search query cannot be empty')
-			}
-			const results = await searchHandlers[argv.type](argv.query.trim())
-			if (argv.json) {
-				console.log(JSON.stringify(results, null, 2))
-			} else {
-				if (results.channels?.length) {
-					console.log('Channels:')
-					results.channels.forEach((channel) => console.log(`  ${formatChannel(channel)}`))
-				}
-				if (results.tracks?.length) {
-					console.log('Tracks:')
-					results.tracks.forEach((track) => console.log(`  ${formatTrack(track)}`))
-				}
-				if (argv.type === 'channels' && Array.isArray(results)) {
+			const query = argv.query.trim()
+			let results
+
+			if (argv.channels) {
+				results = await r5.search.channels(query)
+				if (argv.json) {
+					console.log(JSON.stringify(results, null, 2))
+				} else {
 					results.forEach((channel) => console.log(formatChannel(channel)))
 				}
-				if (argv.type === 'tracks' && Array.isArray(results)) {
+			} else if (argv.tracks) {
+				results = await r5.search.tracks(query)
+				if (argv.json) {
+					console.log(JSON.stringify(results, null, 2))
+				} else {
 					results.forEach((track) => console.log(formatTrack(track)))
+				}
+			} else {
+				// Search everything
+				results = await r5.search.all(query)
+				if (argv.json) {
+					console.log(JSON.stringify(results, null, 2))
+				} else {
+					if (results.channels?.length) {
+						console.log('Channels:')
+						results.channels.forEach((channel) => console.log(`  ${formatChannel(channel)}`))
+					}
+					if (results.tracks?.length) {
+						console.log('Tracks:')
+						results.tracks.forEach((track) => console.log(`  ${formatTrack(track)}`))
+					}
 				}
 			}
 		} catch (error) {

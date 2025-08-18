@@ -1,11 +1,11 @@
-import {performSearch, searchChannels, searchTracks} from '../search.js'
+import {searchAll, searchChannels, searchTracks} from '../search.js'
 import {getPg} from './db.js'
 
 /** Search all content */
 export async function all(query) {
 	// Ensure pg is initialized for search.js
 	await getPg()
-	return performSearch(query)
+	return searchAll(query)
 }
 
 /** Search channels only */

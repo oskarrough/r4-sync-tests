@@ -10,7 +10,9 @@ const LIMIT = 4000
 export async function local({slug = '', limit = LIMIT} = {}) {
 	const pg = await getPg()
 	const whereClause = slug ? sql`where slug = ${slug}` : raw``
-	return (await pg.sql`select * from channels ${whereClause} order by updated_at desc limit ${limit}`).rows
+	return (
+		await pg.sql`select * from channels ${whereClause} order by updated_at desc limit ${limit}`
+	).rows
 }
 
 /** Get channels from r4 (remote) */
