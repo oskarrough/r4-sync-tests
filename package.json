@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"type": "module",
 	"bin": {
-		"r5": "./r5-cli.ts"
+		"r5": "./cli.ts"
 	},
 	"scripts": {
 		"dev": "vite dev",
@@ -34,7 +34,8 @@
 		"typescript-eslint": "^8.39.1",
 		"vite": "^7.1.2",
 		"vite-plugin-devtools-json": "^1.0.0",
-		"vitest": "^3.2.4"
+		"vitest": "^3.2.4",
+		"yargs": "^18.0.0"
 	},
 	"dependencies": {
 		"@electric-sql/pglite": "^0.3.7",
@@ -43,6 +44,7 @@
 		"@radio4000/components": "^0.2.15",
 		"@radio4000/sdk": "^0.4.13",
 		"@sveltejs/adapter-static": "^3.0.9",
+		"@types/yargs": "^17.0.33",
 		"adze": "^2.2.5",
 		"fuzzysort": "^3.1.0",
 		"gsap": "^3.13.0",

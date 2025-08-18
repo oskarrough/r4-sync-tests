@@ -1,4 +1,4 @@
-import {pg} from '$lib/db'
+import {pg} from '$lib/r5/db'
 import {error} from '@sveltejs/kit'
 import {logger} from '$lib/logger'
 import {r5} from '$lib/r5'

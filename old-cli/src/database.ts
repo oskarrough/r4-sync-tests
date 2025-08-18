@@ -9,7 +9,7 @@ import {localTrackToTrack, trackToLocalTrack} from './utils.ts'
  */
 export async function setupDatabase(filename: string) {
 	const db = new Database(filename, {
-		strict: true,
+		strict: true
 	})
 	if (filename !== ':memory:') {
 		db.exec('PRAGMA journal_mode = WAL;')
@@ -27,7 +27,7 @@ export function getTracks(db: Database): Track[] {
 
 const upsertTrackQuery = (db: Database) =>
 	db.query(
-		`INSERT OR REPLACE INTO tracks (id, slug, createdAt, updatedAt, title, url, discogsUrl, description, tags, mentions, provider, providerId, files, lastError) VALUES ($id, $slug, $createdAt, $updatedAt, $title, $url, $discogsUrl, $description, $tags, $mentions, $provider, $providerId, $files, $lastError);`,
+		`INSERT OR REPLACE INTO tracks (id, slug, createdAt, updatedAt, title, url, discogsUrl, description, tags, mentions, provider, providerId, files, lastError) VALUES ($id, $slug, $createdAt, $updatedAt, $title, $url, $discogsUrl, $description, $tags, $mentions, $provider, $providerId, $files, $lastError);`
 	)
 
 /**

@@ -1,22 +1,15 @@
 import {sdk} from '@radio4000/sdk'
 import mediaUrlParser from 'media-url-parser'
-import {SQLTrackSchema, R4TrackSchema, TrackSchema, type SQLTrack, type R4Track, type Track} from './schema.ts'
+import {
+	SQLTrackSchema,
+	R4TrackSchema,
+	TrackSchema,
+	type SQLTrack,
+	type R4Track,
+	type Track
+} from './schema.ts'
 import filenamify from 'filenamify'
 import {ZodError} from 'zod'
-
-/** Fetches tracks by channel slug */
-export async function fetchRemoteTracks(slug: string, limit = 4000) {
-	if (!slug) return {error: Error('Missing channel slug')}
-	const {data, error} = await sdk.supabase
-		.from('channel_tracks')
-		.select(`id, slug, created_at, updated_at, title, url, discogs_url, description, tags, mentions `)
-		.eq('slug', slug)
-		.order('created_at', {ascending: false})
-		.limit(limit)
-		.returns<R4Track[]>()
-	if (error) return {error: new Error(`Failed to fetch tracks`)}
-	return {data}
-}
 
 export function remoteTrackToTrack(t: R4Track): Track | null {
 	const {provider, id: providerId} = mediaUrlParser(t.url)
@@ -33,7 +26,7 @@ export function remoteTrackToTrack(t: R4Track): Track | null {
 			mentions: t.mentions,
 			discogsUrl: t.discogs_url,
 			provider,
-			providerId,
+			providerId
 		})
 	} catch (err) {
 		nicerZodError(t, err)
@@ -53,7 +46,7 @@ export function trackToRemoteTrack(t: Track): R4Track | null {
 			description: t.description,
 			tags: t.tags,
 			mentions: t.mentions,
-			discogs_url: t.discogsUrl,
+			discogs_url: t.discogsUrl
 		})
 	} catch (err) {
 		nicerZodError(t, err)
@@ -66,7 +59,7 @@ export function trackToLocalTrack(t: Track): SQLTrack | null {
 		return SQLTrackSchema.parse({
 			...t,
 			tags: t.tags ? t.tags.join(',') : null,
-			mentions: t.mentions ? t.mentions.join(',') : null,
+			mentions: t.mentions ? t.mentions.join(',') : null
 		})
 	} catch (err) {
 		nicerZodError(t, err)
@@ -79,7 +72,7 @@ export function localTrackToTrack(t: SQLTrack): Track | null {
 		return TrackSchema.parse({
 			...t,
 			tags: t.tags ? t.tags.split(',') : [],
-			mentions: t.mentions ? t.mentions.split(',') : [],
+			mentions: t.mentions ? t.mentions.split(',') : []
 		})
 	} catch (err) {
 		nicerZodError(t, err)
@@ -97,8 +90,8 @@ export async function createBackup(slug: string, limit?: number) {
 		return {
 			data: {
 				radio: radio.data,
-				tracks: tracks.data as R4Track[],
-			},
+				tracks: tracks.data as R4Track[]
+			}
 		}
 	} catch (err) {
 		return {error: err}
@@ -129,7 +122,7 @@ function nicerZodError(t: any, err: unknown) {
 		console.log('Failed to parse remote track -> track', {
 			trackId: t.id,
 			invalidProp: prop[0],
-			value: err.errors[0].message,
+			value: err.errors[0].message
 		})
 	}
 }

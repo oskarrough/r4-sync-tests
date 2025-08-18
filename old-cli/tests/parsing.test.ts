@@ -1,20 +1,12 @@
 import {expect, test} from 'bun:test'
-// import {remoteTrackToTrack, trackToLocalTrack, trackToRemoteTrack} from './utils'
+import {trackToLocalTrack, trackToRemoteTrack} from './utils'
 import {SQLTrackSchema, TrackSchema, R4TrackSchema} from './schema'
 import {z} from 'zod'
 
 const listOfStrings = z.array(z.string())
-// .catch((ctx) => {
-// 	console.log(ctx)
-// 	return Math.random()
-// })
-// .transform((val) => {
-// 	// return ['hey2']
-// 	return 43
-// })
 
 test('2 + 2', () => {
-	// expect(2 + 2).toBe(4)
+	expect(2 + 2).toBe(4)
 	expect(listOfStrings.parse(['hey', 'world'])).not.fail()
 	expect(listOfStrings.parse('naaa')).not.fail()
 })
@@ -35,7 +27,7 @@ const testTracks = [
 		provider: 'youtube',
 		providerId: 'XeJODyxPGso',
 		tags: ['1992', 'jazz'],
-		mentions: ['oskar'],
+		mentions: ['oskar']
 	},
 	{
 		id: '111b05d6-9d7b-4a4f-9e6c-3502cb952495',
@@ -52,8 +44,8 @@ const testTracks = [
 		mentions: [],
 		files: null,
 		lastError:
-			'Error downloading track: ERROR: [youtube] s8sNnNRhQ2g: Video unavailable. The uploader has not made this video available in your country\n',
-	},
+			'Error downloading track: ERROR: [youtube] s8sNnNRhQ2g: Video unavailable. The uploader has not made this video available in your country\n'
+	}
 ]
 
 // test('new structure', () => {

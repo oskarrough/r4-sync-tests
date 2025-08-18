@@ -11,7 +11,7 @@
 	import Icon from '$lib/components/icon.svelte'
 	import LinkEntities from '$lib/components/link-entities.svelte'
 	import {r5} from '$lib/r5'
-	import {pg} from '$lib/db'
+	import {pg} from '$lib/r5/db'
 
 	/** @typedef {import('$lib/types').Track} Track */
 	/** @typedef {import('$lib/types').Channel} Channel */

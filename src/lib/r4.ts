@@ -1,49 +1,57 @@
 import {sdk} from '@radio4000/sdk'
-import {debugLimit} from '$lib/db'
+import {debugLimit} from '$lib/r5/db'
 
 /**
  * Radio4000 API wrapper that throws on errors instead of returning {data, error}
- * Provides a consistent interface to the remote database
  */
-
-/**
- * Generic unwrap function that preserves TypeScript types from SDK calls
- * Extracts data from {data, error} pattern and throws on error
- */
-async function unwrap<T>(
-	fn: () => Promise<{data?: T | null; error?: {message: string}}>
-): Promise<T> {
-	const result = await fn()
-	if (result.error) throw result.error
-	if (result.data == null) throw new Error('No data returned')
-	return result.data as T
-}
-
 export const r4 = {
 	users: {
-		readUser: (...args: Parameters<typeof sdk.users.readUser>) =>
-			unwrap(() => sdk.users.readUser(...args))
+		readUser: async (...args: Parameters<typeof sdk.users.readUser>) => {
+			const {data, error} = await sdk.users.readUser(...args)
+			if (error) throw error
+			return data
+		}
 	},
 
 	channels: {
-		readChannels: (limit = debugLimit) =>
-			unwrap(() =>
-				sdk.supabase
-					.from('channels_with_tracks')
-					.select('*')
-					.order('updated_at', {ascending: false})
-					.limit(limit)
-			),
-		readChannel: (slug: string) =>
-			unwrap(() => sdk.supabase.from('channels_with_tracks').select('*').eq('slug', slug)),
-		readUserChannels: (...args: Parameters<typeof sdk.channels.readUserChannels>) =>
-			unwrap(() => sdk.channels.readUserChannels(...args)),
-		readChannelTracks: (...args: Parameters<typeof sdk.channels.readChannelTracks>) =>
-			unwrap(() => sdk.channels.readChannelTracks(...args)),
-		readFollowings: (...args: Parameters<typeof sdk.channels.readFollowings>) =>
-			unwrap(() => sdk.channels.readFollowings(...args)),
-		followChannel: (...args: Parameters<typeof sdk.channels.followChannel>) =>
-			unwrap(() => sdk.channels.followChannel(...args))
+		readChannels: async (limit = debugLimit) => {
+			const {data, error} = await sdk.supabase
+				.from('channels_with_tracks')
+				.select('*')
+				.order('updated_at', {ascending: false})
+				.limit(limit)
+			if (error) throw error
+			return data || []
+		},
+		readChannel: async (slug: string) => {
+			const {data, error} = await sdk.supabase
+				.from('channels_with_tracks')
+				.select('*')
+				.eq('slug', slug)
+				.single()
+			if (error) throw error
+			return data
+		},
+		readUserChannels: async (...args: Parameters<typeof sdk.channels.readUserChannels>) => {
+			const {data, error} = await sdk.channels.readUserChannels(...args)
+			if (error) throw error
+			return data
+		},
+		readChannelTracks: async (...args: Parameters<typeof sdk.channels.readChannelTracks>) => {
+			const result = await sdk.channels.readChannelTracks(...args)
+			if ('error' in result && result.error) throw result.error
+			return 'data' in result ? result.data : result
+		},
+		readFollowings: async (...args: Parameters<typeof sdk.channels.readFollowings>) => {
+			const {data, error} = await sdk.channels.readFollowings(...args)
+			if (error) throw error
+			return data
+		},
+		followChannel: async (...args: Parameters<typeof sdk.channels.followChannel>) => {
+			const {data, error} = await sdk.channels.followChannel(...args)
+			if (error) throw error
+			return data
+		}
 	},
 
 	broadcasts: {

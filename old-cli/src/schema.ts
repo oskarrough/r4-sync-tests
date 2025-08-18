@@ -24,18 +24,18 @@ const BaseTrackSchema = z.object({
 	files: z.string().optional().nullable(),
 	lastError: z.string().optional().nullable(),
 	provider: z.string().optional().nullable(),
-	providerId: z.string().optional().nullable(),
+	providerId: z.string().optional().nullable()
 })
 
 export const TrackSchema = BaseTrackSchema.extend({
 	tags: z.array(z.string()).optional(),
-	mentions: z.array(z.string()).optional(),
+	mentions: z.array(z.string()).optional()
 })
 export type Track = z.infer<typeof TrackSchema>
 
 export const SQLTrackSchema = TrackSchema.extend({
 	tags: z.string().optional(),
-	mentions: z.string().optional(),
+	mentions: z.string().optional()
 })
 export type SQLTrack = z.infer<typeof SQLTrackSchema>
 
@@ -47,11 +47,11 @@ export const R4TrackSchema = z.object({
 		provider: true,
 		providerId: true,
 		files: true,
-		lastError: true,
+		lastError: true
 	}).shape,
 	created_at: z.string(),
 	updated_at: z.string().optional(),
-	discogs_url: z.string().url().optional().nullable(),
+	discogs_url: z.string().url().optional().nullable()
 })
 export type R4Track = z.infer<typeof R4TrackSchema>
 

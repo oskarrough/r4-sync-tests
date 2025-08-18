@@ -1,7 +1,7 @@
 <script>
 	import '../styles/style.css'
 	import 'leaflet/dist/leaflet.css'
-	import {pg} from '$lib/db'
+	import {pg} from '$lib/r5/db'
 	import LayoutHeader from '$lib/components/layout-header.svelte'
 	import LayoutFooter from '$lib/components/layout-footer.svelte'
 	import QueuePanel from '$lib/components/queue-panel.svelte'

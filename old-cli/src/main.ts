@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 import {Glob} from 'bun'
 import {mkdir} from 'node:fs/promises'
 import {existsSync, mkdirSync} from 'node:fs'
@@ -23,11 +21,17 @@ async function main() {
 		console.log('  --folder <path>        Required: Where to store radio files')
 		console.log('  --pull                 Pull new tracks from Radio4000 to local database')
 		console.log('  --download             Download audio files for tracks in database')
-		console.log('  --includeFailed        When used with --download, includes previously failed tracks')
+		console.log(
+			'  --includeFailed        When used with --download, includes previously failed tracks'
+		)
 		console.log('  --simulate             Simulate operations without making changes')
-		console.log('  --premium              Download from YTMusic premium (requires Firefox login and --poToken)')
+		console.log(
+			'  --premium              Download from YTMusic premium (requires Firefox login and --poToken)'
+		)
 		console.log('  --poToken <token>     Required token when using --premium')
-		console.log('\nExample: bun src/cli/main --slug oskar --folder ~/Music/Radios --pull --download')
+		console.log(
+			'\nExample: bun src/cli/main --slug oskar --folder ~/Music/Radios --pull --download'
+		)
 		process.exit(0)
 	}
 
@@ -54,7 +58,9 @@ async function main() {
 
 	// Premium notification
 	if (values.premium) {
-		console.log('PREMIUM MODE: This assumes you are signed into music.youtube.com with a premium account in Firefox')
+		console.log(
+			'PREMIUM MODE: This assumes you are signed into music.youtube.com with a premium account in Firefox'
+		)
 	}
 
 	const radioPath = `${values.folder}/${values.slug}`
@@ -84,24 +90,24 @@ async function main() {
 		size: 'SMALL',
 		showPercent: false,
 		autoClear: true,
-		showCount: true,
+		showCount: true
 	})
 
 	/** Find existing files on disk */
-		let localFiles = []
-		if (values.simulate) {
-			console.log('Simulation: skipping file scan in simulation mode')
-		} else if (!existsSync(tracksFolder)) {
-			console.log('Directory does not exist: skipping file scan')
-		} else {
-			try {
-				const glob = new Glob(`${tracksFolder}/*.m4a`)
-				localFiles = await Array.fromAsync(glob.scan('.'))
-			} catch (err) {
-				console.error('Error scanning files:', err)
-				// Continue with empty localFiles array
-			}
+	let localFiles = []
+	if (values.simulate) {
+		console.log('Simulation: skipping file scan in simulation mode')
+	} else if (!existsSync(tracksFolder)) {
+		console.log('Directory does not exist: skipping file scan')
+	} else {
+		try {
+			const glob = new Glob(`${tracksFolder}/*.m4a`)
+			localFiles = await Array.fromAsync(glob.scan('.'))
+		} catch (err) {
+			console.error('Error scanning files:', err)
+			// Continue with empty localFiles array
 		}
+	}
 
 	/** Create or reuse a local sqlite3 database */
 	let db
@@ -169,25 +175,26 @@ async function main() {
 
 	// Handle downloads if requested
 	if (values.download) {
-		const tracksToDownload = getTracks(db)
-			.filter((track) => {
-				// In simulation mode, we don't check for file existence
-				if (values.simulate) {
-					return !track.lastError || values.includeFailed
-				}
-				try {
-					const filename = toFilename(track, tracksFolder)
-					const exists = existsSync(filename)
-					return !exists && (!track.lastError || values.includeFailed)
-				} catch (err) {
-					console.error('Error checking file existence:', err)
-					return false
-				}
-			})
+		const tracksToDownload = getTracks(db).filter((track) => {
+			// In simulation mode, we don't check for file existence
+			if (values.simulate) {
+				return !track.lastError || values.includeFailed
+			}
+			try {
+				const filename = toFilename(track, tracksFolder)
+				const exists = existsSync(filename)
+				return !exists && (!track.lastError || values.includeFailed)
+			} catch (err) {
+				console.error('Error checking file existence:', err)
+				return false
+			}
+		})
 
 		if (tracksToDownload.length) {
 			if (!values.download) {
-				console.log(`${tracksToDownload.length} tracks available to download. Run with --download to start downloading.`)
+				console.log(
+					`${tracksToDownload.length} tracks available to download. Run with --download to start downloading.`
+				)
 			}
 
 			if (values.simulate) {
@@ -207,7 +214,7 @@ async function main() {
 			} else {
 				let downloadMessage = `--download: ${tracksToDownload.length} tracks`
 				if (values.includeFailed) {
-					const failedTracksCount = getTracks(db).filter(t => t.lastError).length
+					const failedTracksCount = getTracks(db).filter((t) => t.lastError).length
 					downloadMessage += ` (including ${failedTracksCount} previously failed tracks)`
 				}
 				downloadMessage += `. It will take around ${tracksToDownload.length * 4} seconds.`
@@ -220,13 +227,20 @@ async function main() {
 					limiter(async () => {
 						try {
 							const filename = toFilename(track, tracksFolder)
-							await downloadTrack(track, filename, db, values.simulate, values.premium, values.poToken)
+							await downloadTrack(
+								track,
+								filename,
+								db,
+								values.simulate,
+								values.premium,
+								values.poToken
+							)
 							pBar.inc()
 						} catch (err) {
 							console.error(`Error processing track "${track.title}":`, err)
 							pBar.inc()
 						}
-					}),
+					})
 				)
 				await Promise.all(input)
 				pBar.stop()
@@ -234,14 +248,18 @@ async function main() {
 				// Get statistics
 				const downloadedCount = getTracks(db).filter((x) => x.files).length
 				const failedCount = getTracks(db).filter((x) => x.lastError).length
-				const retriedCount = values.includeFailed ? getTracks(db).filter(t => t.lastError).length : 0
+				const retriedCount = values.includeFailed
+					? getTracks(db).filter((t) => t.lastError).length
+					: 0
 
 				console.log(`${downloadedCount} tracks downloaded.`)
 
 				if (values.includeFailed && retriedCount > 0) {
 					console.log(`${failedCount} tracks still failed after retry attempt.`)
 				} else {
-					console.log(`${failedCount} tracks failed to download. Use --download --includeFailed to retry`)
+					console.log(
+						`${failedCount} tracks failed to download. Use --download --includeFailed to retry`
+					)
 				}
 			}
 		} else {
@@ -274,11 +292,11 @@ async function main() {
 			console.log(`- Add ${incomingTracks.length} new tracks: run with --pull`)
 		}
 
-		const downloadableCount = getTracks(db).filter(track => {
+		const downloadableCount = getTracks(db).filter((track) => {
 			try {
 				const filename = toFilename(track, tracksFolder)
 				return !existsSync(filename) && (!track.lastError || values.includeFailed)
-			} catch (err) {
+			} catch {
 				return false
 			}
 		}).length
@@ -287,9 +305,11 @@ async function main() {
 			console.log(`- Download ${downloadableCount} tracks: run with --download`)
 		}
 
-		const failedCount = getTracks(db).filter(t => t.lastError).length
+		const failedCount = getTracks(db).filter((t) => t.lastError).length
 		if (failedCount > 0) {
-			console.log(`- Retry ${failedCount} failed downloads: run with --download --includeFailed together`)
+			console.log(
+				`- Retry ${failedCount} failed downloads: run with --download --includeFailed together`
+			)
 		}
 	}
 }

@@ -1,4 +1,4 @@
-import {pg} from '$lib/db'
+import {pg} from '$lib/r5/db'
 import {batcher} from '$lib/batcher'
 import {logger} from '$lib/logger'
 

@@ -14,6 +14,44 @@ cli-r5.ts
 
 ## Todos
 
+
+- cli thought. consider this api instead:
+
+```
+list --source=local → r5.channels.local()
+list --source=r4 → r5.channels.r4()
+get <slug> → r5.channels.local({slug}) or r5.channels.get(slug)
+pull → r5.channels.pull()
+```
+
+- CLI DOWNLOAD IMPLEMENTATION (priority: essential vs missing entirely)
+
+CRITICAL MISSING PIECES:
+  - Core download engine: yt-dlp integration, concurrent processing, file management
+  - Download persistence: SQLite/file state vs current PGlite (incompatible architectures)
+  - Progress system: @opentf/cli-pbar, ETA calculations, download statistics
+  - Error handling: retry logic, download state tracking, failure persistence
+
+ARCHITECTURAL CONFLICTS:
+  - Old CLI uses SQLite files (`<folder>/<slug>/<slug>.sqlite`) for download state
+  - New CLI uses browser PGlite - can't share state between CLI and web
+  - File scanning: old CLI scans `<folder>/<slug>/tracks/*.m4a`, new CLI has no file ops
+  - Config: old CLI needs global folder/concurrency settings, new CLI has no config system
+
+HIGH-VALUE FEATURES TO PORT:
+  - `tracks download <slug>`: Complete yt-dlp integration with premium/poToken support
+  - `sync <slug>`: Orchestrated pull+download workflow with optional --prune
+  - Filename strategy: `toFilename()` logic for consistent naming
+  - Simulate mode: Full dry-run capability without file/db writes
+  - Available actions: Smart suggestions when operations are available
+
+POLISH IMPROVEMENTS:
+  - Better progress reporting with download speeds, concurrent status
+  - Enhanced error messages with actionable recovery steps
+  - Config management for persistent folder/concurrency defaults
+  - Comprehensive help with concrete examples and premium workflow
+
+- adding a track (while on <slug>) doesn't re-render the tracklist
 - consider integrating "bandsintown" as a third-party API similar to musicbrainz, youtube meta
 - implement discogs (see components.radio4000.com, where it's already kinda done)
 - change <slug>/page.js load function to maybe not block the whole page? too slow. render async

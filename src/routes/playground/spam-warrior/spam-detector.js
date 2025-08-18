@@ -1,4 +1,4 @@
-import {pg} from '$lib/db'
+import {pg} from '$lib/r5/db'
 import {spamKeywords, spamDomains, businessPartners, suspiciousPhrases} from './spam-words'
 
 /**

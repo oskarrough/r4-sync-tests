@@ -8,13 +8,15 @@ export async function downloadAudio(
 	filepath: string,
 	metadataDescription: string,
 	premium = false,
-	poToken?: string,
+	poToken?: string
 ) {
 	if (!premium)
 		return $`yt-dlp -f 'bestaudio[ext=m4a]' --no-playlist --restrict-filenames --output ${filepath} --parse-metadata "${metadataDescription}:%(meta_comment)s" --embed-metadata --quiet --progress ${url} --cookies-from-browser firefox`
 
 	if (!poToken) {
-		throw new Error('Premium download requires a PO Token. Please provide it with --poToken parameter.')
+		throw new Error(
+			'Premium download requires a PO Token. Please provide it with --poToken parameter.'
+		)
 	}
 
 	return $`yt-dlp -f 'bestaudio[ext=m4a]' --no-playlist --restrict-filenames --output ${filepath} --parse-metadata "${metadataDescription}:%(meta_comment)s" --embed-metadata --quiet --progress ${url} --cookies-from-browser firefox --extractor-args "youtube:player-client=web_music;po_token=web_music.gvs+${poToken}"`
@@ -29,7 +31,7 @@ export async function downloadTrack(
 	db: Database,
 	simulate = false,
 	premium = false,
-	poToken?: string,
+	poToken?: string
 ) {
 	// Validate inputs to prevent errors
 	if (!t || !t.id || !t.url) {
@@ -49,7 +51,7 @@ export async function downloadTrack(
 			db.query(`UPDATE tracks SET files = $files, lastError = $lastError WHERE id = $id;`).run({
 				id: t.id,
 				files: filename,
-				lastError: null,
+				lastError: null
 			})
 		} catch (dbErr) {
 			console.error('Error updating database after download:', dbErr)
@@ -78,7 +80,7 @@ export async function downloadTrack(
 			db.query(`UPDATE tracks SET files = $files, lastError = $lastError WHERE id = $id;`).run({
 				id: t.id,
 				files: null,
-				lastError: t.lastError,
+				lastError: t.lastError
 			})
 		} catch (dbErr) {
 			console.error('Error updating database after download failure:', dbErr)

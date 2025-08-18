@@ -1,4 +1,4 @@
-import {pg} from '$lib/db'
+import {pg} from '$lib/r5/db'
 
 /**
  * Search channels using fuzzy matching with pg_trgm

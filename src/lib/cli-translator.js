@@ -60,6 +60,12 @@ const COMMANDS = {
 			default: () => []
 		},
 		defaultHelp: 'Available commands: reset, export, migrate'
+	},
+	help: {
+		methods: [],
+		argTransforms: {
+			default: () => []
+		}
 	}
 }
 
@@ -84,23 +90,7 @@ export function parseCommand(command) {
 
 	if (subcommand === 'help') {
 		return {
-			fn: async () => `R5 - Local-First Music Player CLI
-
-Usage:
-  r5 channels [local|r4|pull|v1|outdated] [<slug>]
-  r5 tracks (local [<slug>] | r4 <slug> | pull <slug> | v1 <channel> <firebase>)
-  r5 search [channels|tracks] <query>
-  r5 db (reset|migrate|export)
-
-Examples:
-  r5 channels ko002          List local channel @ko002
-  r5 channels pull           Pull all channels from remote
-  r5 channels pull ko002     Pull channel @ko002 from remote
-  r5 channels v1 ko002       List v1 (firebase) channel @ko002
-  r5 channels outdated ko002 Check if @ko002 needs updating
-  r5 tracks pull ko002       Pull tracks for @ko002 from remote
-  r5 search jazz piano       Search everything for "jazz piano"
-  r5 db migrate              Run database migrations`,
+			fn: r5.help,
 			args: [],
 			raw
 		}

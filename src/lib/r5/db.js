@@ -1,11 +1,9 @@
 import {PGlite} from '@electric-sql/pglite'
 import {live} from '@electric-sql/pglite/live'
-import type {PGliteWithLive} from '@electric-sql/pglite/live'
 import {pg_trgm} from '@electric-sql/pglite/contrib/pg_trgm'
-import {logger} from './logger.js'
+import {logger} from '../logger.js'
 
 const browser = typeof window !== 'undefined'
-
 const log = logger.ns('db').seal()
 
 import migration01sql from '$lib/migrations/01-initial-schema.sql?raw'
@@ -22,12 +20,14 @@ const migrations = [
 ]
 
 // This will be null until createPg() is called
-export let pg: PGliteWithLive
+/** @type {import('@electric-sql/pglite/live').PGliteWithLive} */
+export let pg
 
-/*
+/**
  * @param {boolean} persist - Switch between in-memory and OPFS persisted indexeddb for PostgreSQL
+ * @returns {Promise<import('@electric-sql/pglite/live').PGliteWithLive>}
  */
-export async function createPg(persist = browser): Promise<PGliteWithLive> {
+export async function createPg(persist = browser) {
 	if (!pg) {
 		const dataDir = browser ? (persist ? 'idb://radio4000test2' : 'memory://') : './r5-cli-data'
 		pg = await PGlite.create({
@@ -41,6 +41,25 @@ export async function createPg(persist = browser): Promise<PGliteWithLive> {
 		})
 	}
 	return pg
+}
+
+/**
+ * Get pg instance, creating it lazily if needed
+ * @returns {Promise<import('@electric-sql/pglite/live').PGliteWithLive>}
+ */
+export async function getPg() {
+	if (!pg) {
+		pg = await createPg()
+	}
+	return pg
+}
+
+/**
+ * Set pg instance manually (for tests/CLI)
+ * @param {import('@electric-sql/pglite/live').PGliteWithLive} instance
+ */
+export function setPg(instance) {
+	pg = instance
 }
 
 export async function dropDb() {
@@ -101,4 +120,17 @@ export async function migrateDb() {
 		}
 	}
 	log.debug('migrated db')
+}
+
+// Legacy API for backward compatibility (these just call the above functions)
+export function reset() {
+	return dropDb()
+}
+
+export function migrate() {
+	return migrateDb()
+}
+
+export function exportDatabase() {
+	return exportDb()
 }

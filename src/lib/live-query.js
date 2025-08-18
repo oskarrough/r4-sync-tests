@@ -1,4 +1,4 @@
-import {pg} from '$lib/db'
+import {pg} from '$lib/r5/db'
 
 /**
  * Sets up a live query subscription that auto-cleans up with Svelte 5 $effect

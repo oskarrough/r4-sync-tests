@@ -2,7 +2,7 @@
 	import {onMount} from 'svelte'
 	import {page} from '$app/state'
 	import {goto} from '$app/navigation'
-	import {pg} from '$lib/db'
+	import {pg} from '$lib/r5/db'
 	import {incrementalLiveQuery} from '$lib/live-query'
 	import {setPlaylist, addToPlaylist} from '$lib/api'
 	import {relativeDate, relativeDateSolar} from '$lib/dates'

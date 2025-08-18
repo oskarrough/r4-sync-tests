@@ -1,5 +1,5 @@
 import {r4} from '$lib/r4'
-import {pg} from '$lib/db'
+import {pg} from '$lib/r5/db'
 import {logger} from '$lib/logger'
 import {playTrack} from '$lib/api'
 import {r5} from '$lib/r5'

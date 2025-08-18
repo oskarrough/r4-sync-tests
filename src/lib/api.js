@@ -1,7 +1,7 @@
 import {appState, defaultAppState} from '$lib/app-state.svelte'
 import {leaveBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
-import {pg, dropDb, migrateDb} from '$lib/db'
+import {pg, dropDb, migrateDb} from '$lib/r5/db'
 import {r4} from '$lib/r4'
 import {r5} from '$lib/r5.js'
 import {shuffleArray} from '$lib/utils'

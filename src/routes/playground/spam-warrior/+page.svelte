@@ -8,7 +8,7 @@
 	} from './spam-detector.js'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
-	import {pg} from '$lib/db'
+	import {pg} from '$lib/r5/db'
 	import {r5} from '$lib/r5'
 
 	/** @type {Array<import('$lib/types').Channel & {spamAnalysis: {confidence: number, reasons: string[], isSpam: boolean}}>} */

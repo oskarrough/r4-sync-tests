@@ -1,0 +1,182 @@
+import {ENTITY_REGEX} from '../utils.js'
+import {logger} from '../logger'
+import {r4 as r4Api} from '../r4.js'
+import {getPg} from './db.js'
+import * as channels from './channels.js'
+
+const log = logger.ns('r5:tracks').seal()
+const LIMIT = 4000
+
+/** Get tracks from local database */
+export async function local({slug = '', limit = LIMIT} = {}) {
+	const pg = await getPg()
+	if (!slug) {
+		const {rows} = await pg.sql`
+			select * from tracks_with_meta
+			order by created_at desc
+			limit ${limit}
+		`
+		return rows
+	}
+
+	const {rows} = await pg.sql`
+		select * from tracks_with_meta
+		where channel_slug = ${slug}
+		order by created_at desc
+		limit ${limit}
+	`
+	return rows
+}
+
+/** Get tracks from r4 (remote) */
+export async function r4({slug = '', limit = LIMIT} = {}) {
+	return await r4Api.channels.readChannelTracks(slug, limit)
+}
+
+/** Get tracks from v1 (firebase) */
+export async function v1(params) {
+	/** Fetches all v1 tracks from a v1 channel id */
+	async function readFirebaseChannelTracks(cid) {
+		/** @param {any} value @param {string} id */
+		const toObject = (value, id) => ({...value, id})
+		/** @param {Record<string, any>} data */
+		const toArray = (data) => Object.keys(data).map((id) => toObject(data[id], id))
+		const url = `https://radio4000.firebaseio.com/tracks.json?orderBy="channel"&startAt="${cid}"&endAt="${cid}"`
+
+		const res = await fetch(url)
+		if (!res.ok) throw new Error(`Failed to fetch tracks: ${res.status}`)
+		const data = await res.json()
+		if (!data) return []
+
+		return toArray(data).sort((a, b) => a.created - b.created)
+	}
+	const v1Tracks = await readFirebaseChannelTracks(params.firebase)
+	const mapped = v1Tracks.map((t) => parseFirebaseTrack(t, params.channelId))
+	return params.limit ? mapped.slice(0, params.limit) : mapped
+}
+
+/** Pull tracks from remote sources and store locally */
+export async function pull({slug = '', limit = LIMIT} = {}) {
+	const channel = (await channels.local({slug}))[0]
+	if (!channel) throw new Error(`pull_tracks:channel_not_found: ${slug}`)
+
+	if (!(await channels.outdated(slug))) {
+		return await local({slug, limit})
+	}
+
+	if (channel.source === 'v1') {
+		const v1Tracks = await v1({
+			firebase: channel.firebase_id,
+			slug,
+			channelId: channel.id
+		})
+		await insert(slug, v1Tracks)
+	} else {
+		const tracks = await r4({slug, limit})
+		await insert(slug, tracks)
+	}
+	return await local({slug, limit})
+}
+
+/** Insert tracks into local database */
+export async function insert(slug, tracks) {
+	const pg = await getPg()
+	try {
+		const channel = (await pg.sql`update channels set busy = true where slug = ${slug} returning *`)
+			.rows[0]
+		if (!channel) throw new Error(`insert_tracks_error_404: ${slug}`)
+
+		// Skip v1 re-imports
+		let tracksToInsert = tracks
+		if (channel.source === 'v1') {
+			const existing = await pg.sql`
+				SELECT firebase_id FROM tracks
+				WHERE channel_id = ${channel.id} AND firebase_id IS NOT NULL
+			`
+			if (existing.rows.length) {
+				const existingIds = new Set(existing.rows.map((r) => r.firebase_id))
+				const before = tracks.length
+				tracksToInsert = tracks.filter((t) => !existingIds.has(t.firebase_id))
+				const skipped = before - tracksToInsert.length
+				if (skipped) console.log(`Skipping ${skipped} duplicate v1 tracks for ${slug}`)
+			}
+		}
+
+		// Insert tracks
+		await pg.transaction(async (tx) => {
+			const CHUNK_SIZE = 50
+			for (let i = 0; i < tracksToInsert.length; i += CHUNK_SIZE) {
+				const chunk = tracksToInsert.slice(i, i + CHUNK_SIZE)
+				const inserts = chunk.map(
+					(track) => tx.sql`
+        INSERT INTO tracks (
+          id, channel_id, url, title, description,
+          discogs_url, created_at, updated_at, tags, mentions, firebase_id
+        )
+        VALUES (
+          ${track.id}, ${channel.id}, ${track.url},
+          ${track.title}, ${track.description},
+          ${track.discogs_url}, ${track.created_at}, ${track.updated_at},
+          ${track.tags}, ${track.mentions}, ${track.firebase_id || null}
+        )
+        ON CONFLICT (id) DO UPDATE SET
+          url = EXCLUDED.url,
+          title = EXCLUDED.title,
+          description = EXCLUDED.description,
+          discogs_url = EXCLUDED.discogs_url,
+          updated_at = EXCLUDED.updated_at,
+          tags = EXCLUDED.tags,
+          mentions = EXCLUDED.mentions
+      `
+				)
+				await Promise.all(inserts)
+
+				// Yield to UI thread between chunks
+				if (i + CHUNK_SIZE < tracks.length) {
+					await new Promise((resolve) => setTimeout(resolve, 0))
+				}
+			}
+		})
+		// Mark as successfully synced
+		await pg.sql`update channels set busy = false, tracks_synced_at = CURRENT_TIMESTAMP, track_count = ${tracksToInsert.length} where slug = ${slug}`
+		log.log('inserted tracks', slug, tracksToInsert.length)
+	} catch (error) {
+		// On error, just mark as not busy (tracks_synced_at stays NULL for retry)
+		await pg.sql`update channels set busy = false where slug = ${slug}`
+		throw error
+	}
+}
+
+// Helper functions for v1 support
+
+function parseFirebaseTrack(track, channelId) {
+	const description = track.body || ''
+
+	// Extract tags and mentions using the same regex as link-entities.svelte
+	const tags = []
+	const mentions = []
+
+	description.replace(ENTITY_REGEX, (match, prefix, entity) => {
+		if (entity.startsWith('#')) {
+			tags.push(entity.toLowerCase())
+		} else if (entity.startsWith('@')) {
+			mentions.push(entity.slice(1).toLowerCase())
+		}
+		return match
+	})
+
+	return {
+		id: crypto.randomUUID(),
+		firebase_id: track.id,
+		channel_id: channelId,
+		url: track.url,
+		title: track.title,
+		description: track.body || '',
+		discogs_url: track.discogsUrl || '',
+		source: 'v1',
+		tags: tags.length > 0 ? tags : null,
+		mentions: mentions.length > 0 ? mentions : null,
+		created_at: new Date(track.created).toISOString(),
+		updated_at: new Date(track.updated || track.created).toISOString()
+	}
+}

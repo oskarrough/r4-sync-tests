@@ -7,35 +7,35 @@ export function parseArguments() {
 		args: Bun.argv,
 		options: {
 			help: {
-				type: 'boolean',
+				type: 'boolean'
 			},
 			simulate: {
-				type: 'boolean',
+				type: 'boolean'
 			},
 			slug: {
-				type: 'string',
+				type: 'string'
 			},
 			folder: {
-				type: 'string',
+				type: 'string'
 			},
 			includeFailed: {
-				type: 'boolean',
+				type: 'boolean'
 			},
 			pull: {
-				type: 'boolean',
+				type: 'boolean'
 			},
 			download: {
-				type: 'boolean',
+				type: 'boolean'
 			},
 			premium: {
-				type: 'boolean',
+				type: 'boolean'
 			},
 			poToken: {
-				type: 'string',
-			},
+				type: 'string'
+			}
 		},
 		strict: true,
-		allowPositionals: true,
+		allowPositionals: true
 	})
 
 	return values
