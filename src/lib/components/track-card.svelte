@@ -48,6 +48,7 @@
 				src={imageSrc}
 				alt={track.title}
 				class="artwork"
+				loading={index > 20 ? 'lazy' : null}
 			/>{/if}
 		<div class="text">
 			<h3 class="title">{track.title}</h3>
