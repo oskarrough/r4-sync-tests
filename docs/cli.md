@@ -1,7 +1,64 @@
-In order to run the lib/r5.ts file from node/cli, we have a wrapper CLI.
+# CLI
 
-Run `bun ./r5-cli.ts help`.
+Local-first music player CLI for querying and managing radio4000 data.
 
-This also allows LLMs to test it out and easily pipe the data around.
+## tldr
 
-On the /sdk route we have a "terminal ui" as well, which kinda allows the same. For this to work, we have a `cli-translator.js` that takes a string like "r5 channels pull <slug>" and calls the appropriate function.
+```bash
+# Get tracks from any channel
+bun ./cli.ts tracks list ko002 --limit 5
+
+# Save as JSON and process with jq
+bun ./cli.ts tracks list ko002 --json | jq '.[].url'
+
+# Get channel slugs (use --limit for large datasets)
+bun ./cli.ts channels list --limit 10 --json | jq -r '.[].slug'
+
+# Search and filter
+bun ./cli.ts search "acid" --json | jq '.tracks[] | select(.title | contains("remix"))'
+```
+
+## Sources
+
+Use `--source` to control where data comes from:
+
+- `--source local` (default) - your local database
+- `--source r4` - remote radio4000 API (read-only)
+- `--source v1` - legacy radio4000 v1 API
+
+Remote sources bypass local db and query live data:
+
+```bash
+# Live data from radio4000
+bun ./cli.ts tracks list ko002 --source r4 --limit 10
+
+# Compare local vs remote
+bun ./cli.ts channels list --source local --json > local.json
+bun ./cli.ts channels list --source r4 --json > remote.json
+```
+
+## Piping magic
+
+Extract URLs for external tools:
+```bash
+# Get track URLs (add --limit for large channels)
+bun ./cli.ts tracks list ko002 --source r4 --limit 20 --json | jq -r '.[].url'
+
+# Save track titles to file
+bun ./cli.ts tracks list ko002 --json | jq -r '.[].title' > tracks.txt
+
+# Chain with other unix tools
+bun ./cli.ts tracks list ko002 --json | jq -r '.[].url' | grep youtube | wc -l
+```
+
+Filter and transform:
+```bash
+# Only YouTube URLs
+bun ./cli.ts tracks list ko002 --json | jq '.[] | select(.url | contains("youtube"))'
+
+# Extract just title and URL
+bun ./cli.ts tracks list ko002 --json | jq '.[] | {title, url}'
+
+# Get channels with more than 100 characters in description
+bun ./cli.ts channels list --json | jq '.[] | select(.description | length > 100)'
+```

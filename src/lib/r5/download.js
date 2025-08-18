@@ -33,7 +33,7 @@ function toFilename(track, folderPath) {
 		throw new Error(`Could not extract YouTube ID from URL: ${track.url}`)
 	}
 
-	const cleanTitle = filenamify(track.title, {replacement: ' ', maxLength: 200})
+	const cleanTitle = filenamify(track.title, {replacement: ' ', maxLength: 255})
 	return `${folderPath}/${cleanTitle} [${youtubeId}].m4a`
 }
 

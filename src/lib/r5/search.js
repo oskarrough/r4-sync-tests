@@ -3,18 +3,21 @@ import {getPg} from './db.js'
 
 /** Search all content */
 export async function all(query) {
-	const pg = await getPg()
-	return performSearch(pg, query)
+	// Ensure pg is initialized for search.js
+	await getPg()
+	return performSearch(query)
 }
 
 /** Search channels only */
 export async function channels(query) {
-	const pg = await getPg()
-	return searchChannels(pg, query)
+	// Ensure pg is initialized for search.js
+	await getPg()
+	return searchChannels(query)
 }
 
 /** Search tracks only */
 export async function tracks(query) {
-	const pg = await getPg()
-	return searchTracks(pg, query)
+	// Ensure pg is initialized for search.js
+	await getPg()
+	return searchTracks(query)
 }

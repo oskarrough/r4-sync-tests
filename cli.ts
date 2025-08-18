@@ -31,20 +31,24 @@ const handleError = (error: Error, code = 3) => {
 	process.exit(code)
 }
 
+
 // Output formatters
 const formatChannel = (channel: {slug: string; name?: string}) =>
 	`${channel.slug}\t${channel.name || 'Untitled'}`
 const formatTrack = (track: {title?: string; url: string}) =>
 	`${track.title || 'Untitled'}\t${track.url}`
 
-const outputResults = <T>(results: T[], formatter: (item: T) => string, json: boolean) => {
+const outputResults = <T>(results: T[], formatter: (item: T) => string, json: boolean, limit?: number) => {
 	if (json) {
 		console.log(JSON.stringify(results, null, 2))
-	} else if (results.length > 10) {
-		results.slice(0, 8).forEach((item) => console.log(formatter(item)))
-		console.log(`... and ${results.length - 8} more`)
 	} else {
-		results.forEach((item) => console.log(formatter(item)))
+		const display = limit ? results.slice(0, limit) : results
+		if (limit && results.length > limit) {
+			display.forEach((item) => console.log(formatter(item)))
+			console.log(`... and ${results.length - limit} more`)
+		} else {
+			display.forEach((item) => console.log(formatter(item)))
+		}
 	}
 }
 
@@ -52,6 +56,10 @@ const cli = yargs(hideBin(process.argv))
 	.scriptName('r5')
 	.version('1.0.0')
 	.help()
+	.usage('$0 <command> [options]')
+	.example('$0 tracks list ko002 --limit 5', 'List 5 tracks from channel')
+	.example('$0 channels list --json | jq ".[].slug"', 'Get all channel slugs')
+	.example('$0 tracks list ko002 --json > tracks.txt', 'Save tracks to file')
 	.demandCommand(1, 'You need at least one command')
 	.strict()
 
@@ -69,7 +77,7 @@ cli.command('channels <command>', 'Manage channels', (yargs) => {
 				try {
 					const opts = argv.slug ? {slug: argv.slug} : {limit: argv.limit}
 					const results = await sources.channels[argv.source](opts)
-					outputResults(results, formatChannel, argv.json)
+					outputResults(results, formatChannel, argv.json, argv.limit)
 				} catch (error) {
 					handleError(error as Error)
 				}
@@ -119,7 +127,7 @@ cli.command('tracks <command>', 'Manage tracks', (yargs) => {
 				try {
 					const opts = argv.slug ? {slug: argv.slug, limit: argv.limit} : {limit: argv.limit}
 					const results = await sources.tracks[argv.source](opts)
-					outputResults(results, formatTrack, argv.json)
+					outputResults(results, formatTrack, argv.json, argv.limit)
 				} catch (error) {
 					handleError(error as Error)
 				}
@@ -191,11 +199,14 @@ cli.command(
 				default: 'all',
 				describe: 'What to search'
 			})
-			.positional('query', {describe: 'Search query', type: 'string'})
+			.positional('query', {describe: 'Search query', type: 'string', demandOption: true})
 			.option('json', jsonOpt),
 	async (argv) => {
 		try {
-			const results = await searchHandlers[argv.type](argv.query)
+			if (!argv.query?.trim()) {
+				throw new Error('Search query cannot be empty')
+			}
+			const results = await searchHandlers[argv.type](argv.query.trim())
 			if (argv.json) {
 				console.log(JSON.stringify(results, null, 2))
 			} else {
