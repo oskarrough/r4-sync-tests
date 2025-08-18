@@ -3,6 +3,7 @@ import {logger} from '../logger'
 import {r4 as r4Api} from '../r4.js'
 import {getPg} from './db.js'
 import * as channels from './channels.js'
+import {sql, raw} from '@electric-sql/pglite/template'
 
 const log = logger.ns('r5:tracks').seal()
 const LIMIT = 4000
@@ -10,22 +11,8 @@ const LIMIT = 4000
 /** Get tracks from local database */
 export async function local({slug = '', limit = LIMIT} = {}) {
 	const pg = await getPg()
-	if (!slug) {
-		const {rows} = await pg.sql`
-			select * from tracks_with_meta
-			order by created_at desc
-			limit ${limit}
-		`
-		return rows
-	}
-
-	const {rows} = await pg.sql`
-		select * from tracks_with_meta
-		where channel_slug = ${slug}
-		order by created_at desc
-		limit ${limit}
-	`
-	return rows
+	const whereClause = slug ? sql`where channel_slug = ${slug}` : raw``
+	return (await pg.sql`select * from tracks_with_meta ${whereClause} order by created_at desc limit ${limit}`).rows
 }
 
 /** Get tracks from r4 (remote) */
@@ -35,24 +22,18 @@ export async function r4({slug = '', limit = LIMIT} = {}) {
 
 /** Get tracks from v1 (firebase) */
 export async function v1(params) {
-	/** Fetches all v1 tracks from a v1 channel id */
-	async function readFirebaseChannelTracks(cid) {
-		/** @param {any} value @param {string} id */
-		const toObject = (value, id) => ({...value, id})
-		/** @param {Record<string, any>} data */
-		const toArray = (data) => Object.keys(data).map((id) => toObject(data[id], id))
-		const url = `https://radio4000.firebaseio.com/tracks.json?orderBy="channel"&startAt="${cid}"&endAt="${cid}"`
+	const url = `https://radio4000.firebaseio.com/tracks.json?orderBy="channel"&startAt="${params.firebase}"&endAt="${params.firebase}"`
+	const res = await fetch(url)
+	if (!res.ok) throw new Error(`Failed to fetch tracks: ${res.status}`)
+	const data = await res.json()
+	if (!data) return []
 
-		const res = await fetch(url)
-		if (!res.ok) throw new Error(`Failed to fetch tracks: ${res.status}`)
-		const data = await res.json()
-		if (!data) return []
+	const tracks = Object.keys(data)
+		.map((id) => ({...data[id], id}))
+		.sort((a, b) => a.created - b.created)
+		.map((t) => parseFirebaseTrack(t, params.channelId))
 
-		return toArray(data).sort((a, b) => a.created - b.created)
-	}
-	const v1Tracks = await readFirebaseChannelTracks(params.firebase)
-	const mapped = v1Tracks.map((t) => parseFirebaseTrack(t, params.channelId))
-	return params.limit ? mapped.slice(0, params.limit) : mapped
+	return params.limit ? tracks.slice(0, params.limit) : tracks
 }
 
 /** Pull tracks from remote sources and store locally */

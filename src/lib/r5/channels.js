@@ -1,6 +1,7 @@
 import {logger} from '../logger.js'
 import {r4 as r4Api} from '../r4'
 import {getPg} from './db.js'
+import {sql, raw} from '@electric-sql/pglite/template'
 
 const log = logger.ns('r5:channels').seal()
 const LIMIT = 4000
@@ -8,17 +9,8 @@ const LIMIT = 4000
 /** Get channels from local database */
 export async function local({slug = '', limit = LIMIT} = {}) {
 	const pg = await getPg()
-	if (!slug) {
-		return (await pg.sql` select * from channels order by updated_at desc limit ${limit} `).rows
-	}
-	return (
-		await pg.sql`
-        select * from channels
-        where slug = ${slug}
-        order by updated_at desc
-        limit ${limit}
-    `
-	).rows
+	const whereClause = slug ? sql`where slug = ${slug}` : raw``
+	return (await pg.sql`select * from channels ${whereClause} order by updated_at desc limit ${limit}`).rows
 }
 
 /** Get channels from r4 (remote) */
@@ -170,14 +162,10 @@ export async function outdated(slug) {
 async function readv1() {
 	const browser = typeof window !== 'undefined'
 	const filename = 'channels-firebase-modified.json'
-	if (browser) {
-		const res = await fetch(filename)
-		return await res.json()
-	} else {
-		// Use file:// URL for node/bun environments
-		const res = await fetch(`file://${process.cwd()}/static/${filename}`)
-		return await res.json()
-	}
+	const res = browser
+		? await fetch(filename)
+		: await fetch(`file://${process.cwd()}/static/${filename}`)
+	return await res.json()
 }
 
 function parseFirebaseChannel(item) {
@@ -198,8 +186,8 @@ function parseFirebaseChannel(item) {
 async function pullV1Channels({limit = 1000} = {}) {
 	const pg = await getPg()
 	const items = (await readv1()).slice(0, limit)
-
 	const {rows: existingChannels} = await pg.sql`select slug, firebase_id from channels`
+
 	const filteredItems = items.filter(
 		(item) =>
 			!existingChannels.some((r) => r.slug === item.slug || r.firebase_id === item.firebase_id) &&

@@ -8,7 +8,7 @@ const CLI = 'bun ./cli.ts'
 describe('CLI smoke tests', () => {
 	it('should show help', async () => {
 		const {stdout} = await execAsync(`${CLI} help`)
-		expect(stdout).toContain('Usage:')
+		expect(stdout).toContain('Commands:')
 	})
 
 	it('should handle basic commands without crashing', async () => {
