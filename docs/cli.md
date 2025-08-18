@@ -22,9 +22,11 @@ bun ./cli.ts search "acid" --tracks --json | jq '.[].title'
 
 Use `--source` to control where data comes from:
 
-- `--source local` (default) - your local database
+- `--source local` - your local database
 - `--source r4` - remote radio4000 API (read-only)
 - `--source v1` - legacy radio4000 v1 API
+
+**Note:** List commands require explicit `--source` to make you aware of where your data lives. Use `pull` commands to sync data locally first.
 
 Remote sources bypass local db and query live data:
 
@@ -38,6 +40,8 @@ bun ./cli.ts channels list --source r4 --json > remote.json
 ```
 
 ## Search
+
+Search queries your local database only. Use `pull` to sync data locally first.
 
 ```bash
 # Search everything, filter with flags, or use @mention syntax

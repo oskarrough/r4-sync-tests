@@ -8,7 +8,7 @@ import {downloadChannel} from './src/lib/r5/download.js'
 // Shared options
 const sourceOpt = {
 	choices: ['local', 'r4', 'v1'] as const,
-	describe: 'Source to use'
+	describe: 'Data source: local (your db), r4 (radio4000.com), v1 (legacy)'
 }
 const jsonOpt = {type: 'boolean', default: false, describe: 'Output as JSON'} as const
 const limitOpt = {type: 'number', describe: 'Limit number of results'} as const
@@ -106,7 +106,13 @@ cli.command('channels <command>', 'Manage channels', (yargs) => {
 			async (argv) => {
 				try {
 					if (!argv.source) {
-						throw new Error('Please specify --source (local, r4, or v1)')
+						throw new Error(`Please specify --source (local, r4, or v1)
+
+  --source local  Query your local database
+  --source r4     Query radio4000.com directly  
+  --source v1     Query legacy firebase data
+
+Hint: To sync data locally first, use: r5 pull ${argv.slug || '[slug]'}`)
 					}
 					const opts = argv.slug ? {slug: argv.slug} : {limit: argv.limit}
 					const results = await sources.channels[argv.source](opts)
@@ -160,7 +166,13 @@ cli.command('tracks <command>', 'Manage tracks', (yargs) => {
 			async (argv) => {
 				try {
 					if (!argv.source) {
-						throw new Error('Please specify --source (local, r4, or v1)')
+						throw new Error(`Please specify --source (local, r4, or v1)
+
+  --source local  Query your local database
+  --source r4     Query radio4000.com directly  
+  --source v1     Query legacy firebase data
+
+Hint: To sync data locally first, use: r5 pull ${argv.slug || '[slug]'}`)
 					}
 					const opts = argv.slug ? {slug: argv.slug, limit: argv.limit} : {limit: argv.limit}
 					const results = await sources.tracks[argv.source](opts)
