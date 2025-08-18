@@ -40,7 +40,7 @@ bun ./cli.ts channels list --source r4 --json > remote.json
 ## Search
 
 ```bash
-# Search everything, filter with flags, or use @mention syntax  
+# Search everything, filter with flags, or use @mention syntax
 bun ./cli.ts search "ambient"
 bun ./cli.ts search "ko002" --channels
 bun ./cli.ts search "#jazz" --tracks

@@ -2,13 +2,10 @@
 	"name": "r5",
 	"version": "0.0.1",
 	"type": "module",
-	"bin": {
-		"r5": "./cli.ts"
-	},
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
-		"build-cli": "bun build --compile --minify ./cli.ts --outfile bin/r4",
+		"build-cli": "vite build --config vite.config.cli.ts",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",

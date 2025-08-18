@@ -59,8 +59,10 @@ const outputResults = <T>(
 const cli = yargs(hideBin(process.argv))
 	.scriptName('r5')
 	.version('1.0.0')
-	.help('help').alias('help', 'h')
-	.usage(`Radio4000 R5 - Local-First Music Player
+	.help('help')
+	.alias('help', 'h')
+	.usage(
+		`Radio4000 R5 - Local-First Music Player
 
 Usage:
   $0 search <query> [--channels|--tracks] [--json]
@@ -72,11 +74,12 @@ Usage:
   $0 download <slug> [--output=<dir>] [--concurrency=<n>] [--dry-run]
   $0 db (export|reset|migrate)
   $0 -h | --help
-  $0 --version`)
+  $0 --version`
+	)
 	.example('$0 search ko002', 'Search everything for "ko002"')
 	.example('$0 search "#am" --tracks', 'Search only tracks for "#am"')
-	.example('$0 search canopy -c', 'Search only channels for "canopy"')
-	.example('$0 search "@oskar dance"', 'Search "dance" in oskar\'s channel')
+	.example('$0 search brazil -c', 'Search channels for "brazil"')
+	.example('$0 search "@ko002 dance"', 'Search "dance" in ko002\'s channel')
 	.example('$0 tracks list ko002 --limit 5', 'List 5 tracks from channel')
 	.example('$0 channels list --json | jq ".[].slug"', 'Get all channel slugs')
 	.recommendCommands()

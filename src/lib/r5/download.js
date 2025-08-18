@@ -1,4 +1,4 @@
-import {$} from 'bun'
+import {spawn} from 'node:child_process'
 import {mkdir} from 'node:fs/promises'
 import {existsSync} from 'node:fs'
 import pLimit from 'p-limit'
@@ -9,17 +9,46 @@ import {extractYouTubeId} from '../utils.js'
  * Downloads audio from a URL using yt-dlp
  */
 async function downloadAudio(url, filepath, metadataDescription = '', premium = false, poToken) {
-	if (!premium) {
-		return $`yt-dlp -f 'bestaudio[ext=m4a]' --no-playlist --restrict-filenames --output ${filepath} --parse-metadata "${metadataDescription}:%(meta_comment)s" --embed-metadata --quiet --progress ${url} --cookies-from-browser firefox`
-	}
+	const args = [
+		'-f',
+		'bestaudio[ext=m4a]',
+		'--no-playlist',
+		'--restrict-filenames',
+		'--output',
+		filepath,
+		'--parse-metadata',
+		`${metadataDescription}:%(meta_comment)s`,
+		'--embed-metadata',
+		'--quiet',
+		'--progress',
+		url,
+		'--cookies-from-browser',
+		'firefox'
+	]
 
-	if (!poToken) {
-		throw new Error(
-			'Premium download requires a PO Token. Please provide it with --poToken parameter.'
+	if (premium) {
+		if (!poToken) {
+			throw new Error(
+				'Premium download requires a PO Token. Please provide it with --poToken parameter.'
+			)
+		}
+		args.push(
+			'--extractor-args',
+			`youtube:player-client=web_music;po_token=web_music.gvs+${poToken}`
 		)
 	}
 
-	return $`yt-dlp -f 'bestaudio[ext=m4a]' --no-playlist --restrict-filenames --output ${filepath} --parse-metadata "${metadataDescription}:%(meta_comment)s" --embed-metadata --quiet --progress ${url} --cookies-from-browser firefox --extractor-args "youtube:player-client=web_music;po_token=web_music.gvs+${poToken}"`
+	return new Promise((resolve, reject) => {
+		const child = spawn('yt-dlp', args, {stdio: 'inherit'})
+		child.on('close', (code) => {
+			if (code === 0) {
+				resolve()
+			} else {
+				reject(new Error(`yt-dlp exited with code ${code}`))
+			}
+		})
+		child.on('error', reject)
+	})
 }
 
 /**
@@ -90,12 +119,30 @@ export async function downloadChannel(slug, folderPath, options = {}) {
 		console.log(`Would create folder: ${tracksFolder}`)
 	}
 
-	// Fetch tracks
+	// Fetch tracks with fallback priority: r4 > v1 > local
 	console.log(`Fetching tracks for channel: ${slug}`)
-	const tracks = await r5.tracks.r4({slug})
+	let tracks = []
+	let source = 'unknown'
+
+	try {
+		tracks = await r5.tracks.r4({slug})
+		if (!tracks?.length) throw new Error('No tracks from r4')
+		source = 'r4'
+	} catch {
+		try {
+			tracks = await r5.tracks.v1({slug})
+			if (!tracks?.length) throw new Error('No tracks from v1')
+			source = 'v1'
+		} catch {
+			tracks = await r5.tracks.local({slug})
+			source = 'local'
+		}
+	}
+
+	console.log(`Found ${tracks.length} tracks from ${source}`)
 
 	if (!tracks?.length) {
-		console.log('No tracks found')
+		console.log('No tracks found in any source')
 		return {downloaded: 0, failed: 0, skipped: 0}
 	}
 

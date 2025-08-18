@@ -24,6 +24,17 @@ export async function r4({slug = '', limit = LIMIT} = {}) {
 
 /** Get tracks from v1 (firebase) */
 export async function v1(params) {
+	// Handle CLI calls with slug parameter
+	if (params.slug && !params.firebase) {
+		const channel = (await channels.v1({slug: params.slug}))[0]
+		if (!channel) return []
+		params = {
+			firebase: channel.firebase_id,
+			channelId: channel.id,
+			limit: params.limit
+		}
+	}
+
 	const url = `https://radio4000.firebaseio.com/tracks.json?orderBy="channel"&startAt="${params.firebase}"&endAt="${params.firebase}"`
 	const res = await fetch(url)
 	if (!res.ok) throw new Error(`Failed to fetch tracks: ${res.status}`)
