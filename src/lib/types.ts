@@ -23,7 +23,7 @@ export interface Channel {
 	// custom ones
 	tracks_outdated?: boolean
 	track_count?: number
-	busy: boolean
+	busy?: boolean
 
 	latitude?: number
 	longitude?: number

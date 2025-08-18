@@ -3,7 +3,7 @@ import {r4} from './r4.js'
 import {performSearch, searchChannels, searchTracks} from './search.js'
 import {logger} from './logger'
 import {ENTITY_REGEX} from './utils.js'
-import type {ChannelFirebase, Track} from './types'
+import type {ChannelFirebase, Channel, Track} from './types'
 
 const log = logger.ns('r5').seal()
 
@@ -56,7 +56,7 @@ async function remoteTracks({slug, limit = 4000} = {}) {
 	return await r4.channels.readChannelTracks(slug, limit)
 }
 
-async function pullTracks({slug, limit} = {}) {
+async function pullTracks({slug = '', limit = 5000} = {}) {
 	const channel = (await localChannels({slug}))[0]
 	if (!channel) throw new Error(`pull_tracks:channel_not_found: ${slug}`)
 
@@ -78,7 +78,7 @@ async function pullTracks({slug, limit} = {}) {
 	return await localTracks({slug, limit})
 }
 
-async function pullChannels({slug = '', limit = 3000} = {}) {
+async function pullChannels({slug = '', limit = 5000} = {}) {
 	if (slug) {
 		// Check local first
 		const local = await localChannels({slug})
@@ -169,11 +169,8 @@ async function outdated(slug: string): Promise<boolean> {
 	}
 }
 
-/**
- * Insert channels data into local database
- * @param {Channel[]} channels - Channel data to insert
- */
-async function insertChannels(channels) {
+/** Insert channels data into local database */
+async function insertChannels(channels: Channel[]) {
 	await pg.transaction(async (tx) => {
 		for (const channel of channels) {
 			await tx.sql`
@@ -203,15 +200,10 @@ async function insertChannels(channels) {
 	log.log('inserted channels', channels.length)
 }
 
-/**
- * Insert tracks data into local database
- * @param {string} slug - Channel slug
- * @param {Track[]} tracks - Track data to insert
- */
-async function insertTracks(slug, tracks) {
+/** Insert tracks data into local database */
+async function insertTracks(slug: string, tracks: Track[]) {
 	try {
-		// Get the channel
-		const channel = (await pg.sql`update channels set busy = true where slug = ${slug} returning *`)
+		const channel = (await pg.sql<Channel>`update channels set busy = true where slug = ${slug} returning *`)
 			.rows[0]
 		if (!channel) throw new Error(`insert_tracks_error_404: ${slug}`)
 
@@ -219,7 +211,7 @@ async function insertTracks(slug, tracks) {
 		let tracksToInsert = tracks
 		if (channel.source === 'v1') {
 			const existing = await pg.sql`
-				SELECT firebase_id FROM tracks 
+				SELECT firebase_id FROM tracks
 				WHERE channel_id = ${channel.id} AND firebase_id IS NOT NULL
 			`
 			if (existing.rows.length) {
@@ -292,7 +284,7 @@ async function readv1() {
 
 async function getV1Channels({slug = '', limit = 5000} = {}) {
 	try {
-		const items = await readv1()
+		const items: ChannelFirebase[] = await readv1()
 		const filtered = slug ? items.filter((item) => item.slug === slug) : items
 		const channels = filtered
 			.slice(0, limit)
@@ -304,7 +296,7 @@ async function getV1Channels({slug = '', limit = 5000} = {}) {
 	}
 }
 
-function parseFirebaseChannel(item: ChannelFirebase) {
+function parseFirebaseChannel(item: ChannelFirebase): Channel {
 	return {
 		id: crypto.randomUUID(),
 		firebase_id: item.firebase_id,
