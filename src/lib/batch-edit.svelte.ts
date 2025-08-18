@@ -1,7 +1,7 @@
 import {sdk} from '@radio4000/sdk'
 import {identifier} from '@electric-sql/pglite/template'
 import {SvelteMap} from 'svelte/reactivity'
-import {pg} from './db'
+import {pg} from './r5/db.js'
 
 const EDITABLE_FIELDS = ['title', 'description', 'url']
 

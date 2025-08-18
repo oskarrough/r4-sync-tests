@@ -14,7 +14,9 @@ async function downloadAudio(url, filepath, metadataDescription = '', premium = 
 	}
 
 	if (!poToken) {
-		throw new Error('Premium download requires a PO Token. Please provide it with --poToken parameter.')
+		throw new Error(
+			'Premium download requires a PO Token. Please provide it with --poToken parameter.'
+		)
 	}
 
 	return $`yt-dlp -f 'bestaudio[ext=m4a]' --no-playlist --restrict-filenames --output ${filepath} --parse-metadata "${metadataDescription}:%(meta_comment)s" --embed-metadata --quiet --progress ${url} --cookies-from-browser firefox --extractor-args "youtube:player-client=web_music;po_token=web_music.gvs+${poToken}"`

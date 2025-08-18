@@ -2,13 +2,12 @@ import {PGlite} from '@electric-sql/pglite'
 import {live} from '@electric-sql/pglite/live'
 import {pg_trgm} from '@electric-sql/pglite/contrib/pg_trgm'
 import {logger} from '../logger.js'
+import migration01sql from '../migrations/01-initial-schema.sql?raw'
+import migration02sql from '../migrations/02-more-tables.sql?raw'
+import migration03sql from '../migrations/03-functions-and-views.sql?raw'
 
 const browser = typeof window !== 'undefined'
 const log = logger.ns('db').seal()
-
-import migration01sql from '$lib/migrations/01-initial-schema.sql?raw'
-import migration02sql from '$lib/migrations/02-more-tables.sql?raw'
-import migration03sql from '$lib/migrations/03-functions-and-views.sql?raw'
 
 // This will limit the amount of channels pulled.
 export const debugLimit = 40

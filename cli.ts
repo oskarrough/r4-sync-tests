@@ -31,14 +31,18 @@ const handleError = (error: Error, code = 3) => {
 	process.exit(code)
 }
 
-
 // Output formatters
 const formatChannel = (channel: {slug: string; name?: string}) =>
 	`${channel.slug}\t${channel.name || 'Untitled'}`
 const formatTrack = (track: {title?: string; url: string}) =>
 	`${track.title || 'Untitled'}\t${track.url}`
 
-const outputResults = <T>(results: T[], formatter: (item: T) => string, json: boolean, limit?: number) => {
+const outputResults = <T>(
+	results: T[],
+	formatter: (item: T) => string,
+	json: boolean,
+	limit?: number
+) => {
 	if (json) {
 		console.log(JSON.stringify(results, null, 2))
 	} else {
@@ -166,7 +170,7 @@ cli.command(
 	'Pull channel and tracks from remote',
 	(yargs) =>
 		yargs
-			.positional('slug', {describe: 'Channel slug', type: 'string'})
+			.positional('slug', {describe: 'Channel slug', type: 'string', demandOption: true})
 			.option('dry-run', dryRunOpt),
 	async (argv) => {
 		try {
@@ -174,7 +178,7 @@ cli.command(
 				console.log(`Would pull channel and tracks for '${argv.slug}'`)
 				return
 			}
-			await r5.pull({slug: argv.slug})
+			await r5.pull(argv.slug)
 			console.log(`Pulled channel and tracks for '${argv.slug}'`)
 		} catch (error) {
 			handleError(error as Error)
@@ -272,10 +276,11 @@ cli.command(
 	(yargs) =>
 		yargs
 			.positional('slug', {describe: 'Channel slug', type: 'string', demandOption: true})
-			.option('folder', {
-				describe: 'Folder to download to',
+			.option('output', {
+				alias: 'o',
+				describe: 'Output directory',
 				type: 'string',
-				demandOption: true
+				default: '.'
 			})
 			.option('concurrency', {
 				describe: 'Number of concurrent downloads',
@@ -304,7 +309,7 @@ cli.command(
 				console.log('Premium mode enabled - using YouTube Music with provided token')
 			}
 
-			await downloadChannel(argv.slug, argv.folder, {
+			await downloadChannel(argv.slug, argv.output, {
 				r5,
 				concurrency: argv.concurrency,
 				simulate: argv['dry-run'],

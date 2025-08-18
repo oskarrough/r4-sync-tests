@@ -40,6 +40,7 @@ bun ./cli.ts channels list --source r4 --json > remote.json
 ## Piping magic
 
 Extract URLs for external tools:
+
 ```bash
 # Get track URLs (add --limit for large channels)
 bun ./cli.ts tracks list ko002 --source r4 --limit 20 --json | jq -r '.[].url'
@@ -52,6 +53,7 @@ bun ./cli.ts tracks list ko002 --json | jq -r '.[].url' | grep youtube | wc -l
 ```
 
 Filter and transform:
+
 ```bash
 # Only YouTube URLs
 bun ./cli.ts tracks list ko002 --json | jq '.[] | select(.url | contains("youtube"))'
