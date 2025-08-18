@@ -3,7 +3,7 @@ import {leaveBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
 import {pg, dropDb, migrateDb} from '$lib/r5/db'
 import {r4} from '$lib/r4'
-import {r5} from '$lib/r5.js'
+import {r5} from '$lib/r5'
 import {shuffleArray} from '$lib/utils'
 import {syncFollowers, pullFollowers} from '$lib/sync/followers'
 

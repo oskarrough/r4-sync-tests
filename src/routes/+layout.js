@@ -1,5 +1,4 @@
 import {browser} from '$app/environment'
-import {pg, migrateDb} from '$lib/db'
 import {r4} from '$lib/r4'
 import {r5} from '$lib/r5'
 import {initAppState} from '$lib/app-state.svelte'
@@ -9,6 +8,9 @@ import {logger} from '$lib/logger'
 export const ssr = false
 
 const log = logger.ns('layout').seal()
+
+/** @type {import('@electric-sql/pglite/live').PGliteWithLive} */
+let pg
 
 /** Sync if no channels exist locally */
 async function autoPull() {
@@ -26,7 +28,8 @@ export async function load() {
 
 	if (browser) {
 		try {
-			await migrateDb()
+			await r5.db.migrate()
+			pg = await r5.db.getPg()
 			await initAppState()
 			await autoPull()
 			// @ts-expect-error debugging

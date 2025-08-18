@@ -3,6 +3,7 @@
 import yargs from 'yargs'
 import {hideBin} from 'yargs/helpers'
 import {r5} from './src/lib/r5/index.js'
+import {downloadChannel} from './src/lib/r5/download.js'
 
 // Shared options
 const sourceOpt = {
@@ -39,6 +40,9 @@ const formatTrack = (track: {title?: string; url: string}) =>
 const outputResults = <T>(results: T[], formatter: (item: T) => string, json: boolean) => {
 	if (json) {
 		console.log(JSON.stringify(results, null, 2))
+	} else if (results.length > 10) {
+		results.slice(0, 8).forEach((item) => console.log(formatter(item)))
+		console.log(`... and ${results.length - 8} more`)
 	} else {
 		results.forEach((item) => console.log(formatter(item)))
 	}
@@ -249,5 +253,57 @@ cli.command('db <command>', 'Database operations', (yargs) => {
 	})
 	return yargs.demandCommand(1, 'You need to specify a db command')
 })
+
+// Download command
+cli.command(
+	'download <slug>',
+	'Download tracks from a channel',
+	(yargs) =>
+		yargs
+			.positional('slug', {describe: 'Channel slug', type: 'string', demandOption: true})
+			.option('folder', {
+				describe: 'Folder to download to',
+				type: 'string',
+				demandOption: true
+			})
+			.option('concurrency', {
+				describe: 'Number of concurrent downloads',
+				type: 'number',
+				default: 5
+			})
+			.option('dry-run', dryRunOpt)
+			.option('premium', {
+				describe: 'Use premium YouTube Music (requires --po-token)',
+				type: 'boolean',
+				default: false
+			})
+			.option('po-token', {
+				describe: 'Premium token for YouTube Music',
+				type: 'string'
+			})
+			.check((argv) => {
+				if (argv.premium && !argv['po-token']) {
+					throw new Error('--premium requires --po-token')
+				}
+				return true
+			}),
+	async (argv) => {
+		try {
+			if (argv.premium) {
+				console.log('Premium mode enabled - using YouTube Music with provided token')
+			}
+
+			await downloadChannel(argv.slug, argv.folder, {
+				r5,
+				concurrency: argv.concurrency,
+				simulate: argv['dry-run'],
+				premium: argv.premium,
+				poToken: argv['po-token']
+			})
+		} catch (error) {
+			handleError(error as Error)
+		}
+	}
+)
 
 cli.parse()
