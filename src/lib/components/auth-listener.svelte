@@ -26,7 +26,7 @@
 			try {
 				const channels = await r4.channels.readUserChannels()
 				if (channels.length) await syncFollowers(channels[0].id)
-				appState.channels = channels.map(c => c.id)
+				appState.channels = channels.map((c) => c.id)
 			} catch (err) {
 				log.error('sync_followers_error', err)
 			}

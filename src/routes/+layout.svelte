@@ -14,6 +14,7 @@
 	import {logger} from '$lib/logger'
 	import {onMount} from 'svelte'
 	import {checkUser} from '$lib/api'
+	import {goto} from '$app/navigation'
 
 	const log = logger.ns('layout').seal()
 
@@ -47,7 +48,7 @@
 		persistAppState()
 			.then(() => log.log('persisted app_state'))
 			.catch((err) => {
-				log.error('Failed to persist app state from effect:', err)
+				goto(`/recovery?err=${err.message}`)
 			})
 	})
 

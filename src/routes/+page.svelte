@@ -40,8 +40,6 @@
 	<title>R5</title>
 </svelte:head>
 
-<Channels channels={data.channels} {slug} {display} {longitude} {latitude} {zoom} />
-
 {#if channelCount < 100}
 	<menu>
 		<button onclick={pullRadios} disabled={syncing}>
@@ -51,6 +49,8 @@
 		</button>
 	</menu>
 {/if}
+
+<Channels channels={data.channels} {slug} {display} {longitude} {latitude} {zoom} />
 
 <style>
 	menu {

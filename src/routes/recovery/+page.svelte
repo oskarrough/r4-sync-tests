@@ -1,0 +1,60 @@
+<script>
+	import {page} from '$app/state'
+	import {r5} from '$lib/r5'
+	import {delay} from '$lib/utils'
+
+	let isResetting = $state(false)
+	let resetSuccess = $state(false)
+
+	const errorMessage = $derived(page.url.searchParams.get('err') || 'Unknown database error')
+
+	async function resetDatabase() {
+		isResetting = true
+		try {
+			await r5.db.reset()
+			await r5.db.migrate()
+			await delay(1000)
+			console.log('Database recreated and migrated')
+			resetSuccess = true
+		} catch (err) {
+			console.error('Reset failed:', err)
+		} finally {
+			isResetting = false
+		}
+	}
+</script>
+
+<main>
+	<h1>Database recovery</h1>
+	<p>You're here (sorry) because there was an error:</p>
+	<br />
+	<p><em>{decodeURIComponent(errorMessage)}</em></p>
+	<br />
+
+	<section>
+		{#if resetSuccess}
+			<h3>Reset successful!</h3>
+			<p><a href="/">Go back to home</a></p>
+		{:else if isResetting}
+			<p>Resetting database...</p>
+		{:else}
+			<button onclick={resetDatabase} disabled={isResetting} class="danger">
+				Reset my local database
+			</button>
+			<br />
+			<br />
+			<p>Resetting the database will:</p>
+			<ul>
+				<li>Delete all <em>local</em> data (channels, tracks, settings)</li>
+				<li>Recreate a fresh database</li>
+				<li>Allow you to start with fresh data from Radio4000</li>
+			</ul>
+		{/if}
+	</section>
+</main>
+
+<style>
+	main {
+		margin: 0.5rem;
+	}
+</style>
