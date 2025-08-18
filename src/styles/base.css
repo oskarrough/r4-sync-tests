@@ -98,7 +98,7 @@ h2 {
 
 h3 {
 	font-size: var(--font-5);
-	/* font-weight: 500; */
+	font-weight: 400;
 }
 
 p {
