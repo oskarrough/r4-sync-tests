@@ -4,6 +4,7 @@ import yargs from 'yargs'
 import {hideBin} from 'yargs/helpers'
 import {r5} from './src/lib/r5/index.js'
 import {downloadChannel} from './src/lib/r5/download.js'
+import type {Channel, Track} from './src/lib/types.js'
 
 // Shared options
 const sourceOpt = {
@@ -47,10 +48,14 @@ const outputResults = <T>(
 	} else {
 		const display = limit ? results.slice(0, limit) : results
 		if (limit && results.length > limit) {
-			display.forEach((item) => console.log(formatter(item)))
+			for (const item of display) {
+				console.log(formatter(item))
+			}
 			console.log(`... and ${results.length - limit} more`)
 		} else {
-			display.forEach((item) => console.log(formatter(item)))
+			for (const item of display) {
+				console.log(formatter(item))
+			}
 		}
 	}
 }
@@ -259,21 +264,25 @@ cli.command(
 	async (argv) => {
 		try {
 			const query = argv.query.trim()
-			let results
+			let results: Channel[] | Track[] | {channels: Channel[]; tracks: Track[]}
 
 			if (argv.channels) {
 				results = await r5.search.channels(query)
 				if (argv.json) {
 					console.log(JSON.stringify(results, null, 2))
 				} else {
-					results.forEach((channel) => console.log(formatChannel(channel)))
+					for (const channel of results) {
+					console.log(formatChannel(channel))
+				}
 				}
 			} else if (argv.tracks) {
 				results = await r5.search.tracks(query)
 				if (argv.json) {
 					console.log(JSON.stringify(results, null, 2))
 				} else {
-					results.forEach((track) => console.log(formatTrack(track)))
+					for (const track of results) {
+					console.log(formatTrack(track))
+				}
 				}
 			} else {
 				// Search everything
@@ -283,11 +292,15 @@ cli.command(
 				} else {
 					if (results.channels?.length) {
 						console.log('Channels:')
-						results.channels.forEach((channel) => console.log(`  ${formatChannel(channel)}`))
+						for (const channel of results.channels) {
+					console.log(`  ${formatChannel(channel)}`)
+				}
 					}
 					if (results.tracks?.length) {
 						console.log('Tracks:')
-						results.tracks.forEach((track) => console.log(`  ${formatTrack(track)}`))
+						for (const track of results.tracks) {
+					console.log(`  ${formatTrack(track)}`)
+				}
 					}
 				}
 			}
