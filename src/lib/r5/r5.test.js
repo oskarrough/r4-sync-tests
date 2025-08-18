@@ -14,7 +14,7 @@ describe('r5 API', () => {
 		r5.db.setPg(testPg)
 	})
 
-	describe('r5.channels', () => {
+	describe('r5.channels.local', () => {
 		it('should list empty local channels initially', async () => {
 			const channels = await r5.channels.local()
 			expect(channels).toEqual([])

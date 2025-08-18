@@ -10,7 +10,7 @@
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import Icon from '$lib/components/icon.svelte'
 	import LinkEntities from '$lib/components/link-entities.svelte'
-	import {r5} from '$lib/r5'
+	import {r5} from '$lib/r5/index'
 	import {pg} from '$lib/r5/db'
 
 	/** @typedef {import('$lib/types').Track} Track */
@@ -71,7 +71,7 @@
 	async function setChannelFromTrack(tid) {
 		if (!tid || tid === track?.id) return
 		track = (await pg.sql`select * from tracks_with_meta where id = ${tid}`).rows[0]
-		channel = (await r5.channels({slug: track.channel_slug}))[0]
+		channel = (await r5.channels.local({slug: track.channel_slug}))[0]
 	}
 
 	function handlePlay() {

@@ -20,8 +20,8 @@ db [reset|migrate|export]               - database operations
 
 ```js
 import {r5} from '$lib/r5'
-await r5.channels({limit: 50})
-await r5.tracks({slug: 'ko002', limit: 100})
+await r5.channels.local({limit: 50})
+await r5.tracks.local({slug: 'ko002', limit: 100})
 await r5.channels.r4({limit: 50}) // fetch without inserting
 await r5.channels.v1({slug: 'ko002'}) // fetch v1/firebase channels
 await r5.tracks.v1({channel: 'ko002', firebase: 'id', limit: 100})
