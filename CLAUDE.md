@@ -80,14 +80,15 @@ Snippets can be used for reusable "mini" components, when a file is too much htt
 Use $derived liberally. $derived can be mutated!
 Attachments can be used for reusable behaviours/effects on elements https://svelte.dev/docs/svelte/@attach.
 Use `bind:this` to get a reference to the element. You can even export methods on it.
+Prefer $app/state over $app/store
 
 ## HTML/CSS
 
-- Semantic HTML over divs
+- Use semantic elements like `header` or `menu` instead of divs
 - Rely existing global styles over new classes
+- Don't redefine button styles etc., as we have global styles in `styles/style.css`
 - Only create CSS classes when really needed
 - Use CSS custom property variables from variables.css (colors, font-sizing)
-- Use semantic elements like header menu instead
 
 ## Code Style
 
