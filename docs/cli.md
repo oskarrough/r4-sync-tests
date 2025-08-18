@@ -14,15 +14,8 @@ bun ./cli.ts tracks list ko002 --json | jq '.[].url'
 # Get channel slugs (use --limit for large datasets)
 bun ./cli.ts channels list --limit 10 --json | jq -r '.[].slug'
 
-# Search everything
-bun ./cli.ts search "acid" --json | jq '.tracks[] | select(.title | contains("remix"))'
-
-# Search only tracks or channels
-bun ./cli.ts search "dance" --tracks --json | jq '.[].title'
-bun ./cli.ts search "ko002" --channels --json | jq '.[].slug'
-
-# Search within a specific channel using @mention syntax
-bun ./cli.ts search "@detecteve dance" --json
+# Search (everything, --tracks, --channels, or @mention)
+bun ./cli.ts search "acid" --tracks --json | jq '.[].title'
 ```
 
 ## Sources
@@ -46,26 +39,13 @@ bun ./cli.ts channels list --source r4 --json > remote.json
 
 ## Search
 
-Search across all your data with flexible filtering:
-
 ```bash
-# Search everything (channels and tracks)
+# Search everything, filter with flags, or use @mention syntax  
 bun ./cli.ts search "ambient"
-
-# Search only channels
 bun ./cli.ts search "ko002" --channels
-
-# Search only tracks  
 bun ./cli.ts search "#jazz" --tracks
-
-# Search within a specific channel using @mention syntax
-bun ./cli.ts search "@detecteve acid"  # search "acid" in detecteve's tracks
-
-# Get JSON output for processing
-bun ./cli.ts search "electronic" --json | jq '.tracks[] | .title'
+bun ./cli.ts search "@detecteve acid"  # search within channel
 ```
-
-**Mention syntax**: Use `@channelslug query` to search for tracks within a specific channel. This searches the channel's collection rather than the channel name itself.
 
 ## Piping magic
 
