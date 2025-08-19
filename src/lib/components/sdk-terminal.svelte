@@ -1,5 +1,5 @@
 <script>
-	import {getCompletions} from '$lib/cli-translator'
+	// Completions now handled by parent component
 
 	let {
 		terminalInput = $bindable(),
@@ -7,7 +7,8 @@
 		commandHistory = $bindable(),
 		historyIndex = $bindable(),
 		inputElement = $bindable(),
-		onCommand
+		onCommand,
+		getCompletions // completion function passed from parent
 	} = $props()
 
 	function handleFormSubmit(event) {
@@ -35,16 +36,15 @@
 			}
 		} else if (event.key === 'Tab') {
 			event.preventDefault()
-			const completions = getCompletions(`r5 ${terminalInput}`)
-			if (completions.length === 1) {
-				const completion = completions[0].startsWith('r5 ')
-					? completions[0].slice(3)
-					: completions[0]
-				terminalInput = completion
-			} else if (completions.length > 1) {
-				const displayCompletions = completions.map((c) => c.replace('r5 ', ''))
-				onCommand('hint', displayCompletions.join('  '))
-				setTimeout(scrollTerminal, 0)
+			if (getCompletions) {
+				getCompletions(terminalInput).then((completions) => {
+					if (completions.length === 1) {
+						terminalInput = completions[0]
+					} else if (completions.length > 1) {
+						onCommand('hint', completions.join('  '))
+						setTimeout(scrollTerminal, 0)
+					}
+				})
 			}
 		}
 	}

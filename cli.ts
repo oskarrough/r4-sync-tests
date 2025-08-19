@@ -68,7 +68,7 @@ const cli = yargs(hideBin(process.argv))
 	.help('help')
 	.alias('help', 'h')
 	.usage(
-		`Radio4000 R5 Experiment
+		`R5. A Radio4000 experiment
 
 Usage:
   $0 search <query> [--channels|--tracks] [--json]
