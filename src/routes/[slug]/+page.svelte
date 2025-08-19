@@ -62,7 +62,6 @@
 			'id',
 			(res) => {
 				trackIds = res.rows.map((row) => row.id)
-				tracksLoaded = true
 				if (res.rows.length > 0) {
 					latestTrackDate = res.rows[0].created_at
 				}
@@ -83,7 +82,6 @@
 		try {
 			const tracks = await searchTracks(searchQuery, data.slug)
 			trackIds = tracks.map((track) => track.id)
-			tracksLoaded = true
 		} catch (error) {
 			console.error('Failed to load tracks:', error)
 		}
