@@ -3,12 +3,22 @@ import adze, {setup, Formatter} from 'adze'
 const key = 'r5'
 
 class R5Formatter extends Formatter {
-	formatBrowser(data, timestamp, args) {
+	/**
+	 * @param {import('adze').ModifierData} data
+	 * @param {string} timestamp
+	 * @param {unknown[]} args
+	 */
+	formatBrowser(data, _timestamp, args) {
 		if (!data.namespace) return [key, ...args]
 		return [`${key}.${data.namespace?.[0]}`, ...args]
 	}
 
-	formatServer(data, timestamp, args) {
+	/**
+	 * @param {import('adze').ModifierData} data
+	 * @param {string} timestamp
+	 * @param {unknown[]} args
+	 */
+	formatServer(data, _timestamp, args) {
 		if (!data.namespace) return [key, ...args]
 		return [`${key}.${data.namespace?.[0]}`, ...args]
 	}

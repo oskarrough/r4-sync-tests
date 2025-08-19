@@ -150,7 +150,7 @@ function parseFirebaseTrack(track, channelId) {
 	const tags = []
 	const mentions = []
 
-	description.replace(ENTITY_REGEX, (match, prefix, entity) => {
+	description.replace(ENTITY_REGEX, (match, _prefix, entity) => {
 		if (entity.startsWith('#')) {
 			tags.push(entity.toLowerCase())
 		} else if (entity.startsWith('@')) {

@@ -9,7 +9,7 @@ export async function delay(ms: number) {
 }
 
 export function trimWithEllipsis(text?: string, maxLength: number = 267) {
-	return !text || text.length <= maxLength ? text || '' : text.substring(0, maxLength) + '…'
+	return !text || text.length <= maxLength ? text || '' : `${text.substring(0, maxLength)}…`
 }
 
 export function parseSearchTokens(query) {
@@ -38,8 +38,8 @@ export function shuffleArray<T>(arr: Array<T>) {
 	const array = arr.slice()
 
 	let m = array.length
-	let t
-	let i
+	let t: T
+	let i: number
 
 	// While there remain elements to shuffle…
 	while (m) {
@@ -82,7 +82,7 @@ export function extractHashtags(text) {
 	if (!text || typeof text !== 'string') return []
 
 	const hashtags = []
-	text.replace(ENTITY_REGEX, (match, prefix, entity) => {
+	text.replace(ENTITY_REGEX, (match, _prefix, entity) => {
 		if (entity.startsWith('#')) {
 			hashtags.push(entity.toLowerCase())
 		}

@@ -6,7 +6,7 @@ export function formatDate(date) {
 /** @param {string} dateString */
 function differenceInDays(dateString) {
 	const date = new Date(dateString).getTime()
-	const today = new Date().getTime()
+	const today = Date.now()
 	const diffTime = Math.abs(today - date)
 	return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 }

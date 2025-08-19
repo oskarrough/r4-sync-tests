@@ -6,7 +6,7 @@ import yargs from 'yargs'
 import {hideBin} from 'yargs/helpers'
 import {r5} from './r5/index.js'
 import {downloadChannel} from './r5/download.js'
-// import type {Channel, Track} from './types.ts'
+import type {Channel, Track} from './types.ts'
 
 // Shared options
 const sourceChoices = ['local', 'r4', 'v1']
@@ -277,7 +277,7 @@ cli.command(
 	async (argv) => {
 		try {
 			const query = argv.query.trim()
-			let results
+			let results: Channel[] | Track[] | {channels: Channel[]; tracks: Track[]}
 
 			if (argv.channels) {
 				results = await r5.search.channels(query)

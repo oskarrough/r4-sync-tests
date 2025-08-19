@@ -78,11 +78,15 @@ export function createBrowserCli(onOutput) {
 			// Mixed search results
 			if (results.channels?.length) {
 				log('Channels:')
-				results.channels.forEach((ch) => log(`  @${ch.slug}\t${ch.name || 'Untitled'}`))
+				results.channels.forEach((ch) => {
+					log(`  @${ch.slug}\t${ch.name || 'Untitled'}`)
+				})
 			}
 			if (results.tracks?.length) {
 				log('Tracks:')
-				results.tracks.forEach((tr) => log(`  ${tr.title || 'Untitled'}\t${tr.url}`))
+				results.tracks.forEach((tr) => {
+					log(`  ${tr.title || 'Untitled'}\t${tr.url}`)
+				})
 			}
 		} else if (Array.isArray(results)) {
 			log(`✓ ${results.length} results`, results)
