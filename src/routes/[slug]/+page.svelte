@@ -132,22 +132,24 @@
 			</p>
 		</header>
 		<section>
-			{#if trackIds.length > 0}
-				<header style="padding-top: 1rem">
-					<form onsubmit={handleSubmit}>
-						<SearchInput
-							bind:value={searchQuery}
-							placeholder="Search {channel?.name || 'channel'}..."
-							oninput={debouncedSearch}
-						/>
+			<header style="padding-top: 1rem">
+				<form onsubmit={handleSubmit}>
+					<SearchInput
+						bind:value={searchQuery}
+						placeholder="Search {channel?.name || 'channel'}..."
+						oninput={debouncedSearch}
+					/>
+					{#if trackIds.length > 0}
 						<menu>
 							<button onclick={() => setPlaylist(trackIds)}>Play All</button>
 							<button onclick={() => addToPlaylist(trackIds)}>Add to queue</button>
 							<!--<a href="/{data.slug}/batch-edit" class="btn">Batch edit</a>-->
 						</menu>
-					</form>
-				</header>
+					{/if}
+				</form>
+			</header>
 
+			{#if trackIds.length > 0}
 				<Tracklist ids={trackIds} />
 			{:else if !channel.tracks_synced_at}
 				<p style="margin-top:1rem; margin-left: 0.5rem;">Tracks syncing…</p>
