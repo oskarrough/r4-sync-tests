@@ -49,6 +49,8 @@ export async function createPg(persist = browser) {
 export async function getPg() {
 	if (!pg) {
 		pg = await createPg()
+		// Auto-migrate on first database creation
+		await migrate()
 	}
 	return pg
 }
@@ -63,15 +65,16 @@ export function setPg(instance) {
 
 export async function drop() {
 	pg = await createPg()
-	// creating a new instance with the same filename doesn't create a new db!
-	// Clear tables
-	await pg.sql`DELETE FROM app_state;`
-	await pg.sql`DELETE FROM track_edits;`
-	await pg.sql`DELETE FROM followers;`
-	await pg.sql`DELETE FROM play_history;`
-	await pg.sql`DELETE FROM tracks;`
-	await pg.sql`DELETE FROM channels;`
-	// Then drop them
+
+	// Delete before dropping tables because why?
+	// await pg.sql`DELETE FROM app_state;`
+	// await pg.sql`DELETE FROM track_edits;`
+	// await pg.sql`DELETE FROM followers;`
+	// await pg.sql`DELETE FROM play_history;`
+	// await pg.sql`DELETE FROM tracks;`
+	// await pg.sql`DELETE FROM channels;`
+
+	// Drop tables with CASCADE to handle dependencies
 	await pg.sql`drop table if exists app_state CASCADE;`
 	await pg.sql`drop table if exists track_edits CASCADE;`
 	await pg.sql`drop table if exists followers CASCADE;`

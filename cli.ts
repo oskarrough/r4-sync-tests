@@ -123,7 +123,12 @@ Hint: To sync data locally first, use: r5 pull ${argv.slug || '[slug]'}`)
 					const results = await sources.channels[argv.source](opts)
 					outputResults(results, formatChannel, argv.json, argv.limit)
 				} catch (error) {
-					handleError(error as Error)
+					const err = error as Error
+					if (err.message.includes('JSON object requested') && argv.slug) {
+						console.error(`Channel '${argv.slug}' not found`)
+						process.exit(1)
+					}
+					handleError(err)
 				}
 			}
 		)
@@ -183,7 +188,12 @@ Hint: To sync data locally first, use: r5 pull ${argv.slug || '[slug]'}`)
 					const results = await sources.tracks[argv.source](opts)
 					outputResults(results, formatTrack, argv.json, argv.limit)
 				} catch (error) {
-					handleError(error as Error)
+					const err = error as Error
+					if (err.message.includes('JSON object requested') && argv.slug) {
+						console.error(`Channel '${argv.slug}' not found`)
+						process.exit(1)
+					}
+					handleError(err)
 				}
 			}
 		)
@@ -272,8 +282,8 @@ cli.command(
 					console.log(JSON.stringify(results, null, 2))
 				} else {
 					for (const channel of results) {
-					console.log(formatChannel(channel))
-				}
+						console.log(formatChannel(channel))
+					}
 				}
 			} else if (argv.tracks) {
 				results = await r5.search.tracks(query)
@@ -281,8 +291,8 @@ cli.command(
 					console.log(JSON.stringify(results, null, 2))
 				} else {
 					for (const track of results) {
-					console.log(formatTrack(track))
-				}
+						console.log(formatTrack(track))
+					}
 				}
 			} else {
 				// Search everything
@@ -293,14 +303,14 @@ cli.command(
 					if (results.channels?.length) {
 						console.log('Channels:')
 						for (const channel of results.channels) {
-					console.log(`  ${formatChannel(channel)}`)
-				}
+							console.log(`  ${formatChannel(channel)}`)
+						}
 					}
 					if (results.tracks?.length) {
 						console.log('Tracks:')
 						for (const track of results.tracks) {
-					console.log(`  ${formatTrack(track)}`)
-				}
+							console.log(`  ${formatTrack(track)}`)
+						}
 					}
 				}
 			}
@@ -312,7 +322,14 @@ cli.command(
 
 // Database commands
 const dbCommands: [string, string, () => Promise<void>][] = [
-	['export', 'Export database', async () => console.log(await r5.db.export())],
+	[
+		'export',
+		'Export database (browser only)',
+		async () => {
+			console.log('Database export is only available in the browser interface.')
+			console.log('To backup your data, copy the directory: ./r5-cli-data')
+		}
+	],
 	[
 		'reset',
 		'Reset database',
