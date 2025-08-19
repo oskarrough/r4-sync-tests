@@ -3,7 +3,6 @@ import {logger} from '../logger.js'
 import {r4 as r4Api} from '../r4.ts'
 import {getPg} from './db.js'
 import * as channels from './channels.js'
-import {batcher} from '../batcher.js'
 import {sql, raw} from '@electric-sql/pglite/template'
 
 const log = logger.ns('r5:tracks').seal()
@@ -95,29 +94,67 @@ export async function insert(slug, tracks) {
 		}
 	}
 
-	// Insert tracks in batches to avoid parameter limit issues
+	// Insert tracks using batched approach for worker performance
 	if (tracksToInsert.length > 0) {
-		await batcher(tracksToInsert, async (track) => {
-			return await pg.sql`
-				INSERT INTO tracks (
-					id, channel_id, url, title, description,
-					discogs_url, created_at, updated_at, tags, mentions, firebase_id
-				)
-				VALUES (
-					${track.id}, ${channel.id}, ${track.url}, ${track.title}, ${track.description},
-					${track.discogs_url}, ${track.created_at}, ${track.updated_at},
-					${track.tags}, ${track.mentions}, ${track.firebase_id || null}
-				)
-				ON CONFLICT (id) DO UPDATE SET
-					url = EXCLUDED.url,
-					title = EXCLUDED.title,
-					description = EXCLUDED.description,
-					discogs_url = EXCLUDED.discogs_url,
-					updated_at = EXCLUDED.updated_at,
-					tags = EXCLUDED.tags,
-					mentions = EXCLUDED.mentions
-			`
-		}, {batchSize: 500, withinBatch: 50})
+		console.time(`inserting ${tracksToInsert.length} tracks`)
+
+		await pg.transaction(async (tx) => {
+			const batchSize = 1000 // Larger batches since we're doing single queries
+
+			for (let i = 0; i < tracksToInsert.length; i += batchSize) {
+				const batch = tracksToInsert.slice(i, i + batchSize)
+
+				// Build single multi-row INSERT with all parameter substitution
+				const values = batch.map((track) => [
+					track.id,
+					channel.id,
+					track.url,
+					track.title,
+					track.description,
+					track.discogs_url,
+					track.created_at,
+					track.updated_at,
+					track.tags,
+					track.mentions,
+					track.firebase_id || null
+				])
+
+				// Flatten all values for parameter substitution
+				const flatValues = values.flat()
+
+				// Build VALUES clause with parameter placeholders
+				const valuesClause = values
+					.map((_, idx) => {
+						const offset = idx * 11 // 11 columns per row
+						return `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, $${offset + 7}, $${offset + 8}, $${offset + 9}, $${offset + 10}, $${offset + 11})`
+					})
+					.join(', ')
+
+				const sql = `
+					INSERT INTO tracks (
+						id, channel_id, url, title, description,
+						discogs_url, created_at, updated_at, tags, mentions, firebase_id
+					)
+					VALUES ${valuesClause}
+					ON CONFLICT (id) DO UPDATE SET
+						url = EXCLUDED.url,
+						title = EXCLUDED.title,
+						description = EXCLUDED.description,
+						discogs_url = EXCLUDED.discogs_url,
+						updated_at = EXCLUDED.updated_at,
+						tags = EXCLUDED.tags,
+						mentions = EXCLUDED.mentions
+				`
+
+				await tx.query(sql, flatValues)
+
+				// Progress logging
+				const processed = Math.min(i + batchSize, tracksToInsert.length)
+				console.log(`inserted ${processed}/${tracksToInsert.length} tracks`)
+			}
+		})
+
+		console.timeEnd(`inserting ${tracksToInsert.length} tracks`)
 	}
 
 	// Mark as successfully synced

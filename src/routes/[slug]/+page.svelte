@@ -19,8 +19,7 @@
 	let latestTrackDate = $state(null)
 
 	/** @type {string[]} */
-	let trackIds = $state([])
-	let tracksLoaded = $state(false)
+	let trackIds = $derived([])
 	let searchQuery = $state(data.search || '')
 	let debounceTimer = $state()
 
@@ -56,6 +55,7 @@
 		}
 
 		// Use liveQuery for default track loading (reactive)
+		/*
 		return incrementalLiveQuery(
 			'SELECT id, created_at FROM tracks WHERE channel_id = $1 ORDER BY created_at DESC',
 			[channel.id],
@@ -68,6 +68,7 @@
 				}
 			}
 		)
+			 */
 	})
 
 	onMount(() => {
@@ -153,15 +154,19 @@
 				</form>
 			</header>
 
-			{#if trackIds.length > 0}
-				<Tracklist ids={trackIds} />
-			{:else if !tracksLoaded}
+			{#await data.tracksPromise}
 				<p style="margin-top:1rem; margin-left: 0.5rem;">Loading tracks…</p>
-			{:else if !channel.tracks_synced_at}
-				<p style="margin-top:1rem; margin-left: 0.5rem;">Tracks syncing…</p>
-			{:else}
-				<p>No tracks found{searchQuery ? ` for "${searchQuery}"` : ''}</p>
-			{/if}
+			{:then whatevs}
+				{@const ids = trackIds.length ? trackIds : whatevs.map((x) => x.id)}
+				<p style="margin-top:1rem; margin-left: 0.5rem;">{ids.length} tracks</p>
+				{#if ids.length > 0}
+					<Tracklist {ids} />
+				{:else}
+					<p>No tracks found{searchQuery ? ` for "${searchQuery}"` : ''}</p>
+				{/if}
+			{:catch error}
+				<p>error loading tracks: {error.message}</p>
+			{/await}
 		</section>
 	</article>
 {:else}

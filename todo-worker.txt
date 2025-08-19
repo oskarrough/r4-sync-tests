@@ -1,0 +1,68 @@
+# PGlite Worker Performance Issue
+
+## Problem
+Track insertion for large channels (3000+ tracks) is slow with worker enabled:
+- Without worker: ~2 seconds for 3000 tracks (using Promise.all)
+- With worker + sequential: ~14 seconds
+- With worker + Promise.all: crashes with "uncaught exception: Object"
+
+## Root Cause
+Worker communication overhead adds ~3-5ms per database operation:
+1. Main thread serializes SQL + parameters
+2. Posts message to worker thread
+3. Worker deserializes and executes
+4. Worker serializes result
+5. Posts result back to main thread
+6. Main thread deserializes
+
+With 3000 individual INSERTs, overhead alone = 3000 × 4ms = 12+ seconds
+
+## Solutions
+
+### Option 1: Disable Worker (Fastest)
+In `/src/lib/r5/db.js` set `useWorker = false`
+- Performance: ~2 seconds for 3000 tracks
+- Downside: Loses thread isolation, may block UI
+
+### Option 2: Hybrid Batching (Recommended)
+Keep worker, batch INSERTs within transaction:
+```js
+await pg.transaction(async (tx) => {
+  const batchSize = 50 // sweet spot for worker
+  for (let i = 0; i < tracksToInsert.length; i += batchSize) {
+    const batch = tracksToInsert.slice(i, i + batchSize)
+    const inserts = batch.map(track => tx.sql`INSERT INTO tracks...`)
+    await Promise.all(inserts) // concurrent within batch
+  }
+})
+```
+- Performance: ~4-6 seconds
+- Maintains worker isolation
+- Avoids parameter overflow
+
+### Option 3: Multi-Row INSERT with exec()
+Use pg.exec() with manually constructed SQL:
+```js
+const values = tracks.map((t, i) => 
+  `($${i*11+1}, $${i*11+2}, ...)`
+).join(',')
+const sql = `INSERT INTO tracks (...) VALUES ${values} ON CONFLICT...`
+await pg.exec(sql, flattenedParams)
+```
+- Risky: manual SQL construction
+- May still hit parameter limits
+
+## Key Learnings
+- PGlite worker has strict parameter limits
+- sql`` template literals return objects with .text and .values
+- Worker message queue can overflow with too many concurrent operations
+- Transaction wrapping doesn't reduce worker overhead
+- pg.query() accepts numbered parameters ($1, $2)
+- pg.exec() for non-parameterized SQL
+- pg.transaction() ensures atomicity
+
+## Current Working Solution
+Sequential INSERTs in transaction (slow but stable):
+- Location: `/src/lib/r5/tracks.js` insert() function
+- Performance: 14 seconds for 3000 tracks
+- No crashes or errors

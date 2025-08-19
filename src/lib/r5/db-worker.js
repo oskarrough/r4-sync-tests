@@ -7,7 +7,7 @@ worker({
 	async init(options) {
 		const browser = typeof window !== 'undefined'
 		const dataDir = options.dataDir || (browser ? 'idb://radio4000test2' : './cli-db')
-		
+
 		return new PGlite({
 			dataDir: dataDir,
 			relaxedDurability: true,

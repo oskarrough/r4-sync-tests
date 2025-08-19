@@ -31,7 +31,7 @@ export let pg
 export async function createPg(persist = browser) {
 	if (!pg) {
 		const dataDir = browser ? (persist ? 'idb://radio4000test2' : 'memory://') : './cli-db'
-		
+
 		if (browser && useWorker) {
 			console.time('create-pg-worker')
 			pg = await PGliteWorker.create(
