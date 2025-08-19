@@ -1,7 +1,7 @@
 <script>
-	import {insertMusicBrainzMeta} from '$lib/sync/musicbrainz'
-	import {insertYouTubeMeta} from '$lib/sync/youtube'
-	import {insertDiscogsMeta, huntDiscogsUrl, saveDiscogsUrl} from '$lib/sync/discogs'
+	import {pull as insertMusicBrainzMeta} from '$lib/metadata/musicbrainz'
+	import {pullSingle as insertYouTubeMeta} from '$lib/metadata/youtube'
+	import {pull as insertDiscogsMeta, hunt as huntDiscogsUrl} from '$lib/metadata/discogs'
 	import {extractYouTubeId} from '$lib/utils.ts'
 	import {logger} from '$lib/logger'
 
@@ -47,11 +47,10 @@
 						discogs_data = await insertDiscogsMeta(ytid, track.discogs_url)
 					} else {
 						log.info('hunting discogs url', {title: track.title})
-						const discoveredUrl = await huntDiscogsUrl(ytid, track.title, {musicbrainz_data})
+						const discoveredUrl = await huntDiscogsUrl(track.id, ytid, track.title)
 
 						if (discoveredUrl) {
 							log.info('found discogs url', {url: discoveredUrl})
-							await saveDiscogsUrl(track.id, discoveredUrl)
 							discogs_data = await insertDiscogsMeta(ytid, discoveredUrl)
 						}
 					}

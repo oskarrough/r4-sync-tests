@@ -1,17 +1,18 @@
 import {getPg} from '../r5/db.js'
 import {logger} from '$lib/logger'
 
-const log = logger.ns('sync.discogs').seal()
+const log = logger.ns('metadata:discogs').seal()
 
 /**
- * Insert discogs meta data for a track by discogs URL
- * @param {string} ytid
- * @param {string} discogsUrl
+ * Fetch Discogs data from URL and save to track_meta
+ * @param {string} ytid YouTube video ID
+ * @param {string} discogsUrl Discogs release/master URL
+ * @returns {Promise<Object|null>} Discogs data
  */
-export async function insertDiscogsMeta(ytid, discogsUrl) {
+export async function pull(ytid, discogsUrl) {
 	if (!ytid || !discogsUrl) return null
 
-	const discogsData = await fetchDiscogs(discogsUrl)
+	const discogsData = await fetch(discogsUrl)
 	if (!discogsData) return null
 
 	try {
@@ -63,10 +64,11 @@ export function parseDiscogsUrl(url) {
 }
 
 /**
- * Fetch data from Discogs API
- * @param {string} discogsUrl
+ * Fetch Discogs data without saving
+ * @param {string} discogsUrl Discogs URL
+ * @returns {Promise<Object|null>} Discogs data
  */
-export async function fetchDiscogs(discogsUrl) {
+export async function fetch(discogsUrl) {
 	const parsed = parseDiscogsUrl(discogsUrl)
 	if (!parsed) return null
 
@@ -104,8 +106,9 @@ export async function fetchDiscogs(discogsUrl) {
 /**
  * Search Discogs by title (for future automatic search)
  * @param {string} title
+ * @returns {Promise<Object|null>} Search URL object
  */
-export async function searchDiscogs(title) {
+export async function searchUrl(title) {
 	if (!title) return null
 
 	// Use the web search interface instead of API (which requires auth)
@@ -119,35 +122,27 @@ export async function searchDiscogs(title) {
 }
 
 /**
- * Auto-discover Discogs releases via MusicBrainz
- * Chain: ytid → recording → release → discogs URL
- */
-
-/**
- * Hunt for Discogs release URL for a track via MusicBrainz
- * Checks local cache first to avoid redundant API calls
+ * Hunt for Discogs URL via MusicBrainz chain and save URL to tracks table
+ * @param {string} trackId Track UUID
  * @param {string} ytid YouTube video ID
- * @param {string} title Track title for fallback search
- * @param {object} existingMeta Optional existing track_meta to avoid re-fetching
- * @returns {Promise<string|null>} Discogs URL or null
+ * @param {string} title Track title for search
+ * @returns {Promise<string|null>} Discovered Discogs URL
  */
-export async function huntDiscogsUrl(ytid, title, existingMeta = null) {
+export async function hunt(trackId, ytid, title) {
 	if (!ytid || !title) return null
 
 	try {
 		// Check if we already have MusicBrainz data locally
-		let musicbrainzData = existingMeta?.musicbrainz_data
+		let musicbrainzData = null
 
-		if (!musicbrainzData) {
-			// Check local track_meta table
-			const pg = await getPg()
-			const result = await pg.sql`
-				SELECT musicbrainz_data 
-				FROM track_meta 
-				WHERE ytid = ${ytid}
-			`
-			musicbrainzData = result.rows[0]?.musicbrainz_data
-		}
+		// Check local track_meta table
+		const pg = await getPg()
+		const result = await pg.sql`
+			SELECT musicbrainz_data 
+			FROM track_meta 
+			WHERE ytid = ${ytid}
+		`
+		musicbrainzData = result.rows[0]?.musicbrainz_data
 
 		// If we have cached MusicBrainz data with releases, use it
 		if (musicbrainzData?.releases?.length > 0) {
@@ -156,7 +151,10 @@ export async function huntDiscogsUrl(ytid, title, existingMeta = null) {
 			for (const release of musicbrainzData.releases) {
 				if (release.id) {
 					const discogsUrl = await getDiscogsUrlFromRelease(release.id)
-					if (discogsUrl) return discogsUrl
+					if (discogsUrl) {
+						await saveDiscogsUrl(trackId, discogsUrl)
+						return discogsUrl
+					}
 				}
 			}
 		}
@@ -175,7 +173,10 @@ export async function huntDiscogsUrl(ytid, title, existingMeta = null) {
 		// Step 3: Find discogs URL in release relationships
 		for (const release of releases) {
 			const discogsUrl = await getDiscogsUrlFromRelease(release.id)
-			if (discogsUrl) return discogsUrl
+			if (discogsUrl) {
+				await saveDiscogsUrl(trackId, discogsUrl)
+				return discogsUrl
+			}
 		}
 
 		return null
@@ -277,7 +278,7 @@ async function getDiscogsUrlFromRelease(releaseId) {
  * @param {string} trackId Track UUID
  * @param {string} discogsUrl Discovered Discogs URL
  */
-export async function saveDiscogsUrl(trackId, discogsUrl) {
+async function saveDiscogsUrl(trackId, discogsUrl) {
 	if (!trackId || !discogsUrl) return false
 
 	try {
@@ -296,12 +297,26 @@ export async function saveDiscogsUrl(trackId, discogsUrl) {
 }
 
 /**
+ * Read Discogs metadata from local track_meta
+ * @param {string[]} ytids YouTube video IDs
+ * @returns {Promise<Object[]>} Local metadata
+ */
+export async function local(ytids) {
+	const pg = await getPg()
+	const res = await pg.sql`
+		SELECT * FROM track_meta 
+		WHERE ytid = ANY(${ytids}) AND discogs_data IS NOT NULL
+	`
+	return res.rows
+}
+
+/**
  * Test the chain with a known track
  */
 export async function testAutoDiscovery() {
 	log.info('testing auto-discovery', {track: 'Daft Punk - Get Lucky'})
 
-	const discogsUrl = await huntDiscogsUrl('09m-zZN-tOQ', 'Daft Punk - Get Lucky')
+	const discogsUrl = await hunt('test-track-id', '09m-zZN-tOQ', 'Daft Punk - Get Lucky')
 	log.info('test result', {discogsUrl})
 
 	return discogsUrl

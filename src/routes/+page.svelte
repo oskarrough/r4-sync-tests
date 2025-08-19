@@ -4,7 +4,6 @@
 	import {r5} from '$lib/r5'
 	import Icon from '$lib/components/icon.svelte'
 	import Channels from '$lib/components/channels.svelte'
-	import {liveQuery} from '$lib/live-query'
 
 	const {data} = $props()
 
@@ -17,7 +16,7 @@
 	)
 
 	let syncing = $state(false)
-	
+
 	const channelCount = $derived(data.channels?.length || 0)
 
 	async function pullRadios() {

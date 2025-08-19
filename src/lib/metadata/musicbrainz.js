@@ -1,16 +1,18 @@
 import {pg} from '$lib/r5/db'
 import {logger} from '$lib/logger'
 
-const log = logger.ns('sync.musicbrainz').seal()
+const log = logger.ns('metadata:musicbrainz').seal()
 
 /**
- * @param {string} ytid
- * @param {string} title
+ * Search MusicBrainz and save to track_meta
+ * @param {string} ytid YouTube video ID
+ * @param {string} title Track title to search
+ * @returns {Promise<Object|null>} MusicBrainz data
  */
-export async function insertMusicBrainzMeta(ytid, title) {
+export async function pull(ytid, title) {
 	if (!ytid || !title) return null
 
-	const musicbrainzData = await searchMusicBrainz(title)
+	const musicbrainzData = await search(title)
 	if (!musicbrainzData) return null
 
 	try {
@@ -71,10 +73,12 @@ function parseTrackTitle(title) {
 	}
 }
 
-/** Searches MusicBrainz for a track
- * Tries to be smart with the title parsing
+/**
+ * Search MusicBrainz API without saving
+ * @param {string} title Track title to search
+ * @returns {Promise<Object|null>} Search results
  */
-export async function searchMusicBrainz(title) {
+export async function search(title) {
 	if (!title) return null
 
 	const parsed = parseTrackTitle(title)
@@ -134,4 +138,17 @@ export async function searchMusicBrainz(title) {
 	}
 
 	return null
+}
+
+/**
+ * Read MusicBrainz metadata from local track_meta
+ * @param {string[]} ytids YouTube video IDs
+ * @returns {Promise<Object[]>} Local metadata
+ */
+export async function local(ytids) {
+	const res = await pg.sql`
+		SELECT * FROM track_meta 
+		WHERE ytid = ANY(${ytids}) AND musicbrainz_data IS NOT NULL
+	`
+	return res.rows
 }
