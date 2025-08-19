@@ -20,16 +20,13 @@ Always verify and evaluate todos before taking them on. They might be outdated o
 - after adding a track the modal form resets, which is fine, but there's no clear ux to indicate that it was saved correctly. One idea is to add the <TrackCard> below. The r4-track-form thing must
 - analyze https://svelte.dev/docs/svelte/$effect#When-not-to-use-$effect
 
-## Arch improvements to consider
+##Arch improvements to consider
 
 - implement event sourcing pattern: events table {type, payload, timestamp} for state changes, enables undo/replay
 - unify sync layer: single sync_operations queue table instead of scattered pull/push functions
 - refactor persistAppState() to use parameterized queries instead of string concatenation
 - add validation layer at sync boundaries (remote->local) using lightweight lib like valibot
 - implement backup/restore: export/import full pglite database as json or sql dump
-
-ARCHITECTURE IMPROVEMENTS (MEDIUM PRIORITY)
-
 - enhance logger: expose store.logs in devtools ui
 - separate api layers: split ui operations (toggleTheme, openSearch) from data operations in api.js
 - extract reusable debouncing utility instead of per-component implementation
@@ -39,33 +36,29 @@ ARCHITECTURE IMPROVEMENTS (MEDIUM PRIORITY)
 - consolidate follower sync logic into single flow, remove complex local-user migration
 - refactor broadcast architecture - remove module-level state, fix implicit dependencies, add cleanup on failures
 
-TERMINOLOGY & API REFACTORS (from index.ts review)
+## TERMINOLOGY & API REFACTORS (from index.ts review)
 
 - unify play actions: merge playTrack and playChannel into single play(entity)  -- why?
 - move spam detection out of playground into proper module if keeping
 - split utils by domain: youtube utils, text parsing utils, array utils
-- standardize Channel vs Channels in function names (e.g., pullChannel vs pullChannels)
 
-CLI & LLM INTEGRATION LEARNINGS
+## CLI & LLM INTEGRATION LEARNINGS
 
 - search functionality works but needed better context understanding - improve CLI help/examples for complex queries  
 - natural language search patterns unclear - document search operators (AND, OR, phrase matching) in CLI help
 - verify we can write arbitrary sql queries locally??
 - genre cross-analysis queries powerful but not obvious - add examples to CLI help
 - LLM integration reveals rich semantic connections - consider exposing more metadata fields for search
-
-HARD ONES, LOW PRIO
-
-- the <youtube-player> fires volumechange seemingly at will, many times on load, which currently overwrites any appState.volume the user might already have. In other words, your volume preferences is persisted, but also overwritten on load
-- find a way to share `track_meta` data between users. push it remote, how? security?
-
-## CLI
-
 - cli missing pieces (to be verified, do we event want/need this?)
-  - Core download engine: yt-dlp integration, concurrent processing, file management
   - Progress system: @opentf/cli-pbar, ETA calculations, download statistics
   - Error handling: retry logic, download state tracking, failure persistence
   - File scanning: old CLI scans `<folder>/<slug>/tracks/*.m4a`, new CLI has no file ops
 - cli: Better progress reporting with download speeds, concurrent status
 - cli: Enhanced error messages with actionable recovery steps
+
+
+## HARD ONES, LOW PRIO
+
+- the <youtube-player> fires volumechange seemingly at will, many times on load, which currently overwrites any appState.volume the user might already have. In other words, your volume preferences is persisted, but also overwritten on load
+- find a way to share `track_meta` data between users. push it remote, how? security?
 
