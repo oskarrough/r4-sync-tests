@@ -13,7 +13,7 @@
 	}
 </script>
 
-<article ondblclick={doubleclick} data-busy={channel.busy}>
+<article ondblclick={doubleclick}>
 	<a href={`/${channel.slug}`}>
 		<ChannelHero {channel} />
 		<div>
@@ -82,10 +82,6 @@
 		border-radius: var(--border-radius);
 		/* for channels with no image */
 		min-height: 2rem;
-	}
-
-	[data-busy='true'] {
-		cursor: wait;
 	}
 
 	h3 {

@@ -122,21 +122,14 @@ export async function insert(slug, tracks) {
           tags = EXCLUDED.tags,
           mentions = EXCLUDED.mentions
       `
-				)
-				await Promise.all(inserts)
-
-				// Yield to UI thread between chunks
-				if (i + CHUNK_SIZE < tracks.length) {
-					await new Promise((resolve) => setTimeout(resolve, 0))
-				}
-			}
+			)
+			await Promise.all(inserts)
 		})
+
 		// Mark as successfully synced
-		await pg.sql`update channels set busy = false, tracks_synced_at = CURRENT_TIMESTAMP, track_count = ${tracksToInsert.length} where slug = ${slug}`
+		await pg.sql`update channels set tracks_synced_at = CURRENT_TIMESTAMP, track_count = ${tracksToInsert.length} where slug = ${slug}`
 		log.log('inserted tracks', slug, tracksToInsert.length)
 	} catch (error) {
-		// On error, just mark as not busy (tracks_synced_at stays NULL for retry)
-		await pg.sql`update channels set busy = false where slug = ${slug}`
 		throw error
 	}
 }
