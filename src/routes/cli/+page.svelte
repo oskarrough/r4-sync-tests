@@ -148,7 +148,7 @@
 </script>
 
 <svelte:head>
-	<title>SDK - R5</title>
+	<title>CLI - R5</title>
 </svelte:head>
 
 <article class="sdk">
@@ -167,13 +167,13 @@
 			getCompletions={cli.getCompletions}
 		/>
 	</main>
+	<footer>
+		<p>tip: keep the browser console open as well</p>
+		<p>tip2: the real terminal cli is better than this... (kinda) available via the github repo</p>
+	</footer>
 	<section class="repl">
 		<PgliteRepl />
 	</section>
-	<footer>
-		<p>tip: keep the browser console open</p>
-		<p>tip2: the real terminal cli is better than this...</p>
-	</footer>
 </article>
 
 <style>
