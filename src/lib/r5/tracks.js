@@ -3,6 +3,7 @@ import {logger} from '../logger.js'
 import {r4 as r4Api} from '../r4.ts'
 import {getPg} from './db.js'
 import * as channels from './channels.js'
+import {batcher} from '../batcher.js'
 import {sql, raw} from '@electric-sql/pglite/template'
 
 const log = logger.ns('r5:tracks').seal()
@@ -94,36 +95,29 @@ export async function insert(slug, tracks) {
 		}
 	}
 
-	// Insert tracks in single batched query  
+	// Insert tracks in batches to avoid parameter limit issues
 	if (tracksToInsert.length > 0) {
-		const values = tracksToInsert.map(track => [
-			track.id, channel.id, track.url, track.title, track.description,
-			track.discogs_url, track.created_at, track.updated_at,
-			track.tags, track.mentions, track.firebase_id || null
-		])
-		
-		const placeholders = values.map((_, i) => {
-			const base = i * 11
-			return `($${base+1}, $${base+2}, $${base+3}, $${base+4}, $${base+5}, $${base+6}, $${base+7}, $${base+8}, $${base+9}, $${base+10}, $${base+11})`
-		}).join(', ')
-		
-		const allParams = values.flat()
-		
-		await pg.query(`
-			INSERT INTO tracks (
-				id, channel_id, url, title, description,
-				discogs_url, created_at, updated_at, tags, mentions, firebase_id
-			)
-			VALUES ${placeholders}
-			ON CONFLICT (id) DO UPDATE SET
-				url = EXCLUDED.url,
-				title = EXCLUDED.title,
-				description = EXCLUDED.description,
-				discogs_url = EXCLUDED.discogs_url,
-				updated_at = EXCLUDED.updated_at,
-				tags = EXCLUDED.tags,
-				mentions = EXCLUDED.mentions
-		`, allParams)
+		await batcher(tracksToInsert, async (track) => {
+			return await pg.sql`
+				INSERT INTO tracks (
+					id, channel_id, url, title, description,
+					discogs_url, created_at, updated_at, tags, mentions, firebase_id
+				)
+				VALUES (
+					${track.id}, ${channel.id}, ${track.url}, ${track.title}, ${track.description},
+					${track.discogs_url}, ${track.created_at}, ${track.updated_at},
+					${track.tags}, ${track.mentions}, ${track.firebase_id || null}
+				)
+				ON CONFLICT (id) DO UPDATE SET
+					url = EXCLUDED.url,
+					title = EXCLUDED.title,
+					description = EXCLUDED.description,
+					discogs_url = EXCLUDED.discogs_url,
+					updated_at = EXCLUDED.updated_at,
+					tags = EXCLUDED.tags,
+					mentions = EXCLUDED.mentions
+			`
+		}, {batchSize: 500, withinBatch: 50})
 	}
 
 	// Mark as successfully synced
