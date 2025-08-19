@@ -43,10 +43,12 @@ const outputResults = <T>(
 	json: boolean,
 	limit?: number
 ) => {
+	const display = limit ? results.slice(0, limit) : results
+
 	if (json) {
-		console.log(JSON.stringify(results, null, 2))
+		process.stdout.write(JSON.stringify(display, null, 2))
+		process.stdout.write('\n')
 	} else {
-		const display = limit ? results.slice(0, limit) : results
 		if (limit && results.length > limit) {
 			for (const item of display) {
 				console.log(formatter(item))
@@ -66,7 +68,7 @@ const cli = yargs(hideBin(process.argv))
 	.help('help')
 	.alias('help', 'h')
 	.usage(
-		`Radio4000 R5 - Local-First Music Player
+		`Radio4000 R5 Experiment
 
 Usage:
   $0 search <query> [--channels|--tracks] [--json]
@@ -114,7 +116,7 @@ cli.command('channels <command>', 'Manage channels', (yargs) => {
 						throw new Error(`Please specify --source (local, r4, or v1)
 
   --source local  Query your local database
-  --source r4     Query radio4000.com directly  
+  --source r4     Query radio4000.com directly
   --source v1     Query legacy firebase data
 
 Hint: To sync data locally first, use: r5 pull ${argv.slug || '[slug]'}`)
@@ -179,7 +181,7 @@ cli.command('tracks <command>', 'Manage tracks', (yargs) => {
 						throw new Error(`Please specify --source (local, r4, or v1)
 
   --source local  Query your local database
-  --source r4     Query radio4000.com directly  
+  --source r4     Query radio4000.com directly
   --source v1     Query legacy firebase data
 
 Hint: To sync data locally first, use: r5 pull ${argv.slug || '[slug]'}`)
@@ -279,7 +281,8 @@ cli.command(
 			if (argv.channels) {
 				results = await r5.search.channels(query)
 				if (argv.json) {
-					console.log(JSON.stringify(results, null, 2))
+					process.stdout.write(JSON.stringify(results, null, 2))
+					process.stdout.write('\n')
 				} else {
 					for (const channel of results) {
 						console.log(formatChannel(channel))
@@ -288,7 +291,8 @@ cli.command(
 			} else if (argv.tracks) {
 				results = await r5.search.tracks(query)
 				if (argv.json) {
-					console.log(JSON.stringify(results, null, 2))
+					process.stdout.write(JSON.stringify(results, null, 2))
+					process.stdout.write('\n')
 				} else {
 					for (const track of results) {
 						console.log(formatTrack(track))
@@ -298,7 +302,8 @@ cli.command(
 				// Search everything
 				results = await r5.search.all(query)
 				if (argv.json) {
-					console.log(JSON.stringify(results, null, 2))
+					process.stdout.write(JSON.stringify(results, null, 2))
+					process.stdout.write('\n')
 				} else {
 					if (results.channels?.length) {
 						console.log('Channels:')
