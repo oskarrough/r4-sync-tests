@@ -1,7 +1,7 @@
 <script lang="ts">
 	import {playTrack} from '$lib/api'
 	import {formatDate} from '$lib/dates'
-	import {extractYouTubeId} from '$lib/utils'
+	import {extractYouTubeId} from '$lib/utils.ts'
 	import type {Track} from '$lib/types'
 	import LinkEntities from './link-entities.svelte'
 	import type {Snippet} from 'svelte'

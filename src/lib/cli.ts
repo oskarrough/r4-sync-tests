@@ -1,23 +1,26 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
+
+// Note, this CLI only works in bun for now.
 
 import yargs from 'yargs'
 import {hideBin} from 'yargs/helpers'
-import {r5} from './src/lib/r5/index.js'
-import {downloadChannel} from './src/lib/r5/download.js'
-import type {Channel, Track} from './src/lib/types.js'
+import {r5} from './r5/index.js'
+import {downloadChannel} from './r5/download.js'
+// import type {Channel, Track} from './types.ts'
 
 // Shared options
+const sourceChoices = ['local', 'r4', 'v1']
 const sourceOpt = {
-	choices: ['local', 'r4', 'v1'] as const,
+	choices: sourceChoices,
 	describe: 'Data source: local (your db), r4 (radio4000.com), v1 (legacy)'
 }
-const jsonOpt = {type: 'boolean', default: false, describe: 'Output as JSON'} as const
-const limitOpt = {type: 'number', describe: 'Limit number of results'} as const
+const jsonOpt = {type: 'boolean', default: false, describe: 'Output as JSON'}
+const limitOpt = {type: 'number', describe: 'Limit number of results'}
 const dryRunOpt = {
 	type: 'boolean',
 	default: false,
 	describe: 'Show what would happen without doing it'
-} as const
+}
 
 // Source handlers
 const sources = {
@@ -25,24 +28,49 @@ const sources = {
 	tracks: {local: r5.tracks.local, r4: r5.tracks.r4, v1: r5.tracks.v1}
 }
 
-// Error handler
-const handleError = (error: Error, code = 3) => {
+// Error handlers
+/** @param {Error} error @param {number} [code=3] */
+const handleError = (error, code = 3) => {
 	console.error('Error:', error.message)
 	process.exit(code)
 }
 
-// Output formatters
-const formatChannel = (channel: {slug: string; name?: string}) =>
-	`${channel.slug}\t${channel.name || 'Untitled'}`
-const formatTrack = (track: {title?: string; url: string}) =>
-	`${track.title || 'Untitled'}\t${track.url}`
+/** @param {Error} error @param {string} context @param {number} [code=3] */
+const handleSourceError = (error, context, code = 3) => {
+	if (error.message.includes('JSON object requested')) {
+		console.error(`${context} not found`)
+		process.exit(1)
+	}
+	handleError(error, code)
+}
 
-const outputResults = <T>(
-	results: T[],
-	formatter: (item: T) => string,
-	json: boolean,
-	limit?: number
-) => {
+/** @param {string} source @param {string} [slug] */
+const validateSourceWithHelp = (source, slug) => {
+	if (!source) {
+		throw new Error(`Please specify --source (local, r4, or v1)
+
+  --source local  Query your local database
+  --source r4     Query radio4000.com directly
+  --source v1     Query legacy firebase data
+
+Hint: To sync data locally first, use: r5 pull ${slug || '[slug]'}`)
+	}
+}
+
+// Output formatters
+/** @param {{slug: string; name?: string}} channel */
+const formatChannel = (channel) => `${channel.slug}\t${channel.name || 'Untitled'}`
+/** @param {{title?: string; url: string}} track */
+const formatTrack = (track) => `${track.title || 'Untitled'}\t${track.url}`
+
+/**
+ * @template T
+ * @param {T[]} results
+ * @param {(item: T) => string} formatter
+ * @param {boolean} json
+ * @param {number} [limit]
+ */
+const outputResults = (results, formatter, json, limit) => {
 	const display = limit ? results.slice(0, limit) : results
 
 	if (json) {
@@ -72,22 +100,21 @@ const cli = yargs(hideBin(process.argv))
 
 Usage:
   $0 search <query> [--channels|--tracks] [--json]
-  $0 pull <slug> [--dry-run]
-  $0 channels list [slug] [--source=<src>] [--limit=<n>] [--json]
-  $0 channels pull [slug] [--dry-run]
-  $0 tracks list [slug] [--source=<src>] [--limit=<n>] [--json]
-  $0 tracks pull <slug> [--dry-run]
-  $0 download <slug> [--output=<dir>] [--concurrency=<n>] [--dry-run]
+  $0 pull <slug> [--dry-run]                          # Smart sync (local->r4->v1) both channel+tracks
+  $0 channels list [slug] [--source=<src>] [--json]   # Explicit source query
+  $0 channels pull [slug] [--dry-run]                 # Force remote pull
+  $0 tracks list [slug] [--source=<src>] [--json]     # Explicit source query  
+  $0 tracks pull <slug> [--dry-run]                   # Force remote pull
+  $0 download <slug> [--output=<dir>] [--dry-run]
   $0 db (export|reset|migrate)
   $0 -h | --help
   $0 --version`
 	)
+	.example('$0 pull ko002', 'Smart sync channel+tracks (local first)')
 	.example('$0 search ko002', 'Search everything for "ko002"')
-	.example('$0 search "#am" --tracks', 'Search only tracks for "#am"')
-	.example('$0 search brazil -c', 'Search channels for "brazil"')
-	.example('$0 search "@ko002 dance"', 'Search "dance" in ko002\'s channel')
-	.example('$0 tracks list ko002 --limit 5', 'List 5 tracks from channel')
-	.example('$0 channels list --json | jq ".[].slug"', 'Get all channel slugs')
+	.example('$0 tracks list ko002 --source r4 --limit 5', 'List 5 tracks from remote')
+	.example('$0 channels list --source local --json', 'Get local channels as JSON')
+	.example('$0 channels pull ko002', 'Force pull channel from remote')
 	.recommendCommands()
 	.strictCommands()
 	.demandCommand(1, 'You need at least one command')
@@ -112,31 +139,18 @@ cli.command('channels <command>', 'Manage channels', (yargs) => {
 					.group(['source', 'limit', 'json'], 'Options:'),
 			async (argv) => {
 				try {
-					if (!argv.source) {
-						throw new Error(`Please specify --source (local, r4, or v1)
-
-  --source local  Query your local database
-  --source r4     Query radio4000.com directly
-  --source v1     Query legacy firebase data
-
-Hint: To sync data locally first, use: r5 pull ${argv.slug || '[slug]'}`)
-					}
+					validateSourceWithHelp(argv.source, argv.slug)
 					const opts = argv.slug ? {slug: argv.slug} : {limit: argv.limit}
 					const results = await sources.channels[argv.source](opts)
 					outputResults(results, formatChannel, argv.json, argv.limit)
 				} catch (error) {
-					const err = error as Error
-					if (err.message.includes('JSON object requested') && argv.slug) {
-						console.error(`Channel '${argv.slug}' not found`)
-						process.exit(1)
-					}
-					handleError(err)
+					handleSourceError(error, `Channel '${argv.slug}'`)
 				}
 			}
 		)
 		.command(
 			'pull [slug]',
-			'Pull channels from remote',
+			'Force pull channels from remote (bypasses local)',
 			(yargs) =>
 				yargs
 					.positional('slug', {describe: 'Specific channel slug to pull', type: 'string'})
@@ -157,7 +171,7 @@ Hint: To sync data locally first, use: r5 pull ${argv.slug || '[slug]'}`)
 						console.log('Channel pulled successfully')
 					}
 				} catch (error) {
-					handleError(error as Error)
+					handleError(error)
 				}
 			}
 		)
@@ -177,31 +191,18 @@ cli.command('tracks <command>', 'Manage tracks', (yargs) => {
 					.group(['source', 'limit', 'json'], 'Options:'),
 			async (argv) => {
 				try {
-					if (!argv.source) {
-						throw new Error(`Please specify --source (local, r4, or v1)
-
-  --source local  Query your local database
-  --source r4     Query radio4000.com directly
-  --source v1     Query legacy firebase data
-
-Hint: To sync data locally first, use: r5 pull ${argv.slug || '[slug]'}`)
-					}
+					validateSourceWithHelp(argv.source, argv.slug)
 					const opts = argv.slug ? {slug: argv.slug, limit: argv.limit} : {limit: argv.limit}
 					const results = await sources.tracks[argv.source](opts)
 					outputResults(results, formatTrack, argv.json, argv.limit)
 				} catch (error) {
-					const err = error as Error
-					if (err.message.includes('JSON object requested') && argv.slug) {
-						console.error(`Channel '${argv.slug}' not found`)
-						process.exit(1)
-					}
-					handleError(err)
+					handleSourceError(error, `Channel '${argv.slug}'`)
 				}
 			}
 		)
 		.command(
 			'pull <slug>',
-			'Pull tracks from remote for a channel',
+			'Force pull tracks from remote (bypasses local)',
 			(yargs) =>
 				yargs
 					.positional('slug', {describe: 'Channel slug', type: 'string'})
@@ -219,17 +220,17 @@ Hint: To sync data locally first, use: r5 pull ${argv.slug || '[slug]'}`)
 						console.log('Tracks pulled successfully')
 					}
 				} catch (error) {
-					handleError(error as Error)
+					handleError(error)
 				}
 			}
 		)
 		.demandCommand(1, 'You need to specify a tracks command')
 })
 
-// Pull command (shorthand for pulling channel + tracks)
+// Pull command (smart sync: local first, then r4->v1 fallback)
 cli.command(
 	'pull <slug>',
-	'Pull channel and tracks from remote',
+	'Smart sync channel and tracks (local->r4->v1)',
 	(yargs) =>
 		yargs
 			.positional('slug', {describe: 'Channel slug', type: 'string', demandOption: true})
@@ -243,7 +244,7 @@ cli.command(
 			await r5.pull(argv.slug)
 			console.log(`Pulled channel and tracks for '${argv.slug}'`)
 		} catch (error) {
-			handleError(error as Error)
+			handleError(error)
 		}
 	}
 )
@@ -276,7 +277,7 @@ cli.command(
 	async (argv) => {
 		try {
 			const query = argv.query.trim()
-			let results: Channel[] | Track[] | {channels: Channel[]; tracks: Track[]}
+			let results
 
 			if (argv.channels) {
 				results = await r5.search.channels(query)
@@ -320,19 +321,19 @@ cli.command(
 				}
 			}
 		} catch (error) {
-			handleError(error as Error)
+			handleError(error)
 		}
 	}
 )
 
 // Database commands
-const dbCommands: [string, string, () => Promise<void>][] = [
+const dbCommands = [
 	[
 		'export',
 		'Export database (browser only)',
 		async () => {
 			console.log('Database export is only available in the browser interface.')
-			console.log('To backup your data, copy the directory: ./r5-cli-data')
+			console.log('To backup your data, copy the directory: ./tmp/r5-cli-data')
 		}
 	],
 	[
@@ -359,7 +360,7 @@ cli.command('db <command>', 'Database operations', (yargs) => {
 			try {
 				await handler()
 			} catch (error) {
-				handleError(error as Error, 4)
+				handleError(error, 4)
 			}
 		})
 	})
@@ -416,7 +417,7 @@ cli.command(
 				poToken: argv['po-token']
 			})
 		} catch (error) {
-			handleError(error as Error)
+			handleError(error)
 		}
 	}
 )

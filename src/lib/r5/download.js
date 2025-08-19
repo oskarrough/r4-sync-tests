@@ -3,7 +3,7 @@ import {mkdir} from 'node:fs/promises'
 import {existsSync} from 'node:fs'
 import pLimit from 'p-limit'
 import filenamify from 'filenamify'
-import {extractYouTubeId} from '../utils.js'
+import {extractYouTubeId} from '../utils.ts'
 
 /**
  * Downloads audio from a URL using yt-dlp

@@ -4,7 +4,7 @@ import {logger} from '$lib/logger'
 import {pg} from '$lib/r5/db'
 import {r4} from '$lib/r4'
 import {r5} from '$lib/r5'
-import {shuffleArray} from '$lib/utils'
+import {shuffleArray} from '$lib/utils.ts'
 import {syncFollowers, pullFollowers} from '$lib/sync/followers'
 
 const log = logger.ns('api').seal()
@@ -197,7 +197,7 @@ export async function addFollower(followerId, channelId) {
  */
 export async function removeFollower(followerId, channelId) {
 	await pg.sql`
-		DELETE FROM followers 
+		DELETE FROM followers
 		WHERE follower_id = ${followerId} AND channel_id = ${channelId}
 	`
 }
@@ -238,7 +238,7 @@ export async function ensureFollowers(followerId) {
  */
 export async function isFollowing(followerId, channelId) {
 	const {rows} = await pg.sql`
-		SELECT 1 FROM followers 
+		SELECT 1 FROM followers
 		WHERE follower_id = ${followerId} AND channel_id = ${channelId}
 		LIMIT 1
 	`

@@ -19,7 +19,7 @@ SvelteKit + Svelte 5 runes, PGlite (client-side postgres), @radio4000/sdk, jsdoc
 /src/lib/r5/db.ts      -- local db, schema
 /src/lib/api.js        -- reusable data operations
 /src/lib/live-query.js -- local, reactive db queries
-/src/lib/utils.js      -- the odd reusable function
+/src/lib/utils         -- the odd reusable function
 /src/lib/components    -- where components go
 /src/lib/types.ts      -- type definitions for database schemas and app state
 /todo.txt`			   -- current priorities and planned improvements
@@ -113,7 +113,7 @@ Ask me to perform queries for you, if it helps:
 
 ## Linting and formatting
 
-Format and lint the code using `bun run lint`. Always good to do this before committing.  
+Format and lint the code using `bun run lint`. Always good to do this before committing.
 Additionally and optionally, use `bun run lint2` for even more things to review using Biome. Note that Biome doesn't outside script tags in .svelte files.
 
 ## Testing

@@ -6,7 +6,7 @@
 	import {togglePlay, next, previous, toggleShuffle, play, pause} from '$lib/api/player'
 	import {appState} from '$lib/app-state.svelte'
 	import {logger} from '$lib/logger'
-	import {extractYouTubeId} from '$lib/utils'
+	import {extractYouTubeId} from '$lib/utils.ts'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import Icon from '$lib/components/icon.svelte'
 	import LinkEntities from '$lib/components/link-entities.svelte'

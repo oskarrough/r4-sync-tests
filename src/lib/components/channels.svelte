@@ -1,6 +1,6 @@
 <script>
 	import {appState} from '$lib/app-state.svelte'
-	import {shuffleArray} from '$lib/utils'
+	import {shuffleArray} from '$lib/utils.ts'
 	import Icon from './icon.svelte'
 	import ChannelCard from './channel-card.svelte'
 	import MapComponent from './map.svelte'

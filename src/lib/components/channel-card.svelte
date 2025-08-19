@@ -1,5 +1,5 @@
 <script>
-	import {trimWithEllipsis} from '$lib/utils'
+	import {trimWithEllipsis} from '$lib/utils.ts'
 	import ChannelHero from './channel-hero.svelte'
 
 	/** @type {{channel: import('$lib/types').Channel}}*/

@@ -44,6 +44,7 @@ Always verify and evaluate todos before taking them on. They might be outdated o
 
 ## CLI & LLM INTEGRATION LEARNINGS
 
+- the cli only works in bun (not node) because of $lib alias and typescript
 - search functionality works but needed better context understanding - improve CLI help/examples for complex queries  
 - natural language search patterns unclear - document search operators (AND, OR, phrase matching) in CLI help
 - verify we can write arbitrary sql queries locally??
@@ -55,7 +56,6 @@ Always verify and evaluate todos before taking them on. They might be outdated o
   - File scanning: old CLI scans `<folder>/<slug>/tracks/*.m4a`, new CLI has no file ops
 - cli: Better progress reporting with download speeds, concurrent status
 - cli: Enhanced error messages with actionable recovery steps
-
 
 ## HARD ONES, LOW PRIO
 

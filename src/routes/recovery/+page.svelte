@@ -1,7 +1,7 @@
 <script>
 	import {page} from '$app/state'
 	import {r5} from '$lib/r5'
-	import {delay} from '$lib/utils'
+	import {delay} from '$lib/utils.ts'
 
 	let isResetting = $state(false)
 	let resetSuccess = $state(false)

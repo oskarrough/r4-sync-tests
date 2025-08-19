@@ -1,5 +1,5 @@
 import {logger} from '../logger.js'
-import {r4 as r4Api} from '../r4'
+import {r4 as r4Api} from '../r4.ts'
 import {getPg} from './db.js'
 import {sql, raw} from '@electric-sql/pglite/template'
 

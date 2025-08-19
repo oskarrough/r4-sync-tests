@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"type": "module",
 	"bin": {
-		"r5": "./cli.ts"
+		"r5": "./src/lib/cli.ts"
 	},
 	"scripts": {
 		"dev": "vite dev",

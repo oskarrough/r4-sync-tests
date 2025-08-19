@@ -5,8 +5,7 @@ node_modules
 .vercel
 /.svelte-kit
 /build
-r5-cli-data/
-cli-output
+/tmp/
 
 # OS
 .DS_Store
@@ -18,13 +17,3 @@ Thumbs.db
 !.env.example
 !.env.test
 .dev.vars
-
-# Vite
-vite.config.js.timestamp-*
-vite.config.ts.timestamp-*
-
-# SQLite
-*.db
-
-# CLI binaries
-cli/bin/r4

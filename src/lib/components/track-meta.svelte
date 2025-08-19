@@ -1,7 +1,7 @@
 <script>
 	import {pullMusicBrainz} from '$lib/sync/musicbrainz'
 	import {pullTrackMetaYouTube} from '$lib/sync/youtube'
-	import {extractYouTubeId} from '$lib/utils'
+	import {extractYouTubeId} from '$lib/utils.ts'
 
 	/**
 	 * This component updates the track_meta table for this track

@@ -1,5 +1,5 @@
 import {playTrack} from '$lib/api'
-import {shuffleArray} from '$lib/utils'
+import {shuffleArray} from '$lib/utils.ts'
 import {appState} from '$lib/app-state.svelte'
 import {logger} from '$lib/logger'
 

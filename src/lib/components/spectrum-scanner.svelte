@@ -1,7 +1,7 @@
 <script>
 	import InputRange from './input-range.svelte'
 	import ChannelCard from './channel-card.svelte'
-	import {generateFrequency} from '$lib/utils'
+	import {generateFrequency} from '$lib/utils.ts'
 
 	const {channels = [], min = 88.0, max = 108.0} = $props()
 

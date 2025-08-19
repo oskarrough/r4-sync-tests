@@ -1,5 +1,5 @@
 <script>
-	import {ENTITY_REGEX} from '$lib/utils'
+	import {ENTITY_REGEX} from '$lib/utils.ts'
 
 	const {text, track} = $props()
 

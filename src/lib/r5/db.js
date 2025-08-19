@@ -2,9 +2,9 @@ import {PGlite} from '@electric-sql/pglite'
 import {live} from '@electric-sql/pglite/live'
 import {pg_trgm} from '@electric-sql/pglite/contrib/pg_trgm'
 import {logger} from '../logger.js'
-import migration01sql from '../migrations/01-initial-schema.sql?raw'
-import migration02sql from '../migrations/02-more-tables.sql?raw'
-import migration03sql from '../migrations/03-functions-and-views.sql?raw'
+import migration01sql from '../migrations/01-initial-schema.js'
+import migration02sql from '../migrations/02-more-tables.js'
+import migration03sql from '../migrations/03-functions-and-views.js'
 
 const browser = typeof window !== 'undefined'
 const log = logger.ns('db').seal()
@@ -28,7 +28,7 @@ export let pg
  */
 export async function createPg(persist = browser) {
 	if (!pg) {
-		const dataDir = browser ? (persist ? 'idb://radio4000test2' : 'memory://') : './r5-cli-data'
+		const dataDir = browser ? (persist ? 'idb://radio4000test2' : 'memory://') : './tmp/r5-cli-data'
 		pg = await PGlite.create({
 			// debug: 1,
 			dataDir: dataDir,

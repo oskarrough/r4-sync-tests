@@ -1,7 +1,7 @@
 <script>
 	import {onMount} from 'svelte'
 	import {pg} from '$lib/r5/db'
-	import {extractHashtags} from '$lib/utils'
+	import {extractHashtags} from '$lib/utils.ts'
 
 	let stats = $state({
 		totalPlays: 0,
@@ -23,7 +23,7 @@
 		try {
 			// Basic stats using tracks_with_meta view
 			const playsResult = await pg.sql`
-				SELECT 
+				SELECT
 					COUNT(*) as total_plays,
 					SUM(ph.ms_played) as total_ms,
 					COUNT(DISTINCT ph.track_id) as unique_tracks,
@@ -36,9 +36,9 @@
 
 			// Channel loyalty with better stats
 			const channelStats = await pg.sql`
-				SELECT 
-					c.name, 
-					c.slug, 
+				SELECT
+					c.name,
+					c.slug,
 					COUNT(*) as plays,
 					SUM(ph.ms_played) as total_listening_ms,
 					AVG(ph.ms_played::float / NULLIF(twm.duration, 0)) as completion_rate
@@ -60,7 +60,7 @@
 
 			// Temporal patterns with completion data
 			const temporalResult = await pg.sql`
-				SELECT 
+				SELECT
 					EXTRACT(hour FROM ph.started_at) as hour,
 					EXTRACT(dow FROM ph.started_at) as day_of_week,
 					COUNT(*) as plays,
