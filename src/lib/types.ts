@@ -62,6 +62,7 @@ export type Track = {
 	duration?: number
 	youtube_data?: object
 	musicbrainz_data?: object
+	discogs_data?: object
 }
 
 export interface AppState {

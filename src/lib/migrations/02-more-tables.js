@@ -19,9 +19,11 @@ CREATE TABLE IF NOT EXISTS track_meta (
   -- Provider-specific JSON data
   youtube_data JSONB,
   musicbrainz_data JSONB,
+  discogs_data JSONB,
   -- Metadata timestamps
   youtube_updated_at TIMESTAMP,
   musicbrainz_updated_at TIMESTAMP,
+  discogs_updated_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -29,6 +31,7 @@ CREATE TABLE IF NOT EXISTS track_meta (
 -- Index for JSON queries
 CREATE INDEX IF NOT EXISTS idx_track_meta_youtube_data ON track_meta USING GIN (youtube_data);
 CREATE INDEX IF NOT EXISTS idx_track_meta_musicbrainz_data ON track_meta USING GIN (musicbrainz_data);
+CREATE INDEX IF NOT EXISTS idx_track_meta_discogs_data ON track_meta USING GIN (discogs_data);
 
 -- Index for common queries
 CREATE INDEX IF NOT EXISTS idx_track_meta_ytid ON track_meta (ytid);

@@ -152,6 +152,7 @@
 						<div class="col-url">url</div>
 						<div class="col-title">title</div>
 						<div class="col-description">description</div>
+						<div class="col-discogs">discogs</div>
 						<div class="col-tags">tags</div>
 						<div class="col-mentions">mentions</div>
 						<div class="col-meta">meta</div>
@@ -229,6 +230,7 @@
 	:global(.col-mentions),
 	:global(.col-description),
 	:global(.col-url),
+	:global(.col-discogs),
 	:global(.col-meta),
 	:global(.col-date) {
 		padding: 0.2rem;
@@ -237,7 +239,8 @@
 	}
 
 	:global(.col-title),
-	:global(.col-description) {
+	:global(.col-description),
+	:global(.col-discogs) {
 		flex: 2;
 	}
 

@@ -36,12 +36,16 @@
 	<div class="col-description">
 		<InlineEditCell {track} field="description" {edits} {onEdit} />
 	</div>
+	<div class="col-discogs">
+		<InlineEditCell {track} field="discogs_url" {edits} {onEdit} />
+	</div>
 	<div class="col-tags">{track.tags || ''}</div>
 	<div class="col-mentions">{track.mentions || ''}</div>
 
 	<div class="col-meta">
 		{#if track.has_youtube_meta}<span class="meta-indicator yt">Y</span>{/if}
 		{#if track.has_musicbrainz_meta}<span class="meta-indicator mb">M</span>{/if}
+		{#if track.has_discogs_meta}<span class="meta-indicator dc">D</span>{/if}
 	</div>
 
 	<div class="col-date">{new Date(track.created_at).toLocaleDateString()}</div>
