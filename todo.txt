@@ -8,25 +8,20 @@ Always verify and evaluate todos before taking them on. They might be outdated o
 - Test we can export browser pglite and import and verify that - solid foundation for experimentation
 - analyze https://svelte.dev/docs/svelte/$effect#When-not-to-use-$effect - keep up with Svelte 5 patterns
 - move spam detection out of playground into proper module if keeping
-
-**Architecture Foundation (if this becomes real):**
 - there's an issue with the app state playlist and shuffled playlist. when the playlist is set, we need to make sure the shuffled one is derived from it. else they might up pointing to diff lists - core playback integrity
 - V1 compatibility: v1 channels can't be bookmarked/broadcasted because remote supabase doesn't know about their foreign keys. V1 channels have firebase_id but don't exist in remote postgres, causing FK constraint failures. Solution ideas: use string-based IDs instead of proper foreign keys, or create placeholder records in remote for v1 channels.
 
-**Nice Cleanup (when bored):**
+## Nice Cleanup (when bored)
+
 - run `bun run check` and slowly get rid of these warnings - tidy codebase
 - group metadata enrichment functions (youtube, musicbrainz) under single namespace "metadata" instead of "sync" - better organization
 - move sync/followers into lib/r5 namespace. think hard about the the pullFollowers logic. Maybe get rid of `syncFollowers`, we use "pull" naming in other places. Is it because it doesn't overwrite local, but merge into local? seems hard. hmm
 
-**Low Priority:**
+## Low Priority
+
 - implement "queue" to the r5 api - marginal UX improvement
 - ~~change <slug>/page.js load function to maybe not block the whole page? too slow~~ - owner says it's already fast
 - the cli only works in bun (not node) because of $lib alias and typescript
-
-- split utils by domain: youtube utils, text parsing utils, array utils
-
-## Arch improvements to consider
-
 - implement event sourcing pattern: events table {type, payload, timestamp} for state changes, enables undo/replay
 - unify sync layer: single sync_operations queue table instead of scattered pull/push functions
 - refactor persistAppState() to use parameterized queries instead of string concatenation
@@ -40,6 +35,8 @@ Always verify and evaluate todos before taking them on. They might be outdated o
 - create standardized loading/error boundaries for async operations in ui
 - consolidate follower sync logic into single flow, remove complex local-user migration
 - refactor broadcast architecture - remove module-level state, fix implicit dependencies, add cleanup on failures
+- the <youtube-player> fires volumechange seemingly at will, many times on load, which currently overwrites any appState.volume the user might already have. In other words, your volume preferences is persisted, but also overwritten on load
+- find a way to share `track_meta` data between users. push it remote, how? security?
 
 ## CLI & LLM INTEGRATION LEARNINGS
 
@@ -48,14 +45,8 @@ Always verify and evaluate todos before taking them on. They might be outdated o
 - verify we can write arbitrary sql queries locally??
 - genre cross-analysis queries powerful but not obvious - add examples to CLI help
 - LLM integration reveals rich semantic connections - consider exposing more metadata fields for search
-- cli missing pieces (to be verified, do we event want/need this?)
   - Progress system: @opentf/cli-pbar, ETA calculations, download statistics
   - Error handling: retry logic, download state tracking, failure persistence
   - File scanning: old CLI scans `<folder>/<slug>/tracks/*.m4a`, new CLI has no file ops
 - cli: Better progress reporting with download speeds, concurrent status
-
-## HARD ONES, LOW PRIO
-
-- the <youtube-player> fires volumechange seemingly at will, many times on load, which currently overwrites any appState.volume the user might already have. In other words, your volume preferences is persisted, but also overwritten on load
-- find a way to share `track_meta` data between users. push it remote, how? security?
 
