@@ -3,12 +3,11 @@
 List of possible improvements to the architecture, idea, cli and web application.  
 Always verify and evaluate todos before taking them on. They might be outdated or just not good ideas.
 
-- implement discogs (see components.radio4000.com, where it's already kinda done) - fun metadata exploration
+- move pglite to worker in browser? 
 - consider integrating "bandsintown" as a third-party API similar to musicbrainz, youtube meta - rich data connections
 - Test we can export browser pglite and import and verify that - solid foundation for experimentation
 - analyze https://svelte.dev/docs/svelte/$effect#When-not-to-use-$effect - keep up with Svelte 5 patterns
 - move spam detection out of playground into proper module if keeping
-- there's an issue with the app state playlist and shuffled playlist. when the playlist is set, we need to make sure the shuffled one is derived from it. else they might up pointing to diff lists - core playback integrity
 - V1 compatibility: v1 channels can't be bookmarked/broadcasted because remote supabase doesn't know about their foreign keys. V1 channels have firebase_id but don't exist in remote postgres, causing FK constraint failures. Solution ideas: use string-based IDs instead of proper foreign keys, or create placeholder records in remote for v1 channels.
 
 ## Nice Cleanup (when bored)
