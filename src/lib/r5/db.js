@@ -1,6 +1,5 @@
-import {PGlite} from '@electric-sql/pglite'
+import {PGliteWorker} from '@electric-sql/pglite/worker'
 import {live} from '@electric-sql/pglite/live'
-import {pg_trgm} from '@electric-sql/pglite/contrib/pg_trgm'
 import {logger} from '../logger.js'
 import migration01sql from '../migrations/01-initial-schema.js'
 import migration02sql from '../migrations/02-more-tables.js'
@@ -11,6 +10,9 @@ const log = logger.ns('db').seal()
 
 // This will limit the amount of channels pulled.
 export const debugLimit = 40
+
+// Use worker for database operations (enabled by default)
+const useWorker = true
 
 const migrations = [
 	{name: '01-initial-schema', sql: migration01sql},
@@ -29,15 +31,48 @@ export let pg
 export async function createPg(persist = browser) {
 	if (!pg) {
 		const dataDir = browser ? (persist ? 'idb://radio4000test2' : 'memory://') : './cli-db'
-		pg = await PGlite.create({
-			// debug: 1,
-			dataDir: dataDir,
-			relaxedDurability: true,
-			extensions: {
-				live,
-				pg_trgm
-			}
-		})
+
+		if (browser && useWorker) {
+			console.time('create-pg-worker')
+			pg = await PGliteWorker.create(
+				new Worker(new URL('./db-worker.js', import.meta.url), {
+					type: 'module'
+				}),
+				{
+					dataDir: dataDir,
+					extensions: {
+						live
+					}
+				}
+			)
+			console.timeEnd('create-pg-worker')
+		} else if (browser) {
+			// Browser without worker
+			console.time('create-pg-direct')
+			const {PGlite} = await import('@electric-sql/pglite')
+			const {pg_trgm} = await import('@electric-sql/pglite/contrib/pg_trgm')
+			pg = await PGlite.create({
+				dataDir: dataDir,
+				relaxedDurability: true,
+				extensions: {
+					live,
+					pg_trgm
+				}
+			})
+			console.timeEnd('create-pg-direct')
+		} else {
+			// CLI/Node fallback
+			const {PGlite} = await import('@electric-sql/pglite')
+			const {pg_trgm} = await import('@electric-sql/pglite/contrib/pg_trgm')
+			pg = await PGlite.create({
+				dataDir: dataDir,
+				relaxedDurability: true,
+				extensions: {
+					live,
+					pg_trgm
+				}
+			})
+		}
 	}
 	return pg
 }

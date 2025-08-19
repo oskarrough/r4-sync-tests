@@ -33,6 +33,20 @@
 		skipPersist = false
 	})
 
+	// Theme application
+	const prefersLight = $derived(window.matchMedia('(prefers-color-scheme: light)').matches)
+	const theme = $derived(appState.theme ?? (prefersLight ? 'light' : 'dark'))
+
+	$effect(() => {
+		if (theme === 'dark') {
+			document.documentElement.classList.remove('light')
+			document.documentElement.classList.add('dark')
+		} else {
+			document.documentElement.classList.remove('dark')
+			document.documentElement.classList.add('light')
+		}
+	})
+
 	function applyCustomCssVariables() {
 		const root = document.documentElement
 		Object.entries(appState.custom_css_variables || {}).forEach(([name, value]) => {

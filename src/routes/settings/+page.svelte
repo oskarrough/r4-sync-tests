@@ -39,6 +39,7 @@
 			hopefully. Pull channels from R4 (including version 1) by <em>syncing</em> above &uarr;
 		</p>
 		<br />
+		<p>You can add tracks to your radio. But creating a radio, editing tracks etc. is not yet possible. go to the og site for that.</p>
 		<p>
 			<a href="https://matrix.to/#/#radio4000:matrix.org" rel="noreferrer">Chat with us</a>
 			•

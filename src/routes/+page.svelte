@@ -16,14 +16,9 @@
 		page?.url?.searchParams?.get('zoom') ? Number(page?.url?.searchParams?.get('zoom')) : 4
 	)
 
-	let channelCount = $state(0)
 	let syncing = $state(false)
-
-	$effect(() => {
-		return liveQuery('SELECT COUNT(*) as count FROM channels', [], (result) => {
-			channelCount = result.rows[0]?.count || 0
-		})
-	})
+	
+	const channelCount = $derived(data.channels?.length || 0)
 
 	async function pullRadios() {
 		syncing = true

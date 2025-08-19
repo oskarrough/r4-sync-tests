@@ -110,6 +110,15 @@ export function createBrowserCli(onOutput) {
 				return error(`Unknown command: ${cmd}. Type 'help' for available commands.`)
 			}
 
+			// Handle --help flag
+			if (method === '--help' || method === 'help') {
+				const methods =
+					config.methods.length > 0
+						? `Available methods: ${config.methods.join(', ')}`
+						: 'No additional methods available'
+				return log(`${cmd}: ${methods}`)
+			}
+
 			// Find the function to call
 			let fn = r5[cmd]
 			let fnArgs = args
@@ -122,9 +131,17 @@ export function createBrowserCli(onOutput) {
 			} else if (cmd === 'search') {
 				// Default search is 'all'
 				fn = r5.search.all
+			} else if (config.methods.length > 0) {
+				// Command without method - default to first available or show help
+				if (config.methods.includes('local')) {
+					fn = r5[cmd].local
+				} else {
+					const methods = config.methods.join(', ')
+					return log(`${cmd} requires a method. Available: ${methods}`)
+				}
 			}
 
-			if (!fn) {
+			if (!fn || typeof fn !== 'function') {
 				return error(`Function not found: ${cmd} ${method || ''}`)
 			}
 
