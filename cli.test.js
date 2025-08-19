@@ -3,7 +3,7 @@ import {exec} from 'child_process'
 import {promisify} from 'util'
 
 const execAsync = promisify(exec)
-const CLI = 'bun ./cli.ts'
+const CLI = 'bun src/lib/cli.ts'
 
 describe('CLI smoke tests', () => {
 	it('should show help', async () => {

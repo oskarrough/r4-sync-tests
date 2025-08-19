@@ -131,6 +131,7 @@
 				</small>
 			</p>
 		</header>
+
 		<section>
 			<header style="padding-top: 1rem">
 				<form onsubmit={handleSubmit}>
@@ -149,13 +150,17 @@
 				</form>
 			</header>
 
-			{#if trackIds.length > 0}
-				<Tracklist ids={trackIds} />
-			{:else if !channel.tracks_synced_at}
-				<p style="margin-top:1rem; margin-left: 0.5rem;">Tracks syncing…</p>
-			{:else}
-				<p>No tracks found{searchQuery ? ` for "${searchQuery}"` : ''}</p>
-			{/if}
+			{#await data.tracksPromise}
+				<p>Loading...</p>
+			{:then}
+				{#if trackIds.length > 0}
+					<Tracklist ids={trackIds} />
+				{:else if !channel.tracks_synced_at}
+					<p style="margin-top:1rem; margin-left: 0.5rem;">Tracks syncing…</p>
+				{:else}
+					<p>No tracks found{searchQuery ? ` for "${searchQuery}"` : ''}</p>
+				{/if}
+			{/await}
 		</section>
 	</article>
 {:else}

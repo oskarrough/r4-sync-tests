@@ -45,7 +45,9 @@
 		// Take a snapshot to track all property changes
 		$state.snapshot(appState)
 		persistAppState()
-			.then(() => log.log('persisted app_state'))
+			.then(() => {
+				log.debug('persisted app_state')
+			})
 			.catch((err) => {
 				goto(`/recovery?err=${err.message}`)
 			})
