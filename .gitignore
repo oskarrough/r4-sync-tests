@@ -17,3 +17,6 @@ Thumbs.db
 !.env.example
 !.env.test
 .dev.vars
+cli-output/
+r4-cli-data/
+r5-cli-data/
