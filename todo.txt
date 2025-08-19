@@ -5,7 +5,6 @@ Always verify and evaluate todos before taking them on. They might be outdated o
 
 ## Backlog
 
-- adding a track (while on <slug>) doesn't re-render the tracklist
 - group metadata enrichment functions (youtube, musicbrainz) under single namespace "metadata" instead of "sync" ?
 - move sync/followers into lib/r5 namespace. think hard about the the pullFollowers logic. Maybe get rid of `syncFollowers`, we use "pull" naming in other places. Is it because it doesn't overwrite local, but merge into local? seems hard. hmm
 - implement "queue" to the r5 api (low prio)

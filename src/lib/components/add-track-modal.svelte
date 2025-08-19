@@ -3,6 +3,7 @@
 	import Icon from '$lib/components/icon.svelte'
 	import {appState} from '$lib/app-state.svelte'
 	import {pg} from '$lib/r5/db'
+	import {r5} from '$lib/r5'
 
 	let showModal = $state(false)
 	let recentTracks = $state([])
@@ -20,12 +21,21 @@
 		if (event.key === 'c' && !event.metaKey && !event.ctrlKey) showModal = true
 	}
 
-	function submit(event) {
+	async function submit(event) {
 		const track = event.detail.data
 		recentTracks.unshift(track)
 		if (recentTracks.length > 3) recentTracks.pop()
 		console.log({track, recentTracks})
-		// @todo insert track into local db. or use pullTracks? Maybe the better option for consistency
+
+		// Insert track into local db using r5.tracks.insert
+		try {
+			const channelData = await channel
+			if (channelData) {
+				await r5.tracks.insert(channelData.slug, [track])
+			}
+		} catch (error) {
+			console.error('Failed to insert track:', error)
+		}
 	}
 </script>
 
