@@ -3,21 +3,29 @@
 List of possible improvements to the architecture, idea, cli and web application.  
 Always verify and evaluate todos before taking them on. They might be outdated or just not good ideas.
 
-## Backlog
+- implement discogs (see components.radio4000.com, where it's already kinda done) - fun metadata exploration
+- consider integrating "bandsintown" as a third-party API similar to musicbrainz, youtube meta - rich data connections
+- Test we can export browser pglite and import and verify that - solid foundation for experimentation
+- analyze https://svelte.dev/docs/svelte/$effect#When-not-to-use-$effect - keep up with Svelte 5 patterns
+- move spam detection out of playground into proper module if keeping
 
-- group metadata enrichment functions (youtube, musicbrainz) under single namespace "metadata" instead of "sync" ?
+**Architecture Foundation (if this becomes real):**
+- there's an issue with the app state playlist and shuffled playlist. when the playlist is set, we need to make sure the shuffled one is derived from it. else they might up pointing to diff lists - core playback integrity
+- V1 compatibility: v1 channels can't be bookmarked/broadcasted because remote supabase doesn't know about their foreign keys. V1 channels have firebase_id but don't exist in remote postgres, causing FK constraint failures. Solution ideas: use string-based IDs instead of proper foreign keys, or create placeholder records in remote for v1 channels.
+
+**Nice Cleanup (when bored):**
+- run `bun run check` and slowly get rid of these warnings - tidy codebase
+- group metadata enrichment functions (youtube, musicbrainz) under single namespace "metadata" instead of "sync" - better organization
 - move sync/followers into lib/r5 namespace. think hard about the the pullFollowers logic. Maybe get rid of `syncFollowers`, we use "pull" naming in other places. Is it because it doesn't overwrite local, but merge into local? seems hard. hmm
-- implement "queue" to the r5 api (low prio)
-- consider integrating "bandsintown" as a third-party API similar to musicbrainz, youtube meta
-- implement discogs (see components.radio4000.com, where it's already kinda done)
-- change <slug>/page.js load function to maybe not block the whole page? too slow. render async islands nice svelte experimental async api pattern maybe?
-- run `bun run check` and slowly get rid of these warnings
-- v1 channels can't be bookmarked, they can't be broadcasted, because remote supabase doesn't know about their "foreign key".. ideas? r5 doesn't care whether it's v1 or v2, but remote postgres does. Maybe a system where the keys aren't proper ids, but just strings? That would allow you to store (in r4 remote postgres) channels that don't necessarily exist there, but only in v1. hmm
-- there's an issue with the app state playlist and shuffled playlist. when the playlist is set, we need to make sure the shuffled one is derived from it. else they might up pointing to diff lists
-- analyze https://svelte.dev/docs/svelte/$effect#When-not-to-use-$effect
-- Test we can export browser pglite and import and verify that
 
-##Arch improvements to consider
+**Low Priority:**
+- implement "queue" to the r5 api - marginal UX improvement
+- ~~change <slug>/page.js load function to maybe not block the whole page? too slow~~ - owner says it's already fast
+- the cli only works in bun (not node) because of $lib alias and typescript
+
+- split utils by domain: youtube utils, text parsing utils, array utils
+
+## Arch improvements to consider
 
 - implement event sourcing pattern: events table {type, payload, timestamp} for state changes, enables undo/replay
 - unify sync layer: single sync_operations queue table instead of scattered pull/push functions
@@ -33,15 +41,8 @@ Always verify and evaluate todos before taking them on. They might be outdated o
 - consolidate follower sync logic into single flow, remove complex local-user migration
 - refactor broadcast architecture - remove module-level state, fix implicit dependencies, add cleanup on failures
 
-## TERMINOLOGY & API REFACTORS (from index.ts review)
-
-- unify play actions: merge playTrack and playChannel into single play(entity)  -- why?
-- move spam detection out of playground into proper module if keeping
-- split utils by domain: youtube utils, text parsing utils, array utils
-
 ## CLI & LLM INTEGRATION LEARNINGS
 
-- the cli only works in bun (not node) because of $lib alias and typescript
 - search functionality works but needed better context understanding - improve CLI help/examples for complex queries  
 - natural language search patterns unclear - document search operators (AND, OR, phrase matching) in CLI help
 - verify we can write arbitrary sql queries locally??
@@ -52,7 +53,6 @@ Always verify and evaluate todos before taking them on. They might be outdated o
   - Error handling: retry logic, download state tracking, failure persistence
   - File scanning: old CLI scans `<folder>/<slug>/tracks/*.m4a`, new CLI has no file ops
 - cli: Better progress reporting with download speeds, concurrent status
-- cli: Enhanced error messages with actionable recovery steps
 
 ## HARD ONES, LOW PRIO
 
