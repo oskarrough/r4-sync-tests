@@ -120,4 +120,11 @@ Additionally and optionally, use `bun run lint2` for even more things to review 
 
 When valuable, we can write tests using vitest. Put them next to the original file and name them xxx.test.js. Run tests with: `bun test`
 
+## CLI usage
+
+The project has a CLI tool for database operations, run it with:
+`bun src/lib/cli.ts <command>`
+
+See docs/cli.md for full usage examples.
+
 claude code: you do not need to start the dev server.
