@@ -41,7 +41,7 @@
 			</a>
 			<!-- <button onclick={toggleChatPanel}>Chat</button> -->
 		{/if}
-		<a href="/sdk" class="btn" class:active={page.route.id === '/sdk'}>
+		<a href="/cli" class="btn" class:active={page.route.id === '/cli'}>
 			<Icon icon="terminal" size={20} />
 		</a>
 		<a href="/settings" class="btn" class:active={page.route.id === '/settings'}>
