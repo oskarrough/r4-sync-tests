@@ -75,34 +75,29 @@ export async function pull({slug = '', limit = LIMIT} = {}) {
 /** Insert tracks into local database */
 export async function insert(slug, tracks) {
 	const pg = await getPg()
-	try {
-		const channel = (await pg.sql`update channels set busy = true where slug = ${slug} returning *`)
-			.rows[0]
-		if (!channel) throw new Error(`insert_tracks_error_404: ${slug}`)
+	let channel = (await pg.sql`select * from channels where slug = ${slug}`).rows[0]
+	if (!channel) throw new Error(`insert_tracks_error_404: ${slug}`)
 
-		// Skip v1 re-imports
-		let tracksToInsert = tracks
-		if (channel.source === 'v1') {
-			const existing = await pg.sql`
-				SELECT firebase_id FROM tracks
-				WHERE channel_id = ${channel.id} AND firebase_id IS NOT NULL
-			`
-			if (existing.rows.length) {
-				const existingIds = new Set(existing.rows.map((r) => r.firebase_id))
-				const before = tracks.length
-				tracksToInsert = tracks.filter((t) => !existingIds.has(t.firebase_id))
-				const skipped = before - tracksToInsert.length
-				if (skipped) console.log(`Skipping ${skipped} duplicate v1 tracks for ${slug}`)
-			}
+	// Skip v1 re-imports
+	let tracksToInsert = tracks
+	if (channel.source === 'v1') {
+		const existing = await pg.sql`
+			SELECT firebase_id FROM tracks
+			WHERE channel_id = ${channel.id} AND firebase_id IS NOT NULL
+		`
+		if (existing.rows.length) {
+			const existingIds = new Set(existing.rows.map((r) => r.firebase_id))
+			const before = tracks.length
+			tracksToInsert = tracks.filter((t) => !existingIds.has(t.firebase_id))
+			const skipped = before - tracksToInsert.length
+			if (skipped) console.log(`Skipping ${skipped} duplicate v1 tracks for ${slug}`)
 		}
+	}
 
-		// Insert tracks
-		await pg.transaction(async (tx) => {
-			const CHUNK_SIZE = 50
-			for (let i = 0; i < tracksToInsert.length; i += CHUNK_SIZE) {
-				const chunk = tracksToInsert.slice(i, i + CHUNK_SIZE)
-				const inserts = chunk.map(
-					(track) => tx.sql`
+	// Insert tracks
+	await pg.transaction(async (tx) => {
+		const inserts = tracksToInsert.map(
+			(track) => tx.sql`
         INSERT INTO tracks (
           id, channel_id, url, title, description,
           discogs_url, created_at, updated_at, tags, mentions, firebase_id
@@ -122,23 +117,13 @@ export async function insert(slug, tracks) {
           tags = EXCLUDED.tags,
           mentions = EXCLUDED.mentions
       `
-				)
-				await Promise.all(inserts)
+		)
+		await Promise.all(inserts)
+	})
 
-				// Yield to UI thread between chunks
-				if (i + CHUNK_SIZE < tracks.length) {
-					await new Promise((resolve) => setTimeout(resolve, 0))
-				}
-			}
-		})
-		// Mark as successfully synced
-		await pg.sql`update channels set busy = false, tracks_synced_at = CURRENT_TIMESTAMP, track_count = ${tracksToInsert.length} where slug = ${slug}`
-		log.log('inserted tracks', slug, tracksToInsert.length)
-	} catch (error) {
-		// On error, just mark as not busy (tracks_synced_at stays NULL for retry)
-		await pg.sql`update channels set busy = false where slug = ${slug}`
-		throw error
-	}
+	// Mark as successfully synced
+	await pg.sql`update channels set tracks_synced_at = CURRENT_TIMESTAMP, track_count = ${tracksToInsert.length} where slug = ${slug}`
+	log.log('inserted tracks', slug, tracksToInsert.length)
 }
 
 // Helper functions for v1 support

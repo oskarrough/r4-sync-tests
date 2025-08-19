@@ -1,33 +1,69 @@
 <script>
-	import {pullMusicBrainz} from '$lib/sync/musicbrainz'
-	import {pullTrackMetaYouTube} from '$lib/sync/youtube'
+	import {insertMusicBrainzMeta} from '$lib/sync/musicbrainz'
+	import {insertYouTubeMeta} from '$lib/sync/youtube'
+	import {insertDiscogsMeta, huntDiscogsUrl, saveDiscogsUrl} from '$lib/sync/discogs'
 	import {extractYouTubeId} from '$lib/utils.ts'
+	import {logger} from '$lib/logger'
+
+	const log = logger.ns('track-meta').seal()
 
 	/**
 	 * This component updates the track_meta table for this track
-	 * with youtube_data and musicbrainz_data
+	 * with youtube_data, musicbrainz_data, and discogs_data
 	 */
 
-	const {track} = $props()
+	const {track, showResult = false, onResult} = $props()
 
 	let loading = $state(false)
 	let error = $state()
 
-	const hasMeta = $derived(track.youtube_data || track.musicbrainz_data)
 	const ytid = $derived(track?.youtube_data?.id || extractYouTubeId(track?.url) || null)
 
 	let result = $state()
 
 	$effect(() => {
-		if (!ytid || hasMeta) return
+		if (!ytid) return
 		loading = true
 		Promise.resolve().then(async () => {
 			try {
-				const musicbrainz_data = await pullMusicBrainz(ytid, track.title)
-				const yt = await pullTrackMetaYouTube([ytid])
-				const youtube_data = yt[0]?.status === 'fulfilled' ? yt[0].value : null
-				result = {musicbrainz_data, youtube_data}
-				console.log({musicbrainz_data, youtube_data})
+				// Parallel harvest phase
+				const promises = []
+
+				if (!track.youtube_data) {
+					promises.push(insertYouTubeMeta(ytid))
+				}
+
+				if (!track.musicbrainz_data) {
+					promises.push(insertMusicBrainzMeta(ytid, track.title))
+				}
+
+				const [youtube_data, musicbrainz_data] = await Promise.all(promises)
+
+				// Sequential follow-up for discogs
+				let discogs_data = null
+
+				if (!track.discogs_data) {
+					if (track.discogs_url) {
+						discogs_data = await insertDiscogsMeta(ytid, track.discogs_url)
+					} else {
+						log.info('hunting discogs url', {title: track.title})
+						const discoveredUrl = await huntDiscogsUrl(ytid, track.title, {musicbrainz_data})
+
+						if (discoveredUrl) {
+							log.info('found discogs url', {url: discoveredUrl})
+							await saveDiscogsUrl(track.id, discoveredUrl)
+							discogs_data = await insertDiscogsMeta(ytid, discoveredUrl)
+						}
+					}
+				}
+
+				result = {
+					musicbrainz_data: musicbrainz_data || track.musicbrainz_data,
+					youtube_data: youtube_data || track.youtube_data,
+					discogs_data: discogs_data || track.discogs_data
+				}
+				log.info('metadata updated', result)
+				onResult(result)
 			} catch (err) {
 				error = err instanceof Error ? err.message : String(err)
 			} finally {
@@ -38,11 +74,11 @@
 </script>
 
 {#if loading}
-	<p>Loading meta data from YouTube and MusicBrainz...</p>
+	<p>Loading meta data from YouTube, MusicBrainz, and Discogs...</p>
 {:else if error}
 	<p>Error: {error}</p>
 {/if}
 
-{#if result}
+{#if result && showResult}
 	<pre><code>{JSON.stringify(result, null, 2)}</code></pre>
 {/if}

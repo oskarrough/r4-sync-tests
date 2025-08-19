@@ -23,7 +23,6 @@ export interface Channel {
 	// custom ones
 	tracks_outdated?: boolean
 	track_count?: number
-	busy?: boolean
 
 	latitude?: number
 	longitude?: number
@@ -54,7 +53,6 @@ export type Track = {
 	mentions?: string[]
 	// fields below this line do not exist on remote r4 track
 	firebase_id?: string
-	busy?: boolean
 	// sometimes we include this, too
 	channel_id?: string
 	channel_slug?: string
@@ -62,6 +60,7 @@ export type Track = {
 	duration?: number
 	youtube_data?: object
 	musicbrainz_data?: object
+	discogs_data?: object
 }
 
 export interface AppState {

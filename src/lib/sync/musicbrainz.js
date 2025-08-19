@@ -1,10 +1,13 @@
 import {pg} from '$lib/r5/db'
+import {logger} from '$lib/logger'
+
+const log = logger.ns('sync.musicbrainz').seal()
 
 /**
  * @param {string} ytid
  * @param {string} title
  */
-export async function pullMusicBrainz(ytid, title) {
+export async function insertMusicBrainzMeta(ytid, title) {
 	if (!ytid || !title) return null
 
 	const musicbrainzData = await searchMusicBrainz(title)
@@ -19,10 +22,10 @@ export async function pullMusicBrainz(ytid, title) {
 				musicbrainz_updated_at = EXCLUDED.musicbrainz_updated_at,
 				updated_at = EXCLUDED.updated_at
 		`
-		console.log('pull_musicbrainz:updated', musicbrainzData)
+		log.info('updated', musicbrainzData)
 		return musicbrainzData
 	} catch (error) {
-		console.error('pull_musicbrainz:error', {ytid, error})
+		log.error('insert failed', {ytid, error})
 		return null
 	}
 }
@@ -126,7 +129,7 @@ export async function searchMusicBrainz(title) {
 				}
 			}
 		} catch (error) {
-			console.error(`Search strategy failed:`, strategy.query, error)
+			log.error('search strategy failed', {query: strategy.query, error})
 		}
 	}
 

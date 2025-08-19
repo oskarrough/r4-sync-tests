@@ -11,8 +11,8 @@
 		sdk.supabase.auth.onAuthStateChange(change)
 	})
 
-	async function change(event, session) {
-		log.log('change', event, session?.user)
+	async function change(eventName, session) {
+		log.log(eventName, session?.user?.email)
 
 		if (appState.user !== session?.user) {
 			appState.user = session?.user

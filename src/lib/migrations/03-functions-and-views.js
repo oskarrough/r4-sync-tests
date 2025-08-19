@@ -23,9 +23,15 @@ SELECT
   tm.duration,
   tm.youtube_data,
   tm.musicbrainz_data,
+  tm.discogs_data,
   tm.youtube_updated_at,
   tm.musicbrainz_updated_at,
-  c.slug as channel_slug
+  tm.discogs_updated_at,
+  c.slug as channel_slug,
+  -- Helper flags for checking metadata existence
+  (tm.youtube_data IS NOT NULL) as has_youtube_meta,
+  (tm.musicbrainz_data IS NOT NULL) as has_musicbrainz_meta,
+  (tm.discogs_data IS NOT NULL) as has_discogs_meta
 FROM tracks t
 LEFT JOIN track_meta tm ON tm.ytid = ytid(t.url)
 LEFT JOIN channels c ON c.id = t.channel_id;
