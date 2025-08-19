@@ -5,7 +5,9 @@ node_modules
 .vercel
 /.svelte-kit
 /build
-/tmp/
+
+# from the r5 cli pglite
+cli-db/ 
 
 # OS
 .DS_Store
@@ -17,6 +19,3 @@ Thumbs.db
 !.env.example
 !.env.test
 .dev.vars
-cli-output/
-r4-cli-data/
-r5-cli-data/

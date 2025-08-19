@@ -28,7 +28,7 @@ export let pg
  */
 export async function createPg(persist = browser) {
 	if (!pg) {
-		const dataDir = browser ? (persist ? 'idb://radio4000test2' : 'memory://') : './r5-cli-data'
+		const dataDir = browser ? (persist ? 'idb://radio4000test2' : 'memory://') : './cli-db'
 		pg = await PGlite.create({
 			// debug: 1,
 			dataDir: dataDir,

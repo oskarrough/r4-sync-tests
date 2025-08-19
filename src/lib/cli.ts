@@ -333,7 +333,7 @@ const dbCommands = [
 		'Export database (browser only)',
 		async () => {
 			console.log('Database export is only available in the browser interface.')
-			console.log('To backup your data, copy the directory: ./tmp/r5-cli-data')
+			console.log('To backup your data, copy the directory: ./cli-db')
 		}
 	],
 	[
