@@ -20,6 +20,7 @@
 
 	/** @type {string[]} */
 	let trackIds = $state([])
+	let tracksLoaded = $state(false)
 	let searchQuery = $state(data.search || '')
 	let debounceTimer = $state()
 
@@ -61,6 +62,7 @@
 			'id',
 			(res) => {
 				trackIds = res.rows.map((row) => row.id)
+				tracksLoaded = true
 				if (res.rows.length > 0) {
 					latestTrackDate = res.rows[0].created_at
 				}
@@ -80,6 +82,7 @@
 		try {
 			const tracks = await searchTracks(searchQuery, data.slug)
 			trackIds = tracks.map((track) => track.id)
+			tracksLoaded = true
 		} catch (error) {
 			console.error('Failed to load tracks:', error)
 		}
@@ -150,17 +153,15 @@
 				</form>
 			</header>
 
-			{#await data.tracksPromise}
-				<p>Loading...</p>
-			{:then}
-				{#if trackIds.length > 0}
-					<Tracklist ids={trackIds} />
-				{:else if !channel.tracks_synced_at}
-					<p style="margin-top:1rem; margin-left: 0.5rem;">Tracks syncing…</p>
-				{:else}
-					<p>No tracks found{searchQuery ? ` for "${searchQuery}"` : ''}</p>
-				{/if}
-			{/await}
+			{#if trackIds.length > 0}
+				<Tracklist ids={trackIds} />
+			{:else if !tracksLoaded}
+				<p style="margin-top:1rem; margin-left: 0.5rem;">Loading tracks…</p>
+			{:else if !channel.tracks_synced_at}
+				<p style="margin-top:1rem; margin-left: 0.5rem;">Tracks syncing…</p>
+			{:else}
+				<p>No tracks found{searchQuery ? ` for "${searchQuery}"` : ''}</p>
+			{/if}
 		</section>
 	</article>
 {:else}

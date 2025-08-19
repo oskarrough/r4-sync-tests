@@ -94,32 +94,37 @@ export async function insert(slug, tracks) {
 		}
 	}
 
-	// Insert tracks
-	await pg.transaction(async (tx) => {
-		const inserts = tracksToInsert.map(
-			(track) => tx.sql`
-        INSERT INTO tracks (
-          id, channel_id, url, title, description,
-          discogs_url, created_at, updated_at, tags, mentions, firebase_id
-        )
-        VALUES (
-          ${track.id}, ${channel.id}, ${track.url},
-          ${track.title}, ${track.description},
-          ${track.discogs_url}, ${track.created_at}, ${track.updated_at},
-          ${track.tags}, ${track.mentions}, ${track.firebase_id || null}
-        )
-        ON CONFLICT (id) DO UPDATE SET
-          url = EXCLUDED.url,
-          title = EXCLUDED.title,
-          description = EXCLUDED.description,
-          discogs_url = EXCLUDED.discogs_url,
-          updated_at = EXCLUDED.updated_at,
-          tags = EXCLUDED.tags,
-          mentions = EXCLUDED.mentions
-      `
-		)
-		await Promise.all(inserts)
-	})
+	// Insert tracks in single batched query  
+	if (tracksToInsert.length > 0) {
+		const values = tracksToInsert.map(track => [
+			track.id, channel.id, track.url, track.title, track.description,
+			track.discogs_url, track.created_at, track.updated_at,
+			track.tags, track.mentions, track.firebase_id || null
+		])
+		
+		const placeholders = values.map((_, i) => {
+			const base = i * 11
+			return `($${base+1}, $${base+2}, $${base+3}, $${base+4}, $${base+5}, $${base+6}, $${base+7}, $${base+8}, $${base+9}, $${base+10}, $${base+11})`
+		}).join(', ')
+		
+		const allParams = values.flat()
+		
+		await pg.query(`
+			INSERT INTO tracks (
+				id, channel_id, url, title, description,
+				discogs_url, created_at, updated_at, tags, mentions, firebase_id
+			)
+			VALUES ${placeholders}
+			ON CONFLICT (id) DO UPDATE SET
+				url = EXCLUDED.url,
+				title = EXCLUDED.title,
+				description = EXCLUDED.description,
+				discogs_url = EXCLUDED.discogs_url,
+				updated_at = EXCLUDED.updated_at,
+				tags = EXCLUDED.tags,
+				mentions = EXCLUDED.mentions
+		`, allParams)
+	}
 
 	// Mark as successfully synced
 	await pg.sql`update channels set tracks_synced_at = CURRENT_TIMESTAMP, track_count = ${tracksToInsert.length} where slug = ${slug}`
