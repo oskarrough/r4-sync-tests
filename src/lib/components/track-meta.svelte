@@ -1,8 +1,7 @@
 <script>
 	import {pullMusicBrainz} from '$lib/sync/musicbrainz'
 	import {pullTrackMetaYouTube} from '$lib/sync/youtube'
-	import {pullDiscogs} from '$lib/sync/discogs'
-	import {findDiscogsViaMusicBrainz, saveDiscogsUrl} from '$lib/sync/auto-discogs'
+	import {pullDiscogs, findDiscogsViaMusicBrainz, saveDiscogsUrl} from '$lib/sync/discogs'
 	import {extractYouTubeId} from '$lib/utils.ts'
 
 	/**
@@ -10,7 +9,7 @@
 	 * with youtube_data, musicbrainz_data, and discogs_data
 	 */
 
-	const {track} = $props()
+	const {track, showResult = false, onResult} = $props()
 
 	let loading = $state(false)
 	let error = $state()
@@ -56,6 +55,7 @@
 
 				result = {musicbrainz_data, youtube_data, discogs_data}
 				console.log({musicbrainz_data, youtube_data, discogs_data})
+				onResult(result)
 			} catch (err) {
 				error = err instanceof Error ? err.message : String(err)
 			} finally {
@@ -71,6 +71,6 @@
 	<p>Error: {error}</p>
 {/if}
 
-{#if result}
+{#if result && showResult}
 	<pre><code>{JSON.stringify(result, null, 2)}</code></pre>
 {/if}
