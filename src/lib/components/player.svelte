@@ -201,7 +201,7 @@
 		onclick={(e) => {
 			e.preventDefault()
 			e.stopPropagation()
-			toggleShuffle(trackIds)
+			toggleShuffle()
 		}}
 		class={['shuffle', {active: appState.shuffle}]}
 	>

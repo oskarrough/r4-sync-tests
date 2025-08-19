@@ -88,6 +88,11 @@ export async function setPlaylist(ids) {
 export async function addToPlaylist(trackIds) {
 	const currentTracks = appState.playlist_tracks || []
 	appState.playlist_tracks = [...currentTracks, ...trackIds]
+	
+	// If shuffle is on, regenerate the shuffled playlist
+	if (appState.shuffle) {
+		appState.playlist_tracks_shuffled = shuffleArray(appState.playlist_tracks)
+	}
 }
 
 export async function toggleTheme() {

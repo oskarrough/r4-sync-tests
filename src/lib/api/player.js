@@ -90,20 +90,15 @@ export function previous(track, activeQueue, reason) {
 	}
 }
 
-/**
- * @param {string[]} trackIds
- */
-export function toggleShuffle(trackIds) {
+export function toggleShuffle() {
 	const newShuffleState = !appState.shuffle
 	if (newShuffleState) {
-		// Turning shuffle ON - generate new shuffle queue
-		const shuffledQueue = shuffleArray(trackIds)
+		// Generate fresh shuffle from current playlist
+		appState.playlist_tracks_shuffled = shuffleArray(appState.playlist_tracks || [])
 		appState.shuffle = true
-		appState.playlist_tracks_shuffled = shuffledQueue
 	} else {
-		// Turning shuffle OFF - clear shuffle queue
+		// Just toggle off, keep shuffled array for next time
 		appState.shuffle = false
-		appState.playlist_tracks_shuffled = []
 	}
 }
 
