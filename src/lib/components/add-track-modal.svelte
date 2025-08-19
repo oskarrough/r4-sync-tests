@@ -2,12 +2,17 @@
 	import Modal from '$lib/components/modal.svelte'
 	import Icon from '$lib/components/icon.svelte'
 	import {appState} from '$lib/app-state.svelte'
+	import {pg} from '$lib/r5/db'
 
 	let showModal = $state(false)
-	let lastCreatedTrack = $state()
+	let recentTracks = $state([])
 
 	const channelId = $derived(appState.channels?.length > 0 ? appState.channels[0] : undefined)
 	const isSignedIn = $derived(!!appState.user)
+
+	const channel = $derived.by(async () => {
+		return (await pg.sql`select * from channels where id = ${channelId}`).rows[0]
+	})
 
 	/** @param {KeyboardEvent} event */
 	function handleKeyDown(event) {
@@ -16,8 +21,10 @@
 	}
 
 	function submit(event) {
-		lastCreatedTrack = event.detail.data
-		console.log({lastCreatedTrack})
+		const track = event.detail.data
+		recentTracks.unshift(track)
+		if (recentTracks.length > 3) recentTracks.pop()
+		console.log({track, recentTracks})
 		// @todo insert track into local db. or use pullTracks? Maybe the better option for consistency
 	}
 </script>
@@ -40,11 +47,28 @@
 
 <Modal bind:showModal>
 	{#snippet header()}
-		<h2>Add track</h2>
+		<h2>
+			Add track
+
+			{#await channel then channelData}
+				{#if channelData}
+					to <a href={`/${channelData.slug}`}>{channelData.name}</a>
+				{/if}
+			{/await}
+		</h2>
 	{/snippet}
 
 	{#if channelId}
 		<r4-track-create channel_id={channelId} onsubmit={submit}></r4-track-create>
+
+		{#if recentTracks.length > 0}
+			<div class="recent-tracks">
+				<h3>Recently saved:</h3>
+				{#each recentTracks as track (track.id || track.url)}
+					<div>{track.title || track.url}</div>
+				{/each}
+			</div>
+		{/if}
 	{:else if isSignedIn}
 		<p>
 			You need to create a channel first. Go to <a
@@ -57,3 +81,6 @@
 		<p><a href="/login">Sign in</a> first, please.</p>
 	{/if}
 </Modal>
+
+<style>
+</style>

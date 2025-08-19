@@ -5,20 +5,18 @@ Always verify and evaluate todos before taking them on. They might be outdated o
 
 ## Backlog
 
-- when searching tracks on a /<slug> channel page, the search input disappears if there are no results
+- adding a track (while on <slug>) doesn't re-render the tracklist
 - group metadata enrichment functions (youtube, musicbrainz) under single namespace "metadata" instead of "sync" ?
 - move sync/followers into lib/r5 namespace. think hard about the the pullFollowers logic. Maybe get rid of `syncFollowers`, we use "pull" naming in other places. Is it because it doesn't overwrite local, but merge into local? seems hard. hmm
 - implement "queue" to the r5 api (low prio)
-- Test we can export browser pglite and import and verify that
-- adding a track (while on <slug>) doesn't re-render the tracklist
 - consider integrating "bandsintown" as a third-party API similar to musicbrainz, youtube meta
 - implement discogs (see components.radio4000.com, where it's already kinda done)
 - change <slug>/page.js load function to maybe not block the whole page? too slow. render async islands nice svelte experimental async api pattern maybe?
 - run `bun run check` and slowly get rid of these warnings
 - v1 channels can't be bookmarked, they can't be broadcasted, because remote supabase doesn't know about their "foreign key".. ideas? r5 doesn't care whether it's v1 or v2, but remote postgres does. Maybe a system where the keys aren't proper ids, but just strings? That would allow you to store (in r4 remote postgres) channels that don't necessarily exist there, but only in v1. hmm
 - there's an issue with the app state playlist and shuffled playlist. when the playlist is set, we need to make sure the shuffled one is derived from it. else they might up pointing to diff lists
-- after adding a track the modal form resets, which is fine, but there's no clear ux to indicate that it was saved correctly. One idea is to add the <TrackCard> below. The r4-track-form thing must
 - analyze https://svelte.dev/docs/svelte/$effect#When-not-to-use-$effect
+- Test we can export browser pglite and import and verify that
 
 ##Arch improvements to consider
 

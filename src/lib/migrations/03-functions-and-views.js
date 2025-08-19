@@ -7,7 +7,7 @@ BEGIN
     RETURN (
         SELECT COALESCE(
             -- youtube.com/watch?v=ID or youtube.com/embed/ID
-            (regexp_match(url, 'youtube\.com/(?:.*[?&]v=|embed/)([a-zA-Z0-9_-]{6,11})'))[1],
+            (regexp_match(url, 'youtube\\.com/(?:.*[?&]v=|embed/)([a-zA-Z0-9_-]{6,11})'))[1],
             -- youtu.be/ID
             (regexp_match(url, 'youtu.be/([a-zA-Z0-9_-]{6,11})'))[1]
         )
