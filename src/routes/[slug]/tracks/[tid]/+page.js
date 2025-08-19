@@ -6,7 +6,8 @@ import {r5} from '$lib/r5'
 /**
  * Wait for the db to be ready, query track + channel locally
  * @type {import('./$types').PageLoad} */
-export async function load({parent, params}) {
+export async function load({parent, params, depends}) {
+	depends('track-meta')
 	await parent()
 	if (!pg) error(500, 'Database connection error')
 

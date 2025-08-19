@@ -31,6 +31,14 @@ export async function pullTrackMetaYouTubeFromChannel(channelId) {
 }
 
 /**
+ * Inserts track metadata from YouTube API for a single ytid
+ * @param {string} ytid */
+export async function insertYouTubeMeta(ytid) {
+	const ytids = [ytid]
+	return (await pullTrackMetaYouTube(ytids))[0] || null
+}
+
+/**
  * Pulls track metadata from YouTube API for specific ytids
  * @param {string[]} ytids */
 export async function pullTrackMetaYouTube(ytids) {

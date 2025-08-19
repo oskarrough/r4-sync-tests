@@ -1,11 +1,14 @@
 import {getPg} from '../r5/db.js'
+import {logger} from '$lib/logger'
+
+const log = logger.ns('sync.discogs').seal()
 
 /**
- * Pull discogs data for a track by discogs URL
+ * Insert discogs meta data for a track by discogs URL
  * @param {string} ytid
  * @param {string} discogsUrl
  */
-export async function pullDiscogs(ytid, discogsUrl) {
+export async function insertDiscogsMeta(ytid, discogsUrl) {
 	if (!ytid || !discogsUrl) return null
 
 	const discogsData = await fetchDiscogs(discogsUrl)
@@ -21,10 +24,10 @@ export async function pullDiscogs(ytid, discogsUrl) {
 				discogs_updated_at = EXCLUDED.discogs_updated_at,
 				updated_at = EXCLUDED.updated_at
 		`
-		console.log('pull_discogs:updated', discogsData)
+		log.info('updated', discogsData)
 		return discogsData
 	} catch (error) {
-		console.error('pull_discogs:error', {ytid, discogsUrl, error})
+		log.error('insert failed', {ytid, discogsUrl, error})
 		return null
 	}
 }
@@ -78,7 +81,7 @@ export async function fetchDiscogs(discogsUrl) {
 		})
 
 		if (!response.ok) {
-			console.error('discogs_api_error', response.status, response.statusText)
+			log.error('api error', {status: response.status, statusText: response.statusText})
 			return null
 		}
 
@@ -93,7 +96,7 @@ export async function fetchDiscogs(discogsUrl) {
 			}
 		}
 	} catch (error) {
-		console.error('fetch_discogs:error', {discogsUrl, apiUrl: apiUrl, error})
+		log.error('fetch failed', {discogsUrl, apiUrl, error})
 		return null
 	}
 }
@@ -121,14 +124,14 @@ export async function searchDiscogs(title) {
  */
 
 /**
- * Find Discogs release URL for a track via MusicBrainz
+ * Hunt for Discogs release URL for a track via MusicBrainz
  * Checks local cache first to avoid redundant API calls
  * @param {string} ytid YouTube video ID
  * @param {string} title Track title for fallback search
  * @param {object} existingMeta Optional existing track_meta to avoid re-fetching
  * @returns {Promise<string|null>} Discogs URL or null
  */
-export async function findDiscogsViaMusicBrainz(ytid, title, existingMeta = null) {
+export async function huntDiscogsUrl(ytid, title, existingMeta = null) {
 	if (!ytid || !title) return null
 
 	try {
@@ -148,7 +151,7 @@ export async function findDiscogsViaMusicBrainz(ytid, title, existingMeta = null
 
 		// If we have cached MusicBrainz data with releases, use it
 		if (musicbrainzData?.releases?.length > 0) {
-			console.log('Using cached MusicBrainz data for', title)
+			log.info('using cached musicbrainz data', {title})
 			// Check each release for Discogs URL
 			for (const release of musicbrainzData.releases) {
 				if (release.id) {
@@ -159,7 +162,7 @@ export async function findDiscogsViaMusicBrainz(ytid, title, existingMeta = null
 		}
 
 		// Otherwise, do fresh search
-		console.log('Searching MusicBrainz for', title)
+		log.info('searching musicbrainz', {title})
 
 		// Step 1: Search for recording by title
 		const recording = await searchMusicBrainzRecording(title)
@@ -177,7 +180,7 @@ export async function findDiscogsViaMusicBrainz(ytid, title, existingMeta = null
 
 		return null
 	} catch (error) {
-		console.error('find_discogs_via_musicbrainz:error', {ytid, title, error})
+		log.error('discogs hunt failed', {ytid, title, error})
 		return null
 	}
 }
@@ -213,12 +216,12 @@ async function searchMusicBrainzRecording(title) {
 		const data = await response.json()
 
 		if (data.recordings?.length > 0) {
-			console.log('MusicBrainz found', data.count, 'recordings for', title)
+			log.info('musicbrainz found recordings', {count: data.count, title})
 		}
 
 		return data.recordings?.[0] || null
 	} catch (error) {
-		console.error('search_musicbrainz_recording:error', error)
+		log.error('musicbrainz recording search failed', {error})
 		return null
 	}
 }
@@ -239,7 +242,7 @@ async function getMusicBrainzReleases(recordingId) {
 		const data = await response.json()
 		return data.releases || []
 	} catch (error) {
-		console.error('get_musicbrainz_releases:error', error)
+		log.error('musicbrainz releases fetch failed', {error})
 		return []
 	}
 }
@@ -264,7 +267,7 @@ async function getDiscogsUrlFromRelease(releaseId) {
 
 		return urlRels?.[0]?.url?.resource || null
 	} catch (error) {
-		console.error('get_discogs_url_from_release:error', error)
+		log.error('discogs url extraction failed', {error})
 		return null
 	}
 }
@@ -284,10 +287,10 @@ export async function saveDiscogsUrl(trackId, discogsUrl) {
 			SET discogs_url = ${discogsUrl}
 			WHERE id = ${trackId}
 		`
-		console.log('Saved discogs_url for track', trackId)
+		log.info('saved discogs url', {trackId})
 		return true
 	} catch (error) {
-		console.error('save_discogs_url:error', {trackId, discogsUrl, error})
+		log.error('save discogs url failed', {trackId, discogsUrl, error})
 		return false
 	}
 }
@@ -296,10 +299,10 @@ export async function saveDiscogsUrl(trackId, discogsUrl) {
  * Test the chain with a known track
  */
 export async function testAutoDiscovery() {
-	console.log('Testing auto-discovery with "Daft Punk - Get Lucky"')
+	log.info('testing auto-discovery', {track: 'Daft Punk - Get Lucky'})
 
-	const discogsUrl = await findDiscogsViaMusicBrainz('09m-zZN-tOQ', 'Daft Punk - Get Lucky')
-	console.log('Found Discogs URL:', discogsUrl)
+	const discogsUrl = await huntDiscogsUrl('09m-zZN-tOQ', 'Daft Punk - Get Lucky')
+	log.info('test result', {discogsUrl})
 
 	return discogsUrl
 }

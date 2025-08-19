@@ -1,6 +1,6 @@
 <script>
 	import {page} from '$app/state'
-	import {invalidateAll} from '$app/navigation'
+	import {invalidate} from '$app/navigation'
 	import TrackMeta from '$lib/components/track-meta.svelte'
 	// import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	// import ButtonPlay from '$lib/components/button-play.svelte'
@@ -9,7 +9,7 @@
 	let {data} = $props()
 	const track = $derived(data.track)
 	const channel = $derived(data.channel)
-	const activeTab = $derived(page.url.searchParams.get('tab') || 'track')
+	const activeTab = $derived(page.url.searchParams.get('tab') || 'r5')
 
 	/* Since we use JSON.stringify to render, we dont want the default tab to
 	include all the meta data */
@@ -24,7 +24,7 @@
 	async function updateTrackMeta(meta) {
 		console.log('Metadata updated:', meta)
 		// Re-run the load function to get fresh data
-		await invalidateAll()
+		await invalidate('track-meta')
 	}
 </script>
 

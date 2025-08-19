@@ -1,8 +1,11 @@
 <script>
-	import {pullMusicBrainz} from '$lib/sync/musicbrainz'
-	import {pullTrackMetaYouTube} from '$lib/sync/youtube'
-	import {pullDiscogs, findDiscogsViaMusicBrainz, saveDiscogsUrl} from '$lib/sync/discogs'
+	import {insertMusicBrainzMeta} from '$lib/sync/musicbrainz'
+	import {insertYouTubeMeta} from '$lib/sync/youtube'
+	import {insertDiscogsMeta, huntDiscogsUrl, saveDiscogsUrl} from '$lib/sync/discogs'
 	import {extractYouTubeId} from '$lib/utils.ts'
+	import {logger} from '$lib/logger'
+
+	const log = logger.ns('track-meta').seal()
 
 	/**
 	 * This component updates the track_meta table for this track
@@ -14,47 +17,52 @@
 	let loading = $state(false)
 	let error = $state()
 
-	const hasMeta = $derived(track.youtube_data || track.musicbrainz_data || track.discogs_data)
 	const ytid = $derived(track?.youtube_data?.id || extractYouTubeId(track?.url) || null)
 
 	let result = $state()
 
 	$effect(() => {
-		if (!ytid || hasMeta) return
+		if (!ytid) return
 		loading = true
 		Promise.resolve().then(async () => {
 			try {
-				// Fetch YouTube and MusicBrainz data first
-				const musicbrainz_data = await pullMusicBrainz(ytid, track.title)
-				const yt = await pullTrackMetaYouTube([ytid])
-				const youtube_data = yt[0]?.status === 'fulfilled' ? yt[0].value : null
+				// Parallel harvest phase
+				const promises = []
 
-				// Handle Discogs data
+				if (!track.youtube_data) {
+					promises.push(insertYouTubeMeta(ytid))
+				}
+
+				if (!track.musicbrainz_data) {
+					promises.push(insertMusicBrainzMeta(ytid, track.title))
+				}
+
+				const [youtube_data, musicbrainz_data] = await Promise.all(promises)
+
+				// Sequential follow-up for discogs
 				let discogs_data = null
 
-				if (track.discogs_url) {
-					// If track already has discogs_url, fetch the data
-					discogs_data = await pullDiscogs(ytid, track.discogs_url)
-				} else {
-					// Try auto-discovery via MusicBrainz chain
-					console.log('Attempting auto-discovery for', track.title)
-					const discoveredUrl = await findDiscogsViaMusicBrainz(
-						ytid,
-						track.title,
-						{musicbrainz_data} // Pass existing data to avoid re-fetching
-					)
+				if (!track.discogs_data) {
+					if (track.discogs_url) {
+						discogs_data = await insertDiscogsMeta(ytid, track.discogs_url)
+					} else {
+						log.info('hunting discogs url', {title: track.title})
+						const discoveredUrl = await huntDiscogsUrl(ytid, track.title, {musicbrainz_data})
 
-					if (discoveredUrl) {
-						console.log('Auto-discovered Discogs URL:', discoveredUrl)
-						// Save the discovered URL to the track
-						await saveDiscogsUrl(track.id, discoveredUrl)
-						// Fetch the Discogs data
-						discogs_data = await pullDiscogs(ytid, discoveredUrl)
+						if (discoveredUrl) {
+							log.info('found discogs url', {url: discoveredUrl})
+							await saveDiscogsUrl(track.id, discoveredUrl)
+							discogs_data = await insertDiscogsMeta(ytid, discoveredUrl)
+						}
 					}
 				}
 
-				result = {musicbrainz_data, youtube_data, discogs_data}
-				console.log({musicbrainz_data, youtube_data, discogs_data})
+				result = {
+					musicbrainz_data: musicbrainz_data || track.musicbrainz_data,
+					youtube_data: youtube_data || track.youtube_data,
+					discogs_data: discogs_data || track.discogs_data
+				}
+				log.info('metadata updated', result)
 				onResult(result)
 			} catch (err) {
 				error = err instanceof Error ? err.message : String(err)
