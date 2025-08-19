@@ -1,6 +1,6 @@
 <script>
 	import {onMount} from 'svelte'
-	import {parseCommand} from '$lib/cli-translator'
+	import {createBrowserCli} from '$lib/cli-browser'
 	import PgliteRepl from '$lib/components/pglite-repl.svelte'
 	import {r5} from '$lib/r5'
 	import Terminal from '$lib/components/sdk-terminal.svelte'
@@ -12,12 +12,24 @@
 	let executingCommand = $state(null)
 	let inputElement
 
+	// Create simple CLI instance
+	const cli = createBrowserCli((type, text, data) => {
+		baseOutput.push({
+			type,
+			text,
+			timestamp: new Date(),
+			data,
+			showData: !!data
+		})
+	})
+
 	let commandValidation = $derived.by(() => {
 		if (!terminalInput.trim()) return null
 		if (terminalInput.startsWith('/search')) {
-			return {error: 'Did you mean "search.tracks ..." or "search.channels ..."?'}
+			return {error: 'Did you mean "search tracks ..." or "search channels ..."?'}
 		}
-		return parseCommand(`r5 ${terminalInput}`)
+		// With simple CLI, validation happens during parsing
+		return {valid: true}
 	})
 
 	let terminalOutput = $derived([
@@ -33,29 +45,14 @@
 			: [])
 	])
 
-	function formatResult(result, duration) {
-		if (typeof result === 'string') {
-			return {
-				type: 'success',
-				text: result,
-				timestamp: new Date()
-			}
-		}
-		return {
-			type: 'success',
-			text: `✓ ${Array.isArray(result) ? result.length : 1} results (${duration}ms)`,
-			timestamp: new Date(),
-			data: result,
-			showData: true
-		}
-	}
+	// No longer needed - output is handled by cli
 
-	function handleCommand(type, text) {
+	async function handleCommand(type, text) {
 		if (type === 'hint') {
 			baseOutput.push({type, text, timestamp: new Date()})
 			return
 		}
-		executeCommand()
+		await executeCommand()
 	}
 
 	async function executeCommand() {
@@ -85,28 +82,20 @@
 			return
 		}
 
-		if (!validation) return
-
 		executingCommand = command
 
 		try {
 			const startTime = performance.now()
-			console.log(
-				`r5.terminal executing: ${command}`,
-				validation.fn.name || validation.fn,
-				validation.args
-			)
-			const result = await validation.fn(...validation.args)
+			console.log(`r5.terminal executing: ${command}`)
+
+			// Use simple CLI to parse and execute
+			await cli.parseCommand(command)
+
 			const duration = Math.round(performance.now() - startTime)
-			console.log(`r5.terminal result (${duration}ms):`, result)
+			console.log(`r5.terminal completed (${duration}ms)`)
 
-			baseOutput.push(formatResult(result, duration))
-
-			if (
-				command.includes('db.reset') ||
-				command.includes('db reset') ||
-				command.includes('drop_tables')
-			) {
+			// Auto-migrate after db reset commands
+			if (command.includes('db reset')) {
 				await r5.db.migrate()
 			}
 		} catch (error) {
@@ -175,6 +164,7 @@
 			bind:historyIndex
 			bind:inputElement
 			onCommand={handleCommand}
+			getCompletions={cli.getCompletions}
 		/>
 	</main>
 	<section class="repl">
@@ -182,6 +172,7 @@
 	</section>
 	<footer>
 		<p>tip: keep the browser console open</p>
+		<p>tip2: the real terminal cli is better than this...</p>
 	</footer>
 </article>
 

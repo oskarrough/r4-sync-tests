@@ -1,24 +1,26 @@
 import {describe, it, expect, beforeEach} from 'vitest'
-import {r5} from './r5.js'
-import {dropDb, migrateDb} from './db.js'
+import {r5} from '.'
+import {createPg, reset} from './db.js'
 
 const R4_SLUG = 'ko002'
 const V1_SLUG = 'ucfm'
 
 describe('r5 API', () => {
 	beforeEach(async () => {
-		await dropDb()
-		await migrateDb()
+		// Ensure pg is initialized and set for tests
+		const testPg = await createPg(false) // memory mode for tests
+		r5.db.setPg(testPg)
+		await reset()
 	})
 
-	describe('r5.channels', () => {
+	describe('r5.channels.local', () => {
 		it('should list empty local channels initially', async () => {
-			const channels = await r5.channels()
+			const channels = await r5.channels.local()
 			expect(channels).toEqual([])
 		})
 
 		it('should return empty array for non-existent slug', async () => {
-			const channels = await r5.channels({slug: 'non-existent'})
+			const channels = await r5.channels.local({slug: 'non-existent'})
 			expect(channels).toEqual([])
 		})
 
@@ -50,7 +52,7 @@ describe('r5 API', () => {
 			expect(pulled[0].slug).toBe(R4_SLUG)
 
 			// Verify it's stored locally
-			const local = await r5.channels({slug: R4_SLUG})
+			const local = await r5.channels.local({slug: R4_SLUG})
 			expect(local.length).toBe(1)
 			expect(local[0].slug).toBe(R4_SLUG)
 		})
@@ -63,7 +65,7 @@ describe('r5 API', () => {
 			expect(pulled[0].slug).toBe(V1_SLUG)
 
 			// Verify it's stored locally
-			const local = await r5.channels({slug: V1_SLUG})
+			const local = await r5.channels.local({slug: V1_SLUG})
 			expect(local.length).toBe(1)
 			expect(local[0].slug).toBe(V1_SLUG)
 			expect(local[0].firebase_id).toBeDefined()
@@ -91,7 +93,7 @@ describe('r5 API', () => {
 			expect(Array.isArray(channels)).toBe(true)
 
 			// Verify they're stored locally
-			const local = await r5.channels({limit: 5})
+			const local = await r5.channels.local({limit: 5})
 			expect(local.length).toBeGreaterThan(0)
 		})
 	})
@@ -104,12 +106,12 @@ describe('r5 API', () => {
 		})
 
 		it('should list empty local tracks initially', async () => {
-			const tracks = await r5.tracks()
+			const tracks = await r5.tracks.local()
 			expect(tracks).toEqual([])
 		})
 
 		it('should return empty array for channel without tracks', async () => {
-			const tracks = await r5.tracks({slug: R4_SLUG})
+			const tracks = await r5.tracks.local({slug: R4_SLUG})
 			expect(tracks).toEqual([])
 		})
 
@@ -131,7 +133,7 @@ describe('r5 API', () => {
 			expect(pulled.length).toBeGreaterThan(0)
 
 			// Verify they're stored locally
-			const local = await r5.tracks({slug: R4_SLUG})
+			const local = await r5.tracks.local({slug: R4_SLUG})
 			expect(local.length).toBe(pulled.length)
 			expect(local[0].channel_slug).toBe(R4_SLUG)
 		})
@@ -143,7 +145,7 @@ describe('r5 API', () => {
 			expect(Array.isArray(pulled)).toBe(true)
 
 			// Verify they're stored locally
-			const local = await r5.tracks({slug: V1_SLUG})
+			const local = await r5.tracks.local({slug: V1_SLUG})
 			expect(local.length).toBeGreaterThan(0)
 			expect(local[0].channel_slug).toBe(V1_SLUG)
 		})
@@ -158,7 +160,7 @@ describe('r5 API', () => {
 			await r5.tracks.pull({slug: V1_SLUG})
 
 			// Get all tracks
-			const allTracks = await r5.tracks()
+			const allTracks = await r5.tracks.local()
 			expect(allTracks.length).toBeGreaterThan(0)
 		})
 	})

@@ -1,5 +1,5 @@
 <script>
-	import {pg} from '$lib/db'
+	import {pg} from '$lib/r5/db'
 	import {liveQuery, incrementalLiveQuery} from '$lib/live-query'
 	import {appState} from '$lib/app-state.svelte'
 	import Tracklist from './tracklist.svelte'

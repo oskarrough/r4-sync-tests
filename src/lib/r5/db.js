@@ -1,16 +1,13 @@
 import {PGlite} from '@electric-sql/pglite'
 import {live} from '@electric-sql/pglite/live'
-import type {PGliteWithLive} from '@electric-sql/pglite/live'
 import {pg_trgm} from '@electric-sql/pglite/contrib/pg_trgm'
-import {logger} from './logger.js'
+import {logger} from '../logger.js'
+import migration01sql from '../migrations/01-initial-schema.sql?raw'
+import migration02sql from '../migrations/02-more-tables.sql?raw'
+import migration03sql from '../migrations/03-functions-and-views.sql?raw'
 
 const browser = typeof window !== 'undefined'
-
 const log = logger.ns('db').seal()
-
-import migration01sql from '$lib/migrations/01-initial-schema.sql?raw'
-import migration02sql from '$lib/migrations/02-more-tables.sql?raw'
-import migration03sql from '$lib/migrations/03-functions-and-views.sql?raw'
 
 // This will limit the amount of channels pulled.
 export const debugLimit = 40
@@ -22,12 +19,14 @@ const migrations = [
 ]
 
 // This will be null until createPg() is called
-export let pg: PGliteWithLive
+/** @type {import('@electric-sql/pglite/live').PGliteWithLive} */
+export let pg
 
-/*
+/**
  * @param {boolean} persist - Switch between in-memory and OPFS persisted indexeddb for PostgreSQL
+ * @returns {Promise<import('@electric-sql/pglite/live').PGliteWithLive>}
  */
-export async function createPg(persist = browser): Promise<PGliteWithLive> {
+export async function createPg(persist = browser) {
 	if (!pg) {
 		const dataDir = browser ? (persist ? 'idb://radio4000test2' : 'memory://') : './r5-cli-data'
 		pg = await PGlite.create({
@@ -43,16 +42,39 @@ export async function createPg(persist = browser): Promise<PGliteWithLive> {
 	return pg
 }
 
-export async function dropDb() {
-	if (!pg) pg = await createPg()
-	// Clear tables
-	await pg.sql`DELETE FROM app_state;`
-	await pg.sql`DELETE FROM track_edits;`
-	await pg.sql`DELETE FROM followers;`
-	await pg.sql`DELETE FROM play_history;`
-	await pg.sql`DELETE FROM tracks;`
-	await pg.sql`DELETE FROM channels;`
-	// Then drop them
+/**
+ * Get pg instance, creating it lazily if needed
+ * @returns {Promise<import('@electric-sql/pglite/live').PGliteWithLive>}
+ */
+export async function getPg() {
+	if (!pg) {
+		pg = await createPg()
+		// Auto-migrate on first database creation
+		await migrate()
+	}
+	return pg
+}
+
+/**
+ * Set pg instance manually (for tests/CLI)
+ * @param {import('@electric-sql/pglite/live').PGliteWithLive} instance
+ */
+export function setPg(instance) {
+	pg = instance
+}
+
+export async function drop() {
+	pg = await createPg()
+
+	// Delete before dropping tables because why?
+	// await pg.sql`DELETE FROM app_state;`
+	// await pg.sql`DELETE FROM track_edits;`
+	// await pg.sql`DELETE FROM followers;`
+	// await pg.sql`DELETE FROM play_history;`
+	// await pg.sql`DELETE FROM tracks;`
+	// await pg.sql`DELETE FROM channels;`
+
+	// Drop tables with CASCADE to handle dependencies
 	await pg.sql`drop table if exists app_state CASCADE;`
 	await pg.sql`drop table if exists track_edits CASCADE;`
 	await pg.sql`drop table if exists followers CASCADE;`
@@ -61,10 +83,11 @@ export async function dropDb() {
 	await pg.sql`drop table if exists channels CASCADE;`
 	await pg.sql`drop table if exists migrations CASCADE;`
 	await pg.sql`drop table if exists track_meta CASCADE;`
+
 	log.log('dropped db')
 }
 
-export async function exportDb() {
+export async function exportDatabase() {
 	if (!pg) throw new Error('Database not initialized')
 	const file = await pg.dumpDataDir()
 	// Download the dump
@@ -77,7 +100,7 @@ export async function exportDb() {
 }
 
 /** Runs a list of SQL migrations on the database */
-export async function migrateDb() {
+export async function migrate() {
 	if (!pg) pg = await createPg()
 	await pg.exec(`
 		create table if not exists migrations (
@@ -101,4 +124,10 @@ export async function migrateDb() {
 		}
 	}
 	log.debug('migrated db')
+}
+
+export async function reset() {
+	await drop()
+	await migrate()
+	log.log('reset db')
 }

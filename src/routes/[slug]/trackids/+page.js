@@ -1,4 +1,4 @@
-import {pg} from '$lib/db'
+import {pg} from '$lib/r5/db'
 import {error} from '@sveltejs/kit'
 
 /** @type {import('./$types').PageLoad} */

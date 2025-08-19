@@ -1,61 +1,37 @@
-THINGS TO LOOK AT
+# Todos
 
+List of possible improvements to the architecture, idea, cli and web application.  
+Always verify and evaluate todos before taking them on. They might be outdated or just not good ideas.
 
-R5 API EXPERIMENT
+## Backlog
 
-@experimenta-api.md
-@experimental-api
-cli-r5.ts
-
-- how can we replace stuff like `	const channels = await r4.channels.readUserChannels()` with the r5 api?
-- slowly implement it. search for usage of $lib/api, querying channels and tracks, and use r5 instead.
-- extend r5api with player api commented out, waiting for module. broadcasts, push operations, followers pending.
-- implement "queue" to the r5 api
-
-## Todos
-
+- when searching tracks on a /<slug> channel page, the search input disappears if there are no results
+- group metadata enrichment functions (youtube, musicbrainz) under single namespace "metadata" instead of "sync" ?
+- move sync/followers into lib/r5 namespace. think hard about the the pullFollowers logic. Maybe get rid of `syncFollowers`, we use "pull" naming in other places. Is it because it doesn't overwrite local, but merge into local? seems hard. hmm
+- implement "queue" to the r5 api (low prio)
+- Test we can export browser pglite and import and verify that
+- adding a track (while on <slug>) doesn't re-render the tracklist
 - consider integrating "bandsintown" as a third-party API similar to musicbrainz, youtube meta
 - implement discogs (see components.radio4000.com, where it's already kinda done)
-- change <slug>/page.js load function to maybe not block the whole page? too slow. render async
-- edit track UI (for the ones you own)
-- go to /nomads, go to /settings, click reset, click browser back button, tracks are missing and stuck "syncing"
+- change <slug>/page.js load function to maybe not block the whole page? too slow. render async islands nice svelte experimental async api pattern maybe?
 - run `bun run check` and slowly get rid of these warnings
-- v1 channels can't be bookmarked, they can't be broadcasted, because remote supabase doesn't know about their "foreign key".. ideas? r5 doesn't care whether it's v1 or v2, but remote postgres does. Maybe a system where the keys aren't proper ids, but just strings?
+- v1 channels can't be bookmarked, they can't be broadcasted, because remote supabase doesn't know about their "foreign key".. ideas? r5 doesn't care whether it's v1 or v2, but remote postgres does. Maybe a system where the keys aren't proper ids, but just strings? That would allow you to store (in r4 remote postgres) channels that don't necessarily exist there, but only in v1. hmm
 - there's an issue with the app state playlist and shuffled playlist. when the playlist is set, we need to make sure the shuffled one is derived from it. else they might up pointing to diff lists
 - after adding a track the modal form resets, which is fine, but there's no clear ux to indicate that it was saved correctly. One idea is to add the <TrackCard> below. The r4-track-form thing must
-- add app_state.hide_track_artwork setting and respect it in track cards etc. by default we show artwork
-- feature/batch-edit -> https://github.com/radio4000/r4-sync-tests/pull/16 -> mass tracks edit batch editor interface → comprehensive design in @batch-editing.md 
 - analyze https://svelte.dev/docs/svelte/$effect#When-not-to-use-$effect
 
-ARCHITECTURE IMPROVEMENTS (HIGHEST PRIORITY)
+## Arch improvements to consider
 
-- remove v1 firebase support entirely: delete /src/lib/v1.js, remove firebase_id branching (~300 LOC reduction)
 - implement event sourcing pattern: events table {type, payload, timestamp} for state changes, enables undo/replay
 - unify sync layer: single sync_operations queue table instead of scattered pull/push functions
-- split app_state monolith: separate tables for player_state, ui_prefs, auth_state (single responsibility)
-- fix broadcast anomaly: make it local-first with eventual sync like everything else
-
-ARCHITECTURE IMPROVEMENTS (HIGH PRIORITY)
-
-- implement command pattern: single execute({cmd: 'play', target}) dispatcher instead of scattered api functions
 - refactor persistAppState() to use parameterized queries instead of string concatenation
 - add validation layer at sync boundaries (remote->local) using lightweight lib like valibot
-- implement debounced persistence for app_state to reduce write frequency
 - implement backup/restore: export/import full pglite database as json or sql dump
-- consolidate migrations: merge 12 files into single schema.sql during prototype phase
-- define single source of truth: player state in memory only, prefs in app_state only, music in pglite only
 
 ARCHITECTURE IMPROVEMENTS (MEDIUM PRIORITY)
 
-- implement consistent error handling with ok/err return types for api & sync operations
-- add optimistic locking for app_state updates (version field, check before write)
-- add input validation for tracks (url, title), channels (name, slug) before db insert
-- enhance logger: add structured error logging with context, expose store.logs in devtools ui
-- document live query vs regular query patterns: live for shared state, regular for local view state
+- enhance logger: expose store.logs in devtools ui
 - separate api layers: split ui operations (toggleTheme, openSearch) from data operations in api.js
-- fix transaction boundaries: ensure atomic updates for chunked sync operations
-- extract dom manipulation from data layer (document.querySelector in api.js)
-- standardize component data fetching patterns: extract search logic from ui concerns
 - extract reusable debouncing utility instead of per-component implementation
 - clarify data flow patterns - document and standardize when operations hit local vs remote database
 - implement sync resumption - track sync progress in db, allow continuation of interrupted syncs
@@ -65,28 +41,31 @@ ARCHITECTURE IMPROVEMENTS (MEDIUM PRIORITY)
 
 TERMINOLOGY & API REFACTORS (from index.ts review)
 
-- standardize query naming: either use query* prefix consistently or just function names
-- unify play actions: merge playTrack and playChannel into single play(entity) 
-- consolidate toggle actions: consider set* with boolean param for explicit state management
-- remove redundancy: togglePlayPause (api) vs togglePlay (player) - pick one location
-- group metadata enrichment functions (youtube, musicbrainz) under single namespace
+- unify play actions: merge playTrack and playChannel into single play(entity)  -- why?
 - move spam detection out of playground into proper module if keeping
 - split utils by domain: youtube utils, text parsing utils, array utils
 - standardize Channel vs Channels in function names (e.g., pullChannel vs pullChannels)
 
 CLI & LLM INTEGRATION LEARNINGS
 
-- migration check runs on every CLI command - should only migrate when needed, add --migrate flag or check if migrations are current
 - search functionality works but needed better context understanding - improve CLI help/examples for complex queries  
 - natural language search patterns unclear - document search operators (AND, OR, phrase matching) in CLI help
-- CLI could benefit from interactive mode for exploration (like `bun r5-cli.ts shell`)
-- consider adding search shortcuts: `bun r5-cli.ts jazz house` (implicit search tracks)
+- verify we can write arbitrary sql queries locally??
 - genre cross-analysis queries powerful but not obvious - add examples to CLI help
 - LLM integration reveals rich semantic connections - consider exposing more metadata fields for search
-- CLI output formatting could be improved for LLM parsing (consistent JSON structure)
-- consider adding `--format=table|json|compact` flags for different use cases
 
 HARD ONES, LOW PRIO
 
 - the <youtube-player> fires volumechange seemingly at will, many times on load, which currently overwrites any appState.volume the user might already have. In other words, your volume preferences is persisted, but also overwritten on load
 - find a way to share `track_meta` data between users. push it remote, how? security?
+
+## CLI
+
+- cli missing pieces (to be verified, do we event want/need this?)
+  - Core download engine: yt-dlp integration, concurrent processing, file management
+  - Progress system: @opentf/cli-pbar, ETA calculations, download statistics
+  - Error handling: retry logic, download state tracking, failure persistence
+  - File scanning: old CLI scans `<folder>/<slug>/tracks/*.m4a`, new CLI has no file ops
+- cli: Better progress reporting with download speeds, concurrent status
+- cli: Enhanced error messages with actionable recovery steps
+

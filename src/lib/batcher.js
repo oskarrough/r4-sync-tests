@@ -8,7 +8,7 @@ import {ok, err} from './types.js'
  * @param {Object} options
  * @param {number} [options.batchSize=50] - Items per batch (batches run sequentially)
  * @param {number|'unbounded'} [options.withinBatch=1] - Concurrency within each batch
- * @returns {Promise<Array<import('./types.js').Ok<R> | import('./types.js').Error<any>>>}
+ * @returns {Promise<Array<import('./types.js').Ok<R> | import('./types.js').Err<any>>>}
  */
 export async function batcher(items, fn, {batchSize = 50, withinBatch = 1} = {}) {
 	const results = []

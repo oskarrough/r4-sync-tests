@@ -38,7 +38,7 @@
 		isLoading = true
 
 		try {
-			const results = await r5.search(searchQuery)
+			const results = await r5.search.all(searchQuery)
 			channels = results.channels
 			tracks = results.tracks
 		} catch (error) {

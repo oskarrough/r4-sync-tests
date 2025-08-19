@@ -2,9 +2,9 @@
 	import {onMount} from 'svelte'
 	import {page} from '$app/state'
 	import {goto} from '$app/navigation'
-	import {pg} from '$lib/db'
 	import {incrementalLiveQuery} from '$lib/live-query'
 	import {setPlaylist, addToPlaylist} from '$lib/api'
+	import {searchTracks} from '$lib/search'
 	import {relativeDate, relativeDateSolar} from '$lib/dates'
 	import Icon from '$lib/components/icon.svelte'
 	import SearchInput from '$lib/components/search-input.svelte'
@@ -76,17 +76,10 @@
 	})
 
 	async function performSearch() {
-		if (!channel?.id || !searchQuery?.trim()) return
+		if (!searchQuery?.trim()) return
 		try {
-			const query = `%${searchQuery.toLowerCase()}%`
-			const result = await pg.query(
-				`SELECT id FROM tracks
-				 WHERE channel_id = $1
-				   AND (LOWER(title) LIKE $2 OR LOWER(description) LIKE $2 OR LOWER(url) LIKE $2)
-				 ORDER BY created_at DESC`,
-				[channel.id, query]
-			)
-			trackIds = result.rows.map((row) => row.id)
+			const tracks = await searchTracks(searchQuery, data.slug)
+			trackIds = tracks.map((track) => track.id)
 		} catch (error) {
 			console.error('Failed to load tracks:', error)
 		}

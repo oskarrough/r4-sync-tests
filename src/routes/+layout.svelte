@@ -1,7 +1,6 @@
 <script>
 	import '../styles/style.css'
 	import 'leaflet/dist/leaflet.css'
-	import {pg} from '$lib/db'
 	import LayoutHeader from '$lib/components/layout-header.svelte'
 	import LayoutFooter from '$lib/components/layout-footer.svelte'
 	import QueuePanel from '$lib/components/queue-panel.svelte'
@@ -59,7 +58,7 @@
 			// event.preventDefault()
 			appState.broadcasting_channel_id = undefined
 			appState.is_playing = false
-			await pg.close()
+			//await pg.close()
 		}
 		window.addEventListener('beforeunload', handler)
 		return () => window.removeEventListener('beforeunload', handler)

@@ -4,7 +4,7 @@
 	 * Connect our `pg` client to the element.
 	 */
 
-	import {pg} from '$lib/db'
+	import {pg} from '$lib/r5/db'
 
 	let el = $state()
 	let enabled = $state(false)

@@ -1,6 +1,6 @@
 <script>
 	import {onMount} from 'svelte'
-	import {pg} from '$lib/db'
+	import {pg} from '$lib/r5/db'
 	import {extractHashtags} from '$lib/utils'
 
 	let stats = $state({

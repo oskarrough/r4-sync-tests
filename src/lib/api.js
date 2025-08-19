@@ -1,9 +1,9 @@
 import {appState, defaultAppState} from '$lib/app-state.svelte'
 import {leaveBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
-import {pg, dropDb, migrateDb} from '$lib/db'
+import {pg} from '$lib/r5/db'
 import {r4} from '$lib/r4'
-import {r5} from '$lib/r5.js'
+import {r5} from '$lib/r5'
 import {shuffleArray} from '$lib/utils'
 import {syncFollowers, pullFollowers} from '$lib/sync/followers'
 
@@ -110,8 +110,7 @@ export async function toggleQueuePanel() {
 export async function resetDatabase() {
 	Object.assign(appState, defaultAppState)
 	await new Promise((resolve) => setTimeout(resolve, 100))
-	await dropDb()
-	await migrateDb()
+	await r5.db.reset()
 }
 
 export function togglePlayerExpanded() {

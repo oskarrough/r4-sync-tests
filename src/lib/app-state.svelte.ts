@@ -1,4 +1,4 @@
-import {pg} from '$lib/db'
+import {pg} from '$lib/r5/db'
 import {logger} from '$lib/logger'
 import type {AppState} from './types'
 const log = logger.ns('app_state').seal()

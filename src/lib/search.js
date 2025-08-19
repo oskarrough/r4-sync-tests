@@ -1,4 +1,4 @@
-import {pg} from '$lib/db'
+import {pg} from '$lib/r5/db'
 
 /**
  * Search channels using fuzzy matching with pg_trgm
@@ -83,7 +83,7 @@ export function parseMentionQuery(searchQuery) {
  * @param {string} searchQuery - search query (may start with @)
  * @returns {Promise<{channels: Array, tracks: Array}>}
  */
-export async function performSearch(searchQuery) {
+export async function searchAll(searchQuery) {
 	if (searchQuery.trim().length < 2) {
 		return {channels: [], tracks: []}
 	}
