@@ -69,7 +69,7 @@ export interface AppState {
 	playlist_tracks_shuffled: string[]
 	playlist_track?: string
 	is_playing: boolean
-	theme: string
+	theme?: string
 	volume: number
 	custom_css_variables: Record<string, string>
 	counter: number

@@ -27,7 +27,7 @@ export const defaultAppState = {
 	broadcasting_channel_id: undefined,
 	listening_to_channel_id: undefined,
 
-	theme: 'dark',
+	theme: undefined,
 	hide_track_artwork: false,
 
 	user: null
@@ -79,7 +79,7 @@ export async function persistAppState() {
 		VALUES (
 			${appState.id}, 
 			${appState.queue_panel_visible}, 
-			'${appState.theme}', 
+			${appState.theme ? `'${appState.theme}'` : 'NULL'}, 
 			${appState.volume}, 
 			${appState.counter}, 
 			${appState.is_playing}, 

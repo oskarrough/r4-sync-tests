@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS app_state (
 	counter INTEGER DEFAULT 0,
 	channels_display TEXT,
 	is_playing BOOLEAN DEFAULT false,
-	volume NUMERIC DEFAULT 0.5,
+	volume REAL DEFAULT 0.5,
 	muted BOOLEAN DEFAULT false,
 	shuffle BOOLEAN DEFAULT false,
 	show_video_player BOOLEAN default false,

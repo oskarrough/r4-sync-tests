@@ -47,11 +47,11 @@ export async function pull({slug = '', limit = LIMIT} = {}) {
 		if (localChannels.length) {
 			// Update in background if outdated
 			if (await outdated(slug)) {
-				console.log('pullChannels -> outdated -> pullTracks non-async')
+				log.info('pullChannels -> outdated but not doing anything')
 				// Note: This requires tracks.pull to be available
 				// pullTracks({slug}).catch((error) => log.error(error))
 			} else {
-				console.log('not outdated')
+				log.info('pullChannels -> up to date')
 			}
 			return localChannels
 		}
