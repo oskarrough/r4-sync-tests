@@ -1,7 +1,12 @@
 <script>
 	import {sdk} from '@radio4000/sdk'
-	import {joinBroadcast, leaveBroadcast} from '$lib/broadcast'
+	import {
+		joinBroadcast,
+		leaveBroadcast,
+		syncLocalBroadcastState
+	} from '$lib/broadcast'
 	import {r4} from '$lib/r4'
+	import {r5} from '$lib/r5'
 	import {appState} from '$lib/app-state.svelte'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import BroadcastControls from '$lib/components/broadcast-controls.svelte'
@@ -12,6 +17,8 @@
 
 	/** @type {import('$lib/types').BroadcastWithChannel[]} */
 	let activeBroadcasts = $state([])
+	/** @type {Record<string, any>} */
+	let tracks = $state({})
 	let subscriptionStatus = $state('disconnected')
 	let loadingError = $state(null)
 
@@ -22,21 +29,45 @@
 			const previousCount = activeBroadcasts.length
 			activeBroadcasts = data
 
-			// Update user's local broadcast state based on remote reality
-			const userChannelId = appState.channels?.[0]
-			if (userChannelId) {
-				const userBroadcast = data.find((b) => b.channel_id === userChannelId)
-				const wasLocallyBroadcasting = !!appState.broadcasting_channel_id
-				const isRemotelyBroadcasting = !!userBroadcast
-
-				if (isRemotelyBroadcasting && !wasLocallyBroadcasting) {
-					log.log('detected_user_broadcast_started_remotely', {userChannelId})
-					appState.broadcasting_channel_id = userChannelId
-				} else if (!isRemotelyBroadcasting && wasLocallyBroadcasting) {
-					log.log('detected_user_broadcast_stopped_remotely', {userChannelId})
-					appState.broadcasting_channel_id = null
+			// Load tracks separately for each broadcast
+			for (const broadcast of data) {
+				if (broadcast.track_id && !tracks[broadcast.track_id]) {
+					try {
+						// First try to find track locally
+						const localTracks = await r5.tracks.local()
+						const track = localTracks.find(t => t.id === broadcast.track_id)
+						if (track) {
+							tracks[broadcast.track_id] = track
+						} else {
+							// Track not found locally - need to pull the channel
+							log.log('track_missing_locally', {track_id: broadcast.track_id, channel_slug: broadcast.channels.slug})
+							
+							try {
+								await r5.channels.pull({slug: broadcast.channels.slug})
+								await r5.tracks.pull({slug: broadcast.channels.slug})
+								
+								// Try again after pulling
+								const updatedTracks = await r5.tracks.local({slug: broadcast.channels.slug})
+								const foundTrack = updatedTracks.find(t => t.id === broadcast.track_id)
+								if (foundTrack) {
+									tracks[broadcast.track_id] = foundTrack
+									log.log('track_loaded_after_pull', {track_id: broadcast.track_id, channel_slug: broadcast.channels.slug})
+								}
+							} catch (pullError) {
+								log.error('pull_channel_for_track_failed', {
+									track_id: broadcast.track_id, 
+									channel_slug: broadcast.channels.slug,
+									error: /** @type {Error} */ (pullError).message
+								})
+							}
+						}
+					} catch (error) {
+						log.error('load_track_failed', {track_id: broadcast.track_id, error: /** @type {Error} */ (error).message})
+					}
 				}
 			}
+
+			syncLocalBroadcastState(data, appState.channels?.[0])
 
 			if (data.length !== previousCount) {
 				log.log('broadcasts_count_changed', {
@@ -144,11 +175,12 @@
 					</div>
 				</header>
 
-				{#if broadcast.tracks}
+				{@const track = tracks[broadcast.track_id]}
+				{#if track}
 					<h3>Now Playing</h3>
-					<p><strong>{broadcast.tracks.title || broadcast.tracks.url}</strong></p>
-					{#if broadcast.tracks?.description}
-						<p>{broadcast.tracks.description}</p>
+					<p><strong>{track.title || track.url}</strong></p>
+					{#if track.description}
+						<p>{track.description}</p>
 					{/if}
 				{/if}
 

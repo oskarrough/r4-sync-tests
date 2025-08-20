@@ -58,6 +58,32 @@ export async function updateBroadcast(channelId, trackId) {
 }
 
 /**
+ * Sync local broadcast state with remote broadcast data
+ * @param {import('$lib/types').BroadcastWithChannel[]} broadcasts
+ * @param {string|undefined} userChannelId
+ */
+export function syncLocalBroadcastState(broadcasts, userChannelId) {
+	if (!userChannelId) return
+
+	const userBroadcast = broadcasts.find((b) => b.channel_id === userChannelId)
+	const wasLocallyBroadcasting = !!appState.broadcasting_channel_id
+	const isRemotelyBroadcasting = !!userBroadcast
+
+	if (isRemotelyBroadcasting && !wasLocallyBroadcasting) {
+		log.log('detected_user_broadcast_started_remotely', {userChannelId})
+		appState.broadcasting_channel_id = userChannelId
+	} else if (!isRemotelyBroadcasting && wasLocallyBroadcasting) {
+		log.log('detected_user_broadcast_stopped_remotely', {userChannelId})
+		appState.broadcasting_channel_id = null
+	}
+}
+
+
+// ============================================
+// REMOTE OPERATIONS
+// ============================================
+
+/**
  * @param {string|null} channelId
  * @param {string|null} trackId
  */
@@ -191,6 +217,10 @@ async function updateRemoteBroadcastTrack(channelId, trackId) {
 	}
 }
 
+// ============================================
+// SYNC & REALTIME
+// ============================================
+
 /** @param {string} channelId */
 function startBroadcastSync(channelId) {
 	stopBroadcastSync()
@@ -259,32 +289,39 @@ export async function syncPlayBroadcast(broadcast) {
 			error: /** @type {Error} */ (error).message
 		})
 
-		const {data} = await r4.sdk.supabase
-			.from('channel_track')
-			.select('channels(slug)')
-			.eq('track_id', track_id)
-			.single()
-			.throwOnError()
-		// @ts-expect-error supabase
-		const slug = data?.channels?.slug
-		if (slug) {
-			try {
-				await r5.channels.pull({slug})
-				await r5.tracks.pull({slug})
-				await playTrack(track_id, '', 'broadcast_sync')
-				appState.listening_to_channel_id = channel_id
-				log.log('sync:play_success_after_fetch', {track_id, channel_id, slug})
-				return true
-			} catch (syncError) {
-				log.error('sync:play_failed_after_fetch', {
-					track_id,
-					channel_id,
-					slug,
-					error: /** @type {Error} */ (syncError).message
-				})
+		try {
+			const {data} = await r4.sdk.supabase
+				.from('channel_track')
+				.select('channels(slug)')
+				.eq('track_id', track_id)
+				.single()
+				.throwOnError()
+			// @ts-expect-error supabase
+			const slug = data?.channels?.slug
+			if (slug) {
+				try {
+					await r5.channels.pull({slug})
+					await r5.tracks.pull({slug})
+					await playTrack(track_id, '', 'broadcast_sync')
+					appState.listening_to_channel_id = channel_id
+					log.log('sync:play_success_after_fetch', {track_id, channel_id, slug})
+					return true
+				} catch (syncError) {
+					log.error('sync:play_failed_after_fetch', {
+						track_id,
+						channel_id,
+						slug,
+						error: /** @type {Error} */ (syncError).message
+					})
+				}
+			} else {
+				log.error('sync:play_no_channel_found', {track_id})
 			}
-		} else {
-			log.error('sync:play_no_channel_found', {track_id})
+		} catch (lookupError) {
+			log.error('sync:channel_lookup_failed', {
+				track_id,
+				error: /** @type {Error} */ (lookupError).message
+			})
 		}
 	}
 }
