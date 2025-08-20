@@ -1,12 +1,15 @@
 <script>
 	import {appState} from '$lib/app-state.svelte'
+	import {startBroadcast, stopBroadcast} from '$lib/broadcast'
 	import Icon from '$lib/components/icon.svelte'
 
 	const userChannelId = $derived(appState?.channels?.[0])
 
-	function stopBroadcasting() {
+	async function stopBroadcasting() {
+		if (userChannelId) {
+			await stopBroadcast(userChannelId)
+		}
 		appState.broadcasting_channel_id = undefined
-		console.log('broadcaststop')
 	}
 
 	async function start() {
@@ -16,8 +19,11 @@
 			/** @type {HTMLElement & {paused: boolean, play(): void} | null} */
 			const player = document.querySelector('youtube-video')
 			if (player?.paused) player.play()
-			appState.broadcasting_channel_id = userChannelId
-			console.log('broadcaststart')
+
+			if (userChannelId && appState.playlist_track) {
+				await startBroadcast(userChannelId, appState.playlist_track)
+				appState.broadcasting_channel_id = userChannelId
+			}
 		}
 	}
 </script>
