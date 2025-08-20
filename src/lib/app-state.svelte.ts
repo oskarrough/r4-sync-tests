@@ -118,3 +118,29 @@ export async function persistAppState() {
 			hide_track_artwork = EXCLUDED.hide_track_artwork
 	`)
 }
+
+/** Validate that listening_to_channel_id points to an active broadcast */
+export async function validateListeningState() {
+	if (!appState.listening_to_channel_id) return
+
+	try {
+		const {r4} = await import('$lib/r4')
+		const {data} = await r4.sdk.supabase
+			.from('broadcast')
+			.select('channel_id')
+			.eq('channel_id', appState.listening_to_channel_id)
+			.single()
+
+		if (!data) {
+			log.log('clearing_invalid_listening_state', {
+				invalid_channel_id: appState.listening_to_channel_id
+			})
+			appState.listening_to_channel_id = undefined
+		}
+	} catch {
+		log.log('clearing_invalid_listening_state_error', {
+			invalid_channel_id: appState.listening_to_channel_id
+		})
+		appState.listening_to_channel_id = undefined
+	}
+}
