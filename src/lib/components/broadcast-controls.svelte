@@ -30,7 +30,7 @@
 
 {#if userChannelId}
 	{#if appState.broadcasting_channel_id}
-		<button onclick={() => stopBroadcasting()}>🔴 Stop broadcasting</button>
+		<button onclick={() => stopBroadcasting()}>Stop broadcasting</button>
 	{:else}
 		<button onclick={start}>
 			<Icon icon="signal" size={20} strokeWidth={1.7}></Icon>

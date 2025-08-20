@@ -6,6 +6,7 @@
 	import {appState} from '$lib/app-state.svelte'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import BroadcastControls from '$lib/components/broadcast-controls.svelte'
+	import LiveBroadcasts from '$lib/components/live-broadcasts.svelte'
 	import {logger} from '$lib/logger'
 	import {timeAgo} from '$lib/utils'
 
@@ -136,25 +137,33 @@
 
 <header>
 	<h1>Live Broadcasts</h1>
-	<p>Real-time radio stations broadcasting now</p>
-
+	<p>
+		Work in progress. Here yoy can listen to broadcasts from other radios. Listen to what they're
+		listening to.
+	</p>
+	<br />
 	<div class="debug">
-		<span class:connected={subscriptionStatus === 'SUBSCRIBED'}>
+		<p>
 			{subscriptionStatus === 'SUBSCRIBED' ? '🟢' : '🔴'}
 			{subscriptionStatus}
-		</span>
+		</p>
 		{#if loadingError}
-			<span>⚠️ {loadingError}</span>
+			<p>⚠️ {loadingError}</p>
 		{/if}
 		{#if appState.broadcasting_channel_id}
-			<span>📡 Broadcasting</span>
+			<p>📡 You are broadcasting</p>
 		{/if}
 		{#if appState.listening_to_channel_id}
-			<span>🎧 Listening</span>
+			<p>You are listening to a broadcast</p>
 		{/if}
 	</div>
+	<br />
 	<BroadcastControls />
+	<br />
+	<br />
+	<LiveBroadcasts />
 </header>
+<br />
 
 {#if activeBroadcasts.length === 0}
 	<p>No live broadcasts right now</p>
@@ -165,29 +174,22 @@
 			{@const duration = timeAgo(broadcast.track_played_at)}
 			{@const track = tracks[broadcast.track_id]}
 			<article>
-				<header>
+				<div>
 					<div class="channel-info">
-						<ChannelAvatar id={broadcast.channels.image} alt={broadcast.channels.name} size={48} />
+						<ChannelAvatar id={broadcast.channels.image} alt={broadcast.channels.name} />
 						<div>
 							<h2><a href="/{broadcast.channels.slug}">@{broadcast.channels.slug}</a></h2>
-							{#if broadcast.channels.name && broadcast.channels.name !== broadcast.channels.slug}
-								<p>{broadcast.channels.name}</p>
-							{/if}
+							<p>{broadcast.channels.name}</p>
 						</div>
 					</div>
-					<div class="broadcast-meta">
-						<span class="live">🔴 LIVE</span>
-						<p>Broadcasting since {duration}</p>
-					</div>
-				</header>
+					<p>Broadcasting since {duration}</p>
+				</div>
 				{#if track}
-					<h3>Now Playing</h3>
-					<p><strong>{track.title || track.url}</strong></p>
+					<h3>Now Playing: <strong>{track.title || track.url}</strong> </h3>
 					{#if track.description}
 						<p>{track.description}</p>
 					{/if}
 				{/if}
-
 				<button
 					class:active={isListening}
 					onclick={() => {
@@ -208,5 +210,10 @@
 <style>
 	article :global(img) {
 		max-width: 200px;
+	}
+
+	header,
+	section {
+		margin: 0.5rem;
 	}
 </style>
