@@ -1,7 +1,7 @@
 import {pg} from '$lib/r5/db'
 import {logger} from '$lib/logger'
 
-const log = logger.ns('metadata:musicbrainz').seal()
+const log = logger.ns('metadata/musicbrainz').seal()
 
 /**
  * Search MusicBrainz and save to track_meta

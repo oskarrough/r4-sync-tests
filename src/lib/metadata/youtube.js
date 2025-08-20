@@ -4,7 +4,7 @@ import {logger} from '$lib/logger'
 
 /** @typedef {{status: string, value: {id: string, tags: string[], duration: number, title: string, categoryId: string, description: string, publishedAt: string}}} YouTubeVideo */
 
-const log = logger.ns('metadata:youtube').seal()
+const log = logger.ns('metadata/youtube').seal()
 
 /** @param {string[]} ytids */
 async function getTracksToUpdate(ytids) {

@@ -1,7 +1,7 @@
 import {getPg} from '../r5/db.js'
 import {logger} from '$lib/logger'
 
-const log = logger.ns('metadata:discogs').seal()
+const log = logger.ns('metadata/discogs').seal()
 
 /**
  * Fetch Discogs data from URL and save to track_meta
