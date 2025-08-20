@@ -1,13 +1,14 @@
 import {r4} from '$lib/r4'
 import {pg} from '$lib/r5/db'
 import {logger} from '$lib/logger'
-const log = logger.ns('sync:followers').seal()
+const log = logger.ns('r5:followers').seal()
 
 /**
- * Pull user's remote follows into local database
- * @param {string} userChannelId - ID of the user's channel
+ * Pull remote follows and save to local
+ * @param {string} userChannelId User's channel ID
+ * @returns {Promise<void>}
  */
-export async function pullFollowers(userChannelId) {
+export async function pull(userChannelId) {
 	const remoteFollows = await r4.channels.readFollowings(userChannelId)
 
 	await pg.transaction(async (tx) => {
@@ -48,11 +49,12 @@ export async function pullFollowers(userChannelId) {
 }
 
 /**
- * Push specific channel follows to remote
- * @param {string} userChannelId - ID of the user's channel
- * @param {string[]} channelIds - Channel IDs to follow
+ * Push local follows to remote
+ * @param {string} userChannelId User's channel ID
+ * @param {string[]} channelIds Channels to follow
+ * @returns {Promise<void>}
  */
-export async function pushFollowers(userChannelId, channelIds) {
+export async function push(userChannelId, channelIds) {
 	await pg.transaction(async (tx) => {
 		for (const channelId of channelIds) {
 			// Insert local follower record
@@ -81,10 +83,11 @@ export async function pushFollowers(userChannelId, channelIds) {
 }
 
 /**
- * Sync local and remote followers on user authentication
- * @param {string} userChannelId - ID of the user's channel
+ * Sync local and remote followers bidirectionally
+ * @param {string} userChannelId User's channel ID
+ * @returns {Promise<void>}
  */
-export async function syncFollowers(userChannelId) {
+export async function sync(userChannelId) {
 	console.log('r5.followers.sync', userChannelId)
 
 	// 1. Get local favorites before sync
@@ -93,7 +96,7 @@ export async function syncFollowers(userChannelId) {
 	`
 
 	// 2. Pull remote followers (marks remote ones as synced)
-	await pullFollowers(userChannelId)
+	await pull(userChannelId)
 
 	// 3. Get local favorites that aren't already synced (don't exist remotely)
 	const {rows: unsyncedLocal} = await pg.sql`
@@ -110,7 +113,7 @@ export async function syncFollowers(userChannelId) {
 	// 4. Push only unsynced local favorites
 	if (unsyncedLocal.length > 0) {
 		const channelIds = unsyncedLocal.map((row) => row.channel_id)
-		await pushFollowers(userChannelId, channelIds)
+		await push(userChannelId, channelIds)
 	}
 
 	// 5. Clean up local-user followers

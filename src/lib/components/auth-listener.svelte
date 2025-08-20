@@ -3,7 +3,7 @@
 	import {appState} from '$lib/app-state.svelte'
 	import {logger} from '$lib/logger'
 	import {r4} from '$lib/r4'
-	import {syncFollowers} from '$lib/sync/followers'
+	import {sync as syncFollowers} from '$lib/r5/followers'
 
 	const log = logger.ns('auth').seal()
 

@@ -4,7 +4,7 @@ import {logger} from '$lib/logger'
 
 /** @typedef {{status: string, value: {id: string, tags: string[], duration: number, title: string, categoryId: string, description: string, publishedAt: string}}} YouTubeVideo */
 
-const log = logger.ns('pull_track_meta_youtube').seal()
+const log = logger.ns('metadata:youtube').seal()
 
 /** @param {string[]} ytids */
 async function getTracksToUpdate(ytids) {
@@ -21,27 +21,33 @@ async function getTracksToUpdate(ytids) {
 }
 
 /**
- * Pulls track metadata from YouTube API for all tracks in a channel
- * @param {string} channelId */
-export async function pullTrackMetaYouTubeFromChannel(channelId) {
+ * Fetch YouTube metadata for channel tracks and save to track_meta
+ * @param {string} channelId Channel ID
+ * @returns {Promise<Object[]>} Fetched metadata
+ */
+export async function pullFromChannel(channelId) {
 	const {rows} =
 		await pg.sql`select ytid(url) as ytid from tracks_with_meta where channel_id = ${channelId}`
 	const ytids = rows.map((r) => r.ytid)
-	return await pullTrackMetaYouTube(ytids)
+	return await pull(ytids)
 }
 
 /**
- * Inserts track metadata from YouTube API for a single ytid
- * @param {string} ytid */
-export async function insertYouTubeMeta(ytid) {
+ * Fetch YouTube metadata for single video and save to track_meta
+ * @param {string} ytid YouTube video ID
+ * @returns {Promise<Object|null>} Fetched metadata
+ */
+export async function pullSingle(ytid) {
 	const ytids = [ytid]
-	return (await pullTrackMetaYouTube(ytids))[0] || null
+	return (await pull(ytids))[0] || null
 }
 
 /**
- * Pulls track metadata from YouTube API for specific ytids
- * @param {string[]} ytids */
-export async function pullTrackMetaYouTube(ytids) {
+ * Fetch YouTube metadata and save to track_meta
+ * @param {string[]} ytids YouTube video IDs
+ * @returns {Promise<Object[]>} Fetched metadata
+ */
+export async function pull(ytids) {
 	const items = await getTracksToUpdate(ytids)
 	if (items.length === 0) {
 		log.info('all tracks already have metadata')
@@ -90,4 +96,17 @@ export async function pullTrackMetaYouTube(ytids) {
 
 	log.info(`processed ${items.length} tracks`)
 	return results
+}
+
+/**
+ * Read YouTube metadata from local track_meta
+ * @param {string[]} ytids YouTube video IDs
+ * @returns {Promise<Object[]>} Local metadata
+ */
+export async function local(ytids) {
+	const res = await pg.sql`
+		SELECT * FROM track_meta 
+		WHERE ytid = ANY(${ytids}) AND youtube_data IS NOT NULL
+	`
+	return res.rows
 }

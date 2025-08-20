@@ -5,7 +5,7 @@ import {pg} from '$lib/r5/db'
 import {r4} from '$lib/r4'
 import {r5} from '$lib/r5'
 import {shuffleArray} from '$lib/utils.ts'
-import {syncFollowers, pullFollowers} from '$lib/sync/followers'
+import {sync as syncFollowers, pull as pullFollowers} from '$lib/r5/followers'
 
 const log = logger.ns('api').seal()
 
