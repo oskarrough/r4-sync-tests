@@ -4,10 +4,8 @@
 	import {toggleQueuePanel} from '$lib/api'
 
 	import AddTrackModal from '$lib/components/add-track-modal.svelte'
-	import BroadcastControls from '$lib/components/broadcast-controls.svelte'
 	import HeaderSearch from '$lib/components/header-search.svelte'
 	import Icon from '$lib/components/icon.svelte'
-	import LiveBroadcasts from '$lib/components/live-broadcasts.svelte'
 	import TestCounter from '$lib/components/test-counter.svelte'
 
 	const {preloading} = $props()
@@ -30,9 +28,10 @@
 	<menu class="row right">
 		{#if !preloading}
 			<AddTrackModal />
-			<BroadcastControls />
-			<LiveBroadcasts />
 			<hr />
+			<a href="/broadcasts" class="btn" class:active={page.route.id === '/broadcasts'}>
+				<Icon icon="radio" size={20} />
+			</a>
 			<a href="/following" class="btn" class:active={page.route.id === '/following'}>
 				<Icon icon="favorite" size={20} />
 			</a>
@@ -69,10 +68,6 @@
 
 		a {
 			text-decoration: none;
-		}
-
-		:global(.live-broadcasts) {
-			margin-right: 0.5rem;
 		}
 	}
 </style>

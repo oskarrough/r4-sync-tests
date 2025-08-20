@@ -7,10 +7,6 @@ import {appState} from '$lib/app-state.svelte'
 
 const log = logger.ns('broadcast').seal()
 
-/** @type {string|null} */
-let lastBroadcastingChannelId = null
-/** @type {string|null} */
-let lastTrackId = null
 /** @type {any} */
 let broadcastSyncChannel = null
 
@@ -43,23 +39,22 @@ export function leaveBroadcast() {
 	log.log('broadcast:leave')
 }
 
-/* Handle broadcast state and track changes */
-export async function handleBroadcastStateChange(broadcasting_channel_id, playlist_track) {
-	if (broadcasting_channel_id !== lastBroadcastingChannelId) {
-		if (broadcasting_channel_id) {
-			await createRemoteBroadcast(broadcasting_channel_id, playlist_track)
-		} else {
-			await deleteRemoteBroadcast(lastBroadcastingChannelId)
-		}
-		lastBroadcastingChannelId = broadcasting_channel_id
-	}
+/** Start broadcasting for the current user */
+export async function startBroadcast(channelId, trackId) {
+	log.log('start_broadcast_requested', {channelId, trackId})
+	await createRemoteBroadcast(channelId, trackId)
 }
 
-export async function handleTrackChange(broadcasting_channel_id, playlist_track) {
-	if (broadcasting_channel_id && playlist_track !== lastTrackId) {
-		await updateRemoteBroadcastTrack(broadcasting_channel_id, playlist_track)
-		lastTrackId = playlist_track
-	}
+/** Stop broadcasting for the current user */
+export async function stopBroadcast(channelId) {
+	log.log('stop_broadcast_requested', {channelId})
+	await deleteRemoteBroadcast(channelId)
+}
+
+/** Update the track while broadcasting */
+export async function updateBroadcast(channelId, trackId) {
+	log.log('update_broadcast_requested', {channelId, trackId})
+	await updateRemoteBroadcastTrack(channelId, trackId)
 }
 
 /**
@@ -76,14 +71,15 @@ async function createRemoteBroadcast(channelId, trackId) {
 
 	// Check if track is from v1 channel - these can't be broadcast
 	const {rows} = await pg.sql`
-		SELECT c.firebase_id 
+		SELECT c.source 
 		FROM channels c 
 		JOIN tracks t ON c.id = t.channel_id 
 		WHERE t.id = ${trackId}
 	`
-	if (rows[0]?.firebase_id) {
-		log.log('create_skipped_v1_track', {channelId, trackId, firebase_id: rows[0].firebase_id})
-		return
+	if (rows[0]?.source === 'v1') {
+		const error = new Error('Cannot broadcast tracks from v1 channels')
+		log.error('❌ broadcast_start_failed_v1_track', {channelId, trackId, source: rows[0].source})
+		throw error
 	}
 
 	// Try to create broadcast directly first, sync if foreign key fails
@@ -96,7 +92,7 @@ async function createRemoteBroadcast(channelId, trackId) {
 				track_played_at: new Date().toISOString()
 			})
 			.throwOnError()
-		log.log('create', {channelId, trackId})
+		log.log('✅ remote_broadcast_created_successfully', {channelId, trackId})
 		return
 	} catch (error) {
 		const errorMsg = /** @type {Error} */ (error).message
@@ -132,7 +128,7 @@ async function createRemoteBroadcast(channelId, trackId) {
 							track_played_at: new Date().toISOString()
 						})
 						.throwOnError()
-					log.log('create_after_sync', {channelId, trackId})
+					log.log('✅ remote_broadcast_created_after_sync', {channelId, trackId})
 					return
 				} catch (syncError) {
 					log.error('sync_failed', {
@@ -147,7 +143,7 @@ async function createRemoteBroadcast(channelId, trackId) {
 			}
 		}
 
-		log.error('create_error', {
+		log.error('❌ remote_broadcast_create_failed', {
 			channelId,
 			trackId,
 			error: errorMsg
@@ -162,9 +158,9 @@ async function deleteRemoteBroadcast(channelId) {
 	if (!channelId) return
 	try {
 		await r4.sdk.supabase.from('broadcast').delete().eq('channel_id', channelId).throwOnError()
-		log.log('delete', {channelId})
+		log.log('✅ remote_broadcast_deleted_successfully', {channelId})
 	} catch (error) {
-		log.error('delete_error', {
+		log.error('❌ remote_broadcast_delete_failed', {
 			channelId,
 			error: /** @type {Error} */ (error).message
 		})
@@ -199,6 +195,8 @@ async function updateRemoteBroadcastTrack(channelId, trackId) {
 function startBroadcastSync(channelId) {
 	stopBroadcastSync()
 
+	log.log('sync:starting', {channelId})
+
 	broadcastSyncChannel = r4.sdk.supabase
 		.channel(`broadcast:${channelId}`)
 		.on(
@@ -211,15 +209,23 @@ function startBroadcastSync(channelId) {
 			},
 			(payload) => {
 				const broadcast = payload.new
-				log.log('broadcast:change', {channelId, track_id: broadcast.track_id})
+				log.log('sync:change_received', {
+					channelId,
+					track_id: broadcast.track_id,
+					track_played_at: broadcast.track_played_at,
+					payload_event: payload.eventType
+				})
 				syncPlayBroadcast(broadcast)
 			}
 		)
-		.subscribe()
+		.subscribe((status) => {
+			log.log('sync:subscription_status', {channelId, status})
+		})
 }
 
 export function stopBroadcastSync() {
 	if (broadcastSyncChannel) {
+		log.log('sync:stopping')
 		broadcastSyncChannel.unsubscribe()
 		broadcastSyncChannel = null
 	}
@@ -227,17 +233,32 @@ export function stopBroadcastSync() {
 
 /** @param {import('$lib/types').Broadcast} broadcast */
 export async function syncPlayBroadcast(broadcast) {
-	const {track_id, track_played_at} = broadcast
+	const {track_id, track_played_at, channel_id} = broadcast
 	const playbackPosition = (Date.now() - new Date(track_played_at).getTime()) / 1000
 
+	log.log('sync:play_attempt', {
+		track_id,
+		channel_id,
+		track_played_at,
+		playbackPosition: Math.round(playbackPosition)
+	})
+
 	if (playbackPosition > 600) {
-		log.log('sync_play_broadcast_ignored_stale', {playbackPosition, track_id})
+		log.log('sync:play_ignored_stale', {playbackPosition: Math.round(playbackPosition), track_id})
 		return
 	}
 
 	try {
 		await playTrack(track_id, '', 'broadcast_sync')
-	} catch {
+		appState.listening_to_channel_id = channel_id
+		log.log('sync:play_success', {track_id, channel_id})
+		return true
+	} catch (error) {
+		log.log('sync:play_failed_fetching_channel', {
+			track_id,
+			error: /** @type {Error} */ (error).message
+		})
+
 		const {data} = await r4.sdk.supabase
 			.from('channel_track')
 			.select('channels(slug)')
@@ -247,12 +268,23 @@ export async function syncPlayBroadcast(broadcast) {
 		// @ts-expect-error supabase
 		const slug = data?.channels?.slug
 		if (slug) {
-			await r5.channels.pull({slug})
-			await r5.tracks.pull({slug})
-			await playTrack(track_id, '', 'broadcast_sync')
-			appState.listening_to_channel_id = broadcast.channel_id
-			log.log('sync_play_broadcast', track_id)
-			return true
+			try {
+				await r5.channels.pull({slug})
+				await r5.tracks.pull({slug})
+				await playTrack(track_id, '', 'broadcast_sync')
+				appState.listening_to_channel_id = channel_id
+				log.log('sync:play_success_after_fetch', {track_id, channel_id, slug})
+				return true
+			} catch (syncError) {
+				log.error('sync:play_failed_after_fetch', {
+					track_id,
+					channel_id,
+					slug,
+					error: /** @type {Error} */ (syncError).message
+				})
+			}
+		} else {
+			log.error('sync:play_no_channel_found', {track_id})
 		}
 	}
 }

@@ -1,17 +1,23 @@
 # Broadcast Feature
 
-real-time broadcasting feature for synchronized listening across radio4000 clients
+Real-time synchronized listening. Start broadcasting = others can join your stream.
 
-Starting a broadcast updates your local `app_state.broadcasting_channel_id` and syncs to the remote Supabase `broadcast` table. When you join a broadcast, the app fetches the remote broadcast data, ensures the track exists locally (pulling the entire channel if needed), then syncs your player to that track. The `live-broadcasts.svelte` component subscribes to Supabase real-time for broadcast changes and shows active broadcasts in the header.
+## Data flow
 
-Broadcasts are stored remotely only - there's no local `broadcasts` table, just `app_state` fields for your own broadcast and listening status. When you change tracks while broadcasting, the remote broadcast row updates automatically. Joining a broadcast requires the track to be available locally, so the app will pull the entire channel if needed. Broadcasts older than 10 minutes are rejected when joining. Each channel can only have one active broadcast at a time since `channel_id` is the primary key in the remote table.
+- Local: `app_state.broadcasting_channel_id` (your status), `app_state.listening_to_channel_id` (who you're listening to)
+- Remote: `broadcast` table in Supabase (channel_id, track_id, track_played_at)
+
+## Key behaviors
+
+- Starting broadcast: Creates remote row, updates local state via realtime
+- Stopping broadcast: Deletes remote row, UI updates immediately then reloads list
+- Joining broadcast: Syncs track locally if needed, starts playback at correct position
+- Track changes while broadcasting: Auto-updates remote broadcast row
+- Stale broadcasts (>10min): Rejected when joining
 
 ## Files
 
-The core broadcast logic and remote sync lives in `src/lib/broadcast.js`. The UI for starting and stopping broadcasts is in `src/routes/broadcast/+page.svelte`. The header component that shows live broadcasts is `src/lib/components/live-broadcasts.svelte`. Track availability and sync functions are in `src/lib/api.js`.
-
-key functions:
-
-- startBroadcasting/stopBroadcasting - local app_state updates
-- joinBroadcast/leaveBroadcast - remote sync and cleanup
-- setupBroadcastSync/stopBroadcastSync - reactive sync management
+- `src/lib/broadcast.js` - Core logic, remote ops, sync
+- `src/routes/broadcasts/+page.svelte` - Broadcasts list, realtime updates
+- `src/lib/components/broadcast-controls.svelte` - Start/stop UI
+- `src/lib/components/live-broadcasts.svelte` - Header indicator

@@ -119,7 +119,10 @@
 
 {#if activeBroadcasts.length > 0}
 	<div class="live-broadcasts">
-		{#each activeBroadcasts as broadcast (broadcast.channel_id)}
+		<a href="/broadcasts" class="broadcasts-link">
+			{activeBroadcasts.length} broadcasting
+		</a>
+		{#each activeBroadcasts.slice(0, 3) as broadcast (broadcast.channel_id)}
 			{@const isActive = broadcast.channel_id === appState.listening_to_channel_id}
 			<button
 				class={[{active: isActive}]}
