@@ -76,6 +76,10 @@
 		margin: 0.5rem 0.5rem var(--player-compact-size);
 	}
 
+	pre {
+		font-size: var(--font-3);
+	}
+
 	.tree {
 		margin-left: 2rem;
 		display: inline-flex;

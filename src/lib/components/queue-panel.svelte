@@ -165,8 +165,8 @@
 	{/snippet}
 	<p>Are you sure you want to clear your listening history? This cannot be undone.</p>
 	<menu>
-		<button onclick={() => (showClearHistoryModal = false)}>Cancel</button>
-		<button onclick={clearHistory} class="danger">Clear History</button>
+		<button type="button" onclick={() => (showClearHistoryModal = false)}>Cancel</button>
+		<button type="button" onclick={clearHistory} class="danger">Clear history</button>
 	</menu>
 </Modal>
 

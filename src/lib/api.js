@@ -48,7 +48,7 @@ export async function playTrack(id, endReason, startReason) {
 	log.log('play_track', {id, endReason, startReason})
 
 	const track = (await pg.sql`SELECT * FROM tracks WHERE id = ${id}`).rows[0]
-	if (!track) throw new Error(`play_track:error Failed to play track: ${id}`)
+	if (!track) throw new Error(`play_track_error: Missing local track: ${id}`)
 
 	// Get current track before we change it
 	const previousTrackId = appState.playlist_track

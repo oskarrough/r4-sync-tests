@@ -12,7 +12,7 @@ const log = logger.ns('metadata:discogs').seal()
 export async function pull(ytid, discogsUrl) {
 	if (!ytid || !discogsUrl) return null
 
-	const discogsData = await fetch(discogsUrl)
+	const discogsData = await fetchDiscogs(discogsUrl)
 	if (!discogsData) return null
 
 	try {
@@ -68,7 +68,7 @@ export function parseDiscogsUrl(url) {
  * @param {string} discogsUrl Discogs URL
  * @returns {Promise<Object|null>} Discogs data
  */
-export async function fetch(discogsUrl) {
+export async function fetchDiscogs(discogsUrl) {
 	const parsed = parseDiscogsUrl(discogsUrl)
 	if (!parsed) return null
 
