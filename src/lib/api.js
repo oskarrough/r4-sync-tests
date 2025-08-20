@@ -69,7 +69,7 @@ export async function playTrack(id, endReason, startReason) {
 export async function playChannel({id, slug}, index = 0) {
 	log.log('play_channel', {id, slug})
 	leaveBroadcast()
-	if (await r5.channels.outdated(slug)) await r5.pull.channel({slug})
+	if (await r5.channels.outdated(slug)) await r5.pull({slug})
 	const tracks = (
 		await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`
 	).rows
