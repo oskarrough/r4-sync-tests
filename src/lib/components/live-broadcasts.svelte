@@ -1,67 +1,18 @@
 <script>
-	import {sdk} from '@radio4000/sdk'
-	import {joinBroadcast, leaveBroadcast, syncLocalBroadcastState} from '$lib/broadcast'
-	import {r4} from '$lib/r4'
+	import {joinBroadcast, leaveBroadcast} from '$lib/broadcast'
 	import {appState} from '$lib/app-state.svelte'
 	import ChannelAvatar from './channel-avatar.svelte'
-	import {logger} from '$lib/logger'
-	const log = logger.ns('live-broadcasts').seal()
 
 	/** @type {import('$lib/types').BroadcastWithChannel[]} */
-	let activeBroadcasts = $state([])
-	let subscriptionStatus = $state('disconnected')
-
-	async function loadBroadcasts() {
-		try {
-			const data = await r4.broadcasts.readBroadcastsWithChannel()
-			activeBroadcasts = data
-			syncLocalBroadcastState(data, appState.channels?.[0])
-		} catch (error) {
-			log.error('load_broadcasts_failed', {error: /** @type {Error} */ (error).message})
-		}
-	}
-
-	$effect(() => {
-		loadBroadcasts()
-
-		const broadcastChannel = sdk.supabase
-			.channel('live-broadcasts')
-			.on(
-				'postgres_changes',
-				{event: '*', schema: 'public', table: 'broadcast'},
-				async (payload) => {
-					const channelId = payload.new?.channel_id || payload.old?.channel_id
-					log.log('realtime_event', {
-						event: payload.eventType,
-						channel_id: channelId,
-						track_id: payload.new?.track_id,
-						old_track_id: payload.old?.track_id
-					})
-
-					if (payload.eventType === 'DELETE' && channelId) {
-						activeBroadcasts = activeBroadcasts.filter((b) => b.channel_id !== channelId)
-						log.log('broadcast_removed_from_ui', {channel_id: channelId})
-						return
-					}
-
-					await loadBroadcasts()
-				}
-			)
-			.subscribe((status) => {
-				subscriptionStatus = status
-				log.log('subscription_status_changed', {status})
-			})
-
-		return () => broadcastChannel.unsubscribe()
-	})
+	export let broadcasts = []
 </script>
 
-{#if activeBroadcasts.length > 0}
+{#if broadcasts.length > 0}
 	<div class="live-broadcasts">
 		<a href="/broadcasts" class="broadcasts-link">
-			{activeBroadcasts.length} broadcasting
+			{broadcasts.length} broadcasting
 		</a>
-		{#each activeBroadcasts.slice(0, 3) as broadcast (broadcast.channel_id)}
+		{#each broadcasts.slice(0, 3) as broadcast (broadcast.channel_id)}
 			{@const isActive = broadcast.channel_id === appState.listening_to_channel_id}
 			<button
 				class={[{active: isActive}]}
