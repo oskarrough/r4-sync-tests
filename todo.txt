@@ -36,6 +36,7 @@ Always verify and evaluate todos before taking them on. They might be outdated o
 - refactor broadcast architecture - remove module-level state, fix implicit dependencies, add cleanup on failures
 - the <youtube-player> fires volumechange seemingly at will, many times on load, which currently overwrites any appState.volume the user might already have. In other words, your volume preferences is persisted, but also overwritten on load
 - find a way to share `track_meta` data between users. push it remote, how? security?
+- We're using the media-chrome project for the player. It supports audio, video and different third-party "media elements" like YouTube, Spotify and others. But there's no Soundcloud, which some R4 radios use. If we wanna keep Soundcloud, we have to make a player for it. https://www.media-chrome.org/docs/en/media-element#compatible-media-elements
 
 ## CLI & LLM INTEGRATION LEARNINGS
 
