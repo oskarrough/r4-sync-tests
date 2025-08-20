@@ -6,6 +6,7 @@
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import BroadcastControls from '$lib/components/broadcast-controls.svelte'
 	import {logger} from '$lib/logger'
+	import {timeAgo} from '$lib/utils'
 
 	const log = logger.ns('broadcasts-page').seal()
 
@@ -13,19 +14,6 @@
 	let activeBroadcasts = $state([])
 	let subscriptionStatus = $state('disconnected')
 	let loadingError = $state(null)
-
-	function formatDuration(trackPlayedAt) {
-		const now = Date.now()
-		const startTime = new Date(trackPlayedAt).getTime()
-		const durationMs = now - startTime
-
-		if (durationMs < 60000) return 'just started'
-		if (durationMs < 3600000) return `${Math.floor(durationMs / 60000)}m ago`
-
-		const hours = Math.floor(durationMs / 3600000)
-		const minutes = Math.floor((durationMs % 3600000) / 60000)
-		return `${hours}h ${minutes}m ago`
-	}
 
 	async function loadBroadcasts() {
 		try {
@@ -138,7 +126,7 @@
 	<section class="list">
 		{#each activeBroadcasts as broadcast (broadcast.channel_id)}
 			{@const isListening = broadcast.channel_id === appState.listening_to_channel_id}
-			{@const duration = formatDuration(broadcast.track_played_at)}
+			{@const duration = timeAgo(broadcast.track_played_at)}
 			<article>
 				<header>
 					<div class="channel-info">
@@ -159,8 +147,8 @@
 				{#if broadcast.tracks}
 					<h3>Now Playing</h3>
 					<p><strong>{broadcast.tracks.title || broadcast.tracks.url}</strong></p>
-					{#if broadcast.tracks.body}
-						<p>{broadcast.tracks.body}</p>
+					{#if broadcast.tracks?.description}
+						<p>{broadcast.tracks.description}</p>
 					{/if}
 				{/if}
 

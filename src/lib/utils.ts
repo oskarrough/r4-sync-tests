@@ -124,3 +124,16 @@ export async function generateFrequency(
 
 	return uniqueFreqRounded
 }
+
+export function timeAgo(dateString: string): string {
+	const now = Date.now()
+	const startTime = new Date(dateString).getTime()
+	const durationMs = now - startTime
+
+	if (durationMs < 60000) return 'just started'
+	if (durationMs < 3600000) return `${Math.floor(durationMs / 60000)}m ago`
+
+	const hours = Math.floor(durationMs / 3600000)
+	const minutes = Math.floor((durationMs % 3600000) / 60000)
+	return `${hours}h ${minutes}m ago`
+}
