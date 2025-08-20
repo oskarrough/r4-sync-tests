@@ -5,10 +5,11 @@ Metadata from YouTube, MusicBrainz, and Discogs stored in `track_meta` table: `{
 ## Sources & API
 
 - **YouTube**: `@lib/metadata/youtube.js` - duration, title, description
-- **MusicBrainz**: `@lib/metadata/musicbrainz.js` - artist, release info  
+- **MusicBrainz**: `@lib/metadata/musicbrainz.js` - artist, release info
 - **Discogs**: `@lib/metadata/discogs.js` - detailed release metadata
 
 ### Method patterns:
+
 - `pull(params)` - fetch from external API and save to local db
 - `local(ytids)` - read from local track_meta only
 - `search(title)` - search external API without saving
