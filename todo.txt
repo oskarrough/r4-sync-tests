@@ -3,13 +3,13 @@
 List of possible improvements to the architecture, idea, cli and web application.  
 Always verify and evaluate todos before taking them on. They might be outdated or just not good ideas.
 
-- move pglite to worker in browser? 
-- consider integrating "bandsintown" as a third-party API similar to musicbrainz, youtube meta - rich data connections
 - r5 API: add ID parameter support to tracks.pull and channels.pull methods. Move trackIdToSlug from broadcast.js to tracks.js as internal helper. Fix ensure-track.svelte to use new API. Update docs/r5-sdk.md with examples. This enables cleaner component code: `await r5.tracks.pull({id})` instead of requiring trackIdToSlug in components.
-- Test we can export browser pglite and import and verify that - solid foundation for experimentation
+- consider integrating "bandsintown" as a third-party API similar to musicbrainz, youtube meta - rich data connections
+- make a great (!) flow for creating a new radio, and maybe also migrate v1?!
 - analyze https://svelte.dev/docs/svelte/$effect#When-not-to-use-$effect - keep up with Svelte 5 patterns
 - move spam detection out of playground into proper module if keeping
 - V1 compatibility: v1 channels can't be bookmarked/broadcasted because remote supabase doesn't know about their foreign keys. V1 channels have firebase_id but don't exist in remote postgres, causing FK constraint failures. Solution ideas: use string-based IDs instead of proper foreign keys, or create placeholder records in remote for v1 channels.
+- Test we can export browser pglite and import and verify that - solid foundation for experimentation
 
 ## Nice Cleanup (when bored)
 
@@ -20,12 +20,8 @@ Always verify and evaluate todos before taking them on. They might be outdated o
 ## Low Priority
 
 - implement "queue" to the r5 api - marginal UX improvement
-- ~~change <slug>/page.js load function to maybe not block the whole page? too slow~~ - owner says it's already fast
-- the cli only works in bun (not node) because of $lib alias and typescript
 - implement event sourcing pattern: events table {type, payload, timestamp} for state changes, enables undo/replay
-- unify sync layer: single sync_operations queue table instead of scattered pull/push functions
-- refactor persistAppState() to use parameterized queries instead of string concatenation
-- add validation layer at sync boundaries (remote->local) using lightweight lib like valibot
+- add validation layer at sync boundaries (remote->local) using lightweight lib like zod 4
 - implement backup/restore: export/import full pglite database as json or sql dump
 - enhance logger: expose store.logs in devtools ui
 - separate api layers: split ui operations (toggleTheme, openSearch) from data operations in api.js

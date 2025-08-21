@@ -125,12 +125,15 @@ export function createBrowserCli(onOutput) {
 
 			if (method && config.methods.includes(method)) {
 				fn = r5[cmd][method]
+			} else if (cmd === 'search') {
+				// For search, default to 'all' and treat method as argument if provided
+				fn = r5.search.all
+				if (method) {
+					fnArgs = [method, ...args]
+				}
 			} else if (method) {
 				// Method not in list, treat as argument
 				fnArgs = [method, ...args]
-			} else if (cmd === 'search') {
-				// Default search is 'all'
-				fn = r5.search.all
 			} else if (config.methods.length > 0) {
 				// Command without method - default to first available or show help
 				if (config.methods.includes('local')) {
