@@ -19,6 +19,14 @@
 		<h2>Settings</h2>
 	</section>
 	<section>
+		<h2>Alpha software</h2>
+		<p>
+			If the app is acting weird, tracks not loading or just broken, try <a href="/recovery"
+				>recovery</a
+			>.
+		</p>
+	</section>
+	<section>
 		<h2>Account</h2>
 		<p>
 			<button onclick={logout}>Logout</button>

@@ -6,7 +6,7 @@ import * as channels from './channels.js'
 import {sql, raw} from '@electric-sql/pglite/template'
 
 const log = logger.ns('r5:tracks').seal()
-const LIMIT = 4000
+const LIMIT = 5000
 
 /** Get tracks from local database */
 export async function local({slug = '', limit = LIMIT} = {}) {

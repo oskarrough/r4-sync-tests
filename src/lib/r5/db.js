@@ -9,7 +9,7 @@ const browser = typeof window !== 'undefined'
 const log = logger.ns('db').seal()
 
 // This will limit the amount of channels pulled.
-export const debugLimit = 40
+export const debugLimit = 4000
 
 // Use worker for database operations (enabled by default)
 const useWorker = true

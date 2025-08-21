@@ -6,7 +6,7 @@
 	let isResetting = $state(false)
 	let resetSuccess = $state(false)
 
-	const errorMessage = $derived(page.url.searchParams.get('err') || 'Unknown database error')
+	const errorMessage = $derived(page.url.searchParams.get('err'))
 
 	async function resetDatabase() {
 		isResetting = true
@@ -26,10 +26,12 @@
 
 <main>
 	<h1>Database recovery</h1>
-	<p>You're here (sorry) because there was an error:</p>
+	<p>You're here like here (sorry) because there was an error.</p>
 	<br />
-	<p><em>{decodeURIComponent(errorMessage)}</em></p>
-	<br />
+	{#if errorMessage}
+		<p><em>{decodeURIComponent(errorMessage)}</em></p>
+		<br />
+	{/if}
 
 	<section>
 		{#if resetSuccess}
