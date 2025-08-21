@@ -30,14 +30,14 @@
 
 {#if userChannelId}
 	{#if appState.broadcasting_channel_id}
-		<button onclick={() => stopBroadcasting()}>Stop broadcasting</button>
+		<button onclick={() => stopBroadcasting()}> Stop broadcasting </button>
 	{:else}
 		<button onclick={start}>
-			<Icon icon="signal" size={20} strokeWidth={1.7}></Icon>
+			<Icon icon="signal" size={20} strokeWidth={1.7}></Icon> Start broadcasting
 		</button>
 	{/if}
 {:else}
 	<a class="btn" href="/login">
-		<Icon icon="signal" size={20} strokeWidth={1.7}></Icon>
+		<Icon icon="signal" size={20} strokeWidth={1.7}></Icon> Login to start broadcasting
 	</a>
 {/if}

@@ -1,9 +1,14 @@
 <script>
 	import {trimWithEllipsis} from '$lib/utils.ts'
 	import ChannelHero from './channel-hero.svelte'
+	import {appState} from '$lib/app-state.svelte'
 
 	/** @type {{channel: import('$lib/types').Channel}}*/
-	let {channel} = $props()
+	let {channel, children} = $props()
+
+	const broadcasting = $derived(
+		channel.broadcasting || appState.listening_to_channel_id === channel.id
+	)
 
 	/** @param {MouseEvent} event */
 	async function doubleclick({currentTarget}) {
@@ -14,13 +19,14 @@
 </script>
 
 <article ondblclick={doubleclick}>
+	<div class="live-dot"></div>
 	<a href={`/${channel.slug}`}>
 		<ChannelHero {channel} />
 		<div>
 			<h3>
 				{channel.name}
-				{#if channel.broadcasting}
-					<span class="live-indicator">🔴 LIVE</span>
+				{#if broadcasting}
+					<span>LIVE</span>
 				{/if}
 			</h3>
 			<p class="desc">
@@ -29,6 +35,9 @@
 					<small>({channel.track_count})</small>
 				{/if}
 			</p>
+			{#if children}
+				{@render children()}
+			{/if}
 		</div>
 	</a>
 </article>
@@ -96,9 +105,16 @@
 		color: var(--gray-10);
 	}
 
-	.live-indicator {
-		color: red;
-		font-weight: bold;
-		margin-left: 0.5rem;
+	.live-dot {
+		position: absolute;
+		top: -1px;
+		left: 1px;
+		z-index: 1;
+		width: var(--font-3);
+		height: var(--font-3);
+		background-color: #00ff00;
+		border: 2px solid white;
+		border-radius: 50%;
+		box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
 	}
 </style>

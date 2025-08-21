@@ -1,10 +1,10 @@
 <script>
 	import {joinBroadcast, leaveBroadcast, watchBroadcasts} from '$lib/broadcast'
 	import {appState} from '$lib/app-state.svelte'
-	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import BroadcastControls from '$lib/components/broadcast-controls.svelte'
-	import LiveBroadcasts from '$lib/components/live-broadcasts.svelte'
+	import EnsureTrack from '$lib/components/ensure-track.svelte'
 	import {timeAgo} from '$lib/utils'
+	import ChannelCard from '$lib/components/channel-card.svelte'
 
 	const broadcastState = $state({
 		broadcasts: [],
@@ -34,63 +34,59 @@
 		Work in progress. Here yoy can listen to broadcasts from other radios. Listen to what they're
 		listening to.
 	</p>
-	<br />
-	<div class="debug">
-		{#if loadingError}
-			<p>⚠️ {loadingError}</p>
-		{/if}
-		{#if appState.broadcasting_channel_id}
-			<p>📡 You are broadcasting</p>
-		{/if}
-		{#if appState.listening_to_channel_id}
-			<p>You are listening to a broadcast</p>
-		{/if}
-	</div>
-	<BroadcastControls />
-</header>
 
-<LiveBroadcasts broadcasts={activeBroadcasts} />
+	{#if loadingError}
+		<p>Error! {loadingError}</p>
+	{/if}
+
+	<menu>
+		<BroadcastControls />
+	</menu>
+</header>
 
 <section class="list">
 	{#each activeBroadcasts as broadcast (broadcast.channel_id)}
-		{@const isListening = broadcast.channel_id === appState.listening_to_channel_id}
-		{@const duration = timeAgo(broadcast.track_played_at)}
-		<article>
-			<div>
-				<div class="channel-info">
-					<ChannelAvatar id={broadcast.channels.image} alt={broadcast.channels.name} />
-					<div>
-						<h2><a href="/{broadcast.channels.slug}">@{broadcast.channels.slug}</a></h2>
-						<p>{broadcast.channels.name}</p>
-					</div>
-				</div>
-				<p>Broadcasting since {duration}</p>
-			</div>
-			<button
-				class:active={isListening}
-				onclick={() => {
-					if (isListening) {
-						leaveBroadcast()
-					} else {
-						joinBroadcast(broadcast.channel_id)
-					}
-				}}
-			>
-				{isListening ? 'Leave broadcast' : 'Join broadcast'}
-			</button>
-		</article>
+		{@const joined = broadcast.channel_id === appState.listening_to_channel_id}
+		<div class:active={joined}>
+			<!-- <div class="live-dot"></div> -->
+			<ChannelCard channel={broadcast.channels}>
+				<p>
+					Broadcasting since {timeAgo(broadcast.track_played_at)}
+					<em>
+						<EnsureTrack tid={broadcast.track_id}>I AM INSIDE</EnsureTrack>
+					</em>
+				</p>
+
+				<button
+					onclick={() => {
+						if (joined) {
+							leaveBroadcast()
+						} else {
+							joinBroadcast(broadcast.channel_id)
+						}
+					}}
+				>
+					{joined ? 'Leave broadcast' : 'Join broadcast'}
+				</button>
+			</ChannelCard>
+		</div>
 	{:else}
 		<p>No live broadcasts right now</p>
 	{/each}
 </section>
 
 <style>
-	article :global(img) {
-		max-width: 200px;
-	}
-
 	header,
 	section {
 		margin: 0.5rem;
+	}
+
+	header > menu {
+		margin: 1rem;
+	}
+
+	.list :global(article > a) {
+		grid-template-columns: 8rem auto;
+		gap: 1rem;
 	}
 </style>

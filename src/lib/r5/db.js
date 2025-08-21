@@ -102,7 +102,7 @@ export async function drop() {
 	pg = await createPg()
 
 	// We are deleting rows from all tables before dropping,
-	// as the UI re-renders better to this than just dropping tables 
+	// as the UI re-renders better to this than just dropping tables
 	await pg.sql`DELETE FROM app_state;`
 	await pg.sql`DELETE FROM track_edits;`
 	await pg.sql`DELETE FROM followers;`

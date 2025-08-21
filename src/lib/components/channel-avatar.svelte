@@ -1,6 +1,6 @@
 <script>
 	/* keep 250 please, since it is what cloudinary has already generated */
-	let {id = '', alt = '', size = 250} = $props()
+	let {id, alt = '', size = 250} = $props()
 
 	/**
 	 * @param {string} id - from cloudinary image
