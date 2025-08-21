@@ -4,6 +4,7 @@
 	import {extractYouTubeId} from '$lib/utils.ts'
 	import type {Track} from '$lib/types'
 	import LinkEntities from './link-entities.svelte'
+	import Icon from './icon.svelte'
 	import type {Snippet} from 'svelte'
 	import {appState} from '$lib/app-state.svelte'
 
@@ -30,7 +31,7 @@
 			return
 		}
 
-		if (el.parentNode instanceof HTMLTimeElement) {
+		if (el.closest('time')) {
 			// Let time element links through
 			return
 		}
@@ -62,6 +63,7 @@
 			{/if}
 		</div>
 		<time>
+			<span class="mobile"><Icon icon="options-horizontal" size={16} /></span>
 			{#if track.channel_slug}<small class="slug">@{track.channel_slug}</small>{/if}
 			<small>{formatDate(new Date(track.created_at))}</small>
 		</time>
@@ -126,6 +128,10 @@
 		place-content: center;
 		/* because this is the actual link with some trickery */
 		cursor: pointer;
+
+		.mobile {
+			display: none;
+		}
 	}
 
 	article {
@@ -133,9 +139,12 @@
 	}
 	@container (width < 80ch) {
 		.index,
-		time,
-		.slug {
+		.slug,
+		time small {
 			display: none;
+		}
+		time .mobile {
+			display: block;
 		}
 	}
 </style>
