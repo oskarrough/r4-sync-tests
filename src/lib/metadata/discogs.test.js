@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest'
-import {parseDiscogsUrl, searchDiscogs, fetchDiscogs} from './discogs.js'
+import {parseDiscogsUrl, searchUrl, fetchDiscogs} from './discogs.js'
 
 describe('discogs integration', () => {
 	it('parses discogs URLs correctly', () => {
@@ -22,7 +22,7 @@ describe('discogs integration', () => {
 	})
 
 	it('search returns search URL', async () => {
-		const result = await searchDiscogs('Daft Punk Random Access Memories')
+		const result = await searchUrl('Daft Punk Random Access Memories')
 
 		expect(result).toHaveProperty('searchUrl')
 		expect(result).toHaveProperty('query')
