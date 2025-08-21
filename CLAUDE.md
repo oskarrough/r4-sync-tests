@@ -1,46 +1,53 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-It's called claude.md so it picks up automatically without mentioning it, but really it's sound guidance
-for anyone working on this project.
+This file provides guidance to Claude and other LLMs working with code in this repository. Humans also welcome.
 
-# What is this? R5 - Local-First Music Player
+# What is this? R5 
 
-A local-first music player for radio4000.
+A prototype local-first music player for Radio4000. The name in dev is `r5`.
 
 SvelteKit + Svelte 5 runes, PGlite (client-side postgres), @radio4000/sdk, jsdoc and sometimes typescript
 
-## File Organization
+## Workflow
+
+Use `todo.txt` to see current prios and find things to do.
+
+Note useful learnings in the `docs` folder. Get up to speed with various features.
+
+## File overview
 
 ```
-/docs 				   -- feature design docs
-/src/lib/migrations/   -- sql migration files
 /src/lib/r5/index.js   -- local/remote data synchronization
-/src/lib/r5/db.ts      -- local db, schema
+/src/lib/r5/dj.js	   -- local pglite database
+/src/lib/migrations/   -- sql migration files
 /src/lib/api.js        -- reusable data operations
 /src/lib/live-query.js -- local, reactive db queries
 /src/lib/utils         -- the odd reusable function
-/src/lib/components    -- where components go
 /src/lib/types.ts      -- type definitions for database schemas and app state
-/todo.txt`			   -- current priorities and planned improvements
+/src/lib/components    -- where components go
 ```
 
 ## Database and state
 
-The app works with two databases:
+The app works with three sources:
 
 1. Local PostgreSQL (client-side, PGlite) via `import {pg} from $lib/db` - primary interface, allows reads/writes
-2. Remote PostgreSQL (radio4000/Supabase) via @radio4000/sdk - public reads, authenticated writes, no auto-sync
+2. Remote PostgreSQL (radio4000/Supabase) - public reads, authenticated writes, no auto-sync
+3. Local json and remote API for v1 (firebase realtime db)
 
-- Database is state. All application state (UI state, user preferences, everything) lives in the local `app_state` table. Limited component state, avoid stores - everything persisted and unified.
-- The $lib/app-state.svelte automatically is a proxy and automatically persited to pglite
-- No server-side code here, yet, all client side
+Database is state. All application state (UI state, user preferences, everything) lives in the local `app_state` table. Limited component state, avoid stores. The $lib/app-state.svelte automatically is a proxy and automatically persited to pglite via layout.svelte.
+
+See docs/r5-sdk.md.
+
+## Migrations 
 
 The local schema can be updated at any time, be generous with migrations:
 
 1. During prototype phase: update existing migrations in `/src/lib/migrations/`
 2. Once in production: create new migrations only
 3. Add to list in `db.ts`
+
+Inspect the migrations for the exact schema.
 
 ```sql
 app_state    -- single row with id 1, all application state
@@ -52,43 +59,7 @@ Use $lib/types.ts to define them and reuse across the codebase.
 
 ## Debugging
 
-- `window.r5.pg` - direct database access
-- `window.r5.sdk` - radio4000 api client
-- inspect `app_state` table in devtools for current state
-
-You can't run queries on the local pglite database, because it is in the browser. You can ask me to run SQL queries on the local db for you with this snippet: (await window.r5.pg.sql`select * from tracks limit 2`).rows
-
-### Using pglite
-
-See docs/pglite.txt
-
-## API
-
-In `/src/lib/api.js` you can find reusable functions for data operations.
-
-## Svelte 5 syntax
-
-```js
-let items = $state([])
-let filtered = $derived(items.filter((item) => !item.hidden))
-$effect(() => {
-	items.push({hidden: false})
-})
-```
-
-Snippets can be used for reusable "mini" components, when a file is too much https://svelte.dev/docs/svelte/snippet.
-Use $derived liberally. $derived can be mutated!
-Attachments can be used for reusable behaviours/effects on elements https://svelte.dev/docs/svelte/@attach.
-Use `bind:this` to get a reference to the element. You can even export methods on it.
-Prefer $app/state over $app/store
-
-## HTML/CSS
-
-- Use semantic elements like `header` or `menu` instead of divs
-- Rely existing global styles over new classes
-- Don't redefine button styles etc., as we have global styles in `styles/style.css`
-- Only create CSS classes when really needed
-- Use CSS custom property variables from variables.css (colors, font-sizing)
+You can't run queries on the local pglite database, because it is in the browser. You can ask me to run SQL queries on the local db for you with this snippet: `(await window.r5.pg.sql`select * from tracks limit 2`).rows`
 
 ## Code Style
 
@@ -106,25 +77,37 @@ Prefer $app/state over $app/store
 - Pure functions for composability in api/utils/data operations
 - Optimistic execution - trust in methods, let errors throw
 
+## HTML/CSS
+
+- Use semantic elements like `header` or `menu` instead of divs
+- Rely existing global styles over new classes
+- Don't redefine button styles etc., as we have global styles in `styles/style.css`
+- Only create CSS classes when really needed
+- Use CSS custom property variables from variables.css (colors, font-sizing)
+
+## Svelte 5 syntax
+
+```js
+let items = $state([])
+let filtered = $derived(items.filter((item) => !item.hidden))
+$effect(() => {
+	items.push({hidden: false})
+})
+```
+
+Snippets can be used for reusable "mini" components, when a file is too much https://svelte.dev/docs/svelte/snippet.
+Use $derived liberally. $derived can be mutated!
+Attachments can be used for reusable behaviours/effects on elements https://svelte.dev/docs/svelte/@attach.
+Use `bind:this` to get a reference to the element. You can even export methods on it.
+Prefer $app/state over $app/store
+
 ## Debug Tricks
 
-Ask me to perform queries for you, if it helps:
+Format and lint the code using `bun run lint`. Or use the claude code command /lint-test.
+
+When valuable, we can write tests using vitest. Put them next to the original file and name them xxx.test.js. Run tests with: `bun test [optional-name]`
+
+See docs/cli.md. The project has a CLI tool for database operations, run it with: `bun src/lib/cli.ts --help`. It is very useful for you to verify data orchestration works. Can also be piped, used with jq etc. The CLI does not share db with the web app.
+
+Ask me to perform queries on the db database for you, if it helps:
 (await window.r5.pg.sql`select * from app_state where id = 1`).rows[0]
-
-## Linting and formatting
-
-Format and lint the code using `bun run lint`. Always good to do this before committing.
-Additionally and optionally, use `bun run lint2` for even more things to review using Biome. Note that Biome doesn't outside script tags in .svelte files.
-
-## Testing
-
-When valuable, we can write tests using vitest. Put them next to the original file and name them xxx.test.js. Run tests with: `bun test`
-
-## CLI usage
-
-The project has a CLI tool for database operations, run it with:
-`bun src/lib/cli.ts <command>`
-
-See docs/cli.md for full usage examples.
-
-claude code: you do not need to start the dev server.
