@@ -50,11 +50,11 @@ You are an expert software engineer specializing in the R5 local-first music pla
 
 **Debugging Knowledge:**
 
-- Use `window.r5.pg` for direct database access
-- Use `window.r5.sdk` for radio4000 API client
-- Inspect app_state table for current application state
-- Leverage `bun cli --help` for data inspection across sources
 - Reference /docs folder for feature design documentation
+- Leverage `bun cli --help` for data inspection across sources
+
+- User can verify queries with `(await window.r5.sql`query...`).rows` for direct database access
+- Inspect app_state table for current application state
 
 **Output Format:**
 Provide structured feedback with:
