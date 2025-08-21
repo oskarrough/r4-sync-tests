@@ -5,6 +5,7 @@ Always verify and evaluate todos before taking them on. They might be outdated o
 
 - move pglite to worker in browser? 
 - consider integrating "bandsintown" as a third-party API similar to musicbrainz, youtube meta - rich data connections
+- r5 API: add ID parameter support to tracks.pull and channels.pull methods. Move trackIdToSlug from broadcast.js to tracks.js as internal helper. Fix ensure-track.svelte to use new API. Update docs/r5-sdk.md with examples. This enables cleaner component code: `await r5.tracks.pull({id})` instead of requiring trackIdToSlug in components.
 - Test we can export browser pglite and import and verify that - solid foundation for experimentation
 - analyze https://svelte.dev/docs/svelte/$effect#When-not-to-use-$effect - keep up with Svelte 5 patterns
 - move spam detection out of playground into proper module if keeping
