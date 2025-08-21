@@ -14,6 +14,7 @@ start: startBroadcast → upsertRemoteBroadcast → supabase
 join:  joinBroadcast → playBroadcastTrack → (pull if needed) → startBroadcastSync
 watch: watchBroadcasts → r4.broadcasts.readBroadcastsWithChannel → realtime updates
 sync:  supabase change → realtime → playBroadcastTrack
+auto:  playTrack → (if broadcasting) → upsertRemoteBroadcast → realtime → listeners
 stop:  stopBroadcast → delete remote
 ```
 
@@ -36,3 +37,15 @@ stop:  stopBroadcast → delete remote
 - `watchBroadcasts(onChange)` takes callback, uses `r4.broadcasts.readBroadcastsWithChannel()`
 - Track loading happens in `playBroadcastTrack` when joining, not in list view
 - Page component manages reactive state with Svelte 5 `$state()`
+
+## Auto-update Behavior
+
+When a broadcaster (user with `broadcasting_channel_id` set) changes tracks:
+
+1. `playTrack()` is called (via next/previous buttons, auto-advance, etc.)
+2. If `broadcasting_channel_id` exists and `startReason !== 'broadcast_sync'`, automatically calls `upsertRemoteBroadcast()`
+3. Remote broadcast table updates with new `track_id` and `track_played_at`
+4. Supabase realtime triggers for all listeners
+5. Listeners receive update and play the new track via `playBroadcastTrack()`
+
+This ensures broadcasts stay in sync automatically without manual intervention.

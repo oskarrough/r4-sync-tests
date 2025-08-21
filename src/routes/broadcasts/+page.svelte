@@ -58,7 +58,9 @@
 				</p>
 
 				<button
-					onclick={() => {
+					type="button"
+					onclick={(e) => {
+						e.preventDefault()
 						if (joined) {
 							leaveBroadcast()
 						} else {

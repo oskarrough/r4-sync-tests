@@ -43,7 +43,7 @@ export function leaveBroadcast() {
  * @param {string} channelId
  * @param {string} trackId
  */
-async function upsertRemoteBroadcast(channelId, trackId) {
+export async function upsertRemoteBroadcast(channelId, trackId) {
 	return r4.sdk.supabase
 		.from('broadcast')
 		.upsert({
@@ -94,7 +94,7 @@ export async function stopBroadcast(channelId) {
 	}
 }
 
-async function trackIdToSlug(id) {
+export async function trackIdToSlug(id) {
 	// try to get slug local
 	const rows = await pg.sql`select channel_slug from tracks_with_meta where id = ${id}`
 	if (rows.length) return rows[0].channel_slug

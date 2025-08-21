@@ -19,7 +19,7 @@
 </script>
 
 <article ondblclick={doubleclick}>
-	<div class="live-dot"></div>
+	{#if broadcasting}<div class="live-dot"></div>{/if}
 	<a href={`/${channel.slug}`}>
 		<ChannelHero {channel} />
 		<div>

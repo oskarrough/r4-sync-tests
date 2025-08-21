@@ -1,5 +1,5 @@
 import {appState, defaultAppState} from '$lib/app-state.svelte'
-import {leaveBroadcast} from '$lib/broadcast'
+import {leaveBroadcast, upsertRemoteBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
 import {pg} from '$lib/r5/db'
 import {r4} from '$lib/r4'
@@ -60,6 +60,24 @@ export async function playTrack(id, endReason, startReason) {
 	await setPlaylist(ids)
 	appState.playlist_track = id
 	await addPlayHistory({nextTrackId: id, previousTrackId, endReason, startReason})
+	
+	// Auto-update broadcast if currently broadcasting
+	if (appState.broadcasting_channel_id && startReason !== 'broadcast_sync') {
+		try {
+			await upsertRemoteBroadcast(appState.broadcasting_channel_id, id)
+			log.log('broadcast_auto_updated', {
+				channelId: appState.broadcasting_channel_id, 
+				trackId: id, 
+				startReason
+			})
+		} catch (error) {
+			log.error('broadcast_auto_update_failed', {
+				channelId: appState.broadcasting_channel_id,
+				trackId: id,
+				error: /** @type {Error} */ (error).message
+			})
+		}
+	}
 }
 
 /**
