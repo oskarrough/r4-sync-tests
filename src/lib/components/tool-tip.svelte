@@ -1,21 +1,6 @@
 <script>
-	/**
-	 * @typedef {'top' | 'bottom' | 'left' | 'right'} TooltipPosition
-	 */
-
-	/**
-	 * @type {{
-	 *   for: string
-	 *   content: string
-	 *   position?: TooltipPosition
-	 * }}
-	 */
-	const {
-		for: targetId,
-		content = '',
-		position = 'bottom',
-		...rest
-	} = $props()
+	/** @type {{for: string, content: string, position?: string}} */
+	const {for: targetId, content = '', position = 'bottom', ...rest} = $props()
 
 	const id = $props.id()
 
@@ -23,8 +8,6 @@
 	let targetElement = $state(/** @type {HTMLElement?} */ (null))
 
 	$effect(() => {
-		if (typeof document === 'undefined') return
-
 		targetElement = document.getElementById(targetId)
 
 		if (!targetElement) {
@@ -32,7 +15,7 @@
 			return
 		}
 
-		// Set up ARIA relationship for description tooltip
+		// Set up ARIA relationship
 		targetElement.setAttribute('aria-describedby', id)
 
 		// Set up anchor for CSS anchor positioning with unique anchor name
@@ -42,14 +25,8 @@
 			tooltipElement.style.positionAnchor = anchorName
 		}
 
-		// Set up event listeners using popover API
-		const showTooltip = () => {
-			tooltipElement?.showPopover?.()
-		}
-
-		const hideTooltip = () => {
-			tooltipElement?.hidePopover?.()
-		}
+		const showTooltip = () => tooltipElement?.showPopover?.()
+		const hideTooltip = () => tooltipElement?.hidePopover?.()
 
 		targetElement.addEventListener('mouseenter', showTooltip)
 		targetElement.addEventListener('mouseleave', hideTooltip)
@@ -74,7 +51,7 @@
 	{...rest}
 >
 	<span class="sr-only">; Has tooltip: </span>
-	{content}
+	{@html content}
 </div>
 
 <style>
@@ -95,7 +72,7 @@
 		white-space: nowrap;
 		max-width: 200px;
 		white-space: normal;
-		text-wrap: pretty;
+		/*text-wrap: pretty;*/
 		pointer-events: none;
 	}
 
@@ -103,7 +80,7 @@
 	@supports (top: anchor(bottom)) {
 		.tooltip.tooltip-top {
 			inset: unset;
-			top: calc(anchor(top) - var(--space-2));
+			bottom: calc(anchor(top) - var(--space-2));
 			justify-self: anchor-center;
 		}
 
@@ -115,7 +92,7 @@
 
 		.tooltip.tooltip-left {
 			inset: unset;
-			left: calc(anchor(left) - var(--space-2));
+			right: calc(anchor(left) - var(--space-2));
 			align-self: anchor-center;
 		}
 
@@ -125,7 +102,6 @@
 			align-self: anchor-center;
 		}
 	}
-
 
 	/* Screen reader only text */
 	.sr-only {

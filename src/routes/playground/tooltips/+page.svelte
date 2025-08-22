@@ -85,8 +85,8 @@
 					Notifications
 				</button>
 
-				<button {@attach tooltip({content: "Save your changes to local storage"})}>
-					Save
+				<button {@attach tooltip({content: "Save your changes to <strong>local</strong> storage"})}>
+					Save with HTML tooltip
 				</button>
 
 				<button {@attach tooltip({content: "Export data as JSON file"})}>
