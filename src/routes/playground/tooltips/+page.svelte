@@ -106,5 +106,41 @@
 				</p>
 			</div>
 		</div>
+
+		<div>
+			<h3>Attachment API (New Approach)</h3>
+			<p>Same functionality but using Svelte 5 attachments instead of component instances</p>
+			<div>
+				<button {@attach tooltip({content: "Notifications via attachment", type: "label"})}>
+					Notifications
+				</button>
+
+				<button {@attach tooltip({content: "Save your changes to local storage", type: "description"})}>
+					Save
+				</button>
+
+				<button {@attach tooltip({content: "Click me for toggletip info", type: "toggletip"})}>
+					Info
+				</button>
+			</div>
+
+			<div>
+				<button {@attach tooltip({content: "Positioned above", position: "top"})}>
+					Top Attachment
+				</button>
+
+				<button {@attach tooltip({content: "Positioned below", position: "bottom"})}>
+					Bottom Attachment
+				</button>
+
+				<button {@attach tooltip({content: "Positioned left", position: "left"})}>
+					Left Attachment
+				</button>
+
+				<button {@attach tooltip({content: "Positioned right", position: "right"})}>
+					Right Attachment
+				</button>
+			</div>
+		</div>
 	</div>
 </section>
