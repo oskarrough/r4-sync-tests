@@ -12,6 +12,7 @@
 	import LinkEntities from '$lib/components/link-entities.svelte'
 	import {r5} from '$lib/r5/index'
 	import {pg} from '$lib/r5/db'
+	import {tooltip} from '$lib/components/tooltip-attachment.js'
 
 	/** @typedef {import('$lib/types').Track} Track */
 	/** @typedef {import('$lib/types').Channel} Channel */
@@ -216,7 +217,12 @@
 {/snippet} -->
 
 {#snippet btnToggleVideo()}
-	<button onclick={() => togglePlayerExpanded()} title="Show/hide video" class="expand">
+	<button
+		onclick={() => togglePlayerExpanded()}
+		title="Show/hide video"
+		class="expand"
+		{@attach tooltip({content: 'Toggle expanded player', position: 'top'})}
+	>
 		<Icon icon="fullscreen" />
 		<!-- <Icon icon="video" /> -->
 	</button>

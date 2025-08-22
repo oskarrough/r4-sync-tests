@@ -3,7 +3,7 @@
 List of possible improvements to the architecture, idea, cli and web application.  
 Always verify and evaluate todos before taking them on. They might be outdated or just not good ideas.
 
-- r5 API: add ID parameter support to tracks.pull and channels.pull methods. Move trackIdToSlug from broadcast.js to tracks.js as internal helper. Fix ensure-track.svelte to use new API. Update docs/r5-sdk.md with examples. This enables cleaner component code: `await r5.tracks.pull({id})` instead of requiring trackIdToSlug in components.
+- r5 API: add ID parameter support to tracks.pull and channels.pull methods. Move trackIdToSlug from broadcast.js to tracks.js as internal helper. Fix ensure-track.svelte to use new API. Update docs/r5-sdk.md with examples. This enables cleaner component code: `await r5.tracks.pull({id})` instead of requiring trackIdToSlug in components. It solves the issue of easily getting a track without knowing whether it's been synced
 - consider integrating "bandsintown" as a third-party API similar to musicbrainz, youtube meta - rich data connections
 - make a great (!) flow for creating a new radio, and maybe also migrate v1?!
 - analyze https://svelte.dev/docs/svelte/$effect#When-not-to-use-$effect - keep up with Svelte 5 patterns

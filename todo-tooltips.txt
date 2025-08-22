@@ -1,10 +1,29 @@
-https://developer.mozilla.org/en-US/docs/Web/API/Popover_API#interfaces
-https://flowbite-svelte.com/docs/components/tooltip
-https://www.shadcn-svelte.com/docs/components/tooltip
-https://svelte.dev/playground/3153faf7584d40bd8ddebecf39f24ac1?version=5.38.2
-https://joyofcode.xyz/svelte-attachments-explained
-https://svelte.dev/docs/svelte/@attach
-https://svelte.dev/docs/svelte/svelte-attachments
-https://floating-ui.com/docs/getting-started
+# Tooltip Component - Future Enhancements
 
-https://svelte.dev/playground/a4682e449f0a4478aa4a24a804d9fe7c?version=5.38.2#H4sIAAAAAAAAE61W34_bNgz-V1gVgR0sdpyk2a5eckB76162YQ_rw4B5D4rN2NrJkifR-dFD_vdBtuPkcrnr2g2wYVkkRYrfR0oPTPESWczepSS0shDAR60liYqN2FpItCz-44HRvnJKboKNepOqCu0GJbm5Fbd4bT7VilCRZTFb2NSIim4TlZAoK20IHoBab3CAtdEleOG4JiFt-Jf1ErUY9yaLV0GQqIXd5LAVGRXLhE2wTBgUKPKC-t-NwO17vVsmLJhH4N5J1LwJaxwvclgLKZcJU1phwsCS0fe4TFhaG4OK7rTUJmHQCQIpFKa8WibM6Fpl3TIJLSpOxVHpGNJNwiBbJuwXCCaz5i0hgmASwQamEZQwaf8KCKZRwmB8XCy_XGnypveU0CIVJpUIZpmwmbNLmw1OZm6474fjk0ETXBvJ9I17JExuYHJz7nOctxlpvoux3bhvELhJtSgmjbAjg5O3M2pRtYICQWTIQVggDbbQW1jYiiuoLcYdqsuHhJXa4KuEHW7dYDF2Krcg1FqbkjvKwbZABYXeoBEqB63AVpiKtUgBJZaOO6FzX517f6dApFpBho4gK2fIr7uX4h6BCmFhg2YPDeaH25LnSqz3zi6X3NourhFQwQm2upYZrBA4rLSqr_j_CfcrzU0Ga53W9mQg0m4PVCCk_B7D61H9atqYunA-FpyOqTlzbpBLIIOcziJwRUB7iU0ccS71iks_7NYewkML7rYQhIGteIoxKL01vPq-lVTaCpf3GAxKTmKDRwHPMqHygHQVQxTO5gbLTpTWxmoTwyety0CobnalTYYmWGkiXcYwqXZgtRQZnFdSo3toDK7EG8d8TWj6sEtucqFiiCAKJy6AZjQ9D6XtJzHURvpexonHouQ5Ovp-syvlaDC7c01iV0pllwkriKp4PN5ut-F2FmqTj6dRFDnthH11JxnMPgxmd892ksJKPxpBNJjORzBzn2EvftpP2sX-l25yjOtKL2lF_7KPnIX0TA9pNcb5xddu3MgbXkf99SVLT1zkK6tlTdhTq-NUFA26KePAccT87ubEBjJcWddKYmiGkhP682gwgmj4mNbOctoQ6hGzVzy9zxsgYuhhG8E0Ggx7wklH_TPh25teuNaKAis-oVv-7fy0bFsahmeitvEFhddCEpoYMqOrwBY801s_aspnWu2cI3701LzhdHh01wAaQ8l3QVcHnykvpcmPmx41hNd9za1wrQ32KPQl5XlPesQFLk1vOANF4ppimPf_1_D43Q_mp3R2W4jCb_t8tHXXZukqMEIVaAQdAZGiChw3Y6i03Oda-dGgSZULrBnMo0Hz0_NwMW57Jhsxwh2xmEyNh9EzF5vjDeTxteZs9uxSg7vmIrOuVXOBOt5nfKUzHEHFDS9tl2k3FabuuPlZWAp5lvlep95VTKNhkd4RGbGqCX2P-EqoDHfeidIqod5dwVUm8UeHsH8OqCVICyEzWEKm09odo2HqThL80B6qvueOG69nuVMOXW7u2r3Bsgv-kcLj2ETmjeBiC90meFWhyu6ckd-YHqXnOln2YYOKXDZQofG9UtcWJfINeqNua-9lbYYvGq1kbZ5VN1jqDV5zg4rwZNdk8LOGTSVdsTk0B_MlKi6WEyhnq7ZpaSb-rtHsf0OJKWnje6_7ZF7J1_N7eTllV-1ezNozyHwmZU-tXsoX9YT_Qm9f6Mu9Bqk26oiEVj-gOyH3J3CeFGebs8v6_E-0-hpidak6JOrwuHX9OWLEhdwKlbF4zaXFwz-kAtLkyw0AAA==
+## Future Enhancements
+- [ ] **HIGH PRIORITY**: Integrate `popover="hint"` API (Chrome 133+) for better tooltip management
+  - Use `tooltip.showPopover({ source: button })` for positioning
+  - Leverage CSS anchor positioning with `top: calc(anchor(bottom) + 5px)`
+  - Simplifies event handling while maintaining hover/focus behavior
+- [ ] Add Interest Invokers API support for declarative hover triggering (when available)
+- [ ] Add floating-ui for smarter positioning near viewport edges (fallback for non-anchor browsers)
+- [ ] Add delay options for hover tooltips
+- [ ] Test with screen readers extensively
+- [ ] Add animation spring settings configuration
+- [ ] Consider graceful fallback for browsers without popover hint support
+
+## Implementation Notes
+✓ Component implemented at `/src/lib/components/tool-tip.svelte`
+✓ Demo page created at `/src/routes/playground/tooltips/+page.svelte`
+✓ Three tooltip types: label, description, toggletip
+✓ Full accessibility support with proper ARIA relationships
+✓ Modern Svelte 5 with runes
+
+## References
+
+1. https://inclusive-components.design/tooltips-toggletips/ ✓ IMPLEMENTED
+2. https://developer.chrome.com/blog/popover-hint ⭐ NEW: popover="hint" API
+3. https://web.dev/articles/building/a-tooltip-component
+4. https://developer.mozilla.org/en-US/docs/Web/API/Popover_API#interfaces
+5. https://floating-ui.com/docs/getting-started
+6. https://svelte.dev/docs/svelte/@attach

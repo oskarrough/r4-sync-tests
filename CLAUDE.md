@@ -11,7 +11,6 @@ SvelteKit + Svelte 5 runes, PGlite (client-side postgres), @radio4000/sdk, jsdoc
 ## Workflow
 
 Use `todo.txt` to see current prios and find things to do.
-
 Note useful learnings in the `docs` folder. Get up to speed with various features.
 
 ## File overview
@@ -111,3 +110,5 @@ See docs/cli.md. The project has a CLI tool for database operations, run it with
 
 Ask me to perform queries on the db database for you, if it helps:
 (await window.r5.pg.sql`select * from app_state where id = 1`).rows[0]
+
+Do not attempt to start the dev server. The user will do that.

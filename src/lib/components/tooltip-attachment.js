@@ -1,0 +1,34 @@
+import {mount, unmount} from 'svelte'
+import TooltipComponent from './tool-tip.svelte'
+
+/**
+ * @typedef {'top' | 'bottom' | 'left' | 'right'} TooltipPosition
+ */
+
+/**
+ * @param {{content: string, position?: TooltipPosition}} options
+ * @returns {function(HTMLElement): {destroy: function}}
+ */
+export function tooltip(options) {
+	return function (element) {
+		if (!element.id) {
+			element.id = `tooltip-target-${crypto.randomUUID()}`
+		}
+
+		const tooltipComponent = mount(TooltipComponent, {
+			target: document.body,
+			props: {
+				id: `tooltip-${crypto.randomUUID()}`,
+				targetId: element.id,
+				content: options.content,
+				position: options.position || 'bottom'
+			}
+		})
+
+		return {
+			destroy() {
+				unmount(tooltipComponent)
+			}
+		}
+	}
+}

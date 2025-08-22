@@ -4,6 +4,7 @@
 	import {appState} from '$lib/app-state.svelte'
 	import {pg} from '$lib/r5/db'
 	import {r5} from '$lib/r5'
+	import {tooltip} from '$lib/components/tooltip-attachment.js'
 
 	let showModal = $state(false)
 	let recentTracks = $state([])
@@ -41,12 +42,8 @@
 
 <svelte:window onkeydown={handleKeyDown} />
 
-{#if channelId}
-	<button onclick={() => (showModal = true)}>
-		<Icon icon="add" size={20}></Icon>
-	</button>
-{:else if isSignedIn}
-	<button onclick={() => (showModal = true)}>
+{#if channelId || isSignedIn}
+	<button onclick={() => (showModal = true)} {@attach tooltip({content: 'Add track'})}>
 		<Icon icon="add" size={20}></Icon>
 	</button>
 {:else}
