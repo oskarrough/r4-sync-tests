@@ -1,10 +1,14 @@
 <script>
+	/* eslint svelte/no-at-html-tags: "off" */
+
 	/** @type {{targetId: string, content: string, position?: string}} */
-	const { targetId, content = '', position = 'bottom' } = $props()
-	
+	const {targetId, content = '', position = 'bottom'} = $props()
+
 	const id = $props.id()
 
+	/** @type {HTMLElement | null} */
 	let tooltipElement = $state(null)
+	/** @type {HTMLElement | null} */
 	let targetElement = $state(null)
 
 	$effect(() => {
@@ -69,27 +73,26 @@
 	@supports (top: anchor(bottom)) {
 		.tooltip.tooltip-top {
 			inset: unset;
-			bottom: calc(anchor(top) - var(--space-2));
+			bottom: calc(anchor(top) - var(--space-1));
 			justify-self: anchor-center;
 		}
 
 		.tooltip.tooltip-bottom {
 			inset: unset;
-			top: calc(anchor(bottom) + var(--space-2));
+			top: calc(anchor(bottom) + var(--space-1));
 			justify-self: anchor-center;
 		}
 
 		.tooltip.tooltip-left {
 			inset: unset;
-			right: calc(anchor(left) - var(--space-2));
+			right: calc(anchor(left) - var(--space-1));
 			align-self: anchor-center;
 		}
 
 		.tooltip.tooltip-right {
 			inset: unset;
-			left: calc(anchor(right) + var(--space-2));
+			left: calc(anchor(right) + var(--space-1));
 			align-self: anchor-center;
 		}
 	}
-
 </style>
