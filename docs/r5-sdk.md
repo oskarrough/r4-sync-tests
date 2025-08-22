@@ -26,7 +26,9 @@ await r5.channels.r4({limit: 50}) // fetch without inserting
 await r5.channels.v1({slug: 'ko002'}) // fetch v1/firebase channels
 await r5.tracks.v1({channel: 'ko002', firebase: 'id', limit: 100})
 await r5.channels.pull({slug: 'optional-slug', limit: 50}) // fetch all/single, insert, return
+await r5.channels.pull({id: 'channel-uuid'}) // pull channel by ID, resolves to slug automatically
 await r5.tracks.pull({slug: 'required-slug', limit: 50}) // pulls tracks for a single channel (requires slug), insert, return
+await r5.tracks.pull({id: 'track-uuid'}) // pull tracks by track ID, resolves channel slug automatically
 
 // Search
 await r5.search.all('ambient') // search channels and tracks

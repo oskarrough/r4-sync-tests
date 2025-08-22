@@ -8,6 +8,29 @@ import {sql, raw} from '@electric-sql/pglite/template'
 const log = logger.ns('r5:tracks').seal()
 const LIMIT = 5000
 
+/** Internal helper to resolve track ID to channel slug */
+async function trackIdToSlug(id) {
+	const pg = await getPg()
+	// try to get slug local
+	const rows = await pg.sql`select channel_slug from tracks_with_meta where id = ${id}`
+	if (rows.length) return rows[0].channel_slug
+	// fallback to r4
+	try {
+		const {data} = await r4Api.sdk.supabase
+			.from('channel_track')
+			.select('channels(slug)')
+			.eq('track_id', id)
+			.single()
+			.throwOnError()
+		if (data?.channels?.slug) return data.channels.slug
+	} catch {
+		// Continue to check if it's just a track that exists
+	}
+	throw new Error(`trackIdToSlug:not_found: ${id}`)
+}
+
+export {trackIdToSlug}
+
 /** Get tracks from local database */
 export async function local({slug = '', limit = LIMIT} = {}) {
 	const pg = await getPg()
@@ -50,7 +73,16 @@ export async function v1(params) {
 }
 
 /** Pull tracks from remote sources and store locally */
-export async function pull({slug = '', limit = LIMIT} = {}) {
+export async function pull({id, slug = '', limit = LIMIT} = {}) {
+	// If ID provided, resolve to slug first (ID takes precedence)
+	if (id) {
+		slug = await trackIdToSlug(id)
+	}
+
+	if (!slug) {
+		throw new Error(`pull_tracks:missing_slug_or_id`)
+	}
+
 	const channel = (await channels.local({slug}))[0]
 	if (!channel) throw new Error(`pull_tracks:channel_not_found: ${slug}`)
 

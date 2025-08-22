@@ -4,6 +4,7 @@ import {logger} from '$lib/logger'
 import {playTrack} from '$lib/api'
 import {r5} from '$lib/r5'
 import {appState} from '$lib/app-state.svelte'
+import {trackIdToSlug} from '$lib/r5/tracks'
 
 const log = logger.ns('broadcast').seal()
 
@@ -92,20 +93,6 @@ export async function stopBroadcast(channelId) {
 			error: /** @type {Error} */ (error).message
 		})
 	}
-}
-
-export async function trackIdToSlug(id) {
-	// try to get slug local
-	const rows = await pg.sql`select channel_slug from tracks_with_meta where id = ${id}`
-	if (rows.length) return rows[0].channel_slug
-	// fallback to r4
-	const {data} = await r4.sdk.supabase
-		.from('channel_track')
-		.select('channels(slug)')
-		.eq('track_id', id)
-		.single()
-		.throwOnError()
-	return data?.channels?.slug
 }
 
 /**

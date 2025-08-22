@@ -6,6 +6,27 @@ import {sql, raw} from '@electric-sql/pglite/template'
 const log = logger.ns('r5:channels').seal()
 const LIMIT = 4000
 
+/** Internal helper to resolve channel ID to slug */
+async function channelIdToSlug(id) {
+	const pg = await getPg()
+	// try to get slug local
+	const rows = await pg.sql`select slug from channels where id = ${id}`
+	if (rows.length) return rows[0].slug
+	// fallback to r4 - query by ID not slug
+	try {
+		const {data} = await r4Api.sdk.supabase
+			.from('channels')
+			.select('slug')
+			.eq('id', id)
+			.single()
+			.throwOnError()
+		if (data?.slug) return data.slug
+	} catch {
+		// Continue if not found
+	}
+	throw new Error(`channelIdToSlug:not_found: ${id}`)
+}
+
 /** Get channels from local database */
 export async function local({slug = '', limit = LIMIT} = {}) {
 	const pg = await getPg()
@@ -40,7 +61,12 @@ export async function v1({slug = '', limit = LIMIT} = {}) {
 }
 
 /** Pull channels from remote sources and store locally */
-export async function pull({slug = '', limit = LIMIT} = {}) {
+export async function pull({id, slug = '', limit = LIMIT} = {}) {
+	// If ID provided, resolve to slug first (ID takes precedence)
+	if (id) {
+		slug = await channelIdToSlug(id)
+	}
+
 	if (slug) {
 		// Check local first
 		const localChannels = await local({slug})

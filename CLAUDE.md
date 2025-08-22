@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude and other LLMs working with code in this repository. Humans also welcome.
 
-# What is this? R5 
+# What is this? R5
 
 A prototype local-first music player for Radio4000. The name in dev is `r5`.
 
@@ -39,7 +39,7 @@ Database is state. All application state (UI state, user preferences, everything
 
 See docs/r5-sdk.md.
 
-## Migrations 
+## Migrations
 
 The local schema can be updated at any time, be generous with migrations:
 
