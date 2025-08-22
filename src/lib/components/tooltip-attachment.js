@@ -2,7 +2,6 @@ import { mount, unmount } from 'svelte'
 import TooltipComponent from './tool-tip.svelte'
 
 /**
- * @typedef {'label' | 'description' | 'toggletip'} TooltipType
  * @typedef {'top' | 'bottom' | 'left' | 'right'} TooltipPosition
  */
 
@@ -10,7 +9,6 @@ import TooltipComponent from './tool-tip.svelte'
  * Tooltip attachment for use with {@attach tooltip(options)}
  * @param {{
  *   content: string
- *   type?: TooltipType
  *   position?: TooltipPosition
  * }} options - Tooltip configuration
  * @returns {function(HTMLElement): {destroy: function}}
@@ -32,7 +30,6 @@ export function tooltip(options) {
 				id: tooltipId,
 				for: element.id,
 				content: options.content,
-				type: options.type || 'description',
 				position: options.position || 'bottom'
 			}
 		})

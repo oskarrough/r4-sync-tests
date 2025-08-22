@@ -1,20 +1,17 @@
 <script>
 	/**
-	 * @typedef {'label' | 'description' | 'toggletip'} TooltipType
 	 * @typedef {'top' | 'bottom' | 'left' | 'right'} TooltipPosition
 	 */
 
 	/**
 	 * @type {{
 	 *   for: string
-	 *   type?: TooltipType
 	 *   content: string
 	 *   position?: TooltipPosition
 	 * }}
 	 */
 	const {
 		for: targetId,
-		type = 'description',
 		content = '',
 		position = 'bottom',
 		...rest
@@ -35,12 +32,8 @@
 			return
 		}
 
-		// Set up ARIA relationships based on tooltip type
-		if (type === 'label') {
-			targetElement.setAttribute('aria-labelledby', id)
-		} else if (type === 'description') {
-			targetElement.setAttribute('aria-describedby', id)
-		}
+		// Set up ARIA relationship for description tooltip
+		targetElement.setAttribute('aria-describedby', id)
 
 		// Set up anchor for CSS anchor positioning with unique anchor name
 		const anchorName = `--anchor-${id}`
@@ -50,35 +43,24 @@
 		}
 
 		// Set up event listeners using popover API
-		if (type === 'toggletip') {
-			const handleClick = () => {
-				tooltipElement?.togglePopover()
-			}
-			targetElement.addEventListener('click', handleClick)
-			return () => {
-				targetElement?.removeEventListener('click', handleClick)
-			}
-		} else {
-			// Regular tooltips with popover API
-			const showTooltip = () => {
-				tooltipElement?.showPopover?.()
-			}
+		const showTooltip = () => {
+			tooltipElement?.showPopover?.()
+		}
 
-			const hideTooltip = () => {
-				tooltipElement?.hidePopover?.()
-			}
+		const hideTooltip = () => {
+			tooltipElement?.hidePopover?.()
+		}
 
-			targetElement.addEventListener('mouseenter', showTooltip)
-			targetElement.addEventListener('mouseleave', hideTooltip)
-			targetElement.addEventListener('focus', showTooltip)
-			targetElement.addEventListener('blur', hideTooltip)
+		targetElement.addEventListener('mouseenter', showTooltip)
+		targetElement.addEventListener('mouseleave', hideTooltip)
+		targetElement.addEventListener('focus', showTooltip)
+		targetElement.addEventListener('blur', hideTooltip)
 
-			return () => {
-				targetElement?.removeEventListener('mouseenter', showTooltip)
-				targetElement?.removeEventListener('mouseleave', hideTooltip)
-				targetElement?.removeEventListener('focus', showTooltip)
-				targetElement?.removeEventListener('blur', hideTooltip)
-			}
+		return () => {
+			targetElement?.removeEventListener('mouseenter', showTooltip)
+			targetElement?.removeEventListener('mouseleave', hideTooltip)
+			targetElement?.removeEventListener('focus', showTooltip)
+			targetElement?.removeEventListener('blur', hideTooltip)
 		}
 	})
 </script>
@@ -86,14 +68,12 @@
 <div
 	bind:this={tooltipElement}
 	{id}
-	popover={type === 'toggletip' ? 'auto' : 'hint'}
-	role={type === 'toggletip' ? 'status' : 'tooltip'}
+	popover="hint"
+	role="tooltip"
 	class="tooltip tooltip-{position}"
 	{...rest}
 >
-	{#if type !== 'toggletip'}
-		<span class="sr-only">; Has tooltip: </span>
-	{/if}
+	<span class="sr-only">; Has tooltip: </span>
 	{content}
 </div>
 
@@ -115,7 +95,7 @@
 		white-space: nowrap;
 		max-width: 200px;
 		white-space: normal;
-		text-wrap: balance;
+		text-wrap: pretty;
 		pointer-events: none;
 	}
 
