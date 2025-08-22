@@ -10,26 +10,26 @@
 	 *   type?: TooltipType
 	 *   content: string
 	 *   position?: TooltipPosition
-	 *   id?: string
 	 * }}
 	 */
 	const {
 		for: targetId,
 		type = 'description',
 		content = '',
-		position = 'top',
-		id = `tooltip-${crypto.randomUUID()}`,
+		position = 'bottom',
 		...rest
 	} = $props()
 
-	let isVisible = $state(false)
+	const id = $props.id()
+
 	let tooltipElement = $state(/** @type {HTMLElement?} */ (null))
 	let targetElement = $state(/** @type {HTMLElement?} */ (null))
 
 	$effect(() => {
 		if (typeof document === 'undefined') return
+
 		targetElement = document.getElementById(targetId)
-		
+
 		if (!targetElement) {
 			console.warn(`Tooltip target element with id "${targetId}" not found`)
 			return
@@ -42,41 +42,30 @@
 			targetElement.setAttribute('aria-describedby', id)
 		}
 
-		// Set up event listeners based on type
+		// Set up anchor for CSS anchor positioning with unique anchor name
+		const anchorName = `--anchor-${id}`
+		targetElement.style.anchorName = anchorName
+		if (tooltipElement) {
+			tooltipElement.style.positionAnchor = anchorName
+		}
+
+		// Set up event listeners using popover API
 		if (type === 'toggletip') {
 			const handleClick = () => {
-				isVisible = !isVisible
+				tooltipElement?.togglePopover()
 			}
-			
-			const handleClickOutside = (/** @type {MouseEvent} */ e) => {
-				if (!targetElement?.contains(/** @type {Node} */ (e.target)) && !tooltipElement?.contains(/** @type {Node} */ (e.target))) {
-					isVisible = false
-				}
-			}
-
-			const handleEscape = (/** @type {KeyboardEvent} */ e) => {
-				if (e.key === 'Escape') {
-					isVisible = false
-				}
-			}
-
 			targetElement.addEventListener('click', handleClick)
-			document.addEventListener('click', handleClickOutside)
-			document.addEventListener('keydown', handleEscape)
-
 			return () => {
 				targetElement?.removeEventListener('click', handleClick)
-				document.removeEventListener('click', handleClickOutside)
-				document.removeEventListener('keydown', handleEscape)
 			}
 		} else {
-			// Regular tooltip - show on hover and focus
+			// Regular tooltips with popover API
 			const showTooltip = () => {
-				isVisible = true
+				tooltipElement?.showPopover?.()
 			}
-			
+
 			const hideTooltip = () => {
-				isVisible = false
+				tooltipElement?.hidePopover?.()
 			}
 
 			targetElement.addEventListener('mouseenter', showTooltip)
@@ -94,129 +83,69 @@
 	})
 </script>
 
-{#if isVisible && content}
-	<div
-		bind:this={tooltipElement}
-		{id}
-		role={type === 'toggletip' ? 'status' : 'tooltip'}
-		class="tooltip tooltip-{position}"
-		class:visible={isVisible}
-		{...rest}
-	>
-		{#if type !== 'toggletip'}
-			<span class="sr-only">; Has tooltip: </span>
-		{/if}
-		{content}
-	</div>
-{/if}
+<div
+	bind:this={tooltipElement}
+	{id}
+	popover={type === 'toggletip' ? 'auto' : 'hint'}
+	role={type === 'toggletip' ? 'status' : 'tooltip'}
+	class="tooltip tooltip-{position}"
+	{...rest}
+>
+	{#if type !== 'toggletip'}
+		<span class="sr-only">; Has tooltip: </span>
+	{/if}
+	{content}
+</div>
 
 <style>
 	.tooltip {
-		--_triangle-size: 6px;
-		--_bg: light-dark(white, var(--gray-12));
-		--_shadow-alpha: light-dark(15%, 50%);
-		
-		--_bottom-tip: conic-gradient(from -30deg at bottom, rgba(0,0,0,0), var(--_bg) 1deg 60deg, rgba(0,0,0,0) 61deg) bottom / 100% 50% no-repeat;
-		--_top-tip: conic-gradient(from 150deg at top, rgba(0,0,0,0), var(--_bg) 1deg 60deg, rgba(0,0,0,0) 61deg) top / 100% 50% no-repeat;
-		--_right-tip: conic-gradient(from -120deg at right, rgba(0,0,0,0), var(--_bg) 1deg 60deg, rgba(0,0,0,0) 61deg) right / 50% 100% no-repeat;
-		--_left-tip: conic-gradient(from 60deg at left, rgba(0,0,0,0), var(--_bg) 1deg 60deg, rgba(0,0,0,0) 61deg) left / 50% 100% no-repeat;
+		--bg: light-dark(white, var(--gray-12));
+		--shadow-alpha: light-dark(15%, 50%);
 
 		position: absolute;
-		z-index: 1000;
-		padding: var(--space-2) var(--space-3);
-		font-size: var(--font-2);
-		color: CanvasText;
-		background: var(--_bg);
+		overflow: hidden;
+		margin: 0;
+		border: none;
+		padding: 0.2rem 0.5rem;
+		font-size: var(--font-3);
+		color: var(--gray-11);
+		border: 1px solid var(--gray-6);
+		background: var(--bg-1);
 		border-radius: var(--border-radius);
 		white-space: nowrap;
-		max-width: 250px;
+		max-width: 200px;
 		white-space: normal;
 		text-wrap: balance;
 		pointer-events: none;
-		opacity: 0;
-		transform: translateX(var(--_x, 0)) translateY(var(--_y, 0));
-		transition: opacity 200ms ease, transform 200ms ease;
-		will-change: filter;
-		filter:
-			drop-shadow(0 2px 4px hsl(0 0% 0% / var(--_shadow-alpha)))
-			drop-shadow(0 8px 16px hsl(0 0% 0% / var(--_shadow-alpha)));
 	}
 
-	.tooltip::after {
-		content: "";
-		background: var(--_bg);
-		position: absolute;
-		z-index: -1;
-		inset: 0;
-		mask: var(--_tip);
-	}
-
-	.tooltip-top {
-		bottom: calc(100% + var(--space-2) + var(--_triangle-size));
-		left: 50%;
-		--_x: -50%;
-		--_tip: var(--_bottom-tip);
-	}
-
-	.tooltip-top::after {
-		bottom: calc(var(--_triangle-size) * -1);
-	}
-
-	.tooltip-bottom {
-		top: calc(100% + var(--space-2) + var(--_triangle-size));
-		left: 50%;
-		--_x: -50%;
-		--_tip: var(--_top-tip);
-	}
-
-	.tooltip-bottom::after {
-		top: calc(var(--_triangle-size) * -1);
-	}
-
-	.tooltip-left {
-		right: calc(100% + var(--space-2) + var(--_triangle-size));
-		top: 50%;
-		--_y: -50%;
-		--_tip: var(--_right-tip);
-	}
-
-	.tooltip-left::after {
-		right: calc(var(--_triangle-size) * -1);
-	}
-
-	.tooltip-right {
-		left: calc(100% + var(--space-2) + var(--_triangle-size));
-		top: 50%;
-		--_y: -50%;
-		--_tip: var(--_left-tip);
-	}
-
-	.tooltip-right::after {
-		left: calc(var(--_triangle-size) * -1);
-	}
-
-	/* Motion preferences for slide-in animation */
-	@media (prefers-reduced-motion: no-preference) {
-		.tooltip:not(.visible) {
-			--_motion-offset: 4px;
+	/* Modern anchor positioning */
+	@supports (top: anchor(bottom)) {
+		.tooltip.tooltip-top {
+			inset: unset;
+			top: calc(anchor(top) - var(--space-2));
+			justify-self: anchor-center;
 		}
-		
-		.tooltip-top:not(.visible) {
-			--_y: calc(-50% + var(--_motion-offset));
+
+		.tooltip.tooltip-bottom {
+			inset: unset;
+			top: calc(anchor(bottom) + var(--space-2));
+			justify-self: anchor-center;
 		}
-		
-		.tooltip-bottom:not(.visible) {
-			--_y: calc(-50% - var(--_motion-offset));
+
+		.tooltip.tooltip-left {
+			inset: unset;
+			left: calc(anchor(left) - var(--space-2));
+			align-self: anchor-center;
 		}
-		
-		.tooltip-left:not(.visible) {
-			--_x: calc(-50% + var(--_motion-offset));
-		}
-		
-		.tooltip-right:not(.visible) {
-			--_x: calc(-50% - var(--_motion-offset));
+
+		.tooltip.tooltip-right {
+			inset: unset;
+			left: calc(anchor(right) + var(--space-2));
+			align-self: anchor-center;
 		}
 	}
+
 
 	/* Screen reader only text */
 	.sr-only {
@@ -228,11 +157,5 @@
 		overflow: hidden;
 		padding: 0;
 		position: absolute;
-	}
-
-	/* Show tooltip with transition delay */
-	.tooltip.visible {
-		opacity: 1;
-		transition-delay: 200ms;
 	}
 </style>
