@@ -1,25 +1,19 @@
 # Todos
 
 List of possible improvements to the architecture, idea, cli and web application.  
-Always verify and evaluate todos before taking them on. They might be outdated or just not good ideas.
+Verify and evaluate todos before taking them on. They might be outdated or just not good ideas.
 
-- r5 API: add ID parameter support to tracks.pull and channels.pull methods. Move trackIdToSlug from broadcast.js to tracks.js as internal helper. Fix ensure-track.svelte to use new API. Update docs/r5-sdk.md with examples. This enables cleaner component code: `await r5.tracks.pull({id})` instead of requiring trackIdToSlug in components. It solves the issue of easily getting a track without knowing whether it's been synced
-- consider integrating "bandsintown" as a third-party API similar to musicbrainz, youtube meta - rich data connections
+## Backlog
+
 - make a great (!) flow for creating a new radio, and maybe also migrate v1?!
-- analyze https://svelte.dev/docs/svelte/$effect#When-not-to-use-$effect - keep up with Svelte 5 patterns
-- move spam detection out of playground into proper module if keeping
-- V1 compatibility: v1 channels can't be bookmarked/broadcasted because remote supabase doesn't know about their foreign keys. V1 channels have firebase_id but don't exist in remote postgres, causing FK constraint failures. Solution ideas: use string-based IDs instead of proper foreign keys, or create placeholder records in remote for v1 channels.
-- Test we can export browser pglite and import and verify that - solid foundation for experimentation
-
-## Nice Cleanup (when bored)
-
 - run `bun run check` and slowly get rid of these warnings - tidy codebase
+- analyze https://svelte.dev/docs/svelte/$effect#When-not-to-use-$effect - keep up with Svelte 5 patterns
 - group metadata enrichment functions (youtube, musicbrainz) under single namespace "metadata" instead of "sync" - better organization
 - move sync/followers into lib/r5 namespace. think hard about the the pullFollowers logic. Maybe get rid of `syncFollowers`, we use "pull" naming in other places. Is it because it doesn't overwrite local, but merge into local? seems hard. hmm
-
-## Low Priority
-
+- consider integrating "bandsintown" as a third-party API similar to musicbrainz, youtube meta - rich data connections
+- Test we can export browser pglite and import and verify that - solid foundation for experimentation
 - implement "queue" to the r5 api - marginal UX improvement
+- V1 compatibility: v1 channels can't be bookmarked/broadcasted because remote supabase doesn't know about their foreign keys. V1 channels have firebase_id but don't exist in remote postgres, causing FK constraint failures. Solution ideas: use string-based IDs instead of proper foreign keys, or create placeholder records in remote for v1 channels.
 - implement event sourcing pattern: events table {type, payload, timestamp} for state changes, enables undo/replay
 - add validation layer at sync boundaries (remote->local) using lightweight lib like zod 4
 - implement backup/restore: export/import full pglite database as json or sql dump
@@ -34,16 +28,8 @@ Always verify and evaluate todos before taking them on. They might be outdated o
 - the <youtube-player> fires volumechange seemingly at will, many times on load, which currently overwrites any appState.volume the user might already have. In other words, your volume preferences is persisted, but also overwritten on load
 - find a way to share `track_meta` data between users. push it remote, how? security?
 - We're using the media-chrome project for the player. It supports audio, video and different third-party "media elements" like YouTube, Spotify and others. But there's no Soundcloud, which some R4 radios use. If we wanna keep Soundcloud, we have to make a player for it. https://www.media-chrome.org/docs/en/media-element#compatible-media-elements
-
-## CLI & LLM INTEGRATION LEARNINGS
-
-- search functionality works but needed better context understanding - improve CLI help/examples for complex queries  
-- natural language search patterns unclear - document search operators (AND, OR, phrase matching) in CLI help
-- verify we can write arbitrary sql queries locally??
-- genre cross-analysis queries powerful but not obvious - add examples to CLI help
-- LLM integration reveals rich semantic connections - consider exposing more metadata fields for search
-  - Progress system: @opentf/cli-pbar, ETA calculations, download statistics
-  - Error handling: retry logic, download state tracking, failure persistence
-  - File scanning: old CLI scans `<folder>/<slug>/tracks/*.m4a`, new CLI has no file ops
 - cli: Better progress reporting with download speeds, concurrent status
+- cli: allow sql queries 
+- cli download error handling: retry logic, download state tracking, failure persistence
+- cli download file scanning: old CLI scans `<folder>/<slug>/tracks/*.m4a`, new CLI has no file ops
 
