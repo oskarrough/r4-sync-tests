@@ -6,35 +6,25 @@ import TooltipComponent from './tool-tip.svelte'
  */
 
 /**
- * Tooltip attachment for use with {@attach tooltip(options)}
- * @param {{
- *   content: string
- *   position?: TooltipPosition
- * }} options - Tooltip configuration
+ * @param {{content: string, position?: TooltipPosition}} options
  * @returns {function(HTMLElement): {destroy: function}}
  */
 export function tooltip(options) {
 	return function(element) {
-		// Generate unique ID for the target element if it doesn't have one
 		if (!element.id) {
-			element.id = `tooltip-target-${Math.random().toString(36).substr(2, 9)}`
+			element.id = `tooltip-target-${crypto.randomUUID()}`
 		}
 
-		// Generate unique tooltip ID
-		const tooltipId = `tooltip-${Math.random().toString(36).substr(2, 9)}`
-
-		// Create tooltip component instance using Svelte 5 mount
 		const tooltipComponent = mount(TooltipComponent, {
 			target: document.body,
 			props: {
-				id: tooltipId,
-				for: element.id,
+				id: `tooltip-${crypto.randomUUID()}`,
+				targetId: element.id,
 				content: options.content,
 				position: options.position || 'bottom'
 			}
 		})
 
-		// Return destroy function
 		return {
 			destroy() {
 				unmount(tooltipComponent)
