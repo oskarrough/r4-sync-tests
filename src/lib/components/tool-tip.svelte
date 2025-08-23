@@ -5,11 +5,10 @@
 	const {targetId, content = '', position = 'bottom'} = $props()
 
 	const id = $props.id()
-
-	/** @type {HTMLElement | null} */
-	let tooltipElement = $state(null)
-	/** @type {HTMLElement | null} */
-	let targetElement = $state(null)
+	const anchorName = $derived(`--anchor-${id}`)
+	/** @type {HTMLElement | null} */ let tooltipElement = $state(null)
+	/** @type {HTMLElement | null} */ let targetElement = $state(null)
+	const supportsAnchorCss = 'anchorName' in document.documentElement.style
 
 	$effect(() => {
 		targetElement = document.getElementById(targetId)
@@ -19,13 +18,20 @@
 			return
 		}
 
-		targetElement.setAttribute('aria-describedby', id)
-
-		const anchorName = `--anchor-${id}`
-		targetElement.style.anchorName = anchorName
-		if (tooltipElement) {
-			tooltipElement.style.positionAnchor = anchorName
+		// Fallback
+		if (!supportsAnchorCss) {
+			if (!targetElement.hasAttribute('title')) targetElement.title = content
+			return
 		}
+
+		if (!tooltipElement) {
+			console.warn(`Tooltip element with id "${id}" not found`)
+			return
+		}
+
+		targetElement.setAttribute('aria-describedby', id)
+		targetElement.style.anchorName = anchorName
+		tooltipElement.style.positionAnchor = anchorName
 
 		const showTooltip = () => tooltipElement.showPopover()
 		const hideTooltip = () => tooltipElement.hidePopover()

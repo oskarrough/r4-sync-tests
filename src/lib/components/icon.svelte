@@ -1,6 +1,6 @@
 <script>
 	/** @type {{icon: string, title?: string, className?: string, size?: string |number, children?: any}} */
-	const {children, icon = '', title = '', className = '', size, ...rest} = $props()
+	const {children, icon = '', title, className = '', size, ...rest} = $props()
 
 	function toImportName(str, prefix = 'Icon') {
 		const parts = str.split('-')
