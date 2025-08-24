@@ -3,7 +3,6 @@ import {r4} from '$lib/r4'
 import {r5} from '$lib/r5'
 import {initAppState, validateListeningState} from '$lib/app-state.svelte'
 import {logger} from '$lib/logger'
-import {delay} from '$lib/utils'
 
 // Disable server-side rendering for all routes by default. Otherwise we can't use pglite + indexeddb.
 export const ssr = false

@@ -28,3 +28,9 @@ Uses `discogs.hunt()` which searches MusicBrainz, finds releases, extracts Disco
 `tracks_with_meta` view joins tracks + track_meta for easy querying.
 
 All metadata stored locally. Future: shared metadata via @radio4000/sdk.
+
+We have components that shows the most useful metadata for each provider:
+1. track-meta-r5.svelte
+2. track-meta-youtube.svelte
+3. track-meta-musicbrainz.svelte
+4. track-meta-discogs.svelte
