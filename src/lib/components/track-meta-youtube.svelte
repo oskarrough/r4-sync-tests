@@ -1,5 +1,7 @@
 <script>
-	let {data} = $props()
+	import {relativeDateDetailed} from '$lib/dates.js'
+	
+	let {data, track} = $props()
 	let showRaw = $state(false)
 
 	function formatDuration(seconds) {
@@ -7,18 +9,6 @@
 		const mins = Math.floor(seconds / 60)
 		const secs = seconds % 60
 		return `${mins}:${secs.toString().padStart(2, '0')}`
-	}
-
-	function formatDate(dateString) {
-		if (!dateString) return ''
-		const date = new Date(dateString)
-		const now = new Date()
-		const diffMs = now - date
-		const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-
-		if (diffDays < 30) return `${diffDays} days ago`
-		if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`
-		return `${Math.floor(diffDays / 365)} years ago`
 	}
 </script>
 
@@ -34,12 +24,14 @@
 
 			{#if data.publishedAt}
 				<dt>published</dt>
-				<dd>{formatDate(data.publishedAt)}</dd>
+				<dd>{relativeDateDetailed(data.publishedAt)}</dd>
 			{/if}
 
 			{#if data.channelTitle}
 				<dt>channel</dt>
-				<dd>{data.channelTitle}</dd>
+				<dd>
+					<a href="/search?search={encodeURIComponent(data.channelTitle)}">{data.channelTitle}</a>
+				</dd>
 			{/if}
 
 			{#if data.thumbnails?.medium?.url}
@@ -58,7 +50,7 @@
 				<dt>tags</dt>
 				<dd class="tags">
 					{#each data.tags as tag (tag)}
-						<span class="tag">{tag}</span>
+						<a href="/search?search={encodeURIComponent('#' + tag)}" class="tag">{tag}</a>
 					{/each}
 				</dd>
 			{/if}
@@ -113,6 +105,12 @@
 		padding: var(--space-1) var(--space-2);
 		border-radius: var(--border-radius);
 		font-size: var(--font-2);
+		text-decoration: none;
+		color: inherit;
+	}
+
+	a {
+		color: var(--color-accent);
 	}
 
 	button {

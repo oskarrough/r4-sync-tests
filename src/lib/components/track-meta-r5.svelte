@@ -1,4 +1,6 @@
 <script>
+	import {relativeDate} from '$lib/dates.js'
+
 	let {data} = $props()
 	let showRaw = $state(false)
 
@@ -7,11 +9,6 @@
 		const mins = Math.floor(seconds / 60)
 		const secs = seconds % 60
 		return `${mins}:${secs.toString().padStart(2, '0')}`
-	}
-
-	function formatDate(dateString) {
-		if (!dateString) return ''
-		return new Date(dateString).toLocaleDateString()
 	}
 </script>
 
@@ -68,12 +65,12 @@
 
 			{#if data.created_at}
 				<dt>added</dt>
-				<dd>{formatDate(data.created_at)}</dd>
+				<dd>{relativeDate(data.created_at)}</dd>
 			{/if}
 
 			{#if data.updated_at && data.updated_at !== data.created_at}
 				<dt>updated</dt>
-				<dd>{formatDate(data.updated_at)}</dd>
+				<dd>{relativeDate(data.updated_at)}</dd>
 			{/if}
 		</dl>
 	{/if}

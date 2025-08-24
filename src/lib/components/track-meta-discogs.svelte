@@ -1,14 +1,7 @@
 <script>
-	let {data} = $props()
+	let {data, track} = $props()
 	let showRaw = $state(false)
 
-	// Find the specific track in the tracklist
-	const trackInfo = $derived.by(() => {
-		if (!data?.tracklist) return null
-		// Try to find by matching artist and title from the track context
-		// This would need to be passed in or matched somehow
-		return data.tracklist.find((t) => t.title === 'So Fine')
-	})
 </script>
 
 {#if data}
@@ -46,24 +39,22 @@
 				</dd>
 			{/if}
 
-			{#if trackInfo}
-				<dt>track</dt>
-				<dd>
-					{trackInfo.position}. {trackInfo.title}
-					{#if trackInfo.duration}
-						({trackInfo.duration})
-					{/if}
-				</dd>
-			{/if}
-
 			{#if data.genres?.length > 0}
 				<dt>genres</dt>
-				<dd>{data.genres.join(', ')}</dd>
+				<dd>
+					{#each data.genres as genre, i (genre)}
+						<a href="/search?search={encodeURIComponent(genre)}">{genre}</a>{i < data.genres.length - 1 ? ', ' : ''}
+					{/each}
+				</dd>
 			{/if}
 
 			{#if data.styles?.length > 0}
 				<dt>styles</dt>
-				<dd>{data.styles.join(', ')}</dd>
+				<dd>
+					{#each data.styles as style, i (style)}
+						<a href="/search?search={encodeURIComponent(style)}">{style}</a>{i < data.styles.length - 1 ? ', ' : ''}
+					{/each}
+				</dd>
 			{/if}
 
 			{#if data.country}

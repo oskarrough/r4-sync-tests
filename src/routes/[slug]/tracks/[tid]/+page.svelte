@@ -6,6 +6,7 @@
 	import TrackMetaYoutube from '$lib/components/track-meta-youtube.svelte'
 	import TrackMetaMusicbrainz from '$lib/components/track-meta-musicbrainz.svelte'
 	import TrackMetaDiscogs from '$lib/components/track-meta-discogs.svelte'
+	import TrackRelated from '$lib/components/track-related.svelte'
 	// import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	// import ButtonPlay from '$lib/components/button-play.svelte'
 	// import ChannelCard from '$lib/components/channel-card.svelte'
@@ -34,17 +35,20 @@
 			<a href="?tab=youtube" class:active={activeTab === 'youtube'}>youtube</a>
 			<a href="?tab=musicbrainz" class:active={activeTab === 'musicbrainz'}>musicbrainz</a>
 			<a href="?tab=discogs" class:active={activeTab === 'discogs'}>discogs</a>
+			<a href="?tab=related" class:active={activeTab === 'related'}>related</a>
 		</menu>
 		<!-- <ChannelCard {channel} /> -->
 		<!-- <ButtonPlay {channel} /> -->
 	</header>
 
 	{#if activeTab === 'youtube'}
-		<TrackMetaYoutube data={track.youtube_data} />
+		<TrackMetaYoutube data={track.youtube_data} {track} />
 	{:else if activeTab === 'musicbrainz'}
-		<TrackMetaMusicbrainz data={track.musicbrainz_data} />
+		<TrackMetaMusicbrainz data={track.musicbrainz_data} {track} />
 	{:else if activeTab === 'discogs'}
-		<TrackMetaDiscogs data={track.discogs_data} />
+		<TrackMetaDiscogs data={track.discogs_data} {track} />
+	{:else if activeTab === 'related'}
+		<TrackRelated {track} />
 	{:else}
 		<TrackMetaR5 data={track} />
 	{/if}

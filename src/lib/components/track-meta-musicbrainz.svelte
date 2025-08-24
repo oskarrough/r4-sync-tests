@@ -1,5 +1,5 @@
 <script>
-	let {data} = $props()
+	let {data, track} = $props()
 	let showRaw = $state(false)
 
 	function formatLength(ms) {
@@ -22,7 +22,11 @@
 		<dl>
 			{#if artistCredit?.artist?.name}
 				<dt>artist</dt>
-				<dd>{artistCredit.artist.name}</dd>
+				<dd>
+					<a href="/search?search={encodeURIComponent((track?.channel_slug ? '@' + track.channel_slug + ' ' : '') + artistCredit.artist.name)}">
+						{artistCredit.artist.name}
+					</a>
+				</dd>
 			{/if}
 
 			{#if recording?.title}
