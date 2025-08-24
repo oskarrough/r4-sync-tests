@@ -10,8 +10,6 @@
 
 	gsap.registerPlugin(Draggable, InertiaPlugin)
 
-	let {preloading} = $props()
-
 	let enableDrag = $state(false)
 
 	/** @type {HTMLElement} */
@@ -48,9 +46,7 @@
 		showVideo: appState.show_video_player
 	}}
 >
-	{#if !preloading}
-		<Player />
-	{/if}
+	<Player />
 </footer>
 
 <style>
