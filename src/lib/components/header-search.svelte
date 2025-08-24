@@ -1,7 +1,7 @@
 <script>
 	import {goto} from '$app/navigation'
 	import {onMount} from 'svelte'
-	import {pg} from '$lib/r5/db'
+	import {getPg, pg} from '$lib/r5/db'
 	import {toggleTheme, toggleQueuePanel} from '$lib/api'
 	import SearchInput from '$lib/components/search-input.svelte'
 	import {page} from '$app/state'
@@ -37,7 +37,7 @@
 	})
 
 	onMount(() => {
-		queryChannels()
+		getPg().then(() => queryChannels())
 	})
 
 	async function queryChannels() {

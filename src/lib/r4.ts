@@ -3,16 +3,9 @@ import {debugLimit} from '$lib/r5/db'
 
 /**
  * Radio4000 API wrapper that throws on errors instead of returning {data, error}
+ * if we dont want the methods to throw, we could delete this file ideally
  */
 export const r4 = {
-	users: {
-		readUser: async (...args: Parameters<typeof sdk.users.readUser>) => {
-			const {data, error} = await sdk.users.readUser(...args)
-			if (error) throw error
-			return data
-		}
-	},
-
 	channels: {
 		readChannels: async (limit = debugLimit) => {
 			const {data, error} = await sdk.supabase
@@ -70,6 +63,14 @@ export const r4 = {
 				`)
 			if (error) throw error
 			return data || []
+		}
+	},
+
+	users: {
+		readUser: async () => {
+			const {data, error} = await r4.sdk.supabase.auth.getUser()
+			if (error) throw error
+			return {data: data.user}
 		}
 	},
 

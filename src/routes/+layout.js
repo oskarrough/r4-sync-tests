@@ -3,6 +3,7 @@ import {r4} from '$lib/r4'
 import {r5} from '$lib/r5'
 import {initAppState, validateListeningState} from '$lib/app-state.svelte'
 import {logger} from '$lib/logger'
+import {delay} from '$lib/utils'
 
 // Disable server-side rendering for all routes by default. Otherwise we can't use pglite + indexeddb.
 export const ssr = false
@@ -21,27 +22,33 @@ async function autoPull() {
 	await r5.channels.pull().catch((err) => log.error('auto_sync_error', err))
 }
 
+async function preload() {
+	log.info('waiting 3 secs')
+	if (!browser) {
+		console.log('latout but no browser, why?')
+		return
+	}
+	try {
+		// await delay(3000)
+		await r5.db.migrate()
+		pg = await r5.db.getPg()
+		await initAppState()
+		await validateListeningState()
+		await autoPull()
+		// @ts-expect-error debugging
+		window.r5 = {r5, r4, pg}
+	} catch (err) {
+		log.error('preloading_error', err)
+	} finally {
+		// preloading = false
+		log.log('preloading_done')
+	}
+}
+
 /** @type {import('./$types').LayoutLoad} */
 export async function load() {
 	log.log('preloading')
-	let preloading = true
-
-	if (browser) {
-		try {
-			await r5.db.migrate()
-			pg = await r5.db.getPg()
-			await initAppState()
-			await validateListeningState()
-			await autoPull()
-			// @ts-expect-error debugging
-			window.r5 = {pg, r5, r4}
-		} catch (err) {
-			log.error('preloading_error', err)
-		} finally {
-			preloading = false
-			log.log('preloading_done')
-		}
+	return {
+		preloading: preload()
 	}
-
-	return {pg, r4, preloading}
 }

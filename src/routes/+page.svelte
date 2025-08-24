@@ -4,8 +4,10 @@
 	import {r5} from '$lib/r5'
 	import Icon from '$lib/components/icon.svelte'
 	import Channels from '$lib/components/channels.svelte'
+	import {getPg} from '$lib/r5/db.js'
+	import {onMount} from 'svelte'
 
-	const {data} = $props()
+	// const {data} = $props()
 
 	const slug = $derived(page?.url?.searchParams?.get('slug'))
 	const display = $derived(page?.url?.searchParams?.get('display') || 'grid')
@@ -17,7 +19,18 @@
 
 	let syncing = $state(false)
 
-	const channelCount = $derived(data.channels?.length || 0)
+	/** @type {import('$lib/types').Channel[]} */
+	let channels = $state([])
+
+	onMount(() => {
+		getPg().then((pg) => {
+			pg.query('SELECT * FROM channels ORDER BY created_at DESC').then((result) => {
+				channels = result.rows
+			})
+		})
+	})
+
+	const channelCount = $derived(channels?.length || 0)
 
 	async function pullRadios() {
 		syncing = true
@@ -44,7 +57,7 @@
 	</menu>
 {/if}
 
-<Channels channels={data.channels} {slug} {display} {longitude} {latitude} {zoom} />
+<Channels {channels} {slug} {display} {longitude} {latitude} {zoom} />
 
 <style>
 	menu {

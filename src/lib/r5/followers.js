@@ -1,5 +1,5 @@
 import {r4} from '$lib/r4'
-import {pg} from '$lib/r5/db'
+import {getPg, pg} from '$lib/r5/db'
 import {logger} from '$lib/logger'
 const log = logger.ns('r5:followers').seal()
 
@@ -68,8 +68,8 @@ export async function push(userChannelId, channelIds) {
 			try {
 				await r4.channels.followChannel(userChannelId, channelId)
 				await tx.sql`
-					UPDATE followers 
-					SET synced_at = CURRENT_TIMESTAMP 
+					UPDATE followers
+					SET synced_at = CURRENT_TIMESTAMP
 					WHERE follower_id = ${userChannelId} AND channel_id = ${channelId}
 				`
 			} catch (err) {
@@ -88,6 +88,7 @@ export async function push(userChannelId, channelIds) {
  * @returns {Promise<void>}
  */
 export async function sync(userChannelId) {
+	await getPg()
 	console.log('r5.followers.sync', userChannelId)
 
 	// 1. Get local favorites before sync
@@ -104,8 +105,8 @@ export async function sync(userChannelId) {
 		WHERE f1.follower_id = 'local-user'
 		AND NOT EXISTS (
 			SELECT 1 FROM followers f2
-			WHERE f2.follower_id = ${userChannelId} 
-			AND f2.synced_at IS NOT NULL 
+			WHERE f2.follower_id = ${userChannelId}
+			AND f2.synced_at IS NOT NULL
 			AND f2.channel_id = f1.channel_id
 		)
 	`

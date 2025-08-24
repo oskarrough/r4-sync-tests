@@ -13,20 +13,17 @@
 
 <header>
 	<a href="/" class:active={page.route.id === '/'}>
-		{#if preloading}
+		{#await preloading}
 			R0
-		{:else}
+		{:then}
 			<TestCounter />
-		{/if}
+		{/await}
 	</a>
 	<HeaderSearch />
 	<!-- <a href="/playground/spam-warrior" class="btn">Spam Warrior</a> -->
 
-	<menu>
-		{#if !preloading}{/if}
-	</menu>
 	<menu class="row right">
-		{#if !preloading}
+		{#await preloading then}
 			<AddTrackModal />
 			<hr />
 			<a
@@ -54,15 +51,22 @@
 				<Icon icon="chart-scatter" size={20} />
 			</a>
 			<!-- <button onclick={toggleChatPanel}>Chat</button> -->
-		{/if}
-		<a
-			href="/cli"
-			class="btn"
-			class:active={page.route.id === '/cli'}
-			{@attach tooltip({content: 'CLI'})}
+			<a
+				href="/cli"
+				class="btn"
+				class:active={page.route.id === '/cli'}
+				{@attach tooltip({content: 'CLI'})}
+			>
+				<Icon icon="terminal" size={20} />
+			</a>
+		{/await}
+		<button
+			onclick={toggleQueuePanel}
+			class:active={appState.queue_panel_visible}
+			{@attach tooltip({content: 'Toggle queue panel'})}
 		>
-			<Icon icon="terminal" size={20} />
-		</a>
+			<Icon icon="sidebar-fill-right" size={20} />
+		</button>
 		<a
 			href="/settings"
 			class="btn"
@@ -71,13 +75,6 @@
 		>
 			<Icon icon="settings" size={20} />
 		</a>
-		<button
-			onclick={toggleQueuePanel}
-			class:active={appState.queue_panel_visible}
-			{@attach tooltip({content: 'Toggle queue panel'})}
-		>
-			<Icon icon="sidebar-fill-right" size={20} />
-		</button>
 	</menu>
 </header>
 

@@ -110,28 +110,16 @@ export interface BroadcastWithChannel extends Broadcast {
 	}
 }
 
-export interface Ok<T> {
-	ok: true
-	value: T
-}
-
-export interface Err<E> {
-	ok: false
-	error: E
-}
-
-export function ok<T>(value: T): Ok<T> {
-	return {
-		ok: true,
-		value
-	}
-}
-
-export function err<T>(error: T): Err<T> {
-	return {
-		ok: false,
-		error
-	}
+export interface PlayHistory {
+	id: string
+	track_id: string
+	started_at: string
+	ended_at?: string
+	ms_played: number
+	reason_start?: string
+	reason_end?: string
+	shuffle: boolean
+	skipped: boolean
 }
 
 export const PlayReasonStart = {
@@ -154,14 +142,26 @@ export const PlayReasonEnd = {
 	BROADCAST_SYNC: 'broadcast_sync'
 } as const
 
-export interface PlayHistory {
-	id: string
-	track_id: string
-	started_at: string
-	ended_at?: string
-	ms_played: number
-	reason_start?: string
-	reason_end?: string
-	shuffle: boolean
-	skipped: boolean
+export interface Ok<T> {
+	ok: true
+	value: T
+}
+
+export interface Err<E> {
+	ok: false
+	error: E
+}
+
+export function ok<T>(value: T): Ok<T> {
+	return {
+		ok: true,
+		value
+	}
+}
+
+export function err<T>(error: T): Err<T> {
+	return {
+		ok: false,
+		error
+	}
 }

@@ -17,11 +17,11 @@
 
 	const log = logger.ns('layout').seal()
 
+	/** @type {import('./$types').LayoutProps} */
 	const {data, children} = $props()
 
 	let skipPersist = $state(true)
 	let chatPanelVisible = $state(false)
-	const preloading = $derived(data.preloading)
 
 	onMount(async () => {
 		await checkUser()
@@ -86,20 +86,25 @@
 	<KeyboardShortcuts />
 
 	<div class={['layout', {asideVisible: appState.queue_panel_visible}]}>
-		<LayoutHeader {preloading} />
+		{#await data.preloading then}
+			<LayoutHeader preloading={data.preloading} />
+		{/await}
 
 		<div class="content">
 			<main class="scroll">
-				{#if preloading}
-					<center>
-						<p>Preparing R4&hellip;</p>
-					</center>
-				{:else}
+				{#await data.preloading}
+					<div class="loader">
+						<p>Preparing R5&hellip;</p>
+						<r4-loading></r4-loading>
+					</div>
+				{:then}
 					{@render children()}
-				{/if}
+				{/await}
 			</main>
 
-			<QueuePanel />
+			{#await data.preloading then}
+				<QueuePanel />
+			{/await}
 
 			{#if chatPanelVisible}
 				<DraggablePanel title="R4 Chat">
@@ -108,7 +113,7 @@
 			{/if}
 		</div>
 
-		<LayoutFooter {preloading} />
+		<LayoutFooter preloading={data.preloading} />
 	</div>
 	{#snippet pending()}
 		<p>loading...</p>
@@ -155,5 +160,14 @@
 		display: flex;
 		flex-direction: column;
 		flex-grow: 1;
+	}
+
+	.loader {
+		margin: 1rem;
+	}
+	r4-loading {
+		margin-top: 1rem;
+		display: flex;
+		flex-flow: column;
 	}
 </style>
