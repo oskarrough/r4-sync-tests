@@ -1,7 +1,7 @@
 <script>
 	import {relativeDateDetailed} from '$lib/dates.js'
-	
-	let {data, track} = $props()
+
+	let {data} = $props()
 	let showRaw = $state(false)
 
 	function formatDuration(seconds) {
@@ -13,10 +13,14 @@
 </script>
 
 {#if data}
+	<button onclick={() => (showRaw = !showRaw)}>
+		{showRaw ? 'formatted view' : 'raw json'}
+	</button>
+
 	{#if showRaw}
 		<pre><code>{JSON.stringify(data, null, 2)}</code></pre>
 	{:else}
-		<dl>
+		<dl class="meta">
 			{#if data.duration}
 				<dt>duration</dt>
 				<dd>{formatDuration(data.duration)}</dd>
@@ -56,69 +60,6 @@
 			{/if}
 		</dl>
 	{/if}
-
-	<button onclick={() => (showRaw = !showRaw)}>
-		{showRaw ? 'formatted view' : 'raw json'}
-	</button>
 {:else}
 	<p>No YouTube data available</p>
 {/if}
-
-<style>
-	dl {
-		display: grid;
-		grid-template-columns: max-content 1fr;
-		gap: var(--space-2);
-		margin: var(--space-3) 0;
-	}
-
-	dt {
-		color: var(--gray-10);
-		font-size: var(--font-3);
-	}
-
-	dd {
-		margin: 0;
-	}
-
-	img {
-		max-width: 320px;
-		height: auto;
-		border-radius: var(--border-radius);
-	}
-
-	.description {
-		white-space: pre-wrap;
-		font-size: var(--font-3);
-		max-height: 10em;
-		overflow-y: auto;
-	}
-
-	.tags {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--space-1);
-	}
-
-	.tag {
-		background: var(--gray-3);
-		padding: var(--space-1) var(--space-2);
-		border-radius: var(--border-radius);
-		font-size: var(--font-2);
-		text-decoration: none;
-		color: inherit;
-	}
-
-	a {
-		color: var(--color-accent);
-	}
-
-	button {
-		margin-top: var(--space-3);
-	}
-
-	pre {
-		font-size: var(--font-3);
-		overflow-x: auto;
-	}
-</style>

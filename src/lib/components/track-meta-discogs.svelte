@@ -1,14 +1,16 @@
 <script>
-	let {data, track} = $props()
+	let {data} = $props()
 	let showRaw = $state(false)
-
 </script>
 
 {#if data}
+	<button onclick={() => (showRaw = !showRaw)}>
+		{showRaw ? 'formatted view' : 'raw json'}
+	</button>
 	{#if showRaw}
 		<pre><code>{JSON.stringify(data, null, 2)}</code></pre>
 	{:else}
-		<dl>
+		<dl class="meta">
 			{#if data.title}
 				<dt>release</dt>
 				<dd>{data.title}</dd>
@@ -43,7 +45,10 @@
 				<dt>genres</dt>
 				<dd>
 					{#each data.genres as genre, i (genre)}
-						<a href="/search?search={encodeURIComponent(genre)}">{genre}</a>{i < data.genres.length - 1 ? ', ' : ''}
+						<a href="/search?search={encodeURIComponent(genre)}">{genre}</a>{i <
+						data.genres.length - 1
+							? ', '
+							: ''}
 					{/each}
 				</dd>
 			{/if}
@@ -52,7 +57,10 @@
 				<dt>styles</dt>
 				<dd>
 					{#each data.styles as style, i (style)}
-						<a href="/search?search={encodeURIComponent(style)}">{style}</a>{i < data.styles.length - 1 ? ', ' : ''}
+						<a href="/search?search={encodeURIComponent(style)}">{style}</a>{i <
+						data.styles.length - 1
+							? ', '
+							: ''}
 					{/each}
 				</dd>
 			{/if}
@@ -77,47 +85,6 @@
 			{/if}
 		</dl>
 	{/if}
-
-	<button onclick={() => (showRaw = !showRaw)}>
-		{showRaw ? 'formatted view' : 'raw json'}
-	</button>
 {:else}
 	<p>No Discogs data available</p>
 {/if}
-
-<style>
-	dl {
-		display: grid;
-		grid-template-columns: max-content 1fr;
-		gap: var(--space-2);
-		margin: var(--space-3) 0;
-	}
-
-	dt {
-		color: var(--gray-10);
-		font-size: var(--font-3);
-	}
-
-	dd {
-		margin: 0;
-	}
-
-	img {
-		max-width: 150px;
-		height: auto;
-		border-radius: var(--border-radius);
-	}
-
-	a {
-		color: var(--color-accent);
-	}
-
-	button {
-		margin-top: var(--space-3);
-	}
-
-	pre {
-		font-size: var(--font-3);
-		overflow-x: auto;
-	}
-</style>

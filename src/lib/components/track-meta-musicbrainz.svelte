@@ -16,14 +16,21 @@
 </script>
 
 {#if data}
+	<button onclick={() => (showRaw = !showRaw)}>
+		{showRaw ? 'formatted view' : 'raw json'}
+	</button>
 	{#if showRaw}
 		<pre><code>{JSON.stringify(data, null, 2)}</code></pre>
 	{:else}
-		<dl>
+		<dl class="meta">
 			{#if artistCredit?.artist?.name}
 				<dt>artist</dt>
 				<dd>
-					<a href="/search?search={encodeURIComponent((track?.channel_slug ? '@' + track.channel_slug + ' ' : '') + artistCredit.artist.name)}">
+					<a
+						href="/search?search={encodeURIComponent(
+							(track?.channel_slug ? '@' + track.channel_slug + ' ' : '') + artistCredit.artist.name
+						)}"
+					>
 						{artistCredit.artist.name}
 					</a>
 				</dd>
@@ -76,41 +83,6 @@
 			{/if}
 		</dl>
 	{/if}
-
-	<button onclick={() => (showRaw = !showRaw)}>
-		{showRaw ? 'formatted view' : 'raw json'}
-	</button>
 {:else}
 	<p>No MusicBrainz data available</p>
 {/if}
-
-<style>
-	dl {
-		display: grid;
-		grid-template-columns: max-content 1fr;
-		gap: var(--space-2);
-		margin: var(--space-3) 0;
-	}
-
-	dt {
-		color: var(--gray-10);
-		font-size: var(--font-3);
-	}
-
-	dd {
-		margin: 0;
-	}
-
-	a {
-		color: var(--color-accent);
-	}
-
-	button {
-		margin-top: var(--space-3);
-	}
-
-	pre {
-		font-size: var(--font-3);
-		overflow-x: auto;
-	}
-</style>

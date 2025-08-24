@@ -196,3 +196,33 @@ menu {
 		background: var(--gray-6);
 	}
 }
+
+dl.meta {
+	display: grid;
+	grid-template-columns: max-content 1fr;
+	gap: 0 1rem;
+
+	dt {
+		color: var(--gray-10);
+	}
+
+	dd {
+		margin: 0;
+	}
+
+	a {
+		color: var(--color-accent);
+	}
+
+	img {
+		max-width: 150px;
+		height: auto;
+		border-radius: var(--border-radius);
+	}
+}
+
+.tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}

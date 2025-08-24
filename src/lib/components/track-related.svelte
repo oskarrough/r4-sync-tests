@@ -1,6 +1,6 @@
 <script>
 	import {pg} from '$lib/r5/db'
-	
+
 	let {track} = $props()
 	let relatedTracks = $state([])
 
@@ -36,23 +36,6 @@
 {/if}
 
 <style>
-	dl {
-		display: grid;
-		grid-template-columns: 1fr max-content;
-		gap: var(--space-2);
-		margin: var(--space-3) 0;
-	}
-
-	dt {
-		font-weight: normal;
-	}
-
-	dd {
-		margin: 0;
-		color: var(--gray-10);
-		font-size: var(--font-3);
-	}
-
 	a {
 		color: var(--color-accent);
 	}
