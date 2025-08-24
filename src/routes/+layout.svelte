@@ -113,7 +113,9 @@
 			{/if}
 		</div>
 
-		<LayoutFooter preloading={data.preloading} />
+		{#await data.preloading then}
+			<LayoutFooter />
+		{/await}
 	</div>
 	{#snippet pending()}
 		<p>loading...</p>
