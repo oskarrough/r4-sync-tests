@@ -1,4 +1,4 @@
-import {test, expect} from 'vitest'
+import {expect, test} from 'vitest'
 import {batcher} from './batcher.js'
 
 test('basic batching with default options', async () => {

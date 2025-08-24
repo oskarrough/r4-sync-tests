@@ -107,7 +107,7 @@ media-time-display {
 		position: fixed;
 		left: 0;
 		bottom: 3rem;
-		aspect-ratio: 16/9;
+		aspect-ratio: 16 / 9;
 		width: auto;
 	}
 

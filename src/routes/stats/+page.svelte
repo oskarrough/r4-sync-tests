@@ -115,20 +115,13 @@
 
 		const peakHour = Object.entries(hourCounts).sort(([, a], [, b]) => b - a)[0]
 
-		const timeOfDay =
-			parseInt(peakHour[0]) < 12 ? 'morning' : parseInt(peakHour[0]) < 17 ? 'afternoon' : 'evening'
+		const timeOfDay = parseInt(peakHour[0]) < 12 ? 'morning' : parseInt(peakHour[0]) < 17 ? 'afternoon' : 'evening'
 
 		const skipBehavior =
-			stats.skipRate > 30
-				? 'restless skipper'
-				: stats.skipRate < 10
-					? 'patient listener'
-					: 'selective'
+			stats.skipRate > 30 ? 'restless skipper' : stats.skipRate < 10 ? 'patient listener' : 'selective'
 
 		const channelLoyalty =
-			stats.topChannels[0]?.plays / total > 0.4
-				? `devoted to ${stats.topChannels[0]?.name}`
-				: 'channel explorer'
+			stats.topChannels[0]?.plays / total > 0.4 ? `devoted to ${stats.topChannels[0]?.name}` : 'channel explorer'
 
 		const avgSession = stats.totalListeningTime / stats.totalPlays
 		const sessionStyle = avgSession > 4 ? 'long sessions' : 'quick dips'
@@ -189,10 +182,7 @@
 					<a
 						href="/search?search={encodeURIComponent(tag)}"
 						class="tag"
-						style="font-size: {Math.min(2, 0.8 + count / 10)}em; opacity: {Math.min(
-							1,
-							0.4 + count / 20
-						)}">{tag}</a
+						style="font-size: {Math.min(2, 0.8 + count / 10)}em; opacity: {Math.min(1, 0.4 + count / 20)}">{tag}</a
 					>
 				{/each}
 			</div>

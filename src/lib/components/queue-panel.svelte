@@ -90,9 +90,7 @@
 <aside>
 	<header>
 		<menu>
-			<button onclick={() => (view = 'queue')} class:active={view === 'queue'}
-				>Queue ({queueTracks.length})</button
-			>
+			<button onclick={() => (view = 'queue')} class:active={view === 'queue'}>Queue ({queueTracks.length})</button>
 			<button onclick={() => (view = 'history')} class:active={view === 'history'}
 				>History ({playHistory.length})</button
 			>
@@ -100,9 +98,7 @@
 		{#if view === 'queue' && trackIds.length > 0}
 			<button onclick={clearQueue}>Clear</button>
 		{:else if view === 'history' && playHistory.length > 0}
-			<button onclick={() => (showClearHistoryModal = true)} title="Clear playlist history"
-				>Clear</button
-			>
+			<button onclick={() => (showClearHistoryModal = true)} title="Clear playlist history">Clear</button>
 		{/if}
 	</header>
 	<div class="search-container">

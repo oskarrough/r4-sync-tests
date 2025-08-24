@@ -176,9 +176,7 @@ export function createBrowserCli(onOutput) {
 		const parts = partial.trim().split(/\s+/)
 
 		if (parts.length <= 1) {
-			return ['help', 'search', 'channels', 'tracks', 'pull', 'db'].filter((cmd) =>
-				cmd.startsWith(parts[0] || '')
-			)
+			return ['help', 'search', 'channels', 'tracks', 'pull', 'db'].filter((cmd) => cmd.startsWith(parts[0] || ''))
 		}
 
 		const [cmd, method] = parts

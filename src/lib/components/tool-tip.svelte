@@ -50,13 +50,7 @@
 	})
 </script>
 
-<div
-	bind:this={tooltipElement}
-	{id}
-	popover="hint"
-	role="tooltip"
-	class="tooltip tooltip-{position}"
->
+<div bind:this={tooltipElement} {id} popover="hint" role="tooltip" class="tooltip tooltip-{position}">
 	{@html content}
 </div>
 

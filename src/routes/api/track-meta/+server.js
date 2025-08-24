@@ -1,6 +1,6 @@
-import {json, error} from '@sveltejs/kit'
-import {YOUTUBE_API_KEY} from '$env/static/private'
+import {error, json} from '@sveltejs/kit'
 import {Duration} from 'luxon'
+import {YOUTUBE_API_KEY} from '$env/static/private'
 
 // Assuming you have httpie installed in the CLI:
 // http POST localhost:5173/api/track-meta ids:='["dQw4w9WgXcQ", "pjeUbWj6k"]'
@@ -23,8 +23,7 @@ export async function POST({request}) {
 
 		const response = await fetch(url)
 		const data = await response.json()
-		if (!response.ok)
-			return json({error: data.error?.message || 'YouTube API error'}, {status: response.status})
+		if (!response.ok) return json({error: data.error?.message || 'YouTube API error'}, {status: response.status})
 
 		const videos = data.items.map((item) => ({
 			id: item.id,

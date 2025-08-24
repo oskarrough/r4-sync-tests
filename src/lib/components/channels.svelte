@@ -6,14 +6,7 @@
 	import MapComponent from './map.svelte'
 	import SpectrumScanner from './spectrum-scanner.svelte'
 
-	const {
-		channels = [],
-		slug: initialSlug,
-		display: initialDisplay,
-		longitude,
-		latitude,
-		zoom
-	} = $props()
+	const {channels = [], slug: initialSlug, display: initialDisplay, longitude, latitude, zoom} = $props()
 
 	let limit = $state(15)
 	let perPage = $state(100)
@@ -68,11 +61,7 @@
 </script>
 
 {#snippet displayBtn(prop, icon)}
-	<button
-		title={`View as ${prop}`}
-		class:active={display === prop}
-		onclick={() => setDisplay(prop)}
-	>
+	<button title={`View as ${prop}`} class:active={display === prop} onclick={() => setDisplay(prop)}>
 		<Icon {icon} />
 	</button>
 {/snippet}
@@ -90,11 +79,7 @@
 					<option value="!v1">Not v1</option>
 				</select>
 			</label>
-			<button
-				title="Show random channels"
-				class:active={shuffled}
-				onclick={() => (shuffled = !shuffled)}
-			>
+			<button title="Show random channels" class:active={shuffled} onclick={() => (shuffled = !shuffled)}>
 				<Icon icon="shuffle" />
 			</button>
 		</div>

@@ -1,6 +1,7 @@
+import {logger} from '$lib/logger'
 import {r4} from '$lib/r4'
 import {getPg, pg} from '$lib/r5/db'
-import {logger} from '$lib/logger'
+
 const log = logger.ns('r5:followers').seal()
 
 /**

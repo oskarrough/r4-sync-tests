@@ -241,11 +241,7 @@
 
 {#snippet trackContent()}
 	{#if channel && track}
-		{#if !appState.hide_track_artwork}<img
-				class="artwork"
-				src={trackImage}
-				alt={track.title}
-			/>{/if}
+		{#if !appState.hide_track_artwork}<img class="artwork" src={trackImage} alt={track.title} />{/if}
 		<div class="text">
 			<h3>
 				{#if isListeningToBroadcast}

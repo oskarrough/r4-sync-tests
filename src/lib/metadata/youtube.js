@@ -1,6 +1,6 @@
-import {pg} from '$lib/r5/db'
 import {batcher} from '$lib/batcher'
 import {logger} from '$lib/logger'
+import {pg} from '$lib/r5/db'
 
 /** @typedef {{status: string, value: {id: string, tags: string[], duration: number, title: string, categoryId: string, description: string, publishedAt: string}}} YouTubeVideo */
 
@@ -26,8 +26,7 @@ async function getTracksToUpdate(ytids) {
  * @returns {Promise<Object[]>} Fetched metadata
  */
 export async function pullFromChannel(channelId) {
-	const {rows} =
-		await pg.sql`select ytid(url) as ytid from tracks_with_meta where channel_id = ${channelId}`
+	const {rows} = await pg.sql`select ytid(url) as ytid from tracks_with_meta where channel_id = ${channelId}`
 	const ytids = rows.map((r) => r.ytid)
 	return await pull(ytids)
 }

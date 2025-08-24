@@ -74,12 +74,7 @@
 	</div>
 
 	<form onsubmit={sendMessage}>
-		<input
-			bind:value={message}
-			onkeydown={handleKeydown}
-			placeholder="Type a message..."
-			maxlength="280"
-		/>
+		<input bind:value={message} onkeydown={handleKeydown} placeholder="Type a message..." maxlength="280" />
 		<button type="submit" disabled={!message.trim()}>Send</button>
 	</form>
 </section>

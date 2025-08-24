@@ -1,6 +1,6 @@
-import {r5} from '$lib/r5'
 import {error} from '@sveltejs/kit'
 import {batchEdit} from '$lib/batch-edit.svelte'
+import {r5} from '$lib/r5'
 
 /** @type {import('./$types').PageLoad} */
 export async function load({parent, params}) {

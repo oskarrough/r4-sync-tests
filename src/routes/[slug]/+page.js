@@ -1,5 +1,5 @@
-import {r5} from '$lib/r5'
 import {error} from '@sveltejs/kit'
+import {r5} from '$lib/r5'
 
 /** @type {import('./$types').PageLoad} */
 export async function load({parent, params, url}) {
@@ -14,9 +14,7 @@ export async function load({parent, params, url}) {
 		const channel = (await r5.channels.pull({slug}))[0]
 
 		// Return tracks promise without awaiting - let page stream it in
-		const tracksPromise = !channel.tracks_synced_at
-			? r5.tracks.pull({slug})
-			: r5.tracks.local({slug})
+		const tracksPromise = !channel.tracks_synced_at ? r5.tracks.pull({slug}) : r5.tracks.local({slug})
 
 		return {channel, slug, search, order, dir, tracksPromise}
 	} catch (err) {

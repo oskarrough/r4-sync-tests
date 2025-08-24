@@ -1,4 +1,4 @@
-import {ok, err} from './types.js'
+import {err, ok} from './types.js'
 
 /**
  * Process items in batches with concurrency control
@@ -28,9 +28,7 @@ export async function batcher(items, fn, {batchSize = 50, withinBatch = 1} = {})
 			// Process batch in parallel
 			const promises = batch.map(fn)
 			const batchResults = await Promise.allSettled(promises)
-			results.push(
-				...batchResults.map((r) => (r.status === 'fulfilled' ? ok(r.value) : err(r.reason)))
-			)
+			results.push(...batchResults.map((r) => (r.status === 'fulfilled' ? ok(r.value) : err(r.reason))))
 		} else if (withinBatch === 1) {
 			// Sequential processing
 			for (const item of batch) {
@@ -47,9 +45,7 @@ export async function batcher(items, fn, {batchSize = 50, withinBatch = 1} = {})
 				const chunk = batch.slice(j, j + withinBatch)
 				const promises = chunk.map(fn)
 				const chunkResults = await Promise.allSettled(promises)
-				results.push(
-					...chunkResults.map((r) => (r.status === 'fulfilled' ? ok(r.value) : err(r.reason)))
-				)
+				results.push(...chunkResults.map((r) => (r.status === 'fulfilled' ? ok(r.value) : err(r.reason))))
 			}
 		}
 

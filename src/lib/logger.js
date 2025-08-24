@@ -1,4 +1,4 @@
-import adze, {setup, Formatter} from 'adze'
+import adze, {Formatter, setup} from 'adze'
 
 const key = 'r5'
 

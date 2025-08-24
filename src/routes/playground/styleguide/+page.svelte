@@ -25,16 +25,7 @@
 		'--gray-12'
 	]
 
-	const fontSizes = [
-		'--font-1',
-		'--font-2',
-		'--font-3',
-		'--font-4',
-		'--font-5',
-		'--font-6',
-		'--font-7',
-		'--font-8'
-	]
+	const fontSizes = ['--font-1', '--font-2', '--font-3', '--font-4', '--font-5', '--font-6', '--font-7', '--font-8']
 </script>
 
 <svelte:head>
@@ -79,10 +70,10 @@
 				<article style="--size: var({sizeVar})">
 					<h3>{sizeVar}</h3>
 					<p>
-						Sample text. The man writes like he's permanently high on incense and good intentions.
-						Every sentence floats along with this oiled mystical confidence, as if he's personally
-						received a download from the cosmos and is graciously sharing the password with the rest
-						of us mortals. "Your children are not your children"—well, thanks Khalil.
+						Sample text. The man writes like he's permanently high on incense and good intentions. Every sentence floats
+						along with this oiled mystical confidence, as if he's personally received a download from the cosmos and is
+						graciously sharing the password with the rest of us mortals. "Your children are not your children"—well,
+						thanks Khalil.
 					</p>
 				</article>
 			{/each}

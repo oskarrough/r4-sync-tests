@@ -1,5 +1,5 @@
-import {sdk} from '@radio4000/sdk'
 import {identifier} from '@electric-sql/pglite/template'
+import {sdk} from '@radio4000/sdk'
 import {SvelteMap} from 'svelte/reactivity'
 import {pg} from './r5/db.js'
 
@@ -88,14 +88,12 @@ class BatchEdit {
 	}
 
 	async getEdits() {
-		const {rows} =
-			await pg.sql`SELECT * FROM track_edits WHERE status = 'pending' ORDER BY created_at DESC`
+		const {rows} = await pg.sql`SELECT * FROM track_edits WHERE status = 'pending' ORDER BY created_at DESC`
 		return rows
 	}
 
 	async getAppliedEdits() {
-		const {rows} =
-			await pg.sql`SELECT * FROM track_edits WHERE status = 'applied' ORDER BY created_at DESC`
+		const {rows} = await pg.sql`SELECT * FROM track_edits WHERE status = 'applied' ORDER BY created_at DESC`
 		return rows
 	}
 

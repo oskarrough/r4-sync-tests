@@ -1,6 +1,6 @@
 import {PGlite} from '@electric-sql/pglite'
-import {worker} from '@electric-sql/pglite/worker'
 import {live} from '@electric-sql/pglite/live'
+import {worker} from '@electric-sql/pglite/worker'
 
 /** CURRENTLY NOT USED */
 
