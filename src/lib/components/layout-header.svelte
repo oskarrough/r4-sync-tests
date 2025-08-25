@@ -15,7 +15,7 @@
 	const userChannel = $derived.by(async () => {
 		const id = appState.channels?.[0]
 		if (!id) return null
-		const channels = await r5.channels.pull({id})
+		const channels = await r5.channels.pull({id, limit: 1})
 		return channels[0] || null
 	})
 </script>
@@ -29,7 +29,6 @@
 		{/await}
 	</a>
 	<HeaderSearch />
-	<!-- <a href="/playground/spam-warrior" class="btn">Spam Warrior</a> -->
 
 	<menu class="row right">
 		{#await preloading then}

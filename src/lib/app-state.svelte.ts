@@ -4,7 +4,7 @@ import type {AppState} from './types.ts'
 
 const log = logger.ns('app_state').seal()
 
-export const defaultAppState = {
+export const defaultAppState: AppState = {
 	id: 1,
 	counter: 0,
 
