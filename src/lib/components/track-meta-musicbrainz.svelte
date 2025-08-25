@@ -72,11 +72,7 @@
 			{#if recording?.id}
 				<dt>musicbrainz</dt>
 				<dd>
-					<a
-						href="https://musicbrainz.org/recording/{recording.id}"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
+					<a href="https://musicbrainz.org/recording/{recording.id}" target="_blank" rel="noopener noreferrer">
 						view on musicbrainz →
 					</a>
 				</dd>

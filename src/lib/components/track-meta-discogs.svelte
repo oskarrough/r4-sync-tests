@@ -45,10 +45,7 @@
 				<dt>genres</dt>
 				<dd>
 					{#each data.genres as genre, i (genre)}
-						<a href="/search?search={encodeURIComponent(genre)}">{genre}</a>{i <
-						data.genres.length - 1
-							? ', '
-							: ''}
+						<a href="/search?search={encodeURIComponent(genre)}">{genre}</a>{i < data.genres.length - 1 ? ', ' : ''}
 					{/each}
 				</dd>
 			{/if}
@@ -57,10 +54,7 @@
 				<dt>styles</dt>
 				<dd>
 					{#each data.styles as style, i (style)}
-						<a href="/search?search={encodeURIComponent(style)}">{style}</a>{i <
-						data.styles.length - 1
-							? ', '
-							: ''}
+						<a href="/search?search={encodeURIComponent(style)}">{style}</a>{i < data.styles.length - 1 ? ', ' : ''}
 					{/each}
 				</dd>
 			{/if}
