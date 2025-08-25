@@ -11,8 +11,7 @@
 	"formatter": {
 		"enabled": true,
 		"indentStyle": "tab",
-		"lineWidth": 120,
-		"bracketSpacing": false
+		"lineWidth": 120
 	},
 	"assist": {"actions": {"source": {"organizeImports": "on"}}},
 	"linter": {
@@ -44,9 +43,9 @@
 	},
 	"javascript": {
 		"formatter": {
-			// "bracketSpacing": false,
-			"semicolons": "asNeeded",
+			"bracketSpacing": false,
 			"quoteStyle": "single",
+			"semicolons": "asNeeded",
 			"trailingCommas": "none"
 		}
 	}
