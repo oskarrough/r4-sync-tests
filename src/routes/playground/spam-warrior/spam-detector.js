@@ -185,6 +185,25 @@ export function analyzeChannel(channel, tracks = []) {
 		reasons.push(`Promotional language (${promotionalCount} terms)`)
 	}
 
+	// Track count legitimacy bonus - channels with many tracks are likely legitimate
+	const trackCount = tracks.length
+	let legitimacyBonus = 0
+
+	if (trackCount >= 100) {
+		legitimacyBonus = 8 // Strong legitimacy signal
+		reasons.push(`High track count (${trackCount}) suggests legitimate music channel`)
+	} else if (trackCount >= 50) {
+		legitimacyBonus = 5
+		reasons.push(`Moderate track count (${trackCount}) suggests music channel`)
+	} else if (trackCount >= 20) {
+		legitimacyBonus = 3
+		reasons.push(`Some track activity (${trackCount})`)
+	} else if (trackCount >= 10) {
+		legitimacyBonus = 1
+	}
+
+	spamScore = Math.max(0, spamScore - legitimacyBonus)
+
 	// Analyze tracks if provided
 	if (tracks.length > 0) {
 		// Check for business-like track titles

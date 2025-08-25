@@ -8,9 +8,9 @@
 
 	const {channels = [], slug: initialSlug, display: initialDisplay, longitude, latitude, zoom} = $props()
 
-	let limit = $state(15)
+	let limit = $state(30)
 	let perPage = $state(100)
-	let filter = $state('all')
+	let filter = $state('20+')
 	let shuffled = $state(true)
 
 	/** @type {'grid' | 'list' | 'map' | 'coordinates' | 'spectrum' | 'drift'}*/
@@ -27,7 +27,7 @@
 	function filterChannels() {
 		return channels.filter((c) => {
 			if (filter === 'all') return true
-			if (filter === '!v1') return c.source !== 'v1'
+			if (filter === 'v2') return c.source !== 'v1'
 			if (filter === 'artwork' && !c.image) return false
 			if (filter === '20+' && (!c.track_count || c.track_count < 20)) return false
 			if (filter === '100+' && (!c.track_count || c.track_count < 100)) return false
@@ -76,7 +76,7 @@
 					<option value="100+">100+ tracks</option>
 					<option value="1000+">1000+ tracks</option>
 					<option value="artwork">Has artwork</option>
-					<option value="!v1">Not v1</option>
+					<option value="v2">v2</option>
 				</select>
 			</label>
 			<button title="Show random channels" class:active={shuffled} onclick={() => (shuffled = !shuffled)}>

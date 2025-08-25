@@ -88,11 +88,12 @@
 	}
 
 	a > span:first-child {
-		width: 2rem;
+		width: 1.5rem;
+		margin: auto 0;
 		flex-shrink: 0;
-		color: var(--gray-6);
-		/* font-size: var(--font-1); */
-		text-indent: 0.2em;
+		color: var(--gray-7);
+		font-size: var(--font-1);
+		text-align: right;
 	}
 
 	.artwork {
