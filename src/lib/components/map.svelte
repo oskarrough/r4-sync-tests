@@ -1,30 +1,28 @@
 <script>
 	import {base} from '$app/paths'
 	import {page} from '$app/state'
-	import {createEventDispatcher} from 'svelte'
 	import L from 'leaflet'
 	import {goto} from '$app/navigation'
 
 	const {
 		mapId = Date.now().toString(),
 		markers = [],
-		center = [0, 0],
-		zoom,
+		latitude = 0,
+		longitude = 0,
+		zoom = 10,
 		selectMode = false,
-		urlMode = false
+		urlMode = false,
+		onmapclick = null,
+		onmapchange = null
 	} = $props()
 
-	$effect(() => {
-		if (map && zoom !== map.getZoom()) {
-			map.setZoom(zoom)
-		}
+	let mapState = $state({
+		instance: null,
+		markerGroup: null,
+		markerInstances: new Map(),
+		newMarker: null,
+		debounceTimer: null
 	})
-
-	const dispatch = createEventDispatcher()
-	let map
-	let markerGroup
-	let newMarker
-	let debounceTimer
 
 	// Derive only the valid markers
 	const validMarkers = $derived(markers.filter((m) => m.latitude && m.longitude && m.title))
@@ -48,9 +46,10 @@
 	function setup(node) {
 		const fillNew = getCssVar('--color-accent')
 
-		map = L.map(node)
+		mapState.instance = L.map(node)
+		const map = mapState.instance
 
-		if (urlMode) {
+		if (urlMode || onmapchange) {
 			map.on('moveend', handleChange)
 			map.on('zoomend', handleChange)
 		}
@@ -61,15 +60,15 @@
 		}).addTo(map)
 
 		// Create an empty feature group container
-		markerGroup = L.featureGroup().addTo(map)
+		mapState.markerGroup = L.featureGroup().addTo(map)
 
 		// Click-to-select marker logic
-		if (selectMode) {
+		if (selectMode && onmapclick) {
 			map.on('click', (e) => {
 				const {lat: latitude, lng: longitude} = e.latlng
-				dispatch('mapClick', {latitude, longitude})
-				if (newMarker) map.removeLayer(newMarker)
-				newMarker = L.marker([latitude, longitude], {
+				onmapclick({latitude, longitude})
+				if (mapState.newMarker) map.removeLayer(mapState.newMarker)
+				mapState.newMarker = L.marker([latitude, longitude], {
 					icon: createIcon(fillNew),
 					title: 'New Position'
 				})
@@ -79,78 +78,102 @@
 			})
 		}
 
-		if (center?.longitude && center.latitude) {
-			map.setView([center.latitude, center.longitude], zoom)
-		}
+		map.setView([latitude || 0, longitude || 0], zoom)
 
 		return {
 			destroy() {
 				map.remove()
 				// Clear any pending debounced calls
-				if (debounceTimer) {
-					clearTimeout(debounceTimer)
+				if (mapState.debounceTimer) {
+					clearTimeout(mapState.debounceTimer)
 				}
 			}
 		}
 	}
 
 	function handleChange() {
-		// Clear any existing timer
-		if (debounceTimer) {
-			clearTimeout(debounceTimer)
-		}
-
-		// Set a new timer to update the URL after a delay
-		debounceTimer = setTimeout(() => {
-			const {lat, lng} = map.getCenter()
-			const newZoom = map.getZoom()
-			let query = new URL(page.url).searchParams
-			query.set('latitude', lat.toFixed(5))
-			query.set('longitude', lng.toFixed(5))
-			query.set('zoom', newZoom)
-			goto(`?${query.toString()}`)
-		}, 500) // Wait 500ms after the last change before updating URL
+		if (mapState.debounceTimer) clearTimeout(mapState.debounceTimer)
+		mapState.debounceTimer = setTimeout(() => {
+			if (!mapState.instance) return
+			const {lat, lng} = mapState.instance.getCenter()
+			const newZoom = mapState.instance.getZoom()
+			if (onmapchange) {
+				onmapchange({
+					latitude: lat.toFixed(5),
+					longitude: lng.toFixed(5),
+					zoom: newZoom
+				})
+			} else if (urlMode) {
+				// Fallback to URL update if no callback provided
+				let query = new URL(page.url).searchParams
+				query.set('latitude', lat.toFixed(5))
+				query.set('longitude', lng.toFixed(5))
+				query.set('zoom', newZoom)
+				goto(`?${query.toString()}`)
+			}
+		}, 500)
 	}
 
-	// Redraw markers whenever validMarkers change
+	const markerFill = $derived(getCssVar('--gray-12'))
+
+	// Update markers with efficient diffing
 	$effect(() => {
-		if (!map) return
+		if (!mapState.instance || !mapState.markerGroup) return
 
-		markerGroup.clearLayers()
+		const currentIds = new Set(validMarkers.map((m) => `${m.latitude}-${m.longitude}-${m.title}`))
+		const existingIds = new Set(mapState.markerInstances.keys())
 
-		const fill = getCssVar('--gray-12')
-		let activeMarker = null
-		for (const markerData of validMarkers) {
-			const {latitude, longitude, title, href, isActive} = markerData
-			const popup = href ? `<a href="${base}/${href}">${title}</a>` : title
-			const marker = L.marker([latitude, longitude], {icon: createIcon(fill), title})
-				.addTo(markerGroup)
-				.bindPopup(popup)
-
-			if (isActive) {
-				// Use setTimeout to ensure the marker is fully rendered before opening popup
-				activeMarker = markerData
-				setTimeout(() => {
-					marker.openPopup()
-				}, 100)
+		// Remove markers that no longer exist
+		for (const id of existingIds) {
+			if (!currentIds.has(id)) {
+				mapState.markerGroup.removeLayer(mapState.markerInstances.get(id))
+				mapState.markerInstances.delete(id)
 			}
 		}
 
-		if (validMarkers.length === 1) {
+		let activeMarker = null
+		// Add or update markers
+		for (const markerData of validMarkers) {
+			const {latitude, longitude, title, href, isActive} = markerData
+			const id = `${latitude}-${longitude}-${title}`
+
+			if (!mapState.markerInstances.has(id)) {
+				const popup = href ? `<a href="${base}/${href}">${title}</a>` : title
+				const marker = L.marker([latitude, longitude], {icon: createIcon(markerFill), title})
+					.addTo(mapState.markerGroup)
+					.bindPopup(popup)
+				mapState.markerInstances.set(id, marker)
+
+				if (isActive) {
+					activeMarker = {marker, data: markerData}
+				}
+			}
+		}
+
+		// Handle active marker and view positioning
+		if (activeMarker) {
+			setTimeout(() => activeMarker.marker.openPopup(), 100)
+			mapState.instance.setView([activeMarker.data.latitude, activeMarker.data.longitude], zoom)
+		} else if (validMarkers.length === 1) {
 			const {latitude, longitude} = validMarkers[0]
-			map.setView([latitude, longitude], zoom)
-		} else if (activeMarker) {
-			map.setView([activeMarker.latitude, activeMarker.longitude], zoom)
+			mapState.instance.setView([latitude, longitude], zoom)
 		} else if (validMarkers.length > 1 && !page?.url?.searchParams?.get('zoom')) {
-			map.fitBounds(markerGroup.getBounds().pad(0.2))
+			mapState.instance.fitBounds(mapState.markerGroup.getBounds().pad(0.2))
+		}
+	})
+
+	// Sync zoom changes from props
+	$effect(() => {
+		if (mapState.instance && zoom !== mapState.instance.getZoom()) {
+			mapState.instance.setZoom(zoom)
 		}
 	})
 
 	// Expose method to clear the temporary new marker
 	export function clearNewMarker() {
-		if (newMarker) {
-			map.removeLayer(newMarker)
-			newMarker = null
+		if (mapState.newMarker && mapState.instance) {
+			mapState.instance.removeLayer(mapState.newMarker)
+			mapState.newMarker = null
 		}
 	}
 </script>
@@ -164,6 +187,7 @@
 		height: 100%;
 		background-color: transparent;
 		:global(.leaflet-container) {
+			font-family: firava, system-ui, sans-serif;
 		}
 		:global(.leaflet-popup-content a) {
 			color: var(--gray-12);

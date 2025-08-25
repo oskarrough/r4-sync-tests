@@ -1,4 +1,6 @@
 <script>
+	import {page} from '$app/state'
+	import {goto} from '$app/navigation'
 	import {appState} from '$lib/app-state.svelte'
 	import {shuffleArray} from '$lib/utils.ts'
 	import Icon from './icon.svelte'
@@ -15,7 +17,6 @@
 
 	/** @type {'grid' | 'list' | 'map' | 'coordinates' | 'spectrum' | 'drift'}*/
 	let display = $derived(appState.channels_display || initialDisplay || 'grid')
-	const center = $derived(longitude && latitude ? {longitude, latitude} : null)
 
 	/*
 	const channelsPromise = $derived.by(
@@ -58,6 +59,14 @@
 		display = value
 		appState.channels_display = display
 	}
+
+	function handleMapChange({latitude, longitude, zoom}) {
+		const query = new URL(page.url).searchParams
+		query.set('latitude', latitude)
+		query.set('longitude', longitude)
+		query.set('zoom', zoom)
+		goto(`?${query.toString()}`, {replaceState: true, keepFocus: true})
+	}
 </script>
 
 {#snippet displayBtn(prop, icon)}
@@ -93,7 +102,14 @@
 
 	{#if display === 'map'}
 		{#if realChannels.mapMarkers}
-			<MapComponent urlMode markers={realChannels.mapMarkers} {center} {zoom}></MapComponent>
+			<MapComponent
+				urlMode
+				markers={realChannels.mapMarkers}
+				{latitude}
+				{longitude}
+				{zoom}
+				onmapchange={handleMapChange}
+			></MapComponent>
 		{/if}
 	{:else if display === 'tuner'}
 		<SpectrumScanner channels={realChannels.filtered} />

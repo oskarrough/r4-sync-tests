@@ -19,8 +19,8 @@
 			: []
 	)
 
-	function onMapClick(event) {
-		selected = event.detail
+	function handleMapClick(coords) {
+		selected = coords
 		onselect(selected)
 	}
 
@@ -31,7 +31,7 @@
 	}
 </script>
 
-<MapComponent bind:this={mapComponent} {markers} selectMode={true} on:mapClick={onMapClick} />
+<MapComponent bind:this={mapComponent} {markers} {latitude} {longitude} selectMode={true} onmapclick={handleMapClick} />
 
 {#if selected}
 	<button type="button" onclick={clearSelection}>
