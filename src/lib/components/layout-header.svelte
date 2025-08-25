@@ -3,12 +3,21 @@
 	import {appState} from '$lib/app-state.svelte'
 	import {toggleQueuePanel} from '$lib/api'
 	import AddTrackModal from '$lib/components/add-track-modal.svelte'
+	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import HeaderSearch from '$lib/components/header-search.svelte'
 	import Icon from '$lib/components/icon.svelte'
 	import TestCounter from '$lib/components/test-counter.svelte'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
+	import {r5} from '$lib/r5'
 
 	const {preloading} = $props()
+
+	const userChannel = $derived.by(async () => {
+		const id = appState.channels?.[0]
+		if (!id) return null
+		const channels = await r5.channels.pull({id})
+		return channels[0] || null
+	})
 </script>
 
 <header>
@@ -25,6 +34,13 @@
 	<menu class="row right">
 		{#await preloading then}
 			<AddTrackModal />
+			{#await userChannel then channel}
+				{#if channel}
+					<a href="/{channel.slug}">
+						<ChannelAvatar id={channel.image} size={32} alt={channel.name} />
+					</a>
+				{/if}
+			{/await}
 			<hr />
 			<a
 				href="/broadcasts"

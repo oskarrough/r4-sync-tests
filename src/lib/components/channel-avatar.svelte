@@ -16,11 +16,25 @@
 
 {#if id}
 	<img loading="lazy" src={createImage(id)} {alt} />
+{:else}
+	<div class="placeholder">{alt.slice(0, 2) || '?'}</div>
 {/if}
 
 <style>
-	img {
+	img,
+	.placeholder {
 		width: 100%;
 		border-radius: var(--border-radius);
+	}
+
+	.placeholder {
+		aspect-ratio: 1;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--gray-4);
+		color: var(--gray-7);
+		font-size: var(--font-7);
+		text-transform: uppercase;
 	}
 </style>
