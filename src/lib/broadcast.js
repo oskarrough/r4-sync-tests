@@ -206,7 +206,7 @@ export async function playBroadcastTrack(broadcast) {
 		try {
 			const slug = await trackIdToSlug(track_id)
 			if (!slug) throw new Error('No channel found for track')
-			await r5.pull({slug})
+			await r5.pull(slug)
 			await playTrack(track_id, '', 'broadcast_sync')
 			appState.listening_to_channel_id = channel_id
 			log.log('play_success_after_fetch', {track_id, channel_id, slug})
