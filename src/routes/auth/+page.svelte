@@ -1,15 +1,8 @@
-<script>
-	import Login from '$lib/components/login.svelte'
-	//import IconR4 from '$lib/icon-r4.svelte'
-</script>
-
 <svelte:head>
-	<title>Login - R5</title>
+	<title>Auth - R5</title>
 </svelte:head>
 
-<div class="wrap">
-	<!--<img src="https://assets.radio4000.com/icon-r4.svg" alt="Radio4000">-->
-	<!--<IconR4 />-->
+<article>
 	<svg width="300" height="260" viewBox="0 0 300 260" xmlns="http://www.w3.org/2000/svg">
 		<title>icon-r4</title>
 		<g fill="#000" fill-rule="evenodd">
@@ -21,9 +14,18 @@
 			/>
 		</g>
 	</svg>
-	<h2>Login to Radio4000</h2>
-	<Login />
-</div>
+
+	<menu class="options">
+		<a href="/auth/create-account">
+			<h3>Create an account</h3>
+			<p>I'm new to Radio4000</p>
+		</a>
+		<a href="/auth/signin">
+			<h3>Sign in</h3>
+			<p>I already have a channel</p>
+		</a>
+	</menu>
+</article>
 
 <style>
 	svg {
@@ -36,12 +38,36 @@
 		fill: light-dark(red, blue);
 		fill: var(--gray-12);
 	}
-	h2 {
-		text-align: center;
-		margin: 3vh auto;
-	}
-	.wrap {
-		max-width: 306px;
+
+	article {
+		max-width: 600px;
 		margin: 0 auto;
+	}
+
+	.options {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1rem;
+		margin-top: 2rem;
+		text-align: center;
+		font-size: var(--font-6);
+
+		> a {
+			text-decoration: none;
+			padding: 2rem 1rem;
+			border: 1px solid var(--gray-6);
+			border-radius: var(--border-radius);
+
+			&:hover {
+				background: var(--accent-7);
+				border-color: var(--accent-1);
+			}
+		}
+
+		h3 {
+			text-decoration: underline;
+			font-size: var(--font-7);
+			font-weight: 600;
+		}
 	}
 </style>

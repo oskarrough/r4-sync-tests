@@ -20,7 +20,7 @@
 		<p>
 			{followings?.length || 0} channels
 			{#if !appState.channels?.length}
-				· <a href="/login?redirect=/following">sign in to sync your followers with R4</a>
+				· <a href="/auth?redirect=/following">sign in to sync your followers with R4</a>
 			{/if}
 		</p>
 	</header>

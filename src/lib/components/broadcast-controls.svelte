@@ -37,7 +37,7 @@
 		</button>
 	{/if}
 {:else}
-	<a class="btn" href="/login">
+	<a class="btn" href="/auth">
 		<Icon icon="signal" size={20} strokeWidth={1.7}></Icon> Login to start broadcasting
 	</a>
 {/if}
