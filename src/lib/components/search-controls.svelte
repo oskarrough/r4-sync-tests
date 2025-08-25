@@ -38,12 +38,7 @@
 
 <form onsubmit={handleSubmit}>
 	<Icon icon="search" />
-	<input
-		type="search"
-		placeholder="Search tracks..."
-		bind:value={searchValue}
-		onblur={handleSearchBlur}
-	/>
+	<input type="search" placeholder="Search tracks..." bind:value={searchValue} onblur={handleSearchBlur} />
 	<!--<button type="button" onclick={clearSearch}>Search</button>-->
 
 	<!--<label>

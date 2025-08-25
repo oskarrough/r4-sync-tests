@@ -10,7 +10,7 @@ import TooltipComponent from './tool-tip.svelte'
  * @returns {function(HTMLElement): {destroy: function}}
  */
 export function tooltip(options) {
-	return function (element) {
+	return (element) => {
 		if (!element.id) {
 			element.id = `tooltip-target-${crypto.randomUUID()}`
 		}

@@ -6,9 +6,7 @@
 	/** @type {{channel: import('$lib/types').Channel}}*/
 	let {channel, children} = $props()
 
-	const broadcasting = $derived(
-		channel.broadcasting || appState.listening_to_channel_id === channel.id
-	)
+	const broadcasting = $derived(channel.broadcasting || appState.listening_to_channel_id === channel.id)
 
 	/** @param {MouseEvent} event */
 	async function doubleclick({currentTarget}) {

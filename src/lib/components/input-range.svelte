@@ -49,16 +49,7 @@
 </script>
 
 <div class="input-range">
-	<input
-		type="range"
-		{min}
-		{max}
-		{step}
-		bind:value
-		oninput={handleInput}
-		onchange={handleChange}
-		{...props}
-	/>
+	<input type="range" {min} {max} {step} bind:value oninput={handleInput} onchange={handleChange} {...props} />
 	<div class="marks" aria-hidden="true">
 		{#each {length: marks}, i (i)}
 			<div class="mark"></div>

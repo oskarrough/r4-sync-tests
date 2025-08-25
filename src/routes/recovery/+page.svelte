@@ -40,9 +40,7 @@
 		{:else if isResetting}
 			<p>Resetting database...</p>
 		{:else}
-			<button onclick={resetDatabase} disabled={isResetting} class="danger">
-				Reset my local database
-			</button>
+			<button onclick={resetDatabase} disabled={isResetting} class="danger"> Reset my local database </button>
 			<br />
 			<br />
 			<p>Resetting the database will:</p>

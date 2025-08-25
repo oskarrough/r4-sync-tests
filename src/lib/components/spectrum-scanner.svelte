@@ -23,10 +23,7 @@
 			processed.push({
 				...channel,
 				frequency: freq,
-				signalStrength: Math.pow(
-					Math.log10(Math.max(channel.track_count || 1, 1)) / Math.log10(2000),
-					5
-				)
+				signalStrength: Math.pow(Math.log10(Math.max(channel.track_count || 1, 1)) / Math.log10(2000), 5)
 			})
 		}
 		channelsWithFrequency = processed.sort((a, b) => a.frequency - b.frequency)
@@ -79,10 +76,7 @@
 	function updateStaticLevel(reception) {
 		if (gainNode) {
 			const staticLevel = Math.max(0, 0.05 - reception * 0.04)
-			gainNode.gain.exponentialRampToValueAtTime(
-				Math.max(staticLevel, 0.001),
-				audioContext.currentTime + 0.1
-			)
+			gainNode.gain.exponentialRampToValueAtTime(Math.max(staticLevel, 0.001), audioContext.currentTime + 0.1)
 		}
 	}
 

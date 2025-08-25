@@ -57,8 +57,7 @@ export function shuffleArray<T>(arr: Array<T>) {
 /**
  * Regex for matching hashtags and mentions - shared across components
  */
-export const ENTITY_REGEX =
-	/(^|\s)([#﹟＃@][\p{XID_Continue}\p{Extended_Pictographic}\p{Emoji_Component}_+-]+)/giu
+export const ENTITY_REGEX = /(^|\s)([#﹟＃@][\p{XID_Continue}\p{Extended_Pictographic}\p{Emoji_Component}_+-]+)/giu
 
 /**
  * Parse text for entities (hashtags and mentions)
@@ -97,12 +96,7 @@ export function extractHashtags(text) {
  * All frequency values are rounded to one decimal place.
  * Values are generated inside a given range.
  */
-export async function generateFrequency(
-	channelName: string,
-	channelSlug: string,
-	minFreq: 80,
-	maxFreq: 120
-) {
+export async function generateFrequency(channelName: string, channelSlug: string, minFreq: 80, maxFreq: 120) {
 	// Combine the channel name and slug
 	const inputString = channelName + channelSlug
 

@@ -1,5 +1,5 @@
-import {pg} from '$lib/r5/db'
 import {logger} from '$lib/logger'
+import {pg} from '$lib/r5/db'
 
 const log = logger.ns('metadata/musicbrainz').seal()
 
@@ -116,9 +116,7 @@ export async function search(title) {
 	for (const strategy of searchStrategies) {
 		try {
 			const encodedQuery = encodeURIComponent(strategy.query)
-			const response = await fetch(
-				`https://musicbrainz.org/ws/2/recording?query=${encodedQuery}&fmt=json&limit=1`
-			)
+			const response = await fetch(`https://musicbrainz.org/ws/2/recording?query=${encodedQuery}&fmt=json&limit=1`)
 
 			if (response.ok) {
 				const data = await response.json()

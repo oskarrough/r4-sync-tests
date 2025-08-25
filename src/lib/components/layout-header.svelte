@@ -42,21 +42,11 @@
 			>
 				<Icon icon="favorite" size={20} />
 			</a>
-			<a
-				href="/stats"
-				class="btn"
-				class:active={page.route.id === '/stats'}
-				{@attach tooltip({content: 'Stats'})}
-			>
+			<a href="/stats" class="btn" class:active={page.route.id === '/stats'} {@attach tooltip({content: 'Stats'})}>
 				<Icon icon="chart-scatter" size={20} />
 			</a>
 			<!-- <button onclick={toggleChatPanel}>Chat</button> -->
-			<a
-				href="/cli"
-				class="btn"
-				class:active={page.route.id === '/cli'}
-				{@attach tooltip({content: 'CLI'})}
-			>
+			<a href="/cli" class="btn" class:active={page.route.id === '/cli'} {@attach tooltip({content: 'CLI'})}>
 				<Icon icon="terminal" size={20} />
 			</a>
 		{/await}

@@ -1,8 +1,8 @@
 import {browser} from '$app/environment'
-import {r4} from '$lib/r4'
-import {r5} from '$lib/r5'
 import {initAppState, validateListeningState} from '$lib/app-state.svelte'
 import {logger} from '$lib/logger'
+import {r4} from '$lib/r4'
+import {r5} from '$lib/r5'
 
 // Disable server-side rendering for all routes by default. Otherwise we can't use pglite + indexeddb.
 export const ssr = false
@@ -28,7 +28,6 @@ async function preload() {
 		return
 	}
 	try {
-		// await delay(3000)
 		await r5.db.migrate()
 		pg = await r5.db.getPg()
 		await initAppState()

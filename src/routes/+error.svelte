@@ -6,8 +6,7 @@
 	<p>An error happened:</p>
 	<h1>{page.status}: {page.error?.message || 'Unknown error'}</h1>
 	<p>
-		<a href="/recovery">Reset the app</a> (this wipes your local data only, e.g. safe, and usually solves
-		it)
+		<a href="/recovery">Reset the app</a> (this wipes your local data only, e.g. safe, and usually solves it)
 	</p>
 	<p><button onclick={() => window.location.reload()}>Reload app</button></p>
 </article>

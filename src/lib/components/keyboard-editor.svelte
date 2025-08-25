@@ -11,13 +11,7 @@
 		return appState.shortcuts || DEFAULT_KEY_BINDINGS
 	})
 
-	const shortcutActions = [
-		'togglePlayerExpanded',
-		'openSearch',
-		'togglePlayPause',
-		'toggleQueuePanel',
-		'toggleTheme'
-	]
+	const shortcutActions = ['togglePlayerExpanded', 'openSearch', 'togglePlayPause', 'toggleQueuePanel', 'toggleTheme']
 
 	const availableActions = shortcutActions.map((name) => ({
 		name,
@@ -90,15 +84,13 @@
 						type="text"
 						value={key}
 						placeholder="e.g. k, $mod+k, Escape"
-						onchange={(e) =>
-							updateKeyBindingKey(key, /** @type {HTMLInputElement} */ (e.target).value)}
+						onchange={(e) => updateKeyBindingKey(key, /** @type {HTMLInputElement} */ (e.target).value)}
 						id={`${uid}-key`}
 					/>
 					<label for={`${uid}-action`}>&rarr;</label>
 					<select
 						value={action}
-						onchange={(e) =>
-							updateKeyBindingAction(key, /** @type {HTMLSelectElement} */ (e.target).value)}
+						onchange={(e) => updateKeyBindingAction(key, /** @type {HTMLSelectElement} */ (e.target).value)}
 						id={`${uid}-action`}
 					>
 						{#each availableActions as { name, label } (name)}
@@ -119,10 +111,8 @@
 		</form>
 
 		<p>
-			Key reference, use <a
-				href="https://jamiebuilds.github.io/tinykeys/"
-				target="_blank"
-				rel="noopener noreferrer">tinykeys syntax</a
+			Key reference, use <a href="https://jamiebuilds.github.io/tinykeys/" target="_blank" rel="noopener noreferrer"
+				>tinykeys syntax</a
 			>. Examples: <code>k</code>, <code>$mod+k</code>, <code>Escape</code>, <code>ArrowUp</code>
 		</p>
 	{/if}

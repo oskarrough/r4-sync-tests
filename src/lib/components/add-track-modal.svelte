@@ -78,10 +78,8 @@
 		{/if}
 	{:else if isSignedIn}
 		<p>
-			You need to create a channel first. Go to <a
-				href="https://radio4000.com"
-				target="_blank"
-				rel="noopener">radio4000.com</a
+			You need to create a channel first. Go to <a href="https://radio4000.com" target="_blank" rel="noopener"
+				>radio4000.com</a
 			> to create your channel, then come back here.
 		</p>
 	{:else}

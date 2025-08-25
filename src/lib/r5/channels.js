@@ -1,7 +1,7 @@
+import {raw, sql} from '@electric-sql/pglite/template'
 import {logger} from '../logger.js'
 import {r4 as r4Api} from '../r4.ts'
 import {getPg} from './db.js'
-import {sql, raw} from '@electric-sql/pglite/template'
 
 const log = logger.ns('r5:channels').seal()
 const LIMIT = 4000
@@ -14,12 +14,7 @@ async function channelIdToSlug(id) {
 	if (rows.length) return rows[0].slug
 	// fallback to r4 - query by ID not slug
 	try {
-		const {data} = await r4Api.sdk.supabase
-			.from('channels')
-			.select('slug')
-			.eq('id', id)
-			.single()
-			.throwOnError()
+		const {data} = await r4Api.sdk.supabase.from('channels').select('slug').eq('id', id).single().throwOnError()
 		if (data?.slug) return data.slug
 	} catch {
 		// Continue if not found
@@ -31,9 +26,7 @@ async function channelIdToSlug(id) {
 export async function local({slug = '', limit = LIMIT} = {}) {
 	const pg = await getPg()
 	const whereClause = slug ? sql`where slug = ${slug}` : raw``
-	return (
-		await pg.sql`select * from channels ${whereClause} order by updated_at desc limit ${limit}`
-	).rows
+	return (await pg.sql`select * from channels ${whereClause} order by updated_at desc limit ${limit}`).rows
 }
 
 /** Get channels from r4 (remote) */
@@ -50,9 +43,7 @@ export async function v1({slug = '', limit = LIMIT} = {}) {
 	try {
 		const items = await readv1()
 		const filtered = slug ? items.filter((item) => item.slug === slug) : items
-		const channels = filtered
-			.slice(0, limit)
-			.filter((item) => item.track_count && item.track_count > 3)
+		const channels = filtered.slice(0, limit).filter((item) => item.track_count && item.track_count > 3)
 		return channels.map(parseFirebaseChannel)
 	} catch (err) {
 		log.error(err)
@@ -190,9 +181,7 @@ export async function outdated(slug) {
 async function readv1() {
 	const browser = typeof window !== 'undefined'
 	const filename = 'channels-firebase-modified.json'
-	const res = browser
-		? await fetch(filename)
-		: await fetch(`file://${process.cwd()}/static/${filename}`)
+	const res = browser ? await fetch(filename) : await fetch(`file://${process.cwd()}/static/${filename}`)
 	return await res.json()
 }
 

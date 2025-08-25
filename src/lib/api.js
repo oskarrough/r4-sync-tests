@@ -1,11 +1,11 @@
 import {appState, defaultAppState} from '$lib/app-state.svelte'
 import {leaveBroadcast, upsertRemoteBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
-import {pg} from '$lib/r5/db'
 import {r4} from '$lib/r4'
 import {r5} from '$lib/r5'
+import {pg} from '$lib/r5/db'
+import {pull as pullFollowers, sync as syncFollowers} from '$lib/r5/followers'
 import {shuffleArray} from '$lib/utils.ts'
-import {sync as syncFollowers, pull as pullFollowers} from '$lib/r5/followers'
 
 const log = logger.ns('api').seal()
 
@@ -29,9 +29,7 @@ export async function checkUser() {
 
 		// Sync followers when user signs in (not on every check)
 		if (wasSignedOut && appState.channels.length) {
-			syncFollowers(appState.channels[0]).catch((err) =>
-				log.error('sync_followers_on_signin_error', err)
-			)
+			syncFollowers(appState.channels[0]).catch((err) => log.error('sync_followers_on_signin_error', err))
 		}
 		return user
 	} catch (err) {
@@ -53,9 +51,8 @@ export async function playTrack(id, endReason, startReason) {
 	// Get current track before we change it
 	const previousTrackId = appState.playlist_track
 
-	const tracks = (
-		await pg.sql`select id from tracks where channel_id = ${track.channel_id} order by created_at desc`
-	).rows
+	const tracks = (await pg.sql`select id from tracks where channel_id = ${track.channel_id} order by created_at desc`)
+		.rows
 	const ids = tracks.map((t) => t.id)
 	await setPlaylist(ids)
 	appState.playlist_track = id
@@ -88,9 +85,7 @@ export async function playChannel({id, slug}, index = 0) {
 	log.log('play_channel', {id, slug})
 	leaveBroadcast()
 	if (await r5.channels.outdated(slug)) await r5.pull({slug})
-	const tracks = (
-		await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`
-	).rows
+	const tracks = (await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`).rows
 	const ids = tracks.map((t) => t.id)
 	await setPlaylist(ids)
 	await playTrack(tracks[index].id, '', 'play_channel')

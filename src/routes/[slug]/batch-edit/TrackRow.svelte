@@ -18,12 +18,7 @@
 	</div>
 
 	<div class="col-link">
-		<a
-			href="/{data.slug}/tracks/{track.id}"
-			target="_blank"
-			rel="noopener noreferrer"
-			title="Open track page">↗</a
-		>
+		<a href="/{data.slug}/tracks/{track.id}" target="_blank" rel="noopener noreferrer" title="Open track page">↗</a>
 	</div>
 
 	<div class="col-url">

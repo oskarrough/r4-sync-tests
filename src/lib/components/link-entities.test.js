@@ -1,4 +1,4 @@
-import {describe, test, expect} from 'vitest'
+import {describe, expect, test} from 'vitest'
 
 // Simple function to test the text parsing logic without Svelte component complexity
 function createLinkedParts(text, track = null) {
@@ -50,9 +50,7 @@ function createLinkedParts(text, track = null) {
 // Helper to convert parts back to HTML for easier testing
 function partsToHtml(parts) {
 	return parts
-		.map((part) =>
-			part.type === 'link' ? `<a href="${part.href}">${part.content}</a>` : part.content
-		)
+		.map((part) => (part.type === 'link' ? `<a href="${part.href}">${part.content}</a>` : part.content))
 		.join('')
 }
 
@@ -61,9 +59,7 @@ describe('link-entities', () => {
 		const track = {channel_slug: 'oskar'}
 		const parts = createLinkedParts('Check out this #techno track', track)
 		const result = partsToHtml(parts)
-		expect(result).toBe(
-			'Check out this <a href="/search?search=%40oskar%20%23techno">#techno</a> track'
-		)
+		expect(result).toBe('Check out this <a href="/search?search=%40oskar%20%23techno">#techno</a> track')
 	})
 
 	test('converts hashtags without track context', () => {
@@ -80,10 +76,7 @@ describe('link-entities', () => {
 
 	test('handles multiple entities in one text', () => {
 		const track = {channel_slug: 'oskar'}
-		const parts = createLinkedParts(
-			'Great #house track from @radio4000 with #electronic vibes',
-			track
-		)
+		const parts = createLinkedParts('Great #house track from @radio4000 with #electronic vibes', track)
 		const result = partsToHtml(parts)
 		expect(result).toBe(
 			'Great <a href="/search?search=%40oskar%20%23house">#house</a> track from <a href="/search?search=%40radio4000">@radio4000</a> with <a href="/search?search=%40oskar%20%23electronic">#electronic</a> vibes'
@@ -100,9 +93,7 @@ describe('link-entities', () => {
 		const track = {channel_slug: 'dj-mix'}
 		const parts = createLinkedParts('Love this #deep-house track', track)
 		const result = partsToHtml(parts)
-		expect(result).toBe(
-			'Love this <a href="/search?search=%40dj-mix%20%23deep-house">#deep-house</a> track'
-		)
+		expect(result).toBe('Love this <a href="/search?search=%40dj-mix%20%23deep-house">#deep-house</a> track')
 	})
 
 	test('handles empty or null text', () => {

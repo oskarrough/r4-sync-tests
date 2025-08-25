@@ -27,9 +27,7 @@ export async function load({parent, params, depends}) {
 	}
 
 	/** @type {{rows: import('$lib/types').Channel[]}} */
-	const {rows: channelRows} = await pg.query('SELECT * FROM channels WHERE id = $1 limit 1', [
-		track.channel_id
-	])
+	const {rows: channelRows} = await pg.query('SELECT * FROM channels WHERE id = $1 limit 1', [track.channel_id])
 	if (!channelRows.length) error(404, 'Channel not found')
 	const channel = channelRows[0]
 
