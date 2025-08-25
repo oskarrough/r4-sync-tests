@@ -39,7 +39,7 @@
 				<dt>tags</dt>
 				<dd class="tags">
 					{#each data.tags as tag (tag)}
-						<span class="tag">#{tag}</span>
+						<span>#{tag}</span>
 					{/each}
 				</dd>
 			{/if}

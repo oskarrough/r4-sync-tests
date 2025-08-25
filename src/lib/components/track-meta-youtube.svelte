@@ -54,7 +54,7 @@
 				<dt>tags</dt>
 				<dd class="tags">
 					{#each data.tags as tag (tag)}
-						<a href="/search?search={encodeURIComponent('#' + tag)}" class="tag">{tag}</a>
+						<a href="/search?search={encodeURIComponent('#' + tag)}">{tag}</a>
 					{/each}
 				</dd>
 			{/if}
