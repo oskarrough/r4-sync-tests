@@ -70,12 +70,6 @@ body {
 	scrollbar-color: var(--gray-7) var(--gray-1);
 }
 
-@media (prefers-reduced-motion: reduce) {
-	:root {
-		scroll-behavior: auto;
-	}
-}
-
 h1,
 h2,
 h3,
@@ -96,7 +90,7 @@ h2 {
 
 h3 {
 	font-size: var(--font-5);
-	font-weight: 400;
+	font-weight: 350;
 }
 
 p {

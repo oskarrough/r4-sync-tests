@@ -60,6 +60,7 @@
 
 			&:hover {
 				background: var(--accent-7);
+				color: var(--gray-12);
 				border-color: var(--accent-1);
 			}
 		}

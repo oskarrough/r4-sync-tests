@@ -23,11 +23,10 @@
 <style>
 	img,
 	.placeholder {
-		width: 100%;
+		width: 13rem;
+		max-width: 100%;
 		border-radius: var(--border-radius);
-	}
-
-	.placeholder {
+		flex: 1;
 		aspect-ratio: 1;
 		display: flex;
 		align-items: center;

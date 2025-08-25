@@ -169,7 +169,12 @@
 	</main>
 	<footer>
 		<p>tip: keep the browser console open as well</p>
-		<p>tip2: the real terminal cli is better than this... (kinda) available via the github repo</p>
+		<p>
+			tip2: the real terminal cli is better than this... (kinda) available via the <a
+				href="https://github.com/radio4000/r4-sync-tests"
+				rel="noreferrer">repo</a
+			>
+		</p>
 	</footer>
 	<section class="repl">
 		<PgliteRepl />

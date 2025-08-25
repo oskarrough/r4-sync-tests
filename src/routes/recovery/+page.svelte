@@ -36,7 +36,7 @@
 	<section>
 		{#if resetSuccess}
 			<h3>Reset successful!</h3>
-			<p><a href="/">Go back to home</a></p>
+			<p><a href="/" data-sveltekit-reload>Go back to home</a></p>
 		{:else if isResetting}
 			<p>Resetting database...</p>
 		{:else}

@@ -15,7 +15,7 @@
 
 	<footer>
 		<p>
-			Having trouble? <a href="https://matrix.to/#/#radio4000:matrix.org" target="_blank">Chat with the community</a>
+			Having trouble? <a href="https://matrix.to/#/#radio4000:matrix.org" target="_blank">Chat with us</a>
 		</p>
 	</footer>
 </article>

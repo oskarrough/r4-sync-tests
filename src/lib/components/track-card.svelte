@@ -102,6 +102,7 @@
 		object-fit: cover;
 		object-position: center;
 		align-self: center;
+		border-radius: 2px;
 	}
 
 	.text {

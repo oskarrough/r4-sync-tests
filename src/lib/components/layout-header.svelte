@@ -91,7 +91,7 @@
 		gap: 0.2rem;
 		padding: 0.5rem;
 		background: var(--header-bg, var(--bg-2));
-		border-bottom: 1px solid var(--gray-7);
+		border-bottom: 1px solid light-dark(var(--gray-7), var(--gray-5));
 
 		.right {
 			margin-left: auto;
