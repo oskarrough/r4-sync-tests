@@ -27,16 +27,15 @@ html {
 	line-height: 1.5;
 	font-weight: 400;
 	text-rendering: optimizeLegibility;
-	text-size-adjust: 100%; /* ios? */
 	font-family: firava, system-ui, sans-serif;
 	scroll-behavior: smooth;
 	color-scheme: light dark;
 	interpolate-size: allow-keywords;
 
 	/* ios text */
-	-moz-text-size-adjust: none;
-	-webkit-text-size-adjust: none;
-	text-size-adjust: none;
+	-moz-text-size-adjust: 100%;
+	-webkit-text-size-adjust: 100%;
+	text-size-adjust: 100%; /* ios? */
 
 	background: var(--bg-1);
 	color: var(--gray-12);
@@ -63,12 +62,11 @@ body {
 	overflow-y: auto;
 	max-height: 100dvh;
 	overscroll-behavior: contain;
-	overflow-y: auto;
 	scrollbar-width: thin;
 }
 
 * {
-	scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-bg);
+	/* scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-bg); */
 	scrollbar-color: var(--gray-7) var(--gray-1);
 }
 

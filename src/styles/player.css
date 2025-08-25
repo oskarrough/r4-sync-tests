@@ -39,15 +39,16 @@ media-time-display {
 		margin: 0;
 	}
 
-	media-volume-range {
-		display: none;
-	}
 	@media (min-width: 768px) {
 		media-volume-range {
 			display: initial;
 			margin-left: 0.2rem;
 			margin-right: 0.2rem;
 		}
+	}
+
+	media-volume-range {
+		display: none;
 	}
 }
 
@@ -61,6 +62,26 @@ media-time-display {
 	min-height: var(--size);
 	padding: var(--gap);
 	gap: var(--gap);
+
+	@media (max-width: 520px) {
+		.artwork,
+		.prev,
+		media-time-range {
+			display: none;
+		}
+	}
+
+	@media (max-width: 768px) {
+		media-time-range {
+			width: 60px;
+		}
+		media-mute-button,
+		button {
+			/* smaller */
+			padding-left: var(--gap);
+			padding-right: var(--gap);
+		}
+	}
 
 	.channel img,
 	.artwork {
@@ -84,13 +105,6 @@ media-time-display {
 
 	menu {
 		margin-left: auto;
-		/* margin-right: auto; */
-
-		media-mute-button,
-		button {
-			/* equal width */
-			flex: 1;
-		}
 	}
 
 	.timebar {
@@ -111,24 +125,10 @@ media-time-display {
 		width: auto;
 	}
 
-	@media (max-width: 520px) {
-		.artwork,
-		.prev,
-		media-time-range {
-			display: none;
-		}
-	}
-
-	@media (max-width: 768px) {
-		media-time-range {
-			width: 60px;
-		}
-		media-mute-button,
-		button {
-			/* smaller */
-			padding-left: var(--gap);
-			padding-right: var(--gap);
-		}
+	menu media-mute-button,
+	menu button {
+		/* equal width */
+		flex: 1;
 	}
 }
 
@@ -151,10 +151,6 @@ media-time-range {
 		gap: 0.5rem;
 		place-items: center;
 		margin-bottom: auto;
-
-		img {
-			width: 4rem;
-		}
 	}
 
 	.timebar {
@@ -164,6 +160,11 @@ media-time-range {
 	/* track artwork is replaced by youtube video */
 	.artwork {
 		display: none;
+	}
+
+	.channel img {
+		width: 2.5rem;
+		height: 2.5rem;
 	}
 
 	.text {

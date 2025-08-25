@@ -72,10 +72,10 @@
 			`
 
 			const play = playsResult.rows[0]
-			stats.totalPlays = parseInt(play.total_plays)
+			stats.totalPlays = Number(play.total_plays)
 			stats.totalListeningTime = Math.round(play.total_ms / 1000 / 60) // minutes
-			stats.uniqueTracks = parseInt(play.unique_tracks)
-			stats.uniqueChannels = parseInt(play.unique_channels)
+			stats.uniqueTracks = Number(play.unique_tracks)
+			stats.uniqueChannels = Number(play.unique_channels)
 			stats.skipRate = Math.round(play.skip_rate * 100)
 			stats.topChannels = channelStats.rows.map((row) => ({
 				...row,
@@ -109,13 +109,13 @@
 
 		// Find peak hours
 		const hourCounts = temporal.reduce((acc, row) => {
-			acc[row.hour] = (acc[row.hour] || 0) + parseInt(row.plays)
+			acc[row.hour] = (acc[row.hour] || 0) + Number(row.plays)
 			return acc
 		}, {})
 
 		const peakHour = Object.entries(hourCounts).sort(([, a], [, b]) => b - a)[0]
 
-		const timeOfDay = parseInt(peakHour[0]) < 12 ? 'morning' : parseInt(peakHour[0]) < 17 ? 'afternoon' : 'evening'
+		const timeOfDay = Number(peakHour[0]) < 12 ? 'morning' : Number(peakHour[0]) < 17 ? 'afternoon' : 'evening'
 
 		const skipBehavior =
 			stats.skipRate > 30 ? 'restless skipper' : stats.skipRate < 10 ? 'patient listener' : 'selective'
