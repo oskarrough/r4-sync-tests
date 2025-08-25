@@ -28,3 +28,17 @@ export function relativeDateSolar(dateString) {
 	const daysString = `${remainingDays} earth rotation${remainingDays > 1 ? 's' : ''}`
 	return `${yearsString}${andString}${daysString}`
 }
+
+/** More detailed relative date with months/years
+ * @param {string} dateString */
+export function relativeDateDetailed(dateString) {
+	if (!dateString) return ''
+	const date = new Date(dateString)
+	const now = new Date()
+	const diffMs = now - date
+	const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+	if (diffDays < 30) return `${diffDays} days ago`
+	if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`
+	return `${Math.floor(diffDays / 365)} years ago`
+}

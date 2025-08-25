@@ -1,7 +1,7 @@
+import {getPg} from '$lib/r5/db'
 import {error} from '@sveltejs/kit'
 import {logger} from '$lib/logger'
 import {r5} from '$lib/r5'
-import {pg} from '$lib/r5/db'
 
 /**
  * Wait for the db to be ready, query track + channel locally
@@ -9,7 +9,10 @@ import {pg} from '$lib/r5/db'
 export async function load({parent, params, depends}) {
 	depends('track-meta')
 	await parent()
-	if (!pg) error(500, 'Database connection error')
+	const pg = await getPg()
+	if (!pg) {
+		error(500, 'Database connection error')
+	}
 
 	const {slug, tid} = params
 
