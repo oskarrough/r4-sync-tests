@@ -11,7 +11,7 @@
 	// const {data} = $props()
 
 	const slug = $derived(page?.url?.searchParams?.get('slug'))
-	const display = $derived(page?.url?.searchParams?.get('display') || 'grid')
+	const display = $derived(page?.url?.searchParams?.get('display'))
 	const longitude = $derived(Number(page?.url?.searchParams?.get('longitude')))
 	const latitude = $derived(Number(page?.url?.searchParams?.get('latitude')))
 	const zoom = $derived(page?.url?.searchParams?.get('zoom') ? Number(page?.url?.searchParams?.get('zoom')) : 4)
@@ -23,7 +23,7 @@
 
 	onMount(() => {
 		getPg().then((pg) => {
-			if (display !== appState.channels_display) {
+			if (Boolean(display) && display !== appState.channels_display) {
 				appState.channels_display = display
 			}
 			pg.query('SELECT * FROM channels ORDER BY created_at DESC').then((result) => {
