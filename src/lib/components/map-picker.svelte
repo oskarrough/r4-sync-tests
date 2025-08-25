@@ -1,6 +1,6 @@
 <script>
 	import {_} from 'svelte-i18n'
-	import Map from '$lib/components/map.svelte'
+	import MapComponent from '$lib/components/map.svelte'
 
 	const {latitude = null, longitude = null, title = '', onselect = () => {}} = $props()
 
@@ -31,7 +31,7 @@
 	}
 </script>
 
-<Map bind:this={mapComponent} {markers} selectMode={true} on:mapClick={onMapClick} />
+<MapComponent bind:this={mapComponent} {markers} selectMode={true} on:mapClick={onMapClick} />
 
 {#if selected}
 	<button type="button" onclick={clearSelection}>

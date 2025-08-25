@@ -37,7 +37,7 @@
 		return filtered
 	})
 
-	const undecidedChannels = $derived(filteredChannels.filter((ch) => ch.spam == undefined))
+	const undecidedChannels = $derived(filteredChannels.filter((ch) => ch.spam == null))
 	const deleteChannels = $derived(filteredChannels.filter((ch) => ch.spam === true))
 	const keepChannels = $derived(filteredChannels.filter((ch) => ch.spam === false))
 

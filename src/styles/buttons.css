@@ -7,23 +7,19 @@ button,
 	justify-content: center;
 	white-space: nowrap;
 	flex-shrink: 0;
-	font-weight: 500;
 	line-height: normal;
 	transition-property: border, background-color, color, opacity;
 	transition-duration: 100ms;
 	user-select: none;
 	position: relative;
 	border-radius: var(--border-radius);
-
 	font-size: var(--font-4);
 	font-weight: 400;
 	min-width: 1.75rem;
 	min-height: 2rem;
 	padding: 0 0.5rem;
-
 	background: var(--gray-1);
 	color: var(--gray-12);
-
 	box-shadow:
 		lch(0 0 0 / 0.06) 0px 4px 4px -1px,
 		lch(0 0 0 / 0.12) 0px 1px 1px 0px;

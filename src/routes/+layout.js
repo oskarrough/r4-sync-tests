@@ -15,7 +15,7 @@ let pg
 /** Sync if no channels exist locally */
 async function autoPull() {
 	const {rows} = await pg.sql`SELECT COUNT(*) as count FROM channels`
-	const channelCount = parseInt(rows[0].count)
+	const channelCount = Number(rows[0].count)
 	if (channelCount > 100) return
 	log.log('autoPull')
 	await r5.channels.pull().catch((err) => log.error('auto_sync_error', err))

@@ -23,7 +23,7 @@
 			processed.push({
 				...channel,
 				frequency: freq,
-				signalStrength: Math.pow(Math.log10(Math.max(channel.track_count || 1, 1)) / Math.log10(2000), 5)
+				signalStrength: Math.log10(Math.max(channel.track_count || 1, 1)) / Math.log10(2000) ** 5
 			})
 		}
 		channelsWithFrequency = processed.sort((a, b) => a.frequency - b.frequency)

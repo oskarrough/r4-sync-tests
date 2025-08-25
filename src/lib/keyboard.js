@@ -2,6 +2,7 @@ import {createKeybindingsHandler} from 'tinykeys'
 import * as api from '$lib/api.js'
 import {appState} from '$lib/app-state.svelte'
 
+/** Maps keybinding to functions from api.js */
 export const DEFAULT_KEY_BINDINGS = {
 	f: 'togglePlayerExpanded',
 	'$mod+k': 'openSearch',

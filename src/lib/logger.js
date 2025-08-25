@@ -5,7 +5,7 @@ const key = 'r5'
 class R5Formatter extends Formatter {
 	/**
 	 * @param {import('adze').ModifierData} data
-	 * @param {string} timestamp
+	 * @param {string} _timestamp
 	 * @param {unknown[]} args
 	 */
 	formatBrowser(data, _timestamp, args) {
@@ -15,7 +15,7 @@ class R5Formatter extends Formatter {
 
 	/**
 	 * @param {import('adze').ModifierData} data
-	 * @param {string} timestamp
+	 * @param {string} _timestamp
 	 * @param {unknown[]} args
 	 */
 	formatServer(data, _timestamp, args) {
