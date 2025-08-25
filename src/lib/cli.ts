@@ -4,8 +4,8 @@
 
 import yargs from 'yargs'
 import {hideBin} from 'yargs/helpers'
-import {r5} from './r5/index.js'
 import {downloadChannel} from './r5/download.js'
+import {r5} from './r5/index.js'
 import type {Channel, Track} from './types.ts'
 
 // Shared options
@@ -203,10 +203,7 @@ cli.command('tracks <command>', 'Manage tracks', (yargs) => {
 		.command(
 			'pull <slug>',
 			'Force pull tracks from remote (bypasses local)',
-			(yargs) =>
-				yargs
-					.positional('slug', {describe: 'Channel slug', type: 'string'})
-					.option('dry-run', dryRunOpt),
+			(yargs) => yargs.positional('slug', {describe: 'Channel slug', type: 'string'}).option('dry-run', dryRunOpt),
 			async (argv) => {
 				try {
 					if (argv['dry-run']) {

@@ -1,9 +1,9 @@
-import {ENTITY_REGEX} from '../utils.ts'
+import {raw, sql} from '@electric-sql/pglite/template'
 import {logger} from '../logger.js'
 import {r4 as r4Api} from '../r4.ts'
-import {getPg} from './db.js'
+import {ENTITY_REGEX} from '../utils.ts'
 import * as channels from './channels.js'
-import {sql, raw} from '@electric-sql/pglite/template'
+import {getPg} from './db.js'
 
 const log = logger.ns('r5:tracks').seal()
 const LIMIT = 5000
@@ -35,9 +35,7 @@ export {trackIdToSlug}
 export async function local({slug = '', limit = LIMIT} = {}) {
 	const pg = await getPg()
 	const whereClause = slug ? sql`where channel_slug = ${slug}` : raw``
-	return (
-		await pg.sql`select * from tracks_with_meta ${whereClause} order by created_at desc limit ${limit}`
-	).rows
+	return (await pg.sql`select * from tracks_with_meta ${whereClause} order by created_at desc limit ${limit}`).rows
 }
 
 /** Get tracks from r4 (remote) */
@@ -107,7 +105,7 @@ export async function pull({id, slug = '', limit = LIMIT} = {}) {
 /** Insert tracks into local database */
 export async function insert(slug, tracks) {
 	const pg = await getPg()
-	let channel = (await pg.sql`select * from channels where slug = ${slug}`).rows[0]
+	const channel = (await pg.sql`select * from channels where slug = ${slug}`).rows[0]
 	if (!channel) throw new Error(`insert_tracks_error_404: ${slug}`)
 
 	// Skip v1 re-imports

@@ -1,6 +1,7 @@
-import {pg} from '$lib/r5/db'
 import {logger} from '$lib/logger'
+import {pg} from '$lib/r5/db'
 import type {AppState} from './types.ts'
+
 const log = logger.ns('app_state').seal()
 
 export const defaultAppState = {

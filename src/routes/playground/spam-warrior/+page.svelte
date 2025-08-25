@@ -1,11 +1,6 @@
 <script>
 	import {onMount} from 'svelte'
-	import {
-		analyzeChannels,
-		clearChannelSpam,
-		getChannelTracks,
-		analyzeChannel
-	} from './spam-detector.js'
+	import {analyzeChannels, clearChannelSpam, getChannelTracks, analyzeChannel} from './spam-detector.js'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
 	import {pg} from '$lib/r5/db'
@@ -22,9 +17,7 @@
 	let batchProgress = $state('')
 
 	// Filter channels based on algorithm results, user decisions, and track count
-	const channels = $derived(
-		showOnlySpam ? allChannels.filter((ch) => ch.spamAnalysis.isSpam) : allChannels
-	)
+	const channels = $derived(showOnlySpam ? allChannels.filter((ch) => ch.spamAnalysis.isSpam) : allChannels)
 
 	const filteredChannels = $derived.by(() => {
 		let filtered = channels
@@ -135,10 +128,7 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 					// Update the stored track_count for faster future queries
 					await pg.sql`UPDATE channels SET track_count = ${newCount} WHERE id = ${channel.id}`
 				} catch (error) {
-					console.error(
-						`batch_fetch_tracks_error: Failed to fetch tracks for ${channel.slug}:`,
-						error
-					)
+					console.error(`batch_fetch_tracks_error: Failed to fetch tracks for ${channel.slug}:`, error)
 				}
 
 				// Small delay to avoid overwhelming the API
@@ -181,8 +171,7 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 	<header>
 		<h1>Spam Warrior</h1>
 		<p>
-			Review {showOnlySpam ? 'suspected spam channels' : 'all local channels'} and generate SQL commands
-			for deletion.
+			Review {showOnlySpam ? 'suspected spam channels' : 'all local channels'} and generate SQL commands for deletion.
 		</p>
 	</header>
 
@@ -252,9 +241,7 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 						<em>{Math.round(channel.spamAnalysis.confidence * 100)}% spam</em>
 						{#if channel.description && channel.description.trim()}
 							<div class="description">
-								{channel.description.length > 400
-									? channel.description.slice(0, 400) + '...'
-									: channel.description}
+								{channel.description.length > 400 ? channel.description.slice(0, 400) + '...' : channel.description}
 							</div>
 						{:else}
 							<div class="description no-description">
@@ -262,9 +249,7 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 							</div>
 						{/if}
 						{#if channel.spamAnalysis.reasons.length > 0}
-							<span style="background: var(--color-orange)"
-								>{channel.spamAnalysis.reasons.join(', ')}</span
-							>
+							<span style="background: var(--color-orange)">{channel.spamAnalysis.reasons.join(', ')}</span>
 						{/if}
 
 						<div class="channel-tracks">

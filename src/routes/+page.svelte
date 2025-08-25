@@ -13,9 +13,7 @@
 	const display = $derived(page?.url?.searchParams?.get('display') || 'grid')
 	const longitude = $derived(Number(page?.url?.searchParams?.get('longitude')))
 	const latitude = $derived(Number(page?.url?.searchParams?.get('latitude')))
-	const zoom = $derived(
-		page?.url?.searchParams?.get('zoom') ? Number(page?.url?.searchParams?.get('zoom')) : 4
-	)
+	const zoom = $derived(page?.url?.searchParams?.get('zoom') ? Number(page?.url?.searchParams?.get('zoom')) : 4)
 
 	let syncing = $state(false)
 

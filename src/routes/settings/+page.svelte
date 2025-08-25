@@ -21,9 +21,7 @@
 	<section>
 		<h2>Alpha software</h2>
 		<p>
-			If the app is acting weird, tracks not loading or just broken, try <a href="/recovery"
-				>recovery</a
-			>.
+			If the app is acting weird, tracks not loading or just broken, try <a href="/recovery">recovery</a>.
 		</p>
 	</section>
 	<section>
@@ -41,25 +39,21 @@
 	<section>
 		<h2>About</h2>
 		<p>
-			Just like <a href="https://radio4000.com">radio4000.com</a>, this web app pulls its data from
-			the Radio4000 PostgreSQL database. But it pulls it into another PostgreSQL database sitting
-			locally, directly in your browser via WASM. This makes it feel faster, more app-feeling
-			hopefully. Pull channels from R4 (including version 1) by <em>syncing</em> above &uarr;
+			Just like <a href="https://radio4000.com">radio4000.com</a>, this web app pulls its data from the Radio4000
+			PostgreSQL database. But it pulls it into another PostgreSQL database sitting locally, directly in your browser
+			via WASM. This makes it feel faster, more app-feeling hopefully. Pull channels from R4 (including version 1) by
+			<em>syncing</em> above &uarr;
 		</p>
 		<br />
 		<p>
-			You can add tracks to your radio. But creating a radio, editing tracks etc. is not yet
-			possible. go to the og site for that.
+			You can add tracks to your radio. But creating a radio, editing tracks etc. is not yet possible. go to the og site
+			for that.
 		</p>
 		<p>
 			<a href="https://matrix.to/#/#radio4000:matrix.org" rel="noreferrer">Chat with us</a>
 			•
 			{#if sha}
-				<a
-					href="https://github.com/radio4000/r4-sync-tests/commit/{sha}"
-					target="_blank"
-					rel="noreferrer"
-				>
+				<a href="https://github.com/radio4000/r4-sync-tests/commit/{sha}" target="_blank" rel="noreferrer">
 					Source at {sha}
 				</a>
 			{/if}

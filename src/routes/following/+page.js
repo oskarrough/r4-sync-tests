@@ -1,5 +1,5 @@
-import {appState} from '$lib/app-state.svelte'
 import {ensureFollowers} from '$lib/api'
+import {appState} from '$lib/app-state.svelte'
 
 /** @type {import('./$types').PageLoad} */
 export async function load({parent}) {

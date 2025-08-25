@@ -17,11 +17,7 @@ export const r4 = {
 			return data || []
 		},
 		readChannel: async (slug: string) => {
-			const {data, error} = await sdk.supabase
-				.from('channels_with_tracks')
-				.select('*')
-				.eq('slug', slug)
-				.single()
+			const {data, error} = await sdk.supabase.from('channels_with_tracks').select('*').eq('slug', slug).single()
 			if (error) throw error
 			return data
 		},

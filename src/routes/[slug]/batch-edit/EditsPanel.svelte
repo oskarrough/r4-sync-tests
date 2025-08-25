@@ -1,15 +1,5 @@
 <script>
-	let {
-		readonly,
-		canEdit,
-		edits,
-		appliedEdits = [],
-		tracksMap,
-		onCommit,
-		onDiscard,
-		onUndo,
-		onDelete
-	} = $props()
+	let {readonly, canEdit, edits, appliedEdits = [], tracksMap, onCommit, onDiscard, onUndo, onDelete} = $props()
 
 	function getTrackTitle(trackId) {
 		const track = tracksMap.get(trackId)
@@ -104,11 +94,7 @@
 									{getTrackTitle(edit.track_id)}
 									<code>{edit.field}</code>
 									{#if canEdit}
-										<button
-											class="undo-btn"
-											onclick={() => onUndo(edit.track_id, edit.field)}
-											title="Undo this edit"
-										>
+										<button class="undo-btn" onclick={() => onUndo(edit.track_id, edit.field)} title="Undo this edit">
 											↶ Undo
 										</button>
 									{/if}

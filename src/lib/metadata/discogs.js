@@ -1,5 +1,5 @@
-import {getPg} from '../r5/db.js'
 import {logger} from '$lib/logger'
+import {getPg} from '../r5/db.js'
 
 const log = logger.ns('metadata/discogs').seal()
 

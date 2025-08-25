@@ -159,8 +159,7 @@
 
 <style>
 	.Map {
-		--map-tiles-filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3)
-			brightness(0.7);
+		--map-tiles-filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
 		width: 100%;
 		height: 100%;
 		background-color: transparent;

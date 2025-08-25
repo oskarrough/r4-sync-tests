@@ -1,4 +1,4 @@
-import {describe, it, expect, beforeEach} from 'vitest'
+import {beforeEach, describe, expect, it} from 'vitest'
 import {r5} from '.'
 import {createPg, reset} from './db.js'
 
@@ -72,9 +72,7 @@ describe('r5 API', () => {
 		})
 
 		it('should handle pull for non-existent channel', async () => {
-			await expect(r5.channels.pull({slug: 'non-existent-999'})).rejects.toThrow(
-				'channel_not_found'
-			)
+			await expect(r5.channels.pull({slug: 'non-existent-999'})).rejects.toThrow('channel_not_found')
 		})
 
 		it('should check if channel is outdated', async () => {

@@ -1,5 +1,5 @@
-import {pg} from '$lib/r5/db'
 import {error} from '@sveltejs/kit'
+import {pg} from '$lib/r5/db'
 
 /** @type {import('./$types').PageLoad} */
 export async function load({parent, params}) {
@@ -10,15 +10,12 @@ export async function load({parent, params}) {
 	const {slug} = params
 
 	/** @type {import('$lib/types').Channel} */
-	let channel = (await pg.query('SELECT * FROM channels WHERE slug = $1', [slug])).rows[0]
+	const channel = (await pg.query('SELECT * FROM channels WHERE slug = $1', [slug])).rows[0]
 
 	if (!channel) error(404, 'Channel not found')
 
 	// Get all track URLs for this channel
-	const tracks = await pg.query(
-		'SELECT url FROM tracks WHERE channel_id = $1 ORDER BY created_at DESC',
-		[channel.id]
-	)
+	const tracks = await pg.query('SELECT url FROM tracks WHERE channel_id = $1 ORDER BY created_at DESC', [channel.id])
 
 	return {
 		channel,

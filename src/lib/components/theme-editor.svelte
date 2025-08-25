@@ -123,11 +123,7 @@
 
 		<div>
 			<label for={`${uid}-hide-artwork`}>hide track artwork</label>
-			<input
-				type="checkbox"
-				bind:checked={appState.hide_track_artwork}
-				id={`${uid}-hide-artwork`}
-			/>
+			<input type="checkbox" bind:checked={appState.hide_track_artwork} id={`${uid}-hide-artwork`} />
 			<span></span>
 			<small>Toggle track thumbnails in track lists and player</small>
 		</div>

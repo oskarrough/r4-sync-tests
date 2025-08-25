@@ -30,10 +30,7 @@
 
 <header>
 	<h1>Live Broadcasts</h1>
-	<p>
-		Work in progress. Here yoy can listen to broadcasts from other radios. Listen to what they're
-		listening to.
-	</p>
+	<p>Work in progress. Here yoy can listen to broadcasts from other radios. Listen to what they're listening to.</p>
 
 	{#if loadingError}
 		<p>Error! {loadingError}</p>

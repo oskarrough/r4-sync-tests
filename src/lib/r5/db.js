@@ -1,5 +1,5 @@
-import {PGliteWorker} from '@electric-sql/pglite/worker'
 import {live} from '@electric-sql/pglite/live'
+import {PGliteWorker} from '@electric-sql/pglite/worker'
 import {logger} from '../logger.js'
 import migration01sql from '../migrations/01-initial-schema.js'
 import migration02sql from '../migrations/02-more-tables.js'

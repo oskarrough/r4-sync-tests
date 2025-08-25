@@ -1,8 +1,8 @@
 import {spawn} from 'node:child_process'
-import {mkdir} from 'node:fs/promises'
 import {existsSync} from 'node:fs'
-import pLimit from 'p-limit'
+import {mkdir} from 'node:fs/promises'
 import filenamify from 'filenamify'
+import pLimit from 'p-limit'
 import {extractYouTubeId} from '../utils.ts'
 
 /**
@@ -26,9 +26,7 @@ async function downloadAudio(url, filepath, metadataDescription = '', premium = 
 
 	if (premium) {
 		if (!poToken) {
-			throw new Error(
-				'Premium download requires a PO Token. Please provide it with --poToken parameter.'
-			)
+			throw new Error('Premium download requires a PO Token. Please provide it with --poToken parameter.')
 		}
 		args.push(
 			'--cookies-from-browser',
@@ -144,9 +142,7 @@ export async function downloadChannel(slug, folderPath, options = {}) {
 	// Download with concurrency limit
 	const limit = pLimit(concurrency)
 	const results = await Promise.all(
-		tracks.map((track) =>
-			limit(() => downloadTrack(track, tracksFolder, {simulate, premium, poToken}))
-		)
+		tracks.map((track) => limit(() => downloadTrack(track, tracksFolder, {simulate, premium, poToken})))
 	)
 
 	// Count results

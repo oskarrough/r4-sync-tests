@@ -21,9 +21,7 @@
 		if (mentionQuery.length < 1) return allChannels.slice(0, 5)
 		return allChannels
 			.filter(
-				(c) =>
-					c.slug.includes(mentionQuery.toLowerCase()) ||
-					c.name.toLowerCase().includes(mentionQuery.toLowerCase())
+				(c) => c.slug.includes(mentionQuery.toLowerCase()) || c.name.toLowerCase().includes(mentionQuery.toLowerCase())
 			)
 			.slice(0, 5)
 	})

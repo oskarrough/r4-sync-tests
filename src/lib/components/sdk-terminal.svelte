@@ -70,9 +70,7 @@
 							<div>
 								{entry.data
 									.slice(0, 3)
-									.map((item) =>
-										item.slug ? `@${item.slug}` : item.title || item.name || 'untitled'
-									)
+									.map((item) => (item.slug ? `@${item.slug}` : item.title || item.name || 'untitled'))
 									.join(', ')}
 								{#if entry.data.length > 3}
 									+ {entry.data.length - 3} more{/if}

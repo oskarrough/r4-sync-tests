@@ -1,7 +1,7 @@
-import {pg} from '$lib/r5/db'
 import {error} from '@sveltejs/kit'
 import {logger} from '$lib/logger'
 import {r5} from '$lib/r5'
+import {pg} from '$lib/r5/db'
 
 /**
  * Wait for the db to be ready, query track + channel locally
@@ -24,9 +24,7 @@ export async function load({parent, params, depends}) {
 	}
 
 	/** @type {{rows: import('$lib/types').Channel[]}} */
-	const {rows: channelRows} = await pg.query('SELECT * FROM channels WHERE id = $1 limit 1', [
-		track.channel_id
-	])
+	const {rows: channelRows} = await pg.query('SELECT * FROM channels WHERE id = $1 limit 1', [track.channel_id])
 	if (!channelRows.length) error(404, 'Channel not found')
 	const channel = channelRows[0]
 

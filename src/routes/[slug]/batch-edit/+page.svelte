@@ -106,8 +106,7 @@
 		{/if}
 		<p>
 			<strong
-				>IMPORTANT: This is local-only. No remote data is overwritten. It is safe to play. you can
-				edit any radio.</strong
+				>IMPORTANT: This is local-only. No remote data is overwritten. It is safe to play. you can edit any radio.</strong
 			>
 		</p>
 	</nav>

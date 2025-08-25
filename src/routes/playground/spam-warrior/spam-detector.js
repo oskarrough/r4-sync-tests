@@ -1,5 +1,5 @@
 import {pg} from '$lib/r5/db'
-import {spamKeywords, spamDomains, businessPartners, suspiciousPhrases} from './spam-words'
+import {businessPartners, spamDomains, spamKeywords, suspiciousPhrases} from './spam-words'
 
 /**
  * Analyze a channel for spam indicators
@@ -27,9 +27,7 @@ export function analyzeChannel(channel, tracks = []) {
 
 	if (matchedKeywords.length > 0) {
 		spamScore += matchedKeywords.length * 3 // Increased from 2
-		reasons.push(
-			`Spam keywords: ${matchedKeywords.slice(0, 3).join(', ')}${matchedKeywords.length > 3 ? '...' : ''}`
-		)
+		reasons.push(`Spam keywords: ${matchedKeywords.slice(0, 3).join(', ')}${matchedKeywords.length > 3 ? '...' : ''}`)
 	}
 
 	// Check for business patterns (regex) - but be lenient for music channels
@@ -85,11 +83,7 @@ export function analyzeChannel(channel, tracks = []) {
 	}
 
 	// Business name ending with numbers (common spam pattern) - exclude music-related numbers
-	if (
-		/\w+\d+$/.test(title) &&
-		title.length > 5 &&
-		!/(radio|rádio|dj|tdj|\d{4}|3000|2000|4000|fm|am)/i.test(title)
-	) {
+	if (/\w+\d+$/.test(title) && title.length > 5 && !/(radio|rádio|dj|tdj|\d{4}|3000|2000|4000|fm|am)/i.test(title)) {
 		spamScore += 3
 		reasons.push('Business name with trailing numbers')
 	}
@@ -105,11 +99,7 @@ export function analyzeChannel(channel, tracks = []) {
 	}
 
 	// Gambling/adult site patterns (W69, BK8, etc.)
-	if (
-		/^[A-Z]\d{1,3}$/i.test(title) ||
-		/^(BK|W)\d+$/i.test(title) ||
-		/ratubola|ratuBola/i.test(title)
-	) {
+	if (/^[A-Z]\d{1,3}$/i.test(title) || /^(BK|W)\d+$/i.test(title) || /ratubola|ratuBola/i.test(title)) {
 		spamScore += 4
 		reasons.push('Gambling/adult site pattern')
 	}
@@ -155,8 +145,7 @@ export function analyzeChannel(channel, tracks = []) {
 	// Numbers that look like phone numbers or codes - exclude music-related numbers
 	if (/\b\d{3,}\b/.test(text)) {
 		// Don't penalize years, music terms, or obvious music channels
-		const isMusicNumbers =
-			/(19\d{2}|20\d{2}|\d{4})/i.test(text) || /(radio|rádio|dj|music|track|album|mix)/i.test(text)
+		const isMusicNumbers = /(19\d{2}|20\d{2}|\d{4})/i.test(text) || /(radio|rádio|dj|music|track|album|mix)/i.test(text)
 		if (!isMusicNumbers) {
 			spamScore += 1 // Increased from 0.5
 			reasons.push('Contains number codes/phones')
@@ -164,14 +153,9 @@ export function analyzeChannel(channel, tracks = []) {
 	}
 
 	// Multiple business/promotional terms together (combo detection)
-	const businessTermCount = [
-		'service',
-		'company',
-		'business',
-		'professional',
-		'expert',
-		'specialist'
-	].filter((term) => text.includes(term)).length
+	const businessTermCount = ['service', 'company', 'business', 'professional', 'expert', 'specialist'].filter((term) =>
+		text.includes(term)
+	).length
 
 	if (businessTermCount >= 3) {
 		spamScore += 3
