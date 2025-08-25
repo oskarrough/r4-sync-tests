@@ -22,11 +22,11 @@ async function autoPull() {
 }
 
 async function preload() {
-	log.info('waiting 3 secs')
 	if (!browser) {
-		console.log('latout but no browser, why?')
+		log.warn('preloading_failed_no_browser')
 		return
 	}
+	log.log('preloading')
 	try {
 		await r5.db.migrate()
 		pg = await r5.db.getPg()
@@ -45,7 +45,6 @@ async function preload() {
 
 /** @type {import('./$types').LayoutLoad} */
 export async function load() {
-	log.log('preloading')
 	return {
 		preloading: preload()
 	}

@@ -208,8 +208,11 @@
 	}
 
 	h1 {
+		display: flex;
 		padding-top: 1rem;
 		font-size: var(--font-9);
+		gap: 0.5rem;
+		align-items: center;
 	}
 
 	h1 + p {

@@ -5,6 +5,7 @@
 	import Icon from '$lib/components/icon.svelte'
 	import Channels from '$lib/components/channels.svelte'
 	import {getPg} from '$lib/r5/db.js'
+	import {appState} from '$lib/app-state.svelte'
 	import {onMount} from 'svelte'
 
 	// const {data} = $props()
@@ -22,6 +23,9 @@
 
 	onMount(() => {
 		getPg().then((pg) => {
+			if (display !== appState.channels_display) {
+				appState.channels_display = display
+			}
 			pg.query('SELECT * FROM channels ORDER BY created_at DESC').then((result) => {
 				channels = result.rows
 			})
