@@ -1,5 +1,5 @@
 <svg width="300" height="260" viewBox="0 0 300 260" xmlns="http://www.w3.org/2000/svg">
-	<title>icon-r4</title>
+	<title>R4</title>
 	<g fill="#000" fill-rule="evenodd">
 		<path
 			d="M125 217.53h108.86V260h40.19l-.005-42.47H300v-39.887h-25.955V38.147h-64.868L125 177.597v39.934zm34.215-40.066l87.847-70.16v70.16h-87.847z"

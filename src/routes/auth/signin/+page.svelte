@@ -1,3 +1,7 @@
+<script>
+	import {goto} from '$app/navigation'
+</script>
+
 <svelte:head>
 	<title>Sign in - R5</title>
 </svelte:head>
@@ -6,12 +10,9 @@
 	<header>
 		<p><a href="/auth">auth</a> / sign-in</p>
 	</header>
-	<!--
-	<a href="/auth">&larr; Back</a>
-	-->
 
 	<h1>Sign in</h1>
-	<r4-sign-in hcaptcha-site-key="b0a493f2-49df-486b-bdee-b8459f7b1c21"></r4-sign-in>
+	<r4-sign-in hcaptcha-site-key="b0a493f2-49df-486b-bdee-b8459f7b1c21" onsubmit={() => goto('/auth')}></r4-sign-in>
 
 	<footer>
 		<p>

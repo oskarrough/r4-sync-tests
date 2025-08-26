@@ -124,13 +124,13 @@
 				<small>
 					Broadcasting since {relativeDateSolar(channel.created_at)}. Updated {relativeDate(
 						latestTrackDate || channel.updated_at
-					)}. {trackIds.length} tracks
+					)}. {channel.track_count} tracks
 				</small>
 			</p>
 		</header>
 
 		<section>
-			<header style="padding-top: 1rem">
+			<header style="padding-top: 0.5rem">
 				<form onsubmit={handleSubmit}>
 					<SearchInput
 						bind:value={searchQuery}
@@ -151,7 +151,6 @@
 				<p style="margin-top:1rem; margin-left: 0.5rem;">Loading tracks…</p>
 			{:then whatevs}
 				{@const ids = trackIds.length ? trackIds : whatevs.map((x) => x.id)}
-				<p style="margin-top:1rem; margin-left: 0.5rem;">{ids.length} tracks</p>
 				{#if ids.length > 0}
 					<Tracklist {ids} />
 				{:else}
