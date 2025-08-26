@@ -124,7 +124,7 @@
 				<small>
 					Broadcasting since {relativeDateSolar(channel.created_at)}. Updated {relativeDate(
 						latestTrackDate || channel.updated_at
-					)}. {ids.length} tracks
+					)}. {trackIds.length} tracks
 				</small>
 			</p>
 		</header>
