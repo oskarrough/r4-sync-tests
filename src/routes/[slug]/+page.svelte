@@ -124,7 +124,7 @@
 				<small>
 					Broadcasting since {relativeDateSolar(channel.created_at)}. Updated {relativeDate(
 						latestTrackDate || channel.updated_at
-					)}.
+					)}. {ids.length} tracks
 				</small>
 			</p>
 		</header>
@@ -192,6 +192,7 @@
 
 	article header :global(figure) {
 		margin: 0.5rem 1rem 0rem 1rem;
+		min-width: 150px;
 		max-width: 60%;
 
 		@media (min-width: 520px) {
