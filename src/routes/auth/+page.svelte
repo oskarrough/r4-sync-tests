@@ -67,7 +67,7 @@
 
 			&:hover {
 				background: var(--accent-7);
-				color: var(--gray-12);
+				color: light-dark(var(--gray-12), var(--gray-1));
 				border-color: var(--accent-1);
 			}
 		}

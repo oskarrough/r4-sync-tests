@@ -2,6 +2,7 @@
 	import {sdk} from '@radio4000/sdk'
 	import KeyboardEditor from '$lib/components/keyboard-editor.svelte'
 	import ThemeEditor from '$lib/components/theme-editor.svelte'
+	import {appState} from '$lib/app-state.svelte'
 
 	const sha = $derived(__GIT_INFO__.sha)
 
@@ -26,9 +27,16 @@
 	</section>
 	<section>
 		<h2>Account</h2>
-		<p>
-			<button onclick={logout}>Logout</button>
-		</p>
+		{#if appState.user}
+			<p>
+				<button onclick={logout}>Logout</button>
+			</p>
+		{:else}
+			<p>You only need an account if you want to have a radio and add tracks.</p>
+			<p>
+				<a href="/auth">Create account or sign in</a>
+			</p>
+		{/if}
 	</section>
 	<section>
 		<ThemeEditor />

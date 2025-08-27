@@ -3,6 +3,7 @@
 	import {appState} from '$lib/app-state.svelte'
 	import {logger} from '$lib/logger'
 	import {r4} from '$lib/r4'
+	import {checkUser} from '$lib/api'
 	import {sync as syncFollowers} from '$lib/r5/followers'
 
 	const log = logger.ns('auth').seal()
@@ -16,6 +17,10 @@
 
 		if (appState.user !== session?.user) {
 			appState.user = session?.user
+		}
+
+		if (eventName === 'SIGNED_IN') {
+			if (!appState.channels.length) await checkUser()
 		}
 
 		if (eventName === 'SIGNED_OUT') {
