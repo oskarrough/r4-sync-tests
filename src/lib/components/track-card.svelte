@@ -44,9 +44,7 @@
 
 <article class:active>
 	<a href={permalink} onclick={click} ondblclick={doubleClick} data-sveltekit-preload-data="tap">
-		<span class="index">
-			{#if index}{index + 1}.{/if}
-		</span>
+		<span class="index"> {(index ?? 0) + 1}. </span>
 		{#if ytid && showImage && !appState.hide_track_artwork}<img
 				src={imageSrc}
 				alt={track.title}

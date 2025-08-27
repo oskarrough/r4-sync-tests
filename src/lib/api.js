@@ -54,7 +54,7 @@ export async function playTrack(id, endReason, startReason) {
 	const tracks = (await pg.sql`select id from tracks where channel_id = ${track.channel_id} order by created_at desc`)
 		.rows
 	const ids = tracks.map((t) => t.id)
-	if (!appState.playlist_tracks.length) await setPlaylist(ids) 
+	if (!appState.playlist_tracks.length) await setPlaylist(ids)
 	appState.playlist_track = id
 	await addPlayHistory({nextTrackId: id, previousTrackId, endReason, startReason})
 

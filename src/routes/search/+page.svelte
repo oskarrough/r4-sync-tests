@@ -49,7 +49,7 @@
 	}
 
 	async function playSearchResults() {
-		const ids = tracks.map(t => t.id)
+		const ids = tracks.map((t) => t.id)
 		await setPlaylist(ids)
 		await playTrack(ids[0])
 	}

@@ -2,7 +2,6 @@
 	import {onMount} from 'svelte'
 	import {page} from '$app/state'
 	import {goto} from '$app/navigation'
-	import {incrementalLiveQuery} from '$lib/live-query'
 	import {setPlaylist, addToPlaylist, playTrack} from '$lib/api'
 	import {searchTracks} from '$lib/search'
 	import {relativeDate, relativeDateSolar} from '$lib/dates'

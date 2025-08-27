@@ -103,7 +103,9 @@
 		{#if view === 'queue' && trackIds.length > 0}
 			<button onclick={clearQueue} {@attach tooltip({content: 'Clear queued tracks'})}>Clear</button>
 		{:else if view === 'history' && playHistory.length > 0}
-			<button onclick={() => (showClearHistoryModal = true)}  {@attach tooltip({content: 'Clear playlist history'})}>Clear</button>
+			<button onclick={() => (showClearHistoryModal = true)} {@attach tooltip({content: 'Clear playlist history'})}
+				>Clear</button
+			>
 		{/if}
 	</div>
 
