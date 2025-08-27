@@ -7,6 +7,7 @@
 	import Modal from './modal.svelte'
 	import SearchInput from './search-input.svelte'
 	import fuzzysort from 'fuzzysort'
+	import {tooltip} from '$lib/components/tooltip-attachment.js'
 
 	let view = $state('queue') // 'queue' or 'history'
 	let showClearHistoryModal = $state(false)
@@ -95,15 +96,15 @@
 				>History ({playHistory.length})</button
 			>
 		</menu>
-		{#if view === 'queue' && trackIds.length > 0}
-			<button onclick={clearQueue}>Clear</button>
-		{:else if view === 'history' && playHistory.length > 0}
-			<button onclick={() => (showClearHistoryModal = true)} title="Clear playlist history">Clear</button>
-		{/if}
 	</header>
 
 	<div class="search-container">
 		<SearchInput bind:value={searchQuery} placeholder="Search {view}..." />
+		{#if view === 'queue' && trackIds.length > 0}
+			<button onclick={clearQueue} {@attach tooltip({content: 'Clear queued tracks'})}>Clear</button>
+		{:else if view === 'history' && playHistory.length > 0}
+			<button onclick={() => (showClearHistoryModal = true)}  {@attach tooltip({content: 'Clear playlist history'})}>Clear</button>
+		{/if}
 	</div>
 
 	<main class="scroll">
@@ -185,8 +186,8 @@
 		align-items: center;
 		justify-content: space-between;
 		padding: 0.5rem;
-		background: var(--aside-bg, var(--bg-3));
-		border-bottom: 1px solid var(--gray-7);
+		background: var(--aside-bg, var(--bg-2));
+		border-bottom: 1px solid var(--gray-5);
 	}
 
 	p.history {
@@ -215,12 +216,10 @@
 	}
 
 	.search-container {
+		display: flex;
 		padding: 0.5rem;
 		border-bottom: 1px solid var(--gray-5);
-	}
-
-	.search-container :global(input) {
-		width: 100%;
+		justify-content: space-between;
 	}
 
 	.tracks :global(.slug) {
