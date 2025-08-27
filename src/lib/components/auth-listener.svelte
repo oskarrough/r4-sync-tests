@@ -23,7 +23,7 @@
 
 		if (!user) {
 			if (appState.channels?.length) {
-				console.log('cleaning up channels')
+				log.log('cleaning_up_channels')
 				appState.channels = []
 			}
 			return
@@ -31,7 +31,7 @@
 
 		const isNewSession = event === 'INITIAL_SESSION' && user.id !== previousUserId
 		const isNewSignIn = event === 'SIGNED_IN' && user.id !== previousUserId
-		console.log({isNewSession, isNewSignIn})
+		log.log('auth_state', {isNewSession, isNewSignIn})
 		if (isNewSession || isNewSignIn) {
 			await checkUser()
 		}

@@ -278,10 +278,10 @@ export async function queryFollowers(followerId) {
  * @returns {Promise<import('$lib/types').Channel[]>}
  */
 export async function ensureFollowers(followerId) {
-	console.log('ensuring followers')
+	log.log('ensuring_followers', followerId)
 	const existing = await queryFollowers(followerId)
 	if (existing.length === 0 && followerId !== 'local-user') {
-		console.log('no followers and authed? pulling and quering followers')
+		log.log('pulling_followers', {followerId, reason: 'no_local_followers'})
 		await pullFollowers(followerId)
 		return await queryFollowers(followerId)
 	}
