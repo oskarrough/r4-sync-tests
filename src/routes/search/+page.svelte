@@ -2,7 +2,7 @@
 	import {trap} from '$lib/focus'
 	import {page} from '$app/state'
 	import {r5} from '$lib/r5'
-	import {setPlaylist, addToPlaylist} from '$lib/api'
+	import {setPlaylist, addToPlaylist, playTrack} from '$lib/api'
 	import ChannelCard from '$lib/components/channel-card.svelte'
 	import TrackCard from '$lib/components/track-card.svelte'
 
@@ -47,6 +47,12 @@
 
 		isLoading = false
 	}
+
+	async function playSearchResults() {
+		const ids = tracks.map(t => t.id)
+		await setPlaylist(ids)
+		await playTrack(ids[0])
+	}
 </script>
 
 <svelte:head>
@@ -56,7 +62,7 @@
 <article use:trap>
 	<menu>
 		{#if searchQuery && !isLoading && tracks.length > 0}
-			<button type="button" onclick={() => setPlaylist(tracks.map((t) => t.id))}>Play all</button>
+			<button type="button" onclick={playSearchResults}>Play all</button>
 			<button type="button" onclick={() => addToPlaylist(tracks.map((t) => t.id))}>Add to queue</button>
 		{/if}
 		<small

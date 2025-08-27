@@ -3,7 +3,7 @@
 	import {page} from '$app/state'
 	import {goto} from '$app/navigation'
 	import {incrementalLiveQuery} from '$lib/live-query'
-	import {setPlaylist, addToPlaylist} from '$lib/api'
+	import {setPlaylist, addToPlaylist, playTrack} from '$lib/api'
 	import {searchTracks} from '$lib/search'
 	import {relativeDate, relativeDateSolar} from '$lib/dates'
 	import Icon from '$lib/components/icon.svelte'
@@ -20,57 +20,28 @@
 
 	/** @type {string[]} */
 	let trackIds = $derived([])
-	let searchQuery = $state(data.search || '')
+	let searchQuery = $derived(data.search || '')
 	let debounceTimer = $state()
+
+	onMount(() => {
+		const search = page.url.searchParams.get('search')
+		if (search) searchQuery = search
+	})
+
+	$effect(() => {
+		if (!channel?.id || !searchQuery?.trim()) return
+		performSearch()
+	})
 
 	function debouncedSearch() {
 		clearTimeout(debounceTimer)
 		debounceTimer = setTimeout(performSearch, 200)
 	}
 
-	// Live query for channel data to get updated track_count
-	$effect(() => {
-		if (!data.channel?.id) return
-
-		return incrementalLiveQuery('SELECT * FROM channels WHERE id = $1', [data.channel.id], 'id', (res) => {
-			if (res.rows.length > 0) {
-				channel = res.rows[0]
-			}
-		})
-	})
-
-	$effect(() => {
-		if (!channel?.id) return
-
-		const search = searchQuery?.trim()
-		if (search) {
-			// Use regular query for search (non-reactive)
-			performSearch()
-			return
-		}
-
-		// Use liveQuery for default track loading (reactive)
-		/*
-		return incrementalLiveQuery(
-			'SELECT id, created_at FROM tracks WHERE channel_id = $1 ORDER BY created_at DESC',
-			[channel.id],
-			'id',
-			(res) => {
-				trackIds = res.rows.map((row) => row.id)
-				if (res.rows.length > 0) {
-					latestTrackDate = res.rows[0].created_at
-				}
-			}
-		)
-			 */
-	})
-
-	onMount(() => {
-		const urlSearch = page.url.searchParams.get('search')
-		if (urlSearch) {
-			searchQuery = urlSearch
-		}
-	})
+	async function playSearchResults() {
+		await setPlaylist(trackIds)
+		await playTrack(trackIds[0])
+	}
 
 	async function performSearch() {
 		if (!searchQuery?.trim()) return
@@ -139,7 +110,7 @@
 					/>
 					{#if trackIds.length > 0}
 						<menu>
-							<button onclick={() => setPlaylist(trackIds)}>Play All</button>
+							<button onclick={playSearchResults}>Play all</button>
 							<button onclick={() => addToPlaylist(trackIds)}>Add to queue</button>
 							<!--<a href="/{data.slug}/batch-edit" class="btn">Batch edit</a>-->
 						</menu>
