@@ -1,5 +1,5 @@
 <script>
-	import {addFollower, removeFollower, isFollowing} from '$lib/api'
+	import {followChannel, unfollowChannel, isFollowing} from '$lib/api'
 	import {appState} from '$lib/app-state.svelte'
 	import Icon from '$lib/components/icon.svelte'
 
@@ -20,10 +20,10 @@
 		event.preventDefault()
 
 		if (isBookmarked) {
-			await removeFollower(followerId, channel.id)
+			await unfollowChannel(followerId, channel.id)
 			isBookmarked = false
 		} else {
-			await addFollower(followerId, channel.id)
+			await followChannel(followerId, channel.id)
 			isBookmarked = true
 		}
 	}

@@ -51,40 +51,6 @@ export async function pull(userChannelId) {
 }
 
 /**
- * Push local follows to remote
- * @param {string} userChannelId User's channel ID
- * @param {string[]} channelIds Channels to follow
- * @returns {Promise<void>}
- */
-export async function push(userChannelId, channelIds) {
-	await pg.transaction(async (tx) => {
-		for (const channelId of channelIds) {
-			// Insert local follower record
-			await tx.sql`
-				INSERT INTO followers (follower_id, channel_id, created_at, synced_at)
-				VALUES (${userChannelId}, ${channelId}, CURRENT_TIMESTAMP, NULL)
-				ON CONFLICT (follower_id, channel_id) DO UPDATE SET synced_at = NULL
-			`
-
-			// Push to remote
-			try {
-				await r4.channels.followChannel(userChannelId, channelId)
-				await tx.sql`
-					UPDATE followers
-					SET synced_at = CURRENT_TIMESTAMP
-					WHERE follower_id = ${userChannelId} AND channel_id = ${channelId}
-				`
-			} catch (err) {
-				log.error('push_follower_error', {userChannelId, channelId, err})
-				// Keep synced_at = NULL on error for retry
-			}
-		}
-	})
-
-	log.log('push_followers', {userChannelId, count: channelIds.length})
-}
-
-/**
  * Sync local and remote followers bidirectionally
  * @param {string} userChannelId User's channel ID
  * @returns {Promise<void>}

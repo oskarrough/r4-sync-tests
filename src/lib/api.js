@@ -207,7 +207,7 @@ export async function addPlayHistory({previousTrackId, nextTrackId, endReason, s
  * @param {string} followerId - ID of the user's channel
  * @param {string} channelId - ID of the channel to follow
  */
-export async function addFollower(followerId, channelId) {
+export async function followChannel(followerId, channelId) {
 	await pg.sql`
 		INSERT INTO followers (follower_id, channel_id, created_at, synced_at)
 		VALUES (${followerId}, ${channelId}, CURRENT_TIMESTAMP, NULL)
@@ -237,7 +237,7 @@ export async function addFollower(followerId, channelId) {
  * @param {string} followerId - ID of the user's channel
  * @param {string} channelId - ID of the channel to unfollow
  */
-export async function removeFollower(followerId, channelId) {
+export async function unfollowChannel(followerId, channelId) {
 	// If authenticated and not a v1 channel, unfollow from R4 first
 	if (appState.channels?.length && followerId !== 'local-user') {
 		const channel = await pg.sql`SELECT source FROM channels WHERE id = ${channelId}`.then((r) => r.rows[0])
@@ -258,10 +258,12 @@ export async function removeFollower(followerId, channelId) {
 }
 
 /**
+ * Get followers for a user, auto-pulling from remote if needed
  * @param {string} followerId - ID of the user's channel
  * @returns {Promise<import('$lib/types').Channel[]>}
  */
-export async function queryFollowers(followerId) {
+export async function getFollowers(followerId) {
+	log.log('getting_followers', followerId)
 	const {rows} = await pg.sql`
 		SELECT c.*
 		FROM followers f
@@ -269,23 +271,19 @@ export async function queryFollowers(followerId) {
 		WHERE f.follower_id = ${followerId}
 		ORDER BY f.created_at DESC
 	`
-	return rows
-}
-
-/**
- * Ensure followers are loaded for a user, auto-pulling if needed
- * @param {string} followerId - ID of the user's channel
- * @returns {Promise<import('$lib/types').Channel[]>}
- */
-export async function ensureFollowers(followerId) {
-	log.log('ensuring_followers', followerId)
-	const existing = await queryFollowers(followerId)
-	if (existing.length === 0 && followerId !== 'local-user') {
+	if (rows.length === 0 && followerId !== 'local-user') {
 		log.log('pulling_followers', {followerId, reason: 'no_local_followers'})
 		await pullFollowers(followerId)
-		return await queryFollowers(followerId)
+		const {rows: newRows} = await pg.sql`
+			SELECT c.*
+			FROM followers f
+			JOIN channels c ON f.channel_id = c.id
+			WHERE f.follower_id = ${followerId}
+			ORDER BY f.created_at DESC
+		`
+		return newRows
 	}
-	return existing
+	return rows
 }
 
 /**
