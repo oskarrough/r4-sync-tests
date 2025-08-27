@@ -59,9 +59,12 @@
 			// Only auto-play if we were already playing when track changed
 			if (didPlay && yt) {
 				log.log('Auto-playing next track, yt ready:', !!yt, 'didPlay:', didPlay)
-				// Wait for YouTube element to be ready before playing
-				yt.loadComplete.then(() => {
-					log.log('YouTube loadComplete, calling play')
+				// Wait for YouTube element to be ready before playing, with fallback for background tabs
+				Promise.race([
+					yt.loadComplete,
+					new Promise(resolve => setTimeout(resolve, 1000))
+				]).then(() => {
+					log.log('YouTube loadComplete (or timeout), calling play')
 					play(yt)
 				})
 			}
