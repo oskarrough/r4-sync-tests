@@ -1,13 +1,14 @@
 <script>
-	import {playChannel} from '$lib/api'
 	import Icon from '$lib/components/icon.svelte'
+	import {playChannel} from '$lib/api'
 
 	/** @type {{channel: import('$lib/types').Channel}} */
 	let {channel, ...rest} = $props()
 
 	let loading = $state(false)
 
-	async function play() {
+	async function play(event) {
+		event.preventDefault()
 		loading = true
 		await playChannel(channel)
 		loading = false

@@ -101,9 +101,11 @@
 			<button onclick={() => (showClearHistoryModal = true)} title="Clear playlist history">Clear</button>
 		{/if}
 	</header>
+
 	<div class="search-container">
 		<SearchInput bind:value={searchQuery} placeholder="Search {view}..." />
 	</div>
+
 	<main class="scroll">
 		{#if view === 'queue'}
 			{#if filteredQueueTracks.length > 0}
