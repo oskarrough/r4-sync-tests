@@ -10,7 +10,7 @@
 
 	interface Props {
 		track: Track
-		index: number
+		index?: number
 		showImage?: boolean
 		children?: Snippet<[Track]>
 	}
@@ -44,7 +44,9 @@
 
 <article class:active>
 	<a href={permalink} onclick={click} ondblclick={doubleClick} data-sveltekit-preload-data="tap">
-		<span class="index">{index + 1}.</span>
+		<span class="index">
+			{#if index}{index + 1}.{/if}
+		</span>
 		{#if ytid && showImage && !appState.hide_track_artwork}<img
 				src={imageSrc}
 				alt={track.title}

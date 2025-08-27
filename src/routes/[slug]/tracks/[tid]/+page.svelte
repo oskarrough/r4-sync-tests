@@ -7,6 +7,7 @@
 	import TrackMetaMusicbrainz from '$lib/components/track-meta-musicbrainz.svelte'
 	import TrackMetaDiscogs from '$lib/components/track-meta-discogs.svelte'
 	import TrackRelated from '$lib/components/track-related.svelte'
+	import TrackCard from '$lib/components/track-card.svelte'
 	// import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	// import ButtonPlay from '$lib/components/button-play.svelte'
 	// import ChannelCard from '$lib/components/channel-card.svelte'
@@ -51,6 +52,7 @@
 		<TrackRelated {track} />
 	{:else}
 		<TrackMetaR5 data={track} />
+		<TrackCard {track} />
 	{/if}
 
 	<hr />
