@@ -1,12 +1,11 @@
 <script>
+	import {goto} from '$app/navigation'
+	import {appState} from '$lib/app-state.svelte'
+	import {r5} from '$lib/r5'
+	import {pg} from '$lib/r5/db'
 	import Modal from '$lib/components/modal.svelte'
 	import Icon from '$lib/components/icon.svelte'
-	import AuthGate from '$lib/components/auth-gate.svelte'
-	import {appState} from '$lib/app-state.svelte'
-	import {pg} from '$lib/r5/db'
-	import {r5} from '$lib/r5'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
-	import {goto} from '$app/navigation'
 
 	let showModal = $state(false)
 	let recentTracks = $state([])
@@ -75,18 +74,16 @@
 		</h2>
 	{/snippet}
 
-	<AuthGate>
-		<r4-track-create channel_id={channelId} onsubmit={submit}></r4-track-create>
+	<r4-track-create channel_id={channelId} onsubmit={submit}></r4-track-create>
 
-		{#if recentTracks.length > 0}
-			<div class="recent-tracks">
-				<h3>Recently saved:</h3>
-				{#each recentTracks as track (track.id || track.url)}
-					<div>{track.title || track.url}</div>
-				{/each}
-			</div>
-		{/if}
-	</AuthGate>
+	{#if recentTracks.length > 0}
+		<div class="recent-tracks">
+			<h3>Recently saved:</h3>
+			{#each recentTracks as track (track.id || track.url)}
+				<div>{track.title || track.url}</div>
+			{/each}
+		</div>
+	{/if}
 </Modal>
 
 <style>

@@ -1,6 +1,5 @@
 <script>
 	import {page} from '$app/stores'
-	import AuthGate from '$lib/components/auth-gate.svelte'
 	import {appState} from '$lib/app-state.svelte'
 	import {pg} from '$lib/r5/db'
 
@@ -23,15 +22,13 @@
 	{/await}
 </svelte:head>
 
-<AuthGate context="update">
-	{#await Promise.all([channel, isOwner]) then [channelData, ownerCheck]}
-		{#if !channelData}
-			<p>Channel not found</p>
-		{:else if !ownerCheck}
-			<p>You can only update your own channels</p>
-		{:else}
-			<h1>Update {channelData.name}</h1>
-			<r4-channel-update channel-id={channelData.id}></r4-channel-update>
-		{/if}
-	{/await}
-</AuthGate>
+{#await Promise.all([channel, isOwner]) then [channelData, ownerCheck]}
+	{#if !channelData}
+		<p>Channel not found</p>
+	{:else if !ownerCheck}
+		<p>You can only update your own channels</p>
+	{:else}
+		<h1>Update {channelData.name}</h1>
+		<r4-channel-update channel-id={channelData.id}></r4-channel-update>
+	{/if}
+{/await}
