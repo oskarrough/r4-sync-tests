@@ -25,6 +25,11 @@ export async function checkUser() {
 
 		const channels = await r4.channels.readUserChannels()
 		const wasSignedOut = !appState.channels?.length
+
+		for (const c of channels) {
+			await r5.channels.pull({slug: c.slug})
+		}
+
 		appState.channels = channels.map((/** @type {any} */ c) => c.id)
 
 		// Sync followers when user signs in (not on every check)
@@ -242,8 +247,10 @@ export async function queryFollowers(followerId) {
  * @returns {Promise<import('$lib/types').Channel[]>}
  */
 export async function ensureFollowers(followerId) {
+	console.log('ensuring followers')
 	const existing = await queryFollowers(followerId)
 	if (existing.length === 0 && followerId !== 'local-user') {
+		console.log('no followers and authed? pulling and quering followers')
 		await pullFollowers(followerId)
 		return await queryFollowers(followerId)
 	}

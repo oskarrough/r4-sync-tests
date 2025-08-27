@@ -46,6 +46,7 @@ async function preload() {
 /** @type {import('./$types').LayoutLoad} */
 export async function load() {
 	return {
-		preloading: preload()
+		preloading: preload(),
+		preload
 	}
 }

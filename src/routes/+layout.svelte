@@ -82,8 +82,10 @@
 </script>
 
 <svelte:boundary>
-	<AuthListener />
-	<KeyboardShortcuts />
+	{#await data.preloading then}
+		<AuthListener />
+		<KeyboardShortcuts />
+	{/await}
 
 	<div class={['layout', {asideVisible: appState.queue_panel_visible}]}>
 		{#await data.preloading then}
