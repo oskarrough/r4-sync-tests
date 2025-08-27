@@ -15,7 +15,7 @@
 
 	{#if appState.user}
 		<p>Signed in as {appState.user.email}.</p>
-		{#each appState.channels as id}
+		{#each appState.channels as id (id)}
 			<p>channel id: {id}</p>
 		{/each}
 		<p><button type="button" onclick={() => sdk.auth.signOut()}>Logout</button></p>

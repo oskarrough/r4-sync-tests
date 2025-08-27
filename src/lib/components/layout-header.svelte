@@ -1,7 +1,6 @@
 <script>
 	import {page} from '$app/state'
 	import {appState} from '$lib/app-state.svelte'
-	import {toggleQueuePanel} from '$lib/api'
 	import AddTrackModal from '$lib/components/add-track-modal.svelte'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import HeaderSearch from '$lib/components/header-search.svelte'
@@ -65,13 +64,6 @@
 				<Icon icon="terminal" size={20} />
 			</a>
 		{/await}
-		<button
-			onclick={toggleQueuePanel}
-			class:active={appState.queue_panel_visible}
-			{@attach tooltip({content: 'Toggle queue panel'})}
-		>
-			<Icon icon="sidebar-fill-right" size={20} />
-		</button>
 		<a
 			href="/settings"
 			class="btn"
