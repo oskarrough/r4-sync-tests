@@ -54,8 +54,9 @@ export async function playTrack(id, endReason, startReason) {
 	const tracks = (await pg.sql`select id from tracks where channel_id = ${track.channel_id} order by created_at desc`)
 		.rows
 	const ids = tracks.map((t) => t.id)
-	if (!appState.playlist_tracks.length) await setPlaylist(ids)
+
 	appState.playlist_track = id
+	if (!appState.playlist_tracks.length || !appState.playlist_tracks.includes(id)) await setPlaylist(ids)
 	await addPlayHistory({nextTrackId: id, previousTrackId, endReason, startReason})
 
 	// Auto-update broadcast if currently broadcasting
