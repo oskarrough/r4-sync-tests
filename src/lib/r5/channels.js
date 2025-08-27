@@ -3,7 +3,7 @@ import {logger} from '../logger.js'
 import {r4 as r4Api} from '../r4.ts'
 import {getPg} from './db.js'
 
-const log = logger.ns('r5:channels').seal()
+const log = logger.ns('channels').seal()
 const LIMIT = 4000
 
 /** Internal helper to resolve channel ID to slug */
@@ -62,14 +62,14 @@ export async function pull({id, slug = '', limit = LIMIT} = {}) {
 		// Check local first
 		const localChannels = await local({slug})
 		if (localChannels.length) {
-			// Update in background if outdated
-			if (await outdated(slug)) {
-				log.info('pullChannels -> outdated but not doing anything')
-				// Note: This requires tracks.pull to be available
-				// pullTracks({slug}).catch((error) => log.error(error))
-			} else {
-				log.info('pullChannels -> up to date')
-			}
+			// Update in background if outdated?
+			// if (await outdated(slug)) {
+			// 	log.info(`pull skipped @${slug}, even though local copy is outdated though`)
+			// 	// pullTracks({slug}).catch((error) => log.error(error))
+			// } else {
+			// 	log.info(`pulling @${slug} -> up to date`)
+			// }
+
 			return localChannels
 		}
 
@@ -134,11 +134,19 @@ export async function insert(channels) {
 
 /** Check if a channel is outdated and needs pulling */
 export async function outdated(slug) {
+	const log = logger.ns(`channels.outdated(${slug})`).seal()
 	const pg = await getPg()
 	try {
 		const channel = (await local({slug}))[0]
 		const {id} = channel
-		if (!id || !channel.tracks_synced_at) return true
+		if (!id) {
+			log.log('outdated because no id')
+			return true
+		}
+		if (!channel.tracks_synced_at) {
+			log.log('outdated because no tracks synced at')
+			return true
+		}
 
 		// Get latest local track update
 		const {rows: localRows} = await pg.sql`
@@ -149,10 +157,16 @@ export async function outdated(slug) {
       limit 1
     `
 		const localLatest = localRows[0]
-		if (!localLatest) return true
+		if (!localLatest) {
+			log.log('outdated because no local tracks')
+			return true
+		}
 
 		// v1 channels dont need updating because it is in read-only state since before this project
-		if (channel.source === 'v1' && localLatest) return false
+		if (channel.source === 'v1' && localLatest) {
+			log.log('outdated because v1 and has tracks already')
+			return false
+		}
 
 		// Get latest remote track update
 		const {data: remoteLatest} = await r4Api.sdk.supabase
@@ -169,9 +183,12 @@ export async function outdated(slug) {
 		const localMsRemoved = new Date(localLatest.updated_at).setMilliseconds(0)
 		const toleranceMs = 20 * 1000
 		const isOutdated = remoteMsRemoved - localMsRemoved > toleranceMs
-		return isOutdated
+		if (isOutdated) {
+			log.log('outdated because remote track is newer')
+			return true
+		}
 	} catch (error) {
-		log.error('needs_update_error', error)
+		log.warn('outdated because an error happened?', error)
 		return true // On error, suggest update to be safe
 	}
 }

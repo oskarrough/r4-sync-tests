@@ -14,7 +14,7 @@
 	</header>
 
 	<h1>Sign in</h1>
-	<r4-sign-in onsubmit={() => goto('/auth')}></r4-sign-in>
+	<r4-sign-in onsubmit={() => goto('/settings')}></r4-sign-in>
 
 	<footer>
 		<p>

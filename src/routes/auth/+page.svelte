@@ -15,7 +15,10 @@
 
 	{#if appState.user}
 		<p>Signed in as {appState.user.email}.</p>
-		<p><button onclick={() => sdk.auth.signOut()}>Logout</button></p>
+		{#each appState.channels as id}
+			<p>channel id: {id}</p>
+		{/each}
+		<p><button type="button" onclick={() => sdk.auth.signOut()}>Logout</button></p>
 		{#if !appState.channels}
 			<p>
 				<a href="/create-channel"> Create radio channel </a>

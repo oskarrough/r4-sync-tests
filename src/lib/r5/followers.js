@@ -121,7 +121,7 @@ export async function sync(userChannelId) {
 	// 5. Clean up local-user followers
 	await pg.sql`DELETE FROM followers WHERE follower_id = 'local-user'`
 
-	log.log('sync_followers', {
+	log.log('sync_complete', {
 		userChannelId,
 		localCount: localFavorites.length,
 		pushedCount: unsyncedLocal.length

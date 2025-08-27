@@ -7,38 +7,35 @@
 	import {sync as syncFollowers} from '$lib/r5/followers'
 
 	const log = logger.ns('auth').seal()
+	let unsubscribe = null
 
 	$effect(() => {
-		sdk.supabase.auth.onAuthStateChange(change)
+		if (unsubscribe) return
+		const {data} = sdk.supabase.auth.onAuthStateChange(handleAuthChange)
+		unsubscribe = data.subscription?.unsubscribe
+		return () => unsubscribe?.()
 	})
 
-	async function change(eventName, session) {
-		log.log(eventName, session?.user?.email)
+	async function handleAuthChange(event, session) {
+		log.log(event, session?.user?.email, appState)
 
-		if (appState.user !== session?.user) {
-			appState.user = session?.user
-		}
+		const user = session?.user
+		const previousUserId = appState.user?.id
+		appState.user = user
 
-		if (eventName === 'SIGNED_IN') {
-			if (!appState.channels.length) await checkUser()
-		}
-
-		if (eventName === 'SIGNED_OUT') {
-			if (appState.channels?.length) appState.channels = []
-		}
-
-		if (eventName === 'INITIAL_SESSION' && session?.user) {
-			try {
-				const channels = await r4.channels.readUserChannels()
-				if (channels.length) await syncFollowers(channels[0].id)
-				appState.channels = channels.map((c) => c.id)
-			} catch (err) {
-				log.error('sync_followers_error', err)
+		if (!user) {
+			if (appState.channels?.length) {
+				console.log('cleaning up channels')
+				appState.channels = []
 			}
+			return
 		}
 
-		if (eventName === 'INITIAL_SESSION' && !session?.user && appState.channels) {
-			appState.channels = []
+		const isNewSession = event === 'INITIAL_SESSION' && user.id !== previousUserId
+		const isNewSignIn = event === 'SIGNED_IN' && user.id !== previousUserId
+		console.log({isNewSession, isNewSignIn})
+		if (isNewSession || isNewSignIn) {
+			await checkUser()
 		}
 	}
 </script>

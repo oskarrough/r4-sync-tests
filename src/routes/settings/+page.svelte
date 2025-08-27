@@ -3,6 +3,7 @@
 	import KeyboardEditor from '$lib/components/keyboard-editor.svelte'
 	import ThemeEditor from '$lib/components/theme-editor.svelte'
 	import {appState} from '$lib/app-state.svelte'
+	import {r4} from '$lib/r4'
 
 	const sha = $derived(__GIT_INFO__.sha)
 
@@ -29,7 +30,7 @@
 		<h2>Account</h2>
 		{#if appState.user}
 			<p>
-				<button onclick={logout}>Logout</button>
+				<button onclick={() => logout()}>Logout</button>
 			</p>
 		{:else}
 			<p>You only need an account if you want to have a radio and add tracks.</p>

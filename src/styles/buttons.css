@@ -53,7 +53,7 @@ button:disabled,
 button.active,
 .btn.active {
 	border-color: var(--color-accent);
-	background-color: var(--accent-8);
+	background-color: light-dark(var(--accent-8), var(--accent-12));
 }
 
 .IconBtn {
