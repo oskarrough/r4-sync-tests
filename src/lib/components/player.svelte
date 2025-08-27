@@ -2,7 +2,7 @@
 	import {tick} from 'svelte'
 	import 'media-chrome'
 	import 'youtube-video-element'
-	import {togglePlayerExpanded} from '$lib/api'
+	import {toggleQueuePanel, togglePlayerExpanded} from '$lib/api'
 	import {togglePlay, next, previous, toggleShuffle, play, pause} from '$lib/api/player'
 	import {appState} from '$lib/app-state.svelte'
 	import {logger} from '$lib/logger'
@@ -169,7 +169,8 @@
 			<media-time-display showduration></media-time-display>
 			<media-mute-button class="btn"></media-mute-button>
 			<media-volume-range></media-volume-range>
-			{@render btnToggleVideo()}
+			{@render btnToggleQueuePanel()}
+			{@render btnToggleExpanded()}
 		</media-control-bar>
 	</menu>
 
@@ -216,10 +217,19 @@
 	</button>
 {/snippet} -->
 
-{#snippet btnToggleVideo()}
+{#snippet btnToggleQueuePanel()}
+	<button
+		onclick={toggleQueuePanel}
+		class:active={appState.queue_panel_visible}
+		{@attach tooltip({content: 'Toggle queue panel'})}
+	>
+		<Icon icon="sidebar-fill-right" size={20} />
+	</button>
+{/snippet}
+
+{#snippet btnToggleExpanded()}
 	<button
 		onclick={() => togglePlayerExpanded()}
-		title="Show/hide video"
 		class="expand"
 		{@attach tooltip({content: 'Toggle expanded player', position: 'top'})}
 	>

@@ -3,7 +3,6 @@
 	import KeyboardEditor from '$lib/components/keyboard-editor.svelte'
 	import ThemeEditor from '$lib/components/theme-editor.svelte'
 	import {appState} from '$lib/app-state.svelte'
-	import {r4} from '$lib/r4'
 
 	const sha = $derived(__GIT_INFO__.sha)
 
