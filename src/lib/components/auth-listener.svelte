@@ -31,5 +31,9 @@
 				log.error('sync_followers_error', err)
 			}
 		}
+
+		if (eventName === 'INITIAL_SESSION' && !session?.user && appState.channels) {
+			appState.channels = []
+		}
 	}
 </script>

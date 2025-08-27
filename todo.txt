@@ -5,6 +5,8 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 
 ## Backlog
 
+- allow users to mark a musicbrainz or discogs meta track data as wrong. Since we auto-match on the track title, there's a relatively high chance it's wrong. If it's wrong, users can delete the meta data for that track. But then it'd just match it again on reload. How do we deal with this, do we spend effort on this?
+- when is a local channel updated again (pulled)? To get any  new tracks via outdated(). 
 - make a great (!) flow for creating a new radio, and maybe also migrate v1?!
 - run `bun run check` and slowly get rid of these warnings - tidy codebase
 - analyze https://svelte.dev/docs/svelte/$effect#When-not-to-use-$effect - keep up with Svelte 5 patterns
