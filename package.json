@@ -19,7 +19,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "2.2.2",
 		"@sveltejs/adapter-auto": "^6.1.0",
-		"@sveltejs/adapter-cloudflare": "^7.2.2",
+		"@sveltejs/adapter-cloudflare": "^7.2.3",
 		"@sveltejs/kit": "^2.36.2",
 		"@sveltejs/vite-plugin-svelte": "^6.1.3",
 		"@types/eslint": "^9.6.1",
@@ -32,7 +32,7 @@
 		"svelte": "^5.38.3",
 		"svelte-check": "^4.3.1",
 		"typescript": "^5.9.2",
-		"typescript-eslint": "^8.40.0",
+		"typescript-eslint": "^8.41.0",
 		"vite": "^7.1.3",
 		"vite-plugin-devtools-json": "^1.0.0",
 		"vitest": "^3.2.4",
@@ -41,7 +41,7 @@
 	"dependencies": {
 		"@electric-sql/pglite": "^0.3.7",
 		"@electric-sql/pglite-repl": "^0.2.25",
-		"@humanspeak/svelte-virtual-list": "^0.2.6",
+		"@humanspeak/svelte-virtual-list": "^0.3.1",
 		"@radio4000/components": "^0.2.15",
 		"@radio4000/sdk": "^0.4.13",
 		"@sveltejs/adapter-static": "^3.0.9",
