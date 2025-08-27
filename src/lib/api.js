@@ -213,6 +213,24 @@ export async function addFollower(followerId, channelId) {
 		VALUES (${followerId}, ${channelId}, CURRENT_TIMESTAMP, NULL)
 		ON CONFLICT (follower_id, channel_id) DO NOTHING
 	`
+
+	// If authenticated and not a v1 channel, sync to R4 immediately
+	if (appState.channels?.length && followerId !== 'local-user') {
+		const channel = await pg.sql`SELECT source FROM channels WHERE id = ${channelId}`.then((r) => r.rows[0])
+		if (channel?.source !== 'v1') {
+			try {
+				await r4.channels.followChannel(followerId, channelId)
+				await pg.sql`
+					UPDATE followers 
+					SET synced_at = CURRENT_TIMESTAMP 
+					WHERE follower_id = ${followerId} AND channel_id = ${channelId}
+				`
+				log.log('follow_synced', {followerId, channelId})
+			} catch (err) {
+				log.error('follow_sync_error', {followerId, channelId, err})
+			}
+		}
+	}
 }
 
 /**
@@ -220,6 +238,19 @@ export async function addFollower(followerId, channelId) {
  * @param {string} channelId - ID of the channel to unfollow
  */
 export async function removeFollower(followerId, channelId) {
+	// If authenticated and not a v1 channel, unfollow from R4 first
+	if (appState.channels?.length && followerId !== 'local-user') {
+		const channel = await pg.sql`SELECT source FROM channels WHERE id = ${channelId}`.then((r) => r.rows[0])
+		if (channel?.source !== 'v1') {
+			try {
+				await r4.channels.unfollowChannel(followerId, channelId)
+				log.log('unfollow_synced', {followerId, channelId})
+			} catch (err) {
+				log.error('unfollow_sync_error', {followerId, channelId, err})
+			}
+		}
+	}
+
 	await pg.sql`
 		DELETE FROM followers
 		WHERE follower_id = ${followerId} AND channel_id = ${channelId}

@@ -2,9 +2,7 @@
 	import {sdk} from '@radio4000/sdk'
 	import {appState} from '$lib/app-state.svelte'
 	import {logger} from '$lib/logger'
-	import {r4} from '$lib/r4'
 	import {checkUser} from '$lib/api'
-	import {sync as syncFollowers} from '$lib/r5/followers'
 
 	const log = logger.ns('auth').seal()
 	let unsubscribe = null

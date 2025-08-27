@@ -3,6 +3,7 @@ import {r4} from '$lib/r4'
 import {getPg, pg} from '$lib/r5/db'
 
 const log = logger.ns('r5:followers').seal()
+let syncPromise = null
 
 /**
  * Pull remote follows and save to local
@@ -89,41 +90,79 @@ export async function push(userChannelId, channelIds) {
  * @returns {Promise<void>}
  */
 export async function sync(userChannelId) {
-	await getPg()
-	console.log('r5.followers.sync', userChannelId)
+	if (syncPromise) return syncPromise
 
-	// 1. Get local favorites before sync
+	syncPromise = doSync(userChannelId).finally(() => (syncPromise = null))
+	return syncPromise
+}
+
+async function doSync(userChannelId) {
+	await getPg()
+	log.log('sync_start', userChannelId)
+
+	// 1. Get local favorites before sync with channel metadata
 	const {rows: localFavorites} = await pg.sql`
-		SELECT channel_id FROM followers WHERE follower_id = 'local-user'
+		SELECT f.channel_id, c.source 
+		FROM followers f
+		JOIN channels c ON f.channel_id = c.id
+		WHERE f.follower_id = 'local-user'
 	`
 
 	// 2. Pull remote followers (marks remote ones as synced)
 	await pull(userChannelId)
 
-	// 3. Get local favorites that aren't already synced (don't exist remotely)
-	const {rows: unsyncedLocal} = await pg.sql`
-		SELECT f1.channel_id FROM followers f1
-		WHERE f1.follower_id = 'local-user'
-		AND NOT EXISTS (
-			SELECT 1 FROM followers f2
-			WHERE f2.follower_id = ${userChannelId}
-			AND f2.synced_at IS NOT NULL
-			AND f2.channel_id = f1.channel_id
-		)
-	`
+	await pg.transaction(async (tx) => {
+		// 3. Process each local favorite
+		for (const {channel_id, source} of localFavorites) {
+			// Check if this channel is already followed by the authenticated user
+			const {rows: existing} = await tx.sql`
+				SELECT 1 FROM followers 
+				WHERE follower_id = ${userChannelId} AND channel_id = ${channel_id}
+				LIMIT 1
+			`
 
-	// 4. Push only unsynced local favorites
-	if (unsyncedLocal.length > 0) {
-		const channelIds = unsyncedLocal.map((row) => row.channel_id)
-		await push(userChannelId, channelIds)
-	}
+			if (existing.length === 0) {
+				if (source === 'v1') {
+					// v1 channel: migrate locally only (can't sync to r4)
+					await tx.sql`
+						INSERT INTO followers (follower_id, channel_id, created_at, synced_at)
+						VALUES (${userChannelId}, ${channel_id}, CURRENT_TIMESTAMP, NULL)
+						ON CONFLICT (follower_id, channel_id) DO NOTHING
+					`
+				} else {
+					// r4 channel: add locally and attempt to sync
+					await tx.sql`
+						INSERT INTO followers (follower_id, channel_id, created_at, synced_at)
+						VALUES (${userChannelId}, ${channel_id}, CURRENT_TIMESTAMP, NULL)
+						ON CONFLICT (follower_id, channel_id) DO NOTHING
+					`
 
-	// 5. Clean up local-user followers
-	await pg.sql`DELETE FROM followers WHERE follower_id = 'local-user'`
+					// Try to push to remote
+					try {
+						await r4.channels.followChannel(userChannelId, channel_id)
+						await tx.sql`
+							UPDATE followers
+							SET synced_at = CURRENT_TIMESTAMP
+							WHERE follower_id = ${userChannelId} AND channel_id = ${channel_id}
+						`
+					} catch (err) {
+						log.error('sync_push_error', {userChannelId, channel_id, err})
+					}
+				}
+			}
+		}
 
-	log.log('sync_complete', {
-		userChannelId,
-		localCount: localFavorites.length,
-		pushedCount: unsyncedLocal.length
+		// 4. Clean up local-user followers
+		await tx.sql`DELETE FROM followers WHERE follower_id = 'local-user'`
+
+		const v1Count = localFavorites.filter((f) => f.source === 'v1').length
+		const r4Count = localFavorites.filter((f) => f.source !== 'v1').length
+
+		log.log('sync_complete', {
+			userChannelId,
+			localCount: localFavorites.length,
+			v1Count,
+			r4Count
+		})
 	})
 }
