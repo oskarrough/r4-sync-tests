@@ -13,10 +13,11 @@
 		<p><a href="/auth">auth</a> / sign-in</p>
 	</header>
 
-	<h1>Sign in</h1>
+	<h1>Sign in to Radio4000</h1>
 	<r4-sign-in onsubmit={() => goto('/settings')}></r4-sign-in>
 
 	<footer>
+		<p>New to R4? <a href="/auth/create-account">Create an account</a>.</p>
 		<p>
 			Having trouble? <a href="https://matrix.to/#/#radio4000:matrix.org" target="_blank">Chat with us</a>
 		</p>

@@ -15,6 +15,7 @@
 	<r4-sign-up hcaptcha-site-key="b0a493f2-49df-486b-bdee-b8459f7b1c21" onsubmit={() => goto('/auth')}></r4-sign-up>
 
 	<footer>
+		<p>Already have an account? <a href="/auth/sign-in">Sign in &rarr;</a></p>
 		<p>
 			Having trouble? <a href="https://matrix.to/#/#radio4000:matrix.org" target="_blank">Chat with the community</a>
 		</p>

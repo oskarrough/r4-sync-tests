@@ -126,7 +126,7 @@ export async function insert(slug, tracks) {
 
 	// Insert tracks using batched approach for worker performance
 	if (tracksToInsert.length > 0) {
-		console.time(`inserting ${tracksToInsert.length} tracks`)
+		console.time(`${slug} inserting ${tracksToInsert.length} tracks`)
 
 		await pg.transaction(async (tx) => {
 			const batchSize = 1000 // Larger batches since we're doing single queries
@@ -180,11 +180,11 @@ export async function insert(slug, tracks) {
 
 				// Progress logging
 				const processed = Math.min(i + batchSize, tracksToInsert.length)
-				console.log(`inserted ${processed}/${tracksToInsert.length} tracks`)
+				log.debug(`${slug}: inserted ${processed}/${tracksToInsert.length} tracks`)
 			}
 		})
 
-		console.timeEnd(`inserting ${tracksToInsert.length} tracks`)
+		console.timeEnd(`${slug} inserting ${tracksToInsert.length} tracks`)
 	}
 
 	// Mark as successfully synced

@@ -84,6 +84,8 @@
 			<h1>
 				{channel.name}
 				<ButtonPlay {channel} class="primary" />
+				<BookmarkButton {channel} class="bookmark-button" />
+
 				{#if channel.longitude && channel.latitude}
 					<a
 						href={`/?display=map&slug=${channel.slug}&longitude=${channel.longitude}&latitude=${channel.latitude}&zoom=15`}

@@ -28,12 +28,13 @@ export let pg
  * @param {boolean} persist - Switch between in-memory and OPFS persisted indexeddb for PostgreSQL
  * @returns {Promise<import('@electric-sql/pglite/live').PGliteWithLive>}
  */
+
 export async function createPg(persist = browser) {
 	if (!pg) {
 		const dataDir = browser ? (persist ? 'idb://radio4000test2' : 'memory://') : './cli-db'
 
 		if (browser && useWorker) {
-			console.time('create-pg-worker')
+			log.log('createPg with worker')
 			pg = await PGliteWorker.create(
 				new Worker(new URL('./db-worker.js', import.meta.url), {
 					type: 'module'
@@ -45,10 +46,9 @@ export async function createPg(persist = browser) {
 					}
 				}
 			)
-			console.timeEnd('create-pg-worker')
 		} else if (browser) {
 			// Browser without worker
-			console.time('create-pg-direct')
+			log.log('createPg in main thread')
 			const {PGlite} = await import('@electric-sql/pglite')
 			const {pg_trgm} = await import('@electric-sql/pglite/contrib/pg_trgm')
 			pg = await PGlite.create({
@@ -59,7 +59,6 @@ export async function createPg(persist = browser) {
 					pg_trgm
 				}
 			})
-			console.timeEnd('create-pg-direct')
 		} else {
 			// CLI/Node fallback
 			const {PGlite} = await import('@electric-sql/pglite')
