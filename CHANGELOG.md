@@ -2,6 +2,7 @@
 
 ## August 2025
 
+- The ./docs/ folder is getting better
 - Nicer create account / sign in auth flow
 - Custom tooltips on most icon buttons
 - Fix /broadcasts page

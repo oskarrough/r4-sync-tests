@@ -1,4 +1,4 @@
-r5 is a local-first music player prototype. 
+r5 is a local-first music player prototype.
 
 - pulls data from Radio4000 v1 (firebase) and v2 (r4)
 - inserts it into your local in-browser (pg) database
@@ -13,13 +13,13 @@ r5 is a local-first music player prototype.
 +------------------+     +-------------------+     +------------------+
 ```
 
-We read from the local database. We do optimistic updates, write to r4 and optionally `pull` data to refresh it. 
+We read from the local database. We do optimistic updates, write to r4 and optionally `pull` data to refresh it.
 
 1. App starts → loads from local database
-2. As the user browses and plays it triggers sync → `.pull()` methods 
+2. As the user browses and plays it triggers sync → `.pull()` methods
 3. User adds tracks → saves local first, persists to r4
 
-## documentation 
+## documentation
 
 data/sync
 

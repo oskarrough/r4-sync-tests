@@ -10,7 +10,7 @@ Use `todo.txt` to see current prios and find things to do.
 
 ## Documentation
 
-Read `docs/index.md` for more. 
+Read `docs/index.md` for more.
 Continously update `./docs/` folder with learnings, more complex features
 
 ## File overview
@@ -87,7 +87,6 @@ Prefer $app/state over $app/store
 ## Debug Tricks
 
 You can't run queries on the local pglite database, because it is in the browser. You can ask me to run SQL queries on the local db for you with this snippet: (await window.r5.pg.sql`select * from tracks_with_meta limit 2`).rows
-
 
 Format and lint the code using `bun run lint`. Or use the claude code command /lint-test.
 

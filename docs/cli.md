@@ -1,79 +1,56 @@
 # CLI
 
-Local-first data CLI for querying Radio4000 data.
-
-When you use the `list` command, use `--source` arg to control where data comes from:
-
-- `--source local` - your local database
-- `--source r4` - remote radio4000 API
-- `--source v1` - legacy radio4000 v1 API (read-only)
-
-> Note: While `list` commands require an explicit `--source`, you can use `pull` to fetch from r4>v1.
-
-## tldr
+Wraps the `r5` lib to query Radio4000 data.
 
 ```bash
-# Save as JSON representation of a channel
-bun cli channels list ko002 --json > my-channel.json
-
-# Get tracks from any channel
-bun cli tracks list ko002 --limit 5
-
-# Save as JSON and process with jq
-bun cli tracks list ko002 --json | jq '.[].url'
-
-# Get channel slugs (use --limit for large datasets)
-bun cli channels list --limit 10 --json | jq -r '.[].slug'
-
-# Search (everything, --tracks, --channels, or @mention)
-bun cli search "acid" --tracks --json | jq '.[].title'
+bun src/lib/cli.ts --help
 ```
 
-```bash
-# Live data from radio4000
-bun cli tracks list ko002 --source r4 --limit 10
+## Data sources
 
-# Compare local vs remote
-bun cli channels list --source local --json > local.json
-bun cli channels list --source r4 --json > remote.json
+The `list` commands require `--source`:
+
+- `local` - your local database exclusive to the cli (not shared with the webapp!)
+- `r4` - remote radio4000 API
+- `v1` - legacy radio4000 v1 API (read-only)
+
+Pull syncs data from r4 or v1 into local database.
+
+## Core examples
+
+```bash
+# List with explicit source
+bun cli channels list ko002 --source r4 --json
+bun cli tracks list ko002 --source local --limit 5
+
+# Smart sync (checks local first, then r4, then v1)
+bun cli pull ko002
+
+# Search local database
+bun cli search "acid" --tracks
+bun cli search "@detecteve acid"  # within channel
 ```
 
-## Search
+## JSON & jq piping
 
-Search queries your local database only. Use `pull` to sync data locally first.
-
-```bash
-# Search everything, filter with flags, or use @mention syntax
-bun cli search "ambient"
-bun cli search "ko002" --channels
-bun cli search "#jazz" --tracks
-bun cli search "@detecteve acid"  # search within channel
-```
-
-## Piping magic
-
-Extract URLs for external tools:
+Use `--json` for structured output, pipe to `jq` for processing:
 
 ```bash
-# Get track URLs (add --limit for large channels)
-bun cli tracks list ko002 --source r4 --limit 20 --json | jq -r '.[].url'
+# Extract specific fields
+bun cli tracks list ko002 --source r4 --json | jq '.[].url'
+bun cli channels list --source local --json | jq -r '.[].slug'
 
-# Save track titles to file
-bun cli tracks list ko002 --json | jq -r '.[].title' > tracks.txt
+# Filter results
+bun cli tracks list ko002 --json | jq '.[] | select(.url | contains("youtube"))'
+bun cli channels list --json | jq '.[] | select(.description | length > 100)'
 
-# Chain with other unix tools
+# Transform data
+bun cli tracks list ko002 --json | jq '.[] | {title, url}'
+
+# Chain with unix tools
 bun cli tracks list ko002 --json | jq -r '.[].url' | grep youtube | wc -l
 ```
 
-Filter and transform:
+## HELP!
 
-```bash
-# Only YouTube URLs
-bun cli tracks list ko002 --json | jq '.[] | select(.url | contains("youtube"))'
-
-# Extract just title and URL
-bun cli tracks list ko002 --json | jq '.[] | {title, url}'
-
-# Get channels with more than 100 characters in description
-bun cli channels list --source local --json | jq '.[] | select(.description | length > 100)'
-```
+Some times the local PostgreSQL db gets corrupt. Just delete it with `rm -rf ./cli-db` and run the CLI again.

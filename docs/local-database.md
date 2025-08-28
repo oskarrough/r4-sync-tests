@@ -16,4 +16,3 @@ Migrations must be written in a way that they can be run multiple times e.g. `if
 While we are in alpha, it's ok to change existing migrations. Once in production: new migrations only.
 
 Refer with the `types.ts` and `migrations/*.js` for the exact schema.
-

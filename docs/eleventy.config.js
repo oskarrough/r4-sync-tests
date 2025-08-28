@@ -14,7 +14,7 @@ export default function (eleventyConfig) {
 
 	eleventyConfig.setLibrary('md', markdownIt(options))
 	eleventyConfig.amendLibrary('md', (mdLib) => mdLib.use(markdownItReplaceLink))
-	
+
 	// Set default layout for all markdown files
-	eleventyConfig.addGlobalData("layout", "base.njk")
+	eleventyConfig.addGlobalData('layout', 'base.njk')
 }
