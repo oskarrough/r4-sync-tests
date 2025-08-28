@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset=utf-8">
+	<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+	<title>{{ title or "R5 docs" }}</title>
+	<style>
+		:root {
+			font-size: 16px;
+			font-family: system-ui;
+		}
+		body {
+			max-inline-size: 80ch;
+			margin: 1rem auto;
+		}
+		a:link,
+		a:visited {
+			color: blue;
+		}
+	</style>
+</head>
+<body>
+	<a href="/">./r5-docs/</a>
+	{{ content | safe }}
+</body>
+</html>
