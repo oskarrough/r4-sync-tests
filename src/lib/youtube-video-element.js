@@ -172,9 +172,40 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 			if (videoId) {
 				// Use loadVideoById to change video without recreating player
 				this.api = oldApi
+				
+				// Wait for the video to be ready before firing events
+				const onVideoCued = () => {
+					// Fire the same events as onReady since loadVideoById doesn't trigger it
+					this.#readyState = 1 // HTMLMediaElement.HAVE_METADATA
+					this.dispatchEvent(new Event('loadedmetadata'))
+					this.dispatchEvent(new Event('durationchange'))
+					this.dispatchEvent(new Event('volumechange'))
+					this.dispatchEvent(new Event('loadcomplete'))
+					
+					this.isLoaded = true
+					this.loadComplete.resolve()
+				}
+				
+				// Listen for the video to be cued/ready
+				const stateHandler = (event) => {
+					// State 5 = video cued, State 1 = playing (if autoplay)
+					if (event.data === 5 || event.data === 1) {
+						this.api.removeEventListener('onStateChange', stateHandler)
+						onVideoCued()
+					}
+				}
+				
+				this.api.addEventListener('onStateChange', stateHandler)
 				this.api.loadVideoById(videoId)
-				this.isLoaded = true
-				this.loadComplete.resolve()
+				
+				// Also set a timeout fallback in case state doesn't change
+				setTimeout(() => {
+					if (!this.isLoaded) {
+						this.api.removeEventListener('onStateChange', stateHandler)
+						onVideoCued()
+					}
+				}, 1000)
+				
 				return
 			}
 		}
