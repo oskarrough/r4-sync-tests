@@ -92,6 +92,17 @@ Usage:
 	.strictCommands()
 	.demandCommand(1, 'You need at least one command')
 	.strict()
+	.showHelpOnFail(false)
+	.fail((msg, err) => {
+		if (msg) {
+			console.error(`Error: ${msg}`)
+			if (msg.includes('source')) {
+				console.error('Try: --source local, --source r4, or --source v1. Data is only local after pulling.')
+			}
+			process.exit(1)
+		}
+		if (err) throw err
+	})
 	.parserConfiguration({
 		'short-option-groups': true,
 		'populate--': true,
@@ -115,6 +126,7 @@ cli.command('channels <command>', 'Manage channels', (yargs) => {
 					})
 					.option('limit', {type: 'number', describe: 'Limit number of results'})
 					.option('json', {type: 'boolean', default: false, describe: 'Output as JSON'})
+					// .demandOption('source', 'COME ONE')
 					.group(['source', 'limit', 'json'], 'Options:'),
 			async (argv) => {
 				try {
