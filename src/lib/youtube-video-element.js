@@ -109,6 +109,8 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 	isLoaded = false
 	#error = null
 	#config = null
+	#seekInterval = null
+	#progressInterval = null
 
 	constructor() {
 		super()
@@ -137,6 +139,16 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 			this.isLoaded = false
 		}
 		this.#hasLoaded = true
+
+		// Clean up existing intervals before setting up new ones
+		if (this.#seekInterval) {
+			clearInterval(this.#seekInterval)
+			this.#seekInterval = null
+		}
+		if (this.#progressInterval) {
+			clearInterval(this.#progressInterval)
+			this.#progressInterval = null
+		}
 
 		// Wait 1 tick to allow other attributes to be set.
 		await (this.#loadRequested = Promise.resolve())
@@ -172,7 +184,7 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 			if (videoId) {
 				// Use loadVideoById to change video without recreating player
 				this.api = oldApi
-				
+
 				// Wait for the video to be ready before firing events
 				const onVideoCued = () => {
 					// Fire the same events as onReady since loadVideoById doesn't trigger it
@@ -181,11 +193,11 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 					this.dispatchEvent(new Event('durationchange'))
 					this.dispatchEvent(new Event('volumechange'))
 					this.dispatchEvent(new Event('loadcomplete'))
-					
+
 					this.isLoaded = true
 					this.loadComplete.resolve()
 				}
-				
+
 				// Listen for the video to be cued/ready
 				const stateHandler = (event) => {
 					// State 5 = video cued, State 1 = playing (if autoplay)
@@ -194,10 +206,16 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 						onVideoCued()
 					}
 				}
-				
+
 				this.api.addEventListener('onStateChange', stateHandler)
-				this.api.loadVideoById(videoId)
-				
+
+				// Respect autoplay attribute when reusing player
+				if (this.autoplay) {
+					this.api.loadVideoById(videoId)
+				} else {
+					this.api.cueVideoById(videoId)
+				}
+
 				// Also set a timeout fallback in case state doesn't change
 				setTimeout(() => {
 					if (!this.isLoaded) {
@@ -205,7 +223,7 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 						onVideoCued()
 					}
 				}, 1000)
-				
+
 				return
 			}
 		}
@@ -217,16 +235,15 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 		} else if (!oldApi) {
 			// We have an iframe but no API instance - need to create player
 			if (iframe.src !== serializeIframeUrl(attrs, this)) {
-				// Add debugger to catch iframe recreation after initial load
 				if (this.#hasLoaded && !isFirstLoad) {
-					debugger // Iframe recreation detected after initial load
+					console.warn('recreating youtube iframe')
 				}
 				this.shadowRoot.innerHTML = getTemplateHTML(attrs, this)
 				iframe = this.shadowRoot.querySelector('iframe')
 			}
 		} else {
 			// We have both iframe and API but couldn't reuse - this shouldn't happen
-			debugger // Unexpected state: have API but couldn't reuse it
+			console.warn('this should not happen')
 			return
 		}
 
@@ -315,7 +332,7 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 		await this.loadComplete
 
 		let lastCurrentTime = 0
-		setInterval(() => {
+		this.#seekInterval = setInterval(() => {
 			const diff = Math.abs(this.currentTime - lastCurrentTime)
 			const bufferedEnd = this.buffered.end(this.buffered.length - 1)
 			if (this.seeking && bufferedEnd > 0.1) {
@@ -330,10 +347,11 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 		}, 50)
 
 		let lastBufferedEnd
-		const progressInterval = setInterval(() => {
+		this.#progressInterval = setInterval(() => {
 			const bufferedEnd = this.buffered.end(this.buffered.length - 1)
 			if (bufferedEnd >= this.duration) {
-				clearInterval(progressInterval)
+				clearInterval(this.#progressInterval)
+				this.#progressInterval = null
 				this.#readyState = 4 // HTMLMediaElement.HAVE_ENOUGH_DATA
 			}
 			if (lastBufferedEnd != bufferedEnd) {
@@ -476,7 +494,8 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 	set muted(val) {
 		if (this.muted == val) return
 		this.loadComplete.then(() => {
-			val ? this.api?.mute() : this.api?.unMute()
+			if (val) this.api?.mute()
+			else this.api?.unMute()
 		})
 	}
 

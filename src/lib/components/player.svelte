@@ -1,11 +1,10 @@
 <script>
-	import {tick} from 'svelte'
 	import 'media-chrome'
 	//import 'youtube-video-element'
 	//import '$lib/youtube-video-element-original.js'
 	import '$lib/youtube-video-element.js'
 	import {toggleQueuePanel, togglePlayerExpanded} from '$lib/api'
-	import {togglePlay, next, previous, toggleShuffle, play, pause} from '$lib/api/player'
+	import {togglePlay, next, previous, toggleShuffle, play} from '$lib/api/player'
 	import {appState} from '$lib/app-state.svelte'
 	import {logger} from '$lib/logger'
 	import {extractYouTubeId} from '$lib/utils.ts'
@@ -114,19 +113,6 @@
 		appState.volume = volume
 		log.log('volumeChange', volume)
 	}
-
-	// Pre-buffer video for smooth playback
-	async function prebuffer() {
-		await tick()
-		const playerState = yt?.api?.getPlayerState?.()
-		if (playerState === 5 && !didPlay) {
-			log.log('prebuffering')
-			play(yt)
-			setTimeout(() => pause(yt), 200)
-		}
-	}
-
-	$inspect({autoplay})
 </script>
 
 <div class={['player', appState.player_expanded ? 'expanded' : 'compact']}>
@@ -145,12 +131,12 @@
 			slot="media"
 			bind:this={yt}
 			{src}
-			{autoplay}
+			autoplay={didPlay || undefined}
 			playsinline={1}
 			volume={appState.volume}
 			muted={appState.volume === 0}
 			onloadcomplete={() => {
-				prebuffer()
+				//prebuffer()
 				applyInitialVolume()
 			}}
 			onplay={handlePlay}
