@@ -14,10 +14,9 @@
 	let visibleRows = 7
 	
 	let mainContainer
-	let itemsContainer
 	let virtualPosition = {x: 0, y: 0}
 	let draggable
-	let lastGridUpdate = {x: 0, y: 0}
+	let rafId
 
 	// Generate visible grid items based on virtual position
 	function generateVisibleItems() {
@@ -38,8 +37,8 @@
 				items_array.push({
 					id: `${virtualX}-${virtualY}`,
 					content: `${items[itemIndex]} (${virtualX}, ${virtualY})`,
-					x: virtualX * spacingX - virtualPosition.x,
-					y: virtualY * spacingY - virtualPosition.y
+					x: virtualX * spacingX,
+					y: virtualY * spacingY
 				})
 			}
 		}
@@ -59,7 +58,13 @@
 	}
 	
 	function updateGrid() {
-		visibleItems = generateVisibleItems()
+		// Cancel any pending update
+		if (rafId) cancelAnimationFrame(rafId)
+		
+		// Schedule update on next frame
+		rafId = requestAnimationFrame(() => {
+			visibleItems = generateVisibleItems()
+		})
 	}
 
 	$effect(() => {
@@ -68,13 +73,11 @@
 		updateViewport()
 		updateGrid()
 
-		// Create draggable with direct position updates
+		// Create draggable directly on the container
 		draggable = Draggable.create(mainContainer, {
 			type: 'x,y',
-			inertia: {
-				resistance: 100,
-				velocityScale: 1.5
-			},
+			inertia: true,
+			trigger: mainContainer.parentElement, // Use parent as trigger area
 			onDrag() {
 				virtualPosition.x = -this.x
 				virtualPosition.y = -this.y
@@ -94,6 +97,7 @@
 
 		return () => {
 			if (draggable) draggable.kill()
+			if (rafId) cancelAnimationFrame(rafId)
 			window.removeEventListener('resize', updateViewport)
 		}
 	})
@@ -116,6 +120,11 @@
 		border: 2px solid var(--color-red);
 		overflow: hidden;
 		background: var(--bg-1);
+		cursor: grab;
+	}
+	
+	.infinite-container:active {
+		cursor: grabbing;
 	}
 
 	main {
