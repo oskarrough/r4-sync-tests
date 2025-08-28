@@ -1,7 +1,9 @@
 <script>
 	import {tick} from 'svelte'
 	import 'media-chrome'
-	import 'youtube-video-element'
+	//import 'youtube-video-element'
+	//import '$lib/youtube-video-element-original.js'
+	import '$lib/youtube-video-element.js'
 	import {toggleQueuePanel, togglePlayerExpanded} from '$lib/api'
 	import {togglePlay, next, previous, toggleShuffle, play, pause} from '$lib/api/player'
 	import {appState} from '$lib/app-state.svelte'
@@ -24,6 +26,8 @@
 
 	/** @type {Track|undefined} */
 	let track = $state()
+
+	let src = $derived(track?.url)
 
 	/** @type {Channel|undefined} */
 	let channel = $state()
@@ -48,22 +52,23 @@
 
 	$effect(async () => {
 		const tid = appState.playlist_track
+
 		const trackChanged = tid && tid !== track?.id
-		if (trackChanged) {
-			// debugger
-			const ytplayer = yt || document.querySelector('youtube-video')
-			const paused = ytplayer.paused
-			// const wasPlaying = track && yt && !paused
-			await setChannelFromTrack(tid)
-			log.log('track changed', {track: track?.title, yt, paused, didPlay, autoplay})
-			// Only auto-play if we were already playing when track changed
-			if (didPlay && yt) {
-				log.log('Auto-playing next track, yt ready:', !!yt, 'didPlay:', didPlay)
-				// Wait for YouTube element to be ready before playing, with fallback for background tabs
-				Promise.race([yt.loadComplete, new Promise((resolve) => setTimeout(resolve, 1000))]).then(() => {
-					log.log('YouTube loadComplete (or timeout), calling play')
-					play(yt)
-				})
+		if (!trackChanged) return
+
+		const ytplayer = yt || document.querySelector('youtube-video')
+		const paused = ytplayer.paused
+
+		await setChannelFromTrack(tid)
+
+		log.log('track changed', {track: track?.title, yt, paused, didPlay, autoplay, hidden: document.hidden})
+		// Auto-play if we were already playing when track changed
+		if (didPlay && yt) {
+			log.log('Auto-playing next track')
+			try {
+				await play(yt)
+			} catch (error) {
+				log.warn('Playback failed:', error)
 			}
 		}
 	})
@@ -110,19 +115,18 @@
 		log.log('volumeChange', volume)
 	}
 
-	// Pre-buffer video if it's in cued state for smooth playback
+	// Pre-buffer video for smooth playback
 	async function prebuffer() {
 		await tick()
 		const playerState = yt?.api?.getPlayerState?.()
 		if (playerState === 5 && !didPlay) {
-			//log.log('prebuffering')
+			log.log('prebuffering')
 			play(yt)
-			setTimeout(() => {
-				pause(yt)
-				//log.log('prebuffering complete')
-			}, 200)
+			setTimeout(() => pause(yt), 200)
 		}
 	}
+
+	$inspect({autoplay})
 </script>
 
 <div class={['player', appState.player_expanded ? 'expanded' : 'compact']}>
@@ -140,7 +144,7 @@
 		<youtube-video
 			slot="media"
 			bind:this={yt}
-			src={track?.url}
+			{src}
 			{autoplay}
 			playsinline={1}
 			volume={appState.volume}
