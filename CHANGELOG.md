@@ -2,7 +2,8 @@
 
 ## August 2025
 
-- The ./docs/ folder is getting better
+- Continuous playback (should) be more stable
+- The documentation for the app is better, and can be deployed as a website if needed
 - Nicer create account / sign in auth flow
 - Custom tooltips on most icon buttons
 - Fix /broadcasts page

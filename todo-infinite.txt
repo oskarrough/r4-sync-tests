@@ -1,0 +1,22 @@
+# Infinite Canvas Tips from GSAP Example
+
+## Key concepts from smooth horizontal infinite scroll:
+
+1. **Timeline-based approach** - Use GSAP timeline with seamless looping rather than DOM manipulation
+2. **Triple buffering** - Create 3 cycles of items (prev, current, next) to enable smooth transitions  
+3. **Playhead scrubbing** - Use a proxy object to track position and scrub timeline accordingly
+4. **Wrap time calculations** - `gsap.utils.wrap(0, duration)` for safe time bounds
+5. **Smooth interpolation** - Use tweened scrubbing with easing rather than direct position updates
+6. **Performance optimization** - Reuse same tween with `invalidate().restart()` instead of creating new ones
+
+## Specific techniques:
+- `spacing * items.length` for cycle duration
+- Reserve extra animations at start/end for seamless wrapping
+- Convert scroll/drag progress to timeline time via wrapping
+- Snap to discrete positions on interaction end
+- Use `onRepeat` and `onReverseComplete` for edge case handling
+
+## For 2D grid adaptation:
+- Could use similar timeline approach for rows/columns separately
+- Timeline scrubbing more performant than DOM element repositioning
+- Consider using transforms on container vs individual elements
