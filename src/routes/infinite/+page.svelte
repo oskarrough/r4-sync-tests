@@ -52,19 +52,23 @@
 		const vw = window.innerWidth
 		const vh = window.innerHeight
 		
-		// Calculate how many cells we need to show with fixed dimensions
-		visibleCols = Math.ceil(vw / cellWidth) + 2
-		visibleRows = Math.ceil(vh / cellHeight) + 2
+		// Calculate how many cells we need to show with larger buffer for fast drags
+		visibleCols = Math.ceil(vw / cellWidth) + 4
+		visibleRows = Math.ceil(vh / cellHeight) + 4
 	}
 	
 	function updateGrid() {
-		// Cancel any pending update
-		if (rafId) cancelAnimationFrame(rafId)
-		
-		// Schedule update on next frame
-		rafId = requestAnimationFrame(() => {
-			visibleItems = generateVisibleItems()
-		})
+		visibleItems = generateVisibleItems()
+	}
+
+	// Throttled update for smooth performance
+	let lastUpdate = 0
+	function throttledUpdate() {
+		const now = Date.now()
+		if (now - lastUpdate > 16) { // ~60fps
+			lastUpdate = now
+			updateGrid()
+		}
 	}
 
 	$effect(() => {
@@ -81,11 +85,19 @@
 			onDrag() {
 				virtualPosition.x = -this.x
 				virtualPosition.y = -this.y
-				updateGrid()
+				throttledUpdate()
 			},
 			onThrowUpdate() {
 				virtualPosition.x = -this.x
 				virtualPosition.y = -this.y
+				throttledUpdate()
+			},
+			onDragEnd() {
+				// Force update on drag end to ensure grid is correct
+				updateGrid()
+			},
+			onThrowComplete() {
+				// Force update when throw completes
 				updateGrid()
 			}
 		})[0]
@@ -97,7 +109,6 @@
 
 		return () => {
 			if (draggable) draggable.kill()
-			if (rafId) cancelAnimationFrame(rafId)
 			window.removeEventListener('resize', updateViewport)
 		}
 	})
