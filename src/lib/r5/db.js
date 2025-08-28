@@ -104,13 +104,12 @@ export async function drop() {
 	// as the UI re-renders better to this than just dropping tables
 	// Wrap in try-catch to handle missing tables in older schemas
 	const tablesToDelete = ['app_state', 'track_edits', 'followers', 'play_history', 'tracks', 'channels']
-	
+
 	for (const table of tablesToDelete) {
 		try {
 			await pg.exec(`DELETE FROM ${table};`)
-		} catch (err) {
+		} catch {
 			// Table doesn't exist yet, that's ok
-			log.debug(`Table ${table} doesn't exist, skipping delete`)
 		}
 	}
 
