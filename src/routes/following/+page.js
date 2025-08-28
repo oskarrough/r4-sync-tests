@@ -1,4 +1,4 @@
-import {ensureFollowers} from '$lib/api'
+import {getFollowers} from '$lib/api'
 import {appState} from '$lib/app-state.svelte'
 
 /** @type {import('./$types').PageLoad} */
@@ -7,7 +7,7 @@ export async function load({parent}) {
 	await preload()
 
 	const followerId = appState.channels?.[0] || 'local-user'
-	const followings = await ensureFollowers(followerId)
+	const followings = await getFollowers(followerId)
 
 	return {followings}
 }
