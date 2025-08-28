@@ -20,9 +20,14 @@ const migrations = [
 	{name: '03-functions-and-views', sql: migration03sql}
 ]
 
-// This will be null until createPg() is called
+// Singleton instance stored globally to prevent multiple initializations
+// The module-level export can be re-initialized on re-imports, so we use globalThis
 /** @type {import('@electric-sql/pglite/live').PGliteWithLive} */
 export let pg
+
+// Store initialization promise to prevent concurrent initialization attempts
+/** @type {Promise<import('@electric-sql/pglite/live').PGliteWithLive> | null} */
+let pgInitPromise = null
 
 /**
  * @param {boolean} persist - Switch between in-memory and OPFS persisted indexeddb for PostgreSQL
@@ -30,48 +35,74 @@ export let pg
  */
 
 export async function createPg(persist = browser) {
-	if (!pg) {
-		const dataDir = browser ? (persist ? 'idb://radio4000test2' : 'memory://') : './cli-db'
+	// Check globalThis first for true singleton behavior in browser
+	if (browser && globalThis.__r5_pg_instance) {
+		pg = globalThis.__r5_pg_instance
+		return pg
+	}
 
-		if (browser && useWorker) {
-			log.log('createPg with worker')
-			pg = await PGliteWorker.create(
-				new Worker(new URL('./db-worker.js', import.meta.url), {
-					type: 'module'
-				}),
-				{
-					dataDir: dataDir,
-					extensions: {
-						live
+	// If already initializing, wait for that to complete
+	if (pgInitPromise) {
+		return pgInitPromise
+	}
+
+	if (!pg) {
+		// Store the initialization promise to prevent concurrent calls
+		pgInitPromise = (async () => {
+			const dataDir = browser ? (persist ? 'idb://radio4000test2' : 'memory://') : './cli-db'
+
+			if (browser && useWorker) {
+				log.log('createPg with worker')
+				pg = await PGliteWorker.create(
+					new Worker(new URL('./db-worker.js', import.meta.url), {
+						type: 'module'
+					}),
+					{
+						dataDir: dataDir,
+						extensions: {
+							live
+						}
 					}
-				}
-			)
-		} else if (browser) {
-			// Browser without worker
-			log.log('createPg in main thread')
-			const {PGlite} = await import('@electric-sql/pglite')
-			const {pg_trgm} = await import('@electric-sql/pglite/contrib/pg_trgm')
-			pg = await PGlite.create({
-				dataDir: dataDir,
-				relaxedDurability: true,
-				extensions: {
-					live,
-					pg_trgm
-				}
-			})
-		} else {
-			// CLI/Node fallback
-			const {PGlite} = await import('@electric-sql/pglite')
-			const {pg_trgm} = await import('@electric-sql/pglite/contrib/pg_trgm')
-			pg = await PGlite.create({
-				dataDir: dataDir,
-				relaxedDurability: true,
-				extensions: {
-					live,
-					pg_trgm
-				}
-			})
-		}
+				)
+			} else if (browser) {
+				// Browser without worker
+				log.log('createPg in main thread')
+				const {PGlite} = await import('@electric-sql/pglite')
+				const {pg_trgm} = await import('@electric-sql/pglite/contrib/pg_trgm')
+				pg = await PGlite.create({
+					dataDir: dataDir,
+					relaxedDurability: true,
+					extensions: {
+						live,
+						pg_trgm
+					}
+				})
+			} else {
+				// CLI/Node fallback
+				const {PGlite} = await import('@electric-sql/pglite')
+				const {pg_trgm} = await import('@electric-sql/pglite/contrib/pg_trgm')
+				pg = await PGlite.create({
+					dataDir: dataDir,
+					relaxedDurability: true,
+					extensions: {
+						live,
+						pg_trgm
+					}
+				})
+			}
+
+			// Store in globalThis for true singleton in browser
+			if (browser) {
+				globalThis.__r5_pg_instance = pg
+			}
+
+			// Clear the promise once done
+			pgInitPromise = null
+			return pg
+		})()
+
+		// Wait for initialization to complete
+		pg = await pgInitPromise
 	}
 	return pg
 }
@@ -81,6 +112,12 @@ export async function createPg(persist = browser) {
  * @returns {Promise<import('@electric-sql/pglite/live').PGliteWithLive>}
  */
 export async function getPg() {
+	// Check globalThis first for true singleton
+	if (browser && globalThis.__r5_pg_instance) {
+		pg = globalThis.__r5_pg_instance
+		return pg
+	}
+
 	if (!pg) {
 		pg = await createPg()
 		// Auto-migrate on first database creation
