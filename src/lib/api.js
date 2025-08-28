@@ -53,6 +53,12 @@ export async function playTrack(id, endReason, startReason) {
 	const track = (await pg.sql`SELECT * FROM tracks WHERE id = ${id}`).rows[0]
 	if (!track) throw new Error(`play_track_error: Missing local track: ${id}`)
 
+	// Set flag for user-initiated playback
+	const userInitiatedReasons = ['user_click_track', 'user_next', 'user_prev', 'play_channel']
+	if (userInitiatedReasons.includes(startReason)) {
+		globalThis.__userInitiatedPlay = true
+	}
+
 	// Get current track before we change it
 	const previousTrackId = appState.playlist_track
 

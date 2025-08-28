@@ -14,9 +14,21 @@ const log = logger.ns('player').seal()
 export function play(yt) {
 	if (!yt) {
 		log.warn('YouTube player not ready')
-		return
+		return Promise.reject(new Error('YouTube player not ready'))
 	}
-	yt.play()
+	console.log('paused before yt.play?', yt.paused)
+	const promise = yt.play()
+	if (promise !== undefined) {
+		return promise
+			.then(() => {
+				// log.log('play() succeeded')
+			})
+			.catch((error) => {
+				log.warn('play() was prevented:', error.message || error)
+				throw error // Re-throw so caller can handle
+			})
+	}
+	return Promise.resolve()
 }
 
 /** @param {YouTubePlayer} yt */
