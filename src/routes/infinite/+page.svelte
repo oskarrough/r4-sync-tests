@@ -5,41 +5,47 @@
 
 	gsap.registerPlugin(Draggable, InertiaPlugin)
 
-	const items = ['Alpha', 'Beta', 'Gamma']
-	const cellWidth = 180
-	const cellHeight = cellWidth * 2 // aspect-ratio 1/2
-	const gap = 20
+	// Grid configuration
+	const ITEMS = ['Alpha', 'Beta', 'Gamma']
+	const CELL_WIDTH = 180
+	const CELL_HEIGHT = CELL_WIDTH * 2 // aspect-ratio 1/2
+	const GAP = 20
+	const VIEWPORT_BUFFER = 4 // Extra cells beyond viewport for smooth dragging
+	const THROTTLE_MS = 16 // ~60fps
 	
-	let visibleCols = 7
-	let visibleRows = 7
+	let gridDimensions = $state({cols: 7, rows: 7})
 	
 	let mainContainer
-	let virtualPosition = {x: 0, y: 0}
+	let virtualPosition = {x: 0, y: 0} // Top-left origin, positive coordinates
 	let draggable
 	let rafId
 
 	// Generate visible grid items based on virtual position
 	function generateVisibleItems() {
-		const spacingX = cellWidth + gap
-		const spacingY = cellHeight + gap
-		const items_array = []
+		const spacingX = CELL_WIDTH + GAP
+		const spacingY = CELL_HEIGHT + GAP
 		
-		// Calculate starting virtual coordinates based on position
-		const startCol = Math.floor(virtualPosition.x / spacingX) - Math.floor(visibleCols / 2)
-		const startRow = Math.floor(virtualPosition.y / spacingY) - Math.floor(visibleRows / 2)
+		// Calculate which cells are visible based on current position
+		const startCol = Math.floor(virtualPosition.x / spacingX)
+		const startRow = Math.floor(virtualPosition.y / spacingY)
 		
-		for (let row = 0; row < visibleRows; row++) {
-			for (let col = 0; col < visibleCols; col++) {
+		// Pre-allocate array for better performance
+		const itemCount = gridDimensions.rows * gridDimensions.cols
+		const items_array = new Array(itemCount)
+		let index = 0
+		
+		for (let row = 0; row < gridDimensions.rows; row++) {
+			for (let col = 0; col < gridDimensions.cols; col++) {
 				const virtualX = startCol + col
 				const virtualY = startRow + row
-				const itemIndex = (Math.abs(virtualX) + Math.abs(virtualY)) % 3
+				const itemIndex = (Math.abs(virtualX) + Math.abs(virtualY)) % ITEMS.length
 				
-				items_array.push({
+				items_array[index++] = {
 					id: `${virtualX}-${virtualY}`,
-					content: `${items[itemIndex]} (${virtualX}, ${virtualY})`,
+					content: `${ITEMS[itemIndex]} (${virtualX}, ${virtualY})`,
 					x: virtualX * spacingX,
 					y: virtualY * spacingY
-				})
+				}
 			}
 		}
 		
@@ -52,9 +58,9 @@
 		const vw = window.innerWidth
 		const vh = window.innerHeight
 		
-		// Calculate how many cells we need to show with larger buffer for fast drags
-		visibleCols = Math.ceil(vw / cellWidth) + 4
-		visibleRows = Math.ceil(vh / cellHeight) + 4
+		// Calculate how many cells we need to show with buffer for smooth dragging
+		gridDimensions.cols = Math.ceil(vw / CELL_WIDTH) + VIEWPORT_BUFFER
+		gridDimensions.rows = Math.ceil(vh / CELL_HEIGHT) + VIEWPORT_BUFFER
 	}
 	
 	function updateGrid() {
@@ -65,7 +71,7 @@
 	let lastUpdate = 0
 	function throttledUpdate() {
 		const now = Date.now()
-		if (now - lastUpdate > 16) { // ~60fps
+		if (now - lastUpdate > THROTTLE_MS) {
 			lastUpdate = now
 			updateGrid()
 		}
@@ -77,12 +83,13 @@
 		updateViewport()
 		updateGrid()
 
-		// Create draggable directly on the container
+		// Create draggable with inverted movement (drag moves viewport, not content)
 		draggable = Draggable.create(mainContainer, {
 			type: 'x,y',
 			inertia: true,
 			trigger: mainContainer.parentElement, // Use parent as trigger area
 			onDrag() {
+				// Drag right = see content to the left (negative virtual position)
 				virtualPosition.x = -this.x
 				virtualPosition.y = -this.y
 				throttledUpdate()
@@ -117,7 +124,7 @@
 <div class="infinite-container">
 	<main bind:this={mainContainer}>
 		{#each visibleItems as item (item.id)}
-			<article style="left: {item.x}px; top: {item.y}px;">
+			<article style="transform: translate({item.x}px, {item.y}px);">
 				{item.content}
 			</article>
 		{/each}
@@ -140,9 +147,10 @@
 
 	main {
 		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
 	}
 
 	article {
