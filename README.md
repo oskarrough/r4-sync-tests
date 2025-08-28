@@ -1,8 +1,10 @@
 # R5
 
-A prototype exploring the future of radio4000. Local-first music player with client-side PostgreSQL that syncs with radio4000.
+A prototype exploring the future of Radio4000. Local-first music player with client-side PostgreSQL that syncs with R4.
 
-The `main` branch deploys to https://pg.radio4000.com for now.
+## Documentation
+
+See the ./docs/index.md` and `CLAUDE.md` files.
 
 ## Developing
 
@@ -11,9 +13,9 @@ bun install
 bun run dev
 ```
 
-## Documentation
+## Deploying
 
-See the ./docs and `CLAUDE.md` files.
+The `main` branch deploys to https://pg.radio4000.com for now.
 
 ## Credits
 

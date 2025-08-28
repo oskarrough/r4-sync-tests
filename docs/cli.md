@@ -2,7 +2,7 @@
 
 Local-first data CLI for querying Radio4000 data.
 
-When you use the `list` command, use `--source` to control where data comes from:
+When you use the `list` command, use `--source` arg to control where data comes from:
 
 - `--source local` - your local database
 - `--source r4` - remote radio4000 API
@@ -75,5 +75,5 @@ bun cli tracks list ko002 --json | jq '.[] | select(.url | contains("youtube"))'
 bun cli tracks list ko002 --json | jq '.[] | {title, url}'
 
 # Get channels with more than 100 characters in description
-bun cli channels list --json | jq '.[] | select(.description | length > 100)'
+bun cli channels list --source local --json | jq '.[] | select(.description | length > 100)'
 ```

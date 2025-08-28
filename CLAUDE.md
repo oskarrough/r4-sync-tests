@@ -1,28 +1,28 @@
-# CLAUDE.md
-
-This file provides guidance to Claude and other LLMs working with code in this repository. Humans also welcome.
-
 # What is this? R5
 
+This file provides guidance to Claude and other LLMs working with code in this repository. Humans also welcome.
 A prototype local-first music player for Radio4000. The name in dev is `r5`.
-
 SvelteKit + Svelte 5 runes, PGlite (client-side postgres), @radio4000/sdk, jsdoc and sometimes typescript
 
-## Workflow
+## Planning
 
 Use `todo.txt` to see current prios and find things to do.
-Note useful learnings in the `docs` folder. Get up to speed with various features.
+
+## Documentation
+
+Read `docs/index.md` for more. 
+Continously update `./docs/` folder with learnings, more complex features
 
 ## File overview
 
 ```
+/src/lib/types.ts      -- type definitions for the most important interfaces
 /src/lib/r5/index.js   -- local/remote data synchronization
-/src/lib/r5/dj.js	   -- local pglite database
+/src/lib/r5/db.js	   -- local pglite database
 /src/lib/migrations/   -- sql migration files
 /src/lib/api.js        -- reusable data operations
-/src/lib/live-query.js -- local, reactive db queries
 /src/lib/utils         -- the odd reusable function
-/src/lib/types.ts      -- type definitions for database schemas and app state
+/src/lib/dates         -- dates helpers
 /src/lib/components    -- where components go
 ```
 
@@ -31,34 +31,18 @@ Note useful learnings in the `docs` folder. Get up to speed with various feature
 The app works with three sources:
 
 1. Local PostgreSQL (client-side, PGlite) via `import {pg} from $lib/db` - primary interface, allows reads/writes
-2. Remote PostgreSQL (radio4000/Supabase) - public reads, authenticated writes, no auto-sync
+2. Remote PostgreSQL (radio4000/Supabase) - public reads, authenticated writes
 3. Local json and remote API for v1 (firebase realtime db)
-
-Database is state. All application state (UI state, user preferences, everything) lives in the local `app_state` table. Limited component state, avoid stores. The $lib/app-state.svelte automatically is a proxy and automatically persited to pglite via layout.svelte.
-
-See docs/r5-sdk.md.
-
-## Migrations
-
-The local schema can be updated at any time, be generous with migrations:
-
-1. During prototype phase: update existing migrations in `/src/lib/migrations/`
-2. Once in production: create new migrations only
-3. Add to list in `db.ts`
-
-Inspect the migrations for the exact schema.
 
 ```sql
 app_state    -- single row with id 1, all application state
-channels     -- radio stations (id, name, slug, description, image)
-tracks       -- music tracks (id, channel_id, url, title, tags, mentions)
+channels     -- radio channels (id, name, slug, description, image)
+tracks       -- music tracks (id, channel_id, url, title, description, ...)
 ```
 
-Use $lib/types.ts to define them and reuse across the codebase.
+Database is state. Most application state (UI state, user preferences, everything) lives in the local `app_state` table. Limited component state, avoid stores. The $lib/app-state.svelte automatically is a proxy and automatically persited to pglite via layout.svelte.
 
-## Debugging
-
-You can't run queries on the local pglite database, because it is in the browser. You can ask me to run SQL queries on the local db for you with this snippet: (await window.r5.pg.sql`select * from tracks_with_meta limit 2`).rows
+Read more in `docs/local-database.md` and `docs/r5-sdk.md`.
 
 ## Code Style
 
@@ -101,6 +85,9 @@ Use `bind:this` to get a reference to the element. You can even export methods o
 Prefer $app/state over $app/store
 
 ## Debug Tricks
+
+You can't run queries on the local pglite database, because it is in the browser. You can ask me to run SQL queries on the local db for you with this snippet: (await window.r5.pg.sql`select * from tracks_with_meta limit 2`).rows
+
 
 Format and lint the code using `bun run lint`. Or use the claude code command /lint-test.
 

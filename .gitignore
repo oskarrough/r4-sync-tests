@@ -5,6 +5,7 @@ node_modules
 .vercel
 /.svelte-kit
 /build
+/docs/_site
 
 # from the r5 cli pglite
 cli-db/ 

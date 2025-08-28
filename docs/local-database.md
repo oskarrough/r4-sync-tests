@@ -1,28 +1,19 @@
-The local database is a (pglite) PostgreSQL database exposed through wasm.
+The local database is a (pglite) PostgreSQL database in the browser via WASM.
 
-Migrations are applied automatically on load.
-Migrations must be written in a way that they can be run multiple times e.g. `if not exists`.
+Use the `src/lib/r5` or the CLI to interact with it.
 
-When creating new tables:
+## When creating new tables
 
 - update or create a new migration in ./src/lib/migrations/
 - reference the migration in ./src/lib/r5/db
 - add the table(s) to `drop()` function
 
-## PGlite API Quick Reference
+## Migrations
 
-query(sql, params?, options?) - single statement with params
-sql`...` - template literal for queries  
-exec(sql, options?) - multi-statement, no params
-transaction(callback) - atomic operations
+Migrations are applied automatically on load.
+Migrations must be written in a way that they can be run multiple times e.g. `if not exists`.
 
-Options: rowMode, parsers, serializers, blob
-Returns: Promise<Results> (query/sql) or Promise<Results[]> (exec)
+While we are in alpha, it's ok to change existing migrations. Once in production: new migrations only.
 
-```js
-pg.query(query, params, callback)
-pg.exec(query, params, callback)
-pg.live.query(query, params, callback)  (prefered for smaller results, narrow rows)
-pg.live.incrementalQuery(query, params, key, callback)  (It materialises the full result set on each update from only the changes emitted by the live.changes API. Good for large result sets and wide rows.)
-pg.live.changes() a lower level API that emits the changes (insert/update/delete) that can then be mapped to mutations in a UI or other datastore.
-```
+Refer with the `types.ts` and `migrations/*.js` for the exact schema.
+
