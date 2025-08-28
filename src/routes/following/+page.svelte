@@ -16,8 +16,8 @@
 <article>
 	<header>
 		<h1>Following {followings?.length || 0} channels</h1>
-		{#if appState.channels?.length}
-			<p>Your favorites will be synced with your R4 account</p>
+		{#if appState.user}
+			<p>Your favorites are synced with your R4 account</p>
 		{:else}
 			<p>Tip: <a href="/auth?redirect=/following">sign in</a> to sync your followers with R4</p>
 		{/if}
