@@ -2,118 +2,65 @@
 	import gsap from 'gsap'
 	import {Draggable} from 'gsap/Draggable'
 	import {InertiaPlugin} from 'gsap/InertiaPlugin'
-
-	gsap.registerPlugin(Draggable, InertiaPlugin)
-
-	// Grid configuration
-	const ITEMS = ['Alpha', 'Beta', 'Gamma']
-	const CELL_WIDTH = 180
-	const CELL_HEIGHT = CELL_WIDTH * 2 // aspect-ratio 1/2
-	const GAP = 20
-	const VIEWPORT_BUFFER = 4 // Extra cells beyond viewport for smooth dragging
-	const THROTTLE_MS = 16 // ~60fps
+	import {InfiniteGrid, throttle} from '$lib/infinite-grid.js'
 	
-	let gridDimensions = $state({cols: 7, rows: 7})
+	gsap.registerPlugin(Draggable, InertiaPlugin)
+	
+	const ITEMS = ['Alpha', 'Beta', 'Gamma']
+	
+	const grid = new InfiniteGrid({
+		cellWidth: 180,
+		cellHeight: 360,
+		gap: 20,
+		viewportBuffer: 4,
+		getContent: (x, y) => {
+			const itemIndex = (Math.abs(x) + Math.abs(y)) % ITEMS.length
+			return `${ITEMS[itemIndex]} (${x}, ${y})`
+		}
+	})
 	
 	let mainContainer
-	let virtualPosition = {x: 0, y: 0} // Top-left origin, positive coordinates
 	let draggable
-	let rafId
-
-	// Generate visible grid items based on virtual position
-	function generateVisibleItems() {
-		const spacingX = CELL_WIDTH + GAP
-		const spacingY = CELL_HEIGHT + GAP
-		
-		// Calculate which cells are visible based on current position
-		const startCol = Math.floor(virtualPosition.x / spacingX)
-		const startRow = Math.floor(virtualPosition.y / spacingY)
-		
-		// Pre-allocate array for better performance
-		const itemCount = gridDimensions.rows * gridDimensions.cols
-		const items_array = new Array(itemCount)
-		let index = 0
-		
-		for (let row = 0; row < gridDimensions.rows; row++) {
-			for (let col = 0; col < gridDimensions.cols; col++) {
-				const virtualX = startCol + col
-				const virtualY = startRow + row
-				const itemIndex = (Math.abs(virtualX) + Math.abs(virtualY)) % ITEMS.length
-				
-				items_array[index++] = {
-					id: `${virtualX}-${virtualY}`,
-					content: `${ITEMS[itemIndex]} (${virtualX}, ${virtualY})`,
-					x: virtualX * spacingX,
-					y: virtualY * spacingY
-				}
-			}
-		}
-		
-		return items_array
-	}
+	let visibleItems = $state(grid.generateVisibleItems())
 	
-	let visibleItems = $state(generateVisibleItems())
-
+	const updateGrid = throttle(() => {
+		visibleItems = grid.generateVisibleItems()
+	}, 16)
+	
 	function updateViewport() {
-		const vw = window.innerWidth
-		const vh = window.innerHeight
-		
-		// Calculate how many cells we need to show with buffer for smooth dragging
-		gridDimensions.cols = Math.ceil(vw / CELL_WIDTH) + VIEWPORT_BUFFER
-		gridDimensions.rows = Math.ceil(vh / CELL_HEIGHT) + VIEWPORT_BUFFER
+		grid.updateViewport(window.innerWidth, window.innerHeight)
+		updateGrid()
 	}
 	
-	function updateGrid() {
-		visibleItems = generateVisibleItems()
-	}
-
-	// Throttled update for smooth performance
-	let lastUpdate = 0
-	function throttledUpdate() {
-		const now = Date.now()
-		if (now - lastUpdate > THROTTLE_MS) {
-			lastUpdate = now
-			updateGrid()
-		}
-	}
-
 	$effect(() => {
 		if (!mainContainer) return
-
+		
 		updateViewport()
-		updateGrid()
-
+		
 		// Create draggable with inverted movement (drag moves viewport, not content)
 		draggable = Draggable.create(mainContainer, {
 			type: 'x,y',
 			inertia: true,
-			trigger: mainContainer.parentElement, // Use parent as trigger area
+			trigger: mainContainer.parentElement,
 			onDrag() {
 				// Drag right = see content to the left (negative virtual position)
-				virtualPosition.x = -this.x
-				virtualPosition.y = -this.y
-				throttledUpdate()
+				grid.setPosition(-this.x, -this.y)
+				updateGrid()
 			},
 			onThrowUpdate() {
-				virtualPosition.x = -this.x
-				virtualPosition.y = -this.y
-				throttledUpdate()
+				grid.setPosition(-this.x, -this.y)
+				updateGrid()
 			},
 			onDragEnd() {
-				// Force update on drag end to ensure grid is correct
 				updateGrid()
 			},
 			onThrowComplete() {
-				// Force update when throw completes
 				updateGrid()
 			}
 		})[0]
-
-		window.addEventListener('resize', () => {
-			updateViewport()
-			updateGrid()
-		})
-
+		
+		window.addEventListener('resize', updateViewport)
+		
 		return () => {
 			if (draggable) draggable.kill()
 			window.removeEventListener('resize', updateViewport)
