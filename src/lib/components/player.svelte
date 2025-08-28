@@ -68,8 +68,16 @@
 			log.log('Setting userHasPlayed=true for user-initiated track change')
 		}
 
-		log.log('track changed', {track: track?.title, yt, paused, didPlay, autoplay, userHasPlayed, hidden: document.hidden})
-		
+		log.log('track changed', {
+			track: track?.title,
+			yt,
+			paused,
+			didPlay,
+			autoplay,
+			userHasPlayed,
+			hidden: document.hidden
+		})
+
 		// Auto-play if we were already playing when track changed
 		if (didPlay && yt) {
 			log.log('Auto-playing next track')

@@ -21,7 +21,7 @@ export function play(yt) {
 	if (promise !== undefined) {
 		return promise
 			.then(() => {
-				log.log('play() succeeded')
+				// log.log('play() succeeded')
 			})
 			.catch((error) => {
 				log.warn('play() was prevented:', error.message || error)
