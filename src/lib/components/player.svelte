@@ -38,8 +38,9 @@
 	let activeQueue = $derived(appState.shuffle ? appState.playlist_tracks_shuffled || [] : trackIds)
 
 	let didPlay = $state(false)
+	let userHasPlayed = $state(false)
 	const canPlay = $derived(Boolean(channel && track))
-	const autoplay = $derived(didPlay ? 1 : 0)
+	const autoplay = $derived(userHasPlayed ? 1 : 0)
 	const isListeningToBroadcast = $derived(Boolean(appState.listening_to_channel_id))
 
 	/** @type {string} */
@@ -60,7 +61,15 @@
 
 		await setChannelFromTrack(tid)
 
-		log.log('track changed', {track: track?.title, yt, paused, didPlay, autoplay, hidden: document.hidden})
+		// Check if a user-initiated play flag was set
+		if (globalThis.__userInitiatedPlay && !userHasPlayed) {
+			userHasPlayed = true
+			globalThis.__userInitiatedPlay = false
+			log.log('Setting userHasPlayed=true for user-initiated track change')
+		}
+
+		log.log('track changed', {track: track?.title, yt, paused, didPlay, autoplay, userHasPlayed, hidden: document.hidden})
+		
 		// Auto-play if we were already playing when track changed
 		if (didPlay && yt) {
 			log.log('Auto-playing next track')
@@ -82,6 +91,7 @@
 	function handlePlay() {
 		log.log('handlePlay')
 		didPlay = true
+		userHasPlayed = true
 		appState.is_playing = true
 	}
 
@@ -131,7 +141,7 @@
 			slot="media"
 			bind:this={yt}
 			{src}
-			autoplay={didPlay || undefined}
+			autoplay={userHasPlayed || undefined}
 			playsinline={1}
 			volume={appState.volume}
 			muted={appState.volume === 0}
