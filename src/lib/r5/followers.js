@@ -3,7 +3,6 @@ import {r4} from '$lib/r4'
 import {getPg, pg} from '$lib/r5/db'
 
 const log = logger.ns('r5:followers').seal()
-let syncPromise = null
 
 /**
  * Pull remote follows and save to local
@@ -56,13 +55,6 @@ export async function pull(userChannelId) {
  * @returns {Promise<void>}
  */
 export async function sync(userChannelId) {
-	if (syncPromise) return syncPromise
-
-	syncPromise = doSync(userChannelId).finally(() => (syncPromise = null))
-	return syncPromise
-}
-
-async function doSync(userChannelId) {
 	await getPg()
 	log.log('sync_start', userChannelId)
 
