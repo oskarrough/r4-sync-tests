@@ -102,12 +102,17 @@ export async function drop() {
 
 	// We are deleting rows from all tables before dropping,
 	// as the UI re-renders better to this than just dropping tables
-	await pg.sql`DELETE FROM app_state;`
-	await pg.sql`DELETE FROM track_edits;`
-	await pg.sql`DELETE FROM followers;`
-	await pg.sql`DELETE FROM play_history;`
-	await pg.sql`DELETE FROM tracks;`
-	await pg.sql`DELETE FROM channels;`
+	// Wrap in try-catch to handle missing tables in older schemas
+	const tablesToDelete = ['app_state', 'track_edits', 'followers', 'play_history', 'tracks', 'channels']
+	
+	for (const table of tablesToDelete) {
+		try {
+			await pg.exec(`DELETE FROM ${table};`)
+		} catch (err) {
+			// Table doesn't exist yet, that's ok
+			log.debug(`Table ${table} doesn't exist, skipping delete`)
+		}
+	}
 
 	// Drop tables with CASCADE to handle dependencies
 	await pg.sql`drop table if exists app_state CASCADE;`
