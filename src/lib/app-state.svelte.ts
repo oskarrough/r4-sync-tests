@@ -45,6 +45,9 @@ export async function initAppState() {
 		const result = await pg.query('SELECT * FROM app_state WHERE id = 1')
 		log.log('init', result.rows[0])
 		if (result.rows[0]) {
+			// Overwrite is_playing to always be false
+			result.rows[0].is_playing = false
+
 			Object.assign(appState, result.rows[0])
 		}
 	} catch (err) {
