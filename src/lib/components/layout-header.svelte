@@ -2,6 +2,7 @@
 	import {page} from '$app/state'
 	import {appState} from '$lib/app-state.svelte'
 	import AddTrackModal from '$lib/components/add-track-modal.svelte'
+	import {watchBroadcasts} from '$lib/broadcast'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import HeaderSearch from '$lib/components/header-search.svelte'
 	import Icon from '$lib/components/icon.svelte'
@@ -17,6 +18,14 @@
 		const channels = await r5.channels.pull({id, limit: 1})
 		return channels[0] || null
 	})
+
+	let broadcastCount = $state(0)
+
+	const unsubscribe = watchBroadcasts((data) => {
+		broadcastCount = data.broadcasts.length
+	})
+
+	$effect(() => unsubscribe)
 </script>
 
 <header>
@@ -47,6 +56,9 @@
 				{@attach tooltip({content: 'Broadcasts'})}
 			>
 				<Icon icon="radio" size={20} />
+				{#if broadcastCount > 0}
+					<span class="count">{broadcastCount}</span>
+				{/if}
 			</a>
 			<a
 				href="/following"
@@ -92,5 +104,24 @@
 		a {
 			text-decoration: none;
 		}
+	}
+
+	.count {
+		position: absolute;
+		top: -7px;
+		right: -5px;
+		background: var(--color-red);
+		color: white;
+		border-radius: 50%;
+		font-size: var(--font-1);
+		min-width: 1.2rem;
+		height: 1.2rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.btn:has(.count) {
+		position: relative;
 	}
 </style>
