@@ -55,7 +55,7 @@
 				class:active={page.route.id === '/broadcasts'}
 				{@attach tooltip({content: 'Broadcasts'})}
 			>
-				<Icon icon="radio" size={20} />
+				<Icon icon="signal" size={20} />
 				{#if broadcastCount > 0}
 					<span class="count">{broadcastCount}</span>
 				{/if}

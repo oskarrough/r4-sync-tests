@@ -45,12 +45,12 @@
 	{#each activeBroadcasts as broadcast (broadcast.channel_id)}
 		{@const joined = broadcast.channel_id === appState.listening_to_channel_id}
 		<div class:active={joined}>
-			<!-- <div class="live-dot"></div> -->
+			<div class="live-dot"></div>
 			<ChannelCard channel={broadcast.channels}>
 				<p>
-					Broadcasting since {timeAgo(broadcast.track_played_at)}
+				<span class="live">Live</span> Broadcasting since {timeAgo(broadcast.track_played_at)}
 					<em>
-						<EnsureTrack tid={broadcast.track_id}>I AM INSIDE</EnsureTrack>
+						<EnsureTrack tid={broadcast.track_id}></EnsureTrack>
 					</em>
 				</p>
 
@@ -87,5 +87,17 @@
 	.list :global(article > a) {
 		grid-template-columns: 8rem auto;
 		gap: 1rem;
+	}
+
+	p:has(.live) {
+		margin: 1rem 0;
+	}
+
+	.live {
+		display: inline-block;
+		background: var(--color-red);
+		color: var(--gray-12);
+		padding: 0 0.5rem;
+		border-radius: var(--border-radius);
 	}
 </style>
