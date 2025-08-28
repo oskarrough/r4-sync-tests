@@ -11,11 +11,14 @@
 	import ButtonPlay from '$lib/components/button-play.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
 	import LinkEntities from '$lib/components/link-entities.svelte'
+	import BookmarkButton from '$lib/components/bookmark-button.svelte'
 
 	let {data} = $props()
 
 	let channel = $state(data.channel)
-	let latestTrackDate = $state(null)
+
+	let tracks = $state([])
+	let latestTrackDate = $derived(tracks[0]?.created_at)
 
 	/** @type {string[]} */
 	let trackIds = $derived([])
@@ -23,6 +26,9 @@
 	let debounceTimer = $state()
 
 	onMount(() => {
+		data.tracksPromise.then((x) => {
+			tracks = x
+		})
 		const search = page.url.searchParams.get('search')
 		if (search) searchQuery = search
 	})

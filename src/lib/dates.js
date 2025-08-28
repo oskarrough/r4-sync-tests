@@ -5,6 +5,7 @@ export function formatDate(date) {
 
 /** @param {string} dateString */
 function differenceInDays(dateString) {
+	if (!dateString) return 0
 	const date = new Date(dateString).getTime()
 	const today = Date.now()
 	const diffTime = Math.abs(today - date)
@@ -13,6 +14,7 @@ function differenceInDays(dateString) {
 
 /** @param {string} dateString */
 export function relativeDate(dateString) {
+	if (!dateString) return 'unknown'
 	const days = differenceInDays(dateString)
 	return `${days} day${days > 1 ? 's' : ''} ago`
 }
@@ -20,6 +22,7 @@ export function relativeDate(dateString) {
 /** Returns a fancy cosmic time duration string
  * @param {string} dateString */
 export function relativeDateSolar(dateString) {
+	if (!dateString) return 'unknown'
 	const days = differenceInDays(dateString)
 	const years = Math.floor(days / 365)
 	const remainingDays = days % 365
