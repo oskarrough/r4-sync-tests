@@ -4,6 +4,9 @@
  */
 
 import {r5} from './r5/index.js'
+import * as playerApi from './api/player.js'
+import {appState} from './app-state.svelte'
+import {pg} from './r5/db'
 
 const COMMANDS = {
 	channels: {
@@ -36,6 +39,26 @@ const COMMANDS = {
 			if (!args[0]) throw new Error('pull requires a channel slug')
 			return [args[0]]
 		}
+	},
+	play: {
+		methods: [],
+		argMap: () => []
+	},
+	pause: {
+		methods: [],
+		argMap: () => []
+	},
+	next: {
+		methods: [],
+		argMap: () => []
+	},
+	prev: {
+		methods: [],
+		argMap: () => []
+	},
+	shuffle: {
+		methods: [],
+		argMap: () => []
 	}
 }
 
@@ -56,6 +79,11 @@ Commands:
   db reset                     Reset database
   db migrate                   Run migrations
   db export                    Export database
+  play                         Toggle play/pause current track
+  pause                        Pause current track
+  next                         Play next track
+  prev                         Play previous track
+  shuffle                      Toggle shuffle mode
 
 Examples:
   search jazz
@@ -68,6 +96,56 @@ Examples:
 export function createBrowserCli(onOutput) {
 	const log = (text, data) => onOutput('success', text, data)
 	const error = (text) => onOutput('error', text)
+
+	async function handlePlayerCommand(cmd) {
+		const ytPlayer = document.querySelector('youtube-video')
+
+		switch (cmd) {
+			case 'play':
+				if (!ytPlayer) {
+					return error('No YouTube player found')
+				}
+				playerApi.togglePlay(ytPlayer)
+				return log(ytPlayer.paused ? 'Playing' : 'Paused')
+
+			case 'pause':
+				if (!ytPlayer) {
+					return error('No YouTube player found')
+				}
+				playerApi.pause(ytPlayer)
+				return log('Paused')
+
+			case 'next': {
+				const currentTrack = await getCurrentTrack()
+				if (!currentTrack) {
+					return error('No current track')
+				}
+				const activeQueue = appState.shuffle ? appState.playlist_tracks_shuffled : appState.playlist_tracks
+				playerApi.next(currentTrack, activeQueue, 'user_next')
+				return log('Playing next track')
+			}
+
+			case 'prev': {
+				const prevTrack = await getCurrentTrack()
+				if (!prevTrack) {
+					return error('No current track')
+				}
+				const prevQueue = appState.shuffle ? appState.playlist_tracks_shuffled : appState.playlist_tracks
+				playerApi.previous(prevTrack, prevQueue, 'user_prev')
+				return log('Playing previous track')
+			}
+
+			case 'shuffle':
+				playerApi.toggleShuffle()
+				return log(`Shuffle ${appState.shuffle ? 'on' : 'off'}`)
+		}
+	}
+
+	async function getCurrentTrack() {
+		if (!appState.playlist_track) return null
+		const result = await pg.sql`SELECT * FROM tracks WHERE id = ${appState.playlist_track}`
+		return result.rows[0]
+	}
 
 	function formatResults(results) {
 		if (!results || (Array.isArray(results) && results.length === 0)) {
@@ -103,6 +181,11 @@ export function createBrowserCli(onOutput) {
 			// Special cases
 			if (cmd === 'help') {
 				return log(HELP_TEXT)
+			}
+
+			// Player commands
+			if (['play', 'pause', 'next', 'prev', 'shuffle'].includes(cmd)) {
+				return handlePlayerCommand(cmd)
 			}
 
 			const config = COMMANDS[cmd]
@@ -176,7 +259,9 @@ export function createBrowserCli(onOutput) {
 		const parts = partial.trim().split(/\s+/)
 
 		if (parts.length <= 1) {
-			return ['help', 'search', 'channels', 'tracks', 'pull', 'db'].filter((cmd) => cmd.startsWith(parts[0] || ''))
+			return ['help', 'search', 'channels', 'tracks', 'pull', 'db', 'play', 'pause', 'next', 'prev', 'shuffle'].filter(
+				(cmd) => cmd.startsWith(parts[0] || '')
+			)
 		}
 
 		const [cmd, method] = parts

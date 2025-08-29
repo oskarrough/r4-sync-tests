@@ -212,6 +212,7 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 
 				// Respect autoplay attribute when reusing player
 				// Check if API methods are available before calling them
+				await this.loadComplete
 				if (this.api.loadVideoById && this.api.cueVideoById) {
 					if (this.autoplay) {
 						this.api.loadVideoById(videoId)
@@ -287,6 +288,8 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
       5 (video cued).
     */
 
+		let lastCurrentTime = 0
+
 		let playFired = false
 		this.api.addEventListener('onStateChange', (event) => {
 			const state = event.data
@@ -339,7 +342,6 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 
 		await this.loadComplete
 
-		let lastCurrentTime = 0
 		this.#seekInterval = setInterval(() => {
 			const diff = Math.abs(this.currentTime - lastCurrentTime)
 			const bufferedEnd = this.buffered.end(this.buffered.length - 1)
