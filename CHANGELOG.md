@@ -2,7 +2,9 @@
 
 ## August 2025
 
-- The ./docs/ folder is getting better
+- Added a new, experimental (as always) 2d infinite grid for browsing channels
+- Continuous playback (should) be more stable
+- The documentation for the app is better, and can be deployed as a website if needed
 - Nicer create account / sign in auth flow
 - Custom tooltips on most icon buttons
 - Fix /broadcasts page
