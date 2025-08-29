@@ -1,11 +1,10 @@
 <script>
-	import gsap from 'gsap'
 	import {Draggable} from 'gsap/Draggable'
+	import gsap from 'gsap'
 	import {InertiaPlugin} from 'gsap/InertiaPlugin'
 	import {InfiniteGrid, throttle} from '$lib/infinite-grid.js'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import ButtonPlay from '$lib/components/button-play.svelte'
-	import ChannelHero from '$lib/components/channel-hero.svelte'
 
 	gsap.registerPlugin(Draggable, InertiaPlugin)
 
