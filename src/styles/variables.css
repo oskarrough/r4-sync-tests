@@ -107,7 +107,6 @@
 	--gray-9: light-dark(lch(45% 1 282), lch(65% 1.35 272));
 	--gray-10: light-dark(lch(35% 1 282), lch(75% 2 104));
 	--gray-11: light-dark(lch(20% 1 282), lch(90% 2 104));
-	--gray-12: light-dark(lch(10% 0 282), lch(95% 5 104));
 	--gray-12: light-dark(lch(10% 0 282), lch(91% 6 104));
 	/* lch(91 10.83 104.43) */
 
