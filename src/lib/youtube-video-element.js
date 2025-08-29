@@ -69,13 +69,13 @@ function serializeIframeUrl(attrs, props) {
 	// If the src is a video, we use the video ID.
 	if (VIDEO_MATCH_SRC.test(attrs.src)) {
 		const matches = attrs.src.match(VIDEO_MATCH_SRC)
-		const srcId = matches && matches[1]
+		const srcId = matches?.[1]
 		return `${embedBase}/${srcId}?${serialize(params)}`
 	}
 
 	// Otherwise, we use the playlist ID.
 	const matches = attrs.src.match(PLAYLIST_MATCH_SRC)
-	const playlistId = matches && matches[1]
+	const playlistId = matches?.[1]
 	const extendedParams = {
 		listType: 'playlist',
 		list: playlistId,
@@ -151,7 +151,8 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 		}
 
 		// Wait 1 tick to allow other attributes to be set.
-		await (this.#loadRequested = Promise.resolve())
+		this.#loadRequested = Promise.resolve()
+		await this.#loadRequested
 		this.#loadRequested = null
 
 		this.#readyState = 0
@@ -179,7 +180,7 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 		if (oldApi && iframe && iframe.src) {
 			// Extract video ID from the new src
 			const videoMatch = this.src.match(VIDEO_MATCH_SRC)
-			const videoId = videoMatch && videoMatch[1]
+			const videoId = videoMatch?.[1]
 
 			if (videoId) {
 				// Use loadVideoById to change video without recreating player
@@ -210,10 +211,17 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 				this.api.addEventListener('onStateChange', stateHandler)
 
 				// Respect autoplay attribute when reusing player
-				if (this.autoplay) {
-					this.api.loadVideoById(videoId)
+				// Check if API methods are available before calling them
+				if (this.api.loadVideoById && this.api.cueVideoById) {
+					if (this.autoplay) {
+						this.api.loadVideoById(videoId)
+					} else {
+						this.api.cueVideoById(videoId)
+					}
 				} else {
-					this.api.cueVideoById(videoId)
+					// API not fully ready, skip and let normal flow handle it
+					console.warn('YouTube API methods not ready, skipping video load')
+					return
 				}
 
 				// Also set a timeout fallback in case state doesn't change
@@ -354,7 +362,7 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 				this.#progressInterval = null
 				this.#readyState = 4 // HTMLMediaElement.HAVE_ENOUGH_DATA
 			}
-			if (lastBufferedEnd != bufferedEnd) {
+			if (lastBufferedEnd !== bufferedEnd) {
 				lastBufferedEnd = bufferedEnd
 				this.dispatchEvent(new Event('progress'))
 			}
@@ -402,7 +410,7 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 	}
 
 	set src(val) {
-		if (this.src == val) return
+		if (this.src === val) return
 		this.setAttribute('src', val)
 	}
 
@@ -433,7 +441,7 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 	}
 
 	set autoplay(val) {
-		if (this.autoplay == val) return
+		if (this.autoplay === val) return
 		this.toggleAttribute('autoplay', Boolean(val))
 	}
 
@@ -451,7 +459,7 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 	}
 
 	set controls(val) {
-		if (this.controls == val) return
+		if (this.controls === val) return
 		this.toggleAttribute('controls', Boolean(val))
 	}
 
@@ -460,7 +468,7 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 	}
 
 	set currentTime(val) {
-		if (this.currentTime == val) return
+		if (this.currentTime === val) return
 		this.#seekComplete = new PublicPromise()
 		this.loadComplete.then(() => {
 			this.api?.seekTo(val, true)
@@ -474,7 +482,7 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 	}
 
 	set defaultMuted(val) {
-		if (this.defaultMuted == val) return
+		if (this.defaultMuted === val) return
 		this.toggleAttribute('muted', Boolean(val))
 	}
 
@@ -487,12 +495,12 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 	}
 
 	set loop(val) {
-		if (this.loop == val) return
+		if (this.loop === val) return
 		this.toggleAttribute('loop', Boolean(val))
 	}
 
 	set muted(val) {
-		if (this.muted == val) return
+		if (this.muted === val) return
 		this.loadComplete.then(() => {
 			if (val) this.api?.mute()
 			else this.api?.unMute()
@@ -509,7 +517,7 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 	}
 
 	set playbackRate(val) {
-		if (this.playbackRate == val) return
+		if (this.playbackRate === val) return
 		this.loadComplete.then(() => {
 			this.api?.setPlaybackRate(val)
 		})
@@ -520,7 +528,7 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 	}
 
 	set playsInline(val) {
-		if (this.playsInline == val) return
+		if (this.playsInline === val) return
 		this.toggleAttribute('playsinline', Boolean(val))
 	}
 
@@ -529,12 +537,12 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 	}
 
 	set poster(val) {
-		if (this.poster == val) return
+		if (this.poster === val) return
 		this.setAttribute('poster', `${val}`)
 	}
 
 	set volume(val) {
-		if (this.volume == val) return
+		if (this.volume === val) return
 		this.loadComplete.then(() => {
 			this.api?.setVolume(val * 100)
 		})

@@ -10,27 +10,29 @@
 	/** @type {Track[]}*/
 	let tracks = $state([])
 
-	/** @type {Map<string, Map<string, Track[]>>} */
+	import {SvelteMap} from 'svelte/reactivity'
+
+	/** @type {SvelteMap<string, SvelteMap<string, Track[]>>} */
 	let groupedTracks = $derived.by(() => {
-		if (!grouped || !tracks.length) return new Map()
-		
-		const groups = new Map()
-		tracks.forEach(track => {
+		if (!grouped || !tracks.length) return new SvelteMap()
+
+		const groups = new SvelteMap()
+		tracks.forEach((track) => {
 			const date = new Date(track.created_at)
 			const year = date.getFullYear().toString()
-			const month = date.toLocaleString('en', { month: 'long' })
-			
+			const month = date.toLocaleString('en', {month: 'long'})
+
 			if (!groups.has(year)) {
-				groups.set(year, new Map())
+				groups.set(year, new SvelteMap())
 			}
 			const yearGroup = groups.get(year)
-			
+
 			if (!yearGroup.has(month)) {
 				yearGroup.set(month, [])
 			}
 			yearGroup.get(month).push(track)
 		})
-		
+
 		return groups
 	})
 
@@ -65,10 +67,10 @@
 {#if tracks.length}
 	{#if grouped}
 		<div class="timeline">
-			{#each groupedTracks as [year, months]}
+			{#each groupedTracks as [year, months] (year)}
 				<section class="year">
 					<h2>{year}</h2>
-					{#each months as [month, monthTracks]}
+					{#each months as [month, monthTracks] (month)}
 						<section class="month">
 							<h3>{month}</h3>
 							<ul class="list tracks">
@@ -86,7 +88,7 @@
 		</div>
 	{:else}
 		<ul class="list tracks">
-			{#each tracks as track, index (index)}
+			{#each tracks as track, index (track.id)}
 				<li>
 					<TrackCard {track} {index} />
 					{@render footer?.({track})}
@@ -102,7 +104,7 @@
 		content-visibility: auto;
 		contain-intrinsic-height: auto 3rem;
 	}
-	
+
 	.year,
 	.month {
 		contain: layout style;

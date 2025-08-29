@@ -47,7 +47,6 @@ html {
 
 html {
 	font-size: calc(15px * var(--scaling));
-	/* font-size: calc(clamp(1em, 0.5em + 1vw, 2em)); */
 }
 
 body {
@@ -60,13 +59,6 @@ body {
 
 ::selection {
 	/* background: var(--color-accent); */
-}
-
-.scroll {
-	overflow-y: auto;
-	max-height: 100dvh;
-	overscroll-behavior: contain;
-	scrollbar-width: thin;
 }
 
 * {
@@ -132,28 +124,6 @@ small {
 ul,
 figure {
 	margin: 0;
-}
-
-.grid,
-.list {
-	padding: 0;
-	list-style: none;
-}
-.list > li,
-.list > div {
-	border-bottom: 1px solid var(--gray-4);
-}
-.list > div:hover,
-.list > li:hover {
-	background: light-dark(var(--gray-2), var(--gray-2));
-}
-
-.grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-	margin: 0.5rem;
-	gap: 2rem 1rem;
-	padding: 0;
 }
 
 r4-sign-in,
