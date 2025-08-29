@@ -53,10 +53,12 @@
 	<article>
 		<header>
 			<ChannelHero {channel} />
-			<h1>
-				{channel.name}
+			<menu>
 				<ButtonPlay {channel} class="primary" />
 				<ButtonFollow {channel} class="follow" />
+			</menu>
+			<h1>
+				{channel.name}
 
 				{#if channel.longitude && channel.latitude}
 					<a
@@ -106,18 +108,20 @@
 	header {
 		overflow: hidden;
 		margin-bottom: 1rem;
+
+		menu {
+			margin-top: 0.5rem;
+		}
 	}
 
 	article header :global(figure) {
-		margin: 0.5rem 1rem 0rem 1rem;
+		margin: 0;
 		min-width: 150px;
-		max-width: 60%;
 
 		@media (min-width: 520px) {
 			margin: 0.5rem 1rem 0rem 0.5rem;
-			max-width: calc(100vw - 2rem);
 			float: left;
-			max-width: 13rem;
+			max-width: 250px;
 		}
 	}
 
@@ -139,8 +143,12 @@
 	}
 
 	h1 + p {
-		font-size: var(--font-6);
+		font-size: var(--font-7);
 		line-height: 1.3;
 		max-width: 60ch;
+	}
+
+	small {
+		font-size: var(--font-5);
 	}
 </style>
