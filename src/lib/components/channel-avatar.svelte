@@ -25,7 +25,7 @@
 	.placeholder {
 		width: 100%;
 		max-width: 100%;
-		border-radius: var(--border-radius);
+		border-radius: var(--media-radius);
 		flex: 1;
 		aspect-ratio: 1;
 		display: flex;

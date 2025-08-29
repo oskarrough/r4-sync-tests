@@ -102,7 +102,7 @@
 		object-fit: cover;
 		object-position: center;
 		align-self: center;
-		border-radius: 2px;
+		border-radius: var(--media-radius);
 	}
 
 	.text {

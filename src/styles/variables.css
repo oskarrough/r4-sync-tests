@@ -95,6 +95,7 @@
 	--font-9: 2.25rem;
 
 	--border-radius: 0.4rem;
+	--media-radius: 0;
 
 	--gray-1: light-dark(lch(97.5% 0 282), lch(7% 1.867 272));
 	--gray-2: light-dark(lch(94% 2 282), lch(10% 3.033 272));
