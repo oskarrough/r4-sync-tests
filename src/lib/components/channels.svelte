@@ -161,13 +161,14 @@
 			flex-grow: 1;
 		}
 	}
+
 	menu {
 		position: sticky;
 		top: 0.5rem;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		margin: 0.5rem;
+		margin: 0.5rem 0.5rem 1rem;
 		gap: 0.2rem;
 		z-index: 1;
 

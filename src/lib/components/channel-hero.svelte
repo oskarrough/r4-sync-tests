@@ -18,33 +18,24 @@
 		position: relative;
 	}
 
-	figure:not(:hover) :global(.play) {
-		opacity: 0;
+	figure :global(button) {
+		position: absolute;
+		top: 0.2rem;
 	}
 
 	figure :global(.play) {
-		position: absolute;
-		top: 0.2rem;
 		left: 0.2rem;
-		width: 3rem;
-		border: 0;
-		box-shadow: none;
-		transition: none;
 	}
 
 	figure :global(.follow) {
-		position: absolute;
-		top: 0.2rem;
 		right: 0.2rem;
-		width: 2.5rem;
-		height: 2.5rem;
-		border: 0;
-		box-shadow: none;
-		transition: none;
+	}
+
+	figure:not(:hover) :global(button) {
 		opacity: 0;
 	}
 
-	figure:hover :global(.follow) {
+	figure:hover :global(button) {
 		opacity: 1;
 	}
 </style>

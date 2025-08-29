@@ -62,17 +62,14 @@
 			display: flex;
 			flex-flow: column nowrap;
 		}
-
-		h3 {
-			text-decoration-line: underline;
-			text-decoration-thickness: 0.1px;
-			text-decoration-color: var(--gray-10);
-			text-underline-offset: max(0.1em, 2px);
-		}
 	}
 
 	article > a:hover h3 {
 		color: var(--color-accent);
+		text-decoration-line: underline;
+		text-decoration-thickness: 0.1px;
+		text-decoration-color: var(--gray-10);
+		text-underline-offset: max(0.1em, 2px);
 	}
 
 	article > a:focus,
