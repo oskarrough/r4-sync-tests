@@ -11,7 +11,7 @@
 	import ButtonPlay from '$lib/components/button-play.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
 	import LinkEntities from '$lib/components/link-entities.svelte'
-	import BookmarkButton from '$lib/components/bookmark-button.svelte'
+	import ButtonFollow from '$lib/components/button-follow.svelte'
 
 	let {data} = $props()
 
@@ -84,7 +84,7 @@
 			<h1>
 				{channel.name}
 				<ButtonPlay {channel} class="primary" />
-				<BookmarkButton {channel} class="bookmark-button" />
+				<ButtonFollow {channel} class="follow" />
 
 				{#if channel.longitude && channel.latitude}
 					<a

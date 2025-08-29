@@ -1,0 +1,39 @@
+<script>
+	import {followChannel, unfollowChannel, isFollowing as isFollowingChannel} from '$lib/api'
+	import {appState} from '$lib/app-state.svelte'
+	import Icon from '$lib/components/icon.svelte'
+
+	/** @type {{channel: import('$lib/types').Channel, class?: string}} */
+	let {channel, ...rest} = $props()
+
+	let followerId = $derived(appState.channels?.[0] || 'local-user')
+	let isFollowing = $state(false)
+
+	$effect(() => {
+		isFollowingChannel(followerId, channel.id).then((x) => {
+			isFollowing = x
+		})
+	})
+
+	async function toggleFollow(event) {
+		event.stopPropagation()
+		event.preventDefault()
+
+		if (isFollowing) {
+			await unfollowChannel(followerId, channel.id)
+			isFollowing = false
+		} else {
+			await followChannel(followerId, channel.id)
+			isFollowing = true
+		}
+	}
+</script>
+
+<button
+	onclick={toggleFollow}
+	title={isFollowing ? 'Unfollow' : 'Follow'}
+	aria-label={isFollowing ? 'Unfollow' : 'Follow'}
+	{...rest}
+>
+	<Icon icon={isFollowing ? 'favorite-fill' : 'favorite'} size={24} />
+</button>

@@ -1,6 +1,6 @@
 import {error} from '@sveltejs/kit'
 import {r5} from '$lib/r5'
-import { outdated } from '$lib/r5/channels'
+import {outdated} from '$lib/r5/channels'
 
 /** @type {import('./$types').PageLoad} */
 export async function load({parent, params, url}) {

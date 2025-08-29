@@ -16,7 +16,7 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 - consider integrating "bandsintown" as a third-party API similar to musicbrainz, youtube meta - rich data connections
 - Test we can export browser pglite and import and verify that - solid foundation for experimentation
 - implement "queue" to the r5 api - marginal UX improvement
-- V1 compatibility: v1 channels can't be bookmarked/broadcasted because remote supabase doesn't know about their foreign keys. V1 channels have firebase_id but don't exist in remote postgres, causing FK constraint failures. Solution ideas: use string-based IDs instead of proper foreign keys, or create placeholder records in remote for v1 channels.
+- V1 compatibility: v1 channels can't be followed/broadcasted because remote supabase doesn't know about their foreign keys. V1 channels have firebase_id but don't exist in remote postgres, causing FK constraint failures. Solution ideas: use string-based IDs instead of proper foreign keys, or create placeholder records in remote for v1 channels.
 - implement event sourcing pattern: events table {type, payload, timestamp} for state changes, enables undo/replay
 - add validation layer at sync boundaries (remote->local) using lightweight lib like zod 4
 - implement backup/restore: export/import full pglite database as json or sql dump
