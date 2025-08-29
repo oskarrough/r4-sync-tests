@@ -109,7 +109,24 @@
 	--gray-10: light-dark(lch(35% 1 282), lch(75% 2 104));
 	--gray-11: light-dark(lch(20% 1 282), lch(90% 2 104));
 	--gray-12: light-dark(lch(10% 0 282), lch(91% 6 104));
-	/* lch(91 10.83 104.43) */
+
+	/* --test-black: #000000;
+	--test-white: #ffffff;
+	--test-fl-red: #ff0000;
+	--test-fl-green: #00ff00;
+	--test-fl-blue: #0000ff;
+	--test-fl-cyan: #00ffff;
+	--test-fl-magenta: #ff00ff;
+	--test-fl-yellow: #ffff00;
+	--test-fl-orange: #ff6600;
+	--test-maroon: #660000;
+	--test-green: #00a645;
+	--test-blue: #000066;
+	--test-cyan: #006666;
+	--test-magenta: #660066;
+	--test-yellow: #ffbf00;
+	--test-olive: #666600;
+	--test-gray: #999999; */
 
 	/* --color-background: #fff; */
 	/* --color-overlay: var(--black-a6); */

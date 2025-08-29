@@ -112,6 +112,7 @@
 	}
 
 	.title {
+		color: var(--gray-11);
 		.active & {
 			background: var(--color-accent);
 			color: var(--gray-1);
@@ -120,6 +121,9 @@
 
 	p {
 		margin: 0;
+		:global(a) {
+			color: var(--gray-8);
+		}
 	}
 
 	time {

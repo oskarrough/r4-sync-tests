@@ -117,6 +117,7 @@
 	h3 {
 		font-weight: 600;
 		margin-left: 0.5rem;
+		color: var(--gray-8);
 	}
 
 	.year h2 {
