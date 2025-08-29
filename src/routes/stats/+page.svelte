@@ -10,7 +10,6 @@
 		uniqueChannels: 0,
 		topTags: [],
 		topChannels: [],
-		listeningHabits: '',
 		temporalPatterns: null,
 		skipRate: 0,
 		// DB stats
@@ -18,8 +17,16 @@
 		totalTracksInDb: 0,
 		tracksWithoutMeta: 0,
 		avgTracksPerChannel: 0,
-		newestChannel: null,
-		oldestChannel: null
+		// Timeline
+		channelTimeline: [],
+		// Recently discovered
+		recentlyPlayed: [],
+		// Track stats
+		mostReplayedTrack: null,
+		// Patterns
+		daysSinceFirstPlay: 0,
+		streakDays: 0,
+		mostActiveHour: null
 	})
 
 	onMount(async () => {
@@ -28,70 +35,67 @@
 
 	async function generateStats() {
 		try {
-			// Basic stats using tracks_with_meta view
-			const playsResult = await pg.sql`
-				SELECT
-					COUNT(*) as total_plays,
-					SUM(ph.ms_played) as total_ms,
-					COUNT(DISTINCT ph.track_id) as unique_tracks,
-					AVG(CASE WHEN ph.skipped THEN 1 ELSE 0 END) as skip_rate,
-					COUNT(DISTINCT twm.channel_id) as unique_channels,
-					AVG(twm.duration) as avg_track_duration
-				FROM play_history ph
-				JOIN tracks_with_meta twm ON ph.track_id = twm.id
-			`
+			// Load core data with simple queries
+			const [playHistory, channels, tracks] = await Promise.all([
+				pg.sql`
+					SELECT 
+						ph.*,
+						twm.title, twm.duration, twm.description,
+						twm.channel_id,
+						c.name as channel_name, c.slug as channel_slug
+					FROM play_history ph
+					JOIN tracks_with_meta twm ON ph.track_id = twm.id
+					JOIN channels c ON twm.channel_id = c.id
+				`,
+				pg.sql`SELECT * FROM channels`,
+				pg.sql`SELECT * FROM tracks_with_meta`
+			])
 
-			// Channel loyalty with better stats
-			const channelStats = await pg.sql`
-				SELECT
-					c.name,
-					c.slug,
-					COUNT(*) as plays,
-					SUM(ph.ms_played) as total_listening_ms,
-					AVG(ph.ms_played::float / NULLIF(twm.duration, 0)) as completion_rate
-				FROM play_history ph
-				JOIN tracks_with_meta twm ON ph.track_id = twm.id
-				JOIN channels c ON twm.channel_id = c.id
-				GROUP BY c.id, c.name, c.slug
-				ORDER BY plays DESC
-				LIMIT 8
-			`
+			const plays = playHistory.rows
 
-			// Extract hashtags from track descriptions with meta
-			const hashtagsResult = await pg.sql`
-				SELECT twm.description
-				FROM play_history ph
-				JOIN tracks_with_meta twm ON ph.track_id = twm.id
-				WHERE twm.description IS NOT NULL
-			`
+			// Basic stats
+			stats.totalPlays = plays.length
+			stats.totalListeningTime = Math.round(plays.reduce((sum, p) => sum + p.ms_played, 0) / 1000 / 60)
+			stats.uniqueTracks = new Set(plays.map((p) => p.track_id)).size
+			stats.uniqueChannels = new Set(plays.map((p) => p.channel_id)).size
+			stats.skipRate = Math.round((plays.filter((p) => p.skipped).length / plays.length) * 100)
 
-			// Temporal patterns with completion data
-			const temporalResult = await pg.sql`
-				SELECT
-					EXTRACT(hour FROM ph.started_at) as hour,
-					EXTRACT(dow FROM ph.started_at) as day_of_week,
-					COUNT(*) as plays,
-					AVG(ph.ms_played::float / NULLIF(twm.duration, 0)) as avg_completion
-				FROM play_history ph
-				JOIN tracks_with_meta twm ON ph.track_id = twm.id
-				GROUP BY EXTRACT(hour FROM ph.started_at), EXTRACT(dow FROM ph.started_at)
-				ORDER BY plays DESC
-			`
+			// Channel stats
+			const channelPlays = {}
+			plays.forEach((play) => {
+				if (!channelPlays[play.channel_id]) {
+					channelPlays[play.channel_id] = {
+						id: play.channel_id,
+						name: play.channel_name,
+						slug: play.channel_slug,
+						plays: 0,
+						total_listening_ms: 0,
+						completions: []
+					}
+				}
+				const ch = channelPlays[play.channel_id]
+				ch.plays++
+				ch.total_listening_ms += play.ms_played
+				if (play.duration > 0) {
+					ch.completions.push(play.ms_played / play.duration)
+				}
+			})
 
-			const play = playsResult.rows[0]
-			stats.totalPlays = Number(play.total_plays)
-			stats.totalListeningTime = Math.round(play.total_ms / 1000 / 60) // minutes
-			stats.uniqueTracks = Number(play.unique_tracks)
-			stats.uniqueChannels = Number(play.unique_channels)
-			stats.skipRate = Math.round(play.skip_rate * 100)
-			stats.topChannels = channelStats.rows.map((row) => ({
-				...row,
-				completion_rate: Math.round(row.completion_rate * 100)
-			}))
+			stats.topChannels = Object.values(channelPlays)
+				.sort((a, b) => b.plays - a.plays)
+				.slice(0, 8)
+				.map((ch) => ({
+					...ch,
+					completion_rate:
+						ch.completions.length > 0
+							? Math.round((ch.completions.reduce((a, b) => a + b, 0) / ch.completions.length) * 100)
+							: 0
+				}))
 
 			// Extract hashtags
-			const allTags = hashtagsResult.rows
-				.flatMap((row) => extractHashtags(row.description))
+			const allTags = plays
+				.filter((p) => p.description)
+				.flatMap((p) => extractHashtags(p.description))
 				.reduce((acc, tag) => {
 					acc[tag] = (acc[tag] || 0) + 1
 					return acc
@@ -103,166 +107,273 @@
 				.map(([tag, count]) => ({tag, count}))
 
 			// Database stats
-			const dbStats = await pg.sql`
-				SELECT
-					(SELECT COUNT(*) FROM channels) as total_channels,
-					(SELECT COUNT(*) FROM tracks) as total_tracks,
-					(SELECT COUNT(*) FROM tracks_with_meta WHERE duration IS NULL OR title IS NULL) as tracks_without_meta,
-					(SELECT ROUND(COUNT(*)::numeric / (SELECT COUNT(*) FROM channels WHERE (SELECT COUNT(*) FROM tracks WHERE channel_id = channels.id) > 0), 1)) as avg_tracks_per_channel
-			`
+			stats.totalChannelsInDb = channels.rows.length
+			stats.totalTracksInDb = tracks.rows.length
+			stats.tracksWithoutMeta = tracks.rows.filter((t) => !t.duration || !t.title).length
 
-			const channelAges = await pg.sql`
-				SELECT name, slug, created_at
-				FROM channels
-				WHERE created_at IS NOT NULL
-				ORDER BY created_at DESC
-				LIMIT 1
-			`
+			// Average tracks per channel
+			const tracksByChannel = {}
+			tracks.rows.forEach((t) => {
+				tracksByChannel[t.channel_id] = (tracksByChannel[t.channel_id] || 0) + 1
+			})
+			const trackCounts = Object.values(tracksByChannel)
+			stats.avgTracksPerChannel =
+				trackCounts.length > 0 ? Math.round((trackCounts.reduce((a, b) => a + b, 0) / trackCounts.length) * 10) / 10 : 0
 
-			const oldestChannel = await pg.sql`
-				SELECT name, slug, created_at
-				FROM channels
-				WHERE created_at IS NOT NULL
-				ORDER BY created_at ASC
-				LIMIT 1
-			`
+			// Channel timeline
+			const monthlyChannels = {}
+			channels.rows
+				.filter((c) => c.created_at)
+				.forEach((c) => {
+					const createdAt = new Date(c.created_at)
+					const monthKey = `${createdAt.getFullYear()}-${String(createdAt.getMonth() + 1).padStart(2, '0')}-01`
+					monthlyChannels[monthKey] = (monthlyChannels[monthKey] || 0) + 1
+				})
 
-			const dbRow = dbStats.rows[0]
-			stats.totalChannelsInDb = Number(dbRow.total_channels)
-			stats.totalTracksInDb = Number(dbRow.total_tracks)
-			stats.tracksWithoutMeta = Number(dbRow.tracks_without_meta)
-			stats.avgTracksPerChannel = Number(dbRow.avg_tracks_per_channel)
-			stats.newestChannel = channelAges.rows[0] || null
-			stats.oldestChannel = oldestChannel.rows[0] || null
+			stats.channelTimeline = Object.entries(monthlyChannels)
+				.sort(([a], [b]) => a.localeCompare(b))
+				.map(([month, count]) => ({month, count}))
 
-			// Generate natural language habits
-			stats.listeningHabits = generateHabitsText(temporalResult.rows, stats)
-			stats.temporalPatterns = temporalResult.rows
+			// Recently played (unique tracks from last 7 days)
+			const sevenDaysAgoMs = Date.now() - 7 * 24 * 60 * 60 * 1000
+			const recentTracks = {}
+			plays
+				.filter((p) => new Date(p.started_at).getTime() > sevenDaysAgoMs)
+				.forEach((p) => {
+					const playTime = new Date(p.started_at).getTime()
+					const existingTime = recentTracks[p.track_id] ? new Date(recentTracks[p.track_id].started_at).getTime() : 0
+					if (!recentTracks[p.track_id] || playTime > existingTime) {
+						recentTracks[p.track_id] = {
+							id: p.track_id,
+							title: p.title,
+							channel_name: p.channel_name,
+							channel_slug: p.channel_slug,
+							started_at: p.started_at
+						}
+					}
+				})
+			stats.recentlyPlayed = Object.values(recentTracks)
+				.sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())
+				.slice(0, 5)
+
+			// Most replayed track
+			const trackPlays = {}
+			plays.forEach((p) => {
+				const key = p.track_id
+				if (!trackPlays[key]) {
+					trackPlays[key] = {
+						title: p.title,
+						channel_name: p.channel_name,
+						channel_slug: p.channel_slug,
+						play_count: 0
+					}
+				}
+				trackPlays[key].play_count++
+			})
+			stats.mostReplayedTrack = Object.values(trackPlays).sort((a, b) => b.play_count - a.play_count)[0] || null
+
+			// Listening streak and patterns
+			if (plays.length > 0) {
+				const dates = plays.map((p) => new Date(p.started_at).toDateString())
+				const uniqueDays = new Set(dates)
+				const playTimes = plays.map((p) => new Date(p.started_at).getTime())
+				const firstPlayMs = Math.min(...playTimes)
+				const daysSince = Math.floor((Date.now() - firstPlayMs) / (1000 * 60 * 60 * 24))
+				stats.daysSinceFirstPlay = daysSince
+				stats.streakDays = uniqueDays.size
+
+				// Most active hour
+				const hourCounts = {}
+				plays.forEach((p) => {
+					const hour = new Date(p.started_at).getHours()
+					hourCounts[hour] = (hourCounts[hour] || 0) + 1
+				})
+				const sortedHours = Object.entries(hourCounts).sort(([, a], [, b]) => b - a)
+				if (sortedHours.length > 0) {
+					stats.mostActiveHour = Number(sortedHours[0][0])
+				}
+
+				// Temporal patterns
+				const patterns = {}
+				plays.forEach((p) => {
+					const playDate = new Date(p.started_at)
+					const hour = playDate.getHours()
+					const dow = playDate.getDay()
+					const key = `${hour}-${dow}`
+					if (!patterns[key]) {
+						patterns[key] = {
+							hour,
+							day_of_week: dow,
+							plays: 0,
+							completions: []
+						}
+					}
+					patterns[key].plays++
+					if (p.duration > 0) {
+						patterns[key].completions.push(p.ms_played / p.duration)
+					}
+				})
+				stats.temporalPatterns = Object.values(patterns)
+					.map((p) => ({
+						...p,
+						avg_completion:
+							p.completions.length > 0 ? p.completions.reduce((a, b) => a + b, 0) / p.completions.length : 0
+					}))
+					.sort((a, b) => b.plays - a.plays)
+			}
 		} catch (err) {
 			console.error('Stats generation failed:', err)
 		}
 	}
-
-	function generateHabitsText(temporal, stats) {
-		const total = stats.totalPlays
-		if (total < 10) return 'not enough data yet'
-
-		// Find peak hours
-		const hourCounts = temporal.reduce((acc, row) => {
-			acc[row.hour] = (acc[row.hour] || 0) + Number(row.plays)
-			return acc
-		}, {})
-
-		const peakHour = Object.entries(hourCounts).sort(([, a], [, b]) => b - a)[0]
-
-		const timeOfDay = Number(peakHour[0]) < 12 ? 'morning' : Number(peakHour[0]) < 17 ? 'afternoon' : 'evening'
-
-		const skipBehavior =
-			stats.skipRate > 30 ? 'restless skipper' : stats.skipRate < 10 ? 'patient listener' : 'selective'
-
-		const channelLoyalty =
-			stats.topChannels[0]?.plays / total > 0.4 ? `devoted to ${stats.topChannels[0]?.name}` : 'channel explorer'
-
-		const avgSession = stats.totalListeningTime / stats.totalPlays
-		const sessionStyle = avgSession > 4 ? 'long sessions' : 'quick dips'
-
-		return `${timeOfDay} ${skipBehavior}, ${channelLoyalty}, prefers ${sessionStyle}`
-	}
 </script>
 
 <svelte:head>
-	<title>Stats - R5</title>
+	<title>R5 / Stats</title>
 </svelte:head>
 
-<article>
+<article class="SmallContainer">
+	<p>Statistics from your local data and play history.</p>
 	<section>
 		<header>
-			<h1>listening patterns</h1>
+			<h2>activity</h2>
 		</header>
-		<p>{stats.listeningHabits}</p>
 
 		<p>
-			<strong>{stats.totalPlays.toLocaleString()}</strong> total plays across
-			<strong>{stats.uniqueTracks.toLocaleString()}</strong>
-			unique tracks from <strong>{stats.uniqueChannels.toLocaleString()}</strong> channels.
+			<strong>{stats.totalPlays.toLocaleString()}</strong> plays •
+			<strong>{stats.uniqueTracks.toLocaleString()}</strong> tracks •
+			<strong>{stats.uniqueChannels.toLocaleString()}</strong> radios
 		</p>
 
 		<p>
-			Total listening time: <strong
-				>{Math.floor(stats.totalListeningTime / 60)}h {stats.totalListeningTime % 60}m</strong
-			>
+			{Math.floor(stats.totalListeningTime / 60)}h {stats.totalListeningTime % 60}m total •
+			{stats.skipRate}% skipped
 		</p>
 
-		<p>Skip rate: <strong>{stats.skipRate}%</strong></p>
-	</section>
-
-	<section>
-		<header>
-			<h2>database</h2>
-		</header>
-		<p>
-			<strong>{stats.totalChannelsInDb.toLocaleString()}</strong> channels with
-			<strong>{stats.totalTracksInDb.toLocaleString()}</strong> tracks (avg {stats.avgTracksPerChannel} tracks per channel)
-		</p>
-
-		{#if stats.tracksWithoutMeta > 0}
-			<p><strong>{stats.tracksWithoutMeta.toLocaleString()}</strong> tracks missing metadata</p>
-		{/if}
-
-		{#if stats.newestChannel}
+		{#if stats.daysSinceFirstPlay > 0}
 			<p>
-				newest: <a href="/{stats.newestChannel.slug}">{stats.newestChannel.name}</a>
-				<small>({new Date(stats.newestChannel.created_at).toLocaleDateString()})</small>
+				listening for {stats.daysSinceFirstPlay} days • active on {stats.streakDays} of them
 			</p>
 		{/if}
 
-		{#if stats.oldestChannel}
-			<p>
-				oldest: <a href="/{stats.oldestChannel.slug}">{stats.oldestChannel.name}</a>
-				<small>({new Date(stats.oldestChannel.created_at).toLocaleDateString()})</small>
-			</p>
+		{#if stats.mostActiveHour !== null}
+			<p>most active around {stats.mostActiveHour}:00</p>
 		{/if}
 	</section>
 
-	{#if stats.topChannels.length > 0}
+	{#if stats.mostReplayedTrack}
 		<section>
 			<header>
-				<h2>stations</h2>
+				<h2>on repeat</h2>
+			</header>
+			<p>
+				"{stats.mostReplayedTrack.title}" by
+				<a href="/{stats.mostReplayedTrack.channel_slug}">{stats.mostReplayedTrack.channel_name}</a>
+				• {stats.mostReplayedTrack.play_count} plays
+			</p>
+		</section>
+	{/if}
+
+	{#if stats.recentlyPlayed.length > 0}
+		<section>
+			<header>
+				<h2>recently discovered</h2>
 			</header>
 			<ol>
-				{#each stats.topChannels as channel (channel.slug)}
+				{#each stats.recentlyPlayed as track (track.id)}
 					<li>
-						<a href="/{channel.slug}">{channel.name}</a>
-						<small>({channel.plays} plays, {channel.completion_rate}% completion)</small>
+						"{track.title}" •
+						<a href="/{track.channel_slug}">{track.channel_name}</a>
 					</li>
 				{/each}
 			</ol>
 		</section>
 	{/if}
 
-	{#if stats.topTags.length > 0}
+	{#if stats.channelTimeline.length > 1}
+		{@const max = Math.max(...stats.channelTimeline.map((m) => m.count))}
+
 		<section>
 			<header>
-				<h2>tags</h2>
+				<h2>station timeline</h2>
 			</header>
-			<div class="tag-cloud">
-				{#each stats.topTags as { tag, count } (tag)}
-					<a
-						href="/search?search={encodeURIComponent(tag)}"
-						class="tag"
-						style="font-size: {Math.min(2, 0.8 + count / 10)}em; opacity: {Math.min(1, 0.4 + count / 20)}">{tag}</a
-					>
+			<div class="timeline">
+				{#each stats.channelTimeline as month, i (i)}
+					<div
+						class="bar"
+						style="height: {(month.count / max) * 100}%"
+						title="{new Date(month.month).toLocaleDateString('en-US', {
+							month: 'short',
+							year: 'numeric'
+						})}: {month.count} channels"
+					></div>
 				{/each}
 			</div>
+			<p>{stats.totalChannelsInDb.toLocaleString()} total channels</p>
 		</section>
 	{/if}
+
+	<section>
+		<header>
+			<h2>database</h2>
+		</header>
+		<p>
+			{stats.totalChannelsInDb.toLocaleString()} radios •
+			{stats.totalTracksInDb.toLocaleString()} tracks
+			<small>&larr; local tracks</small>
+		</p>
+		<p>
+			~{stats.avgTracksPerChannel} tracks per channel
+		</p>
+		<p>{(stats.totalTracksInDb - stats.tracksWithoutMeta).toLocaleString()} tracks analyzed metadata</p>
+	</section>
 </article>
 
 <style>
 	article {
-		margin: 0.5rem;
+		margin-top: 0.5rem;
 		display: flex;
 		flex-direction: column;
-		gap: 3rem;
+		gap: 1rem;
+	}
+
+	section {
+		p,
+		ol {
+			margin: 0 0.5rem;
+		}
+		ol {
+			margin: 0 0.5rem;
+			padding-left: 1rem;
+		}
+	}
+
+	section header {
+		border-bottom: 1px solid var(--gray-5);
+
+		h2 {
+			text-transform: uppercase;
+		}
+	}
+
+	.timeline {
+		display: flex;
+		align-items: flex-end;
+		height: 60px;
+		gap: 2px;
+		padding: 0.5rem;
+
+		.bar {
+			flex: 1;
+			background: var(--accent-9);
+			min-height: 2px;
+			transition:
+				height 200ms,
+				opacity 0.2s;
+
+			&:hover {
+				height: 0 !important;
+				/* hover state */
+			}
+		}
 	}
 </style>
