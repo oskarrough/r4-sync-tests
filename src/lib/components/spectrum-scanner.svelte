@@ -23,7 +23,12 @@
 			processed.push({
 				...channel,
 				frequency: freq,
-				signalStrength: Math.log10(Math.max(channel.track_count || 1, 1)) / Math.log10(2000) ** 5
+				//signalStrength: Math.log10(Math.max(channel.track_count || 1, 1)) / Math.log10(2000) ** 5
+				//signalStrength: Math.log10(channel.track_count + 10) / 3.7
+				signalStrength: Math.min(1, Math.pow(channel.track_count / 400, 0.8))
+				//signalStrength: channel.track_count < 100
+				//? channel.track_count / 200  // linear for small stations
+				//: 0.5 + Math.log10(channel.track_count / 100) / 3  // log for established ones
 			})
 		}
 		channelsWithFrequency = processed.sort((a, b) => a.frequency - b.frequency)
@@ -193,8 +198,9 @@
 		align-items: center;
 		width: 100%;
 		padding: 0 0.8rem;
-		background: var(--gray-12);
-		color: var(--gray-1);
+		/*
+		background: var(--green-1);
+		*/
 		line-height: 1;
 		border: 1px solid var(--gray-12);
 		border-bottom: 0;
@@ -263,10 +269,13 @@
 		transition: all 0.2s;
 	}
 
-	.marker.tuned .marker-signal {
-		background: var(--color-purple);
-		height: 3rem !important;
-		width: 3px;
+	.marker.tuned {
+		z-index: 1;
+		.marker-signal {
+			background: var(--color-purple);
+			height: 3rem !important;
+			width: 3px;
+		}
 	}
 
 	:global(.input-range) {
