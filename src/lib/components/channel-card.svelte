@@ -74,7 +74,7 @@
 
 	article > a:focus,
 	article :global(button):focus {
-		outline: 3px solid var(--color-accent);
+		outline: 2px solid var(--color-accent);
 		outline-offset: -2px;
 	}
 
