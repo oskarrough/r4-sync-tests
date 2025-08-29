@@ -268,7 +268,7 @@
 				<a href={`/${channel.slug}/tracks/${track.id}`}>{track.title}</a>
 			</h3>
 			{#if track.description}
-				<p><small><LinkEntities text={track.description} {track} /></small></p>
+				<p><small><LinkEntities text={track.description} slug={track.channel_slug} /></small></p>
 			{/if}
 		</div>
 	{/if}

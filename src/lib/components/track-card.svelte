@@ -56,7 +56,7 @@
 			{#if track.description}
 				<p class="description">
 					<small>
-						<LinkEntities {track} text={track.description} />
+						<LinkEntities slug={track.channel_slug} text={track.description} />
 					</small>
 					{#if track.duration}<small>{track.duration}s</small>{/if}
 				</p>

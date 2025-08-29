@@ -1,7 +1,7 @@
 <script>
 	import {ENTITY_REGEX} from '$lib/utils.ts'
 
-	const {text, track} = $props()
+	const {text, slug} = $props()
 
 	const parts = $derived.by(() => {
 		if (typeof text !== 'string') return [{type: 'text', content: ''}]
@@ -24,8 +24,8 @@
 			// Add the entity as a link
 			const searchQuery = entity.startsWith('@')
 				? entity
-				: track?.channel_slug
-					? `@${track.channel_slug} ${entity}`
+				: slug
+					? `@${slug} ${entity}`
 					: entity
 
 			parts.push({
