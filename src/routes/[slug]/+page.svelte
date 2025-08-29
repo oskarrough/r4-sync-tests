@@ -12,12 +12,15 @@
 	import Tracklist from '$lib/components/tracklist.svelte'
 	import LinkEntities from '$lib/components/link-entities.svelte'
 	import ButtonFollow from '$lib/components/button-follow.svelte'
+	import {r5} from '$lib/r5'
 
 	let {data} = $props()
 
 	let channel = $state(data.channel)
 
+	/** @type {import('$lib/types').Track[]} */
 	let tracks = $state([])
+
 	let latestTrackDate = $derived(tracks[0]?.created_at)
 
 	/** @type {string[]} */
@@ -27,10 +30,23 @@
 
 	onMount(() => {
 		data.tracksPromise.then((x) => {
+			console.log('setting page tracks', x)
 			tracks = x
 		})
+
 		const search = page.url.searchParams.get('search')
 		if (search) searchQuery = search
+
+		// Update tracks if they are outdated.
+		if (channel.tracks_synced_at) {
+			r5.channels.outdated(data.slug).then((isOutdated) => {
+				if (!isOutdated) return
+				console.log('[page.svelte] refreshing outdated tracks')
+				r5.tracks.pull({slug: data.slug}).then((freshTracks) => {
+					tracks = freshTracks
+				})
+			})
+		}
 	})
 
 	$effect(() => {

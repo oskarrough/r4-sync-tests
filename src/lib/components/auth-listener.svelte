@@ -15,7 +15,7 @@
 	})
 
 	async function handleAuthChange(event, session) {
-		log.log(event, session?.user?.email, appState)
+		log.log(event, `user = ${session?.user?.email}`)
 
 		const user = session?.user
 		const previousUserId = appState.user?.id
