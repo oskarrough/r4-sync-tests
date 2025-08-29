@@ -167,7 +167,15 @@
 
 	.loader {
 		margin: 1rem;
+		min-height: 80vh;
+		align-self: center;
+		display: flex;
+		flex-flow: column;
+		place-content: center;
+		place-items: center;
+		max-width: 40ch;
 	}
+
 	r4-loading {
 		margin-top: 1rem;
 		display: flex;

@@ -22,11 +22,7 @@
 			}
 
 			// Add the entity as a link
-			const searchQuery = entity.startsWith('@')
-				? entity
-				: slug
-					? `@${slug} ${entity}`
-					: entity
+			const searchQuery = entity.startsWith('@') ? entity : slug ? `@${slug} ${entity}` : entity
 
 			parts.push({
 				type: 'link',
