@@ -23,6 +23,7 @@
 <style>
 	img,
 	.placeholder {
+		width: 100%;
 		max-width: 100%;
 		border-radius: var(--border-radius);
 		flex: 1;

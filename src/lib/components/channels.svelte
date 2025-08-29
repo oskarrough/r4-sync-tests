@@ -7,6 +7,8 @@
 	import ChannelCard from './channel-card.svelte'
 	import MapComponent from './map.svelte'
 	import SpectrumScanner from './spectrum-scanner.svelte'
+	import InfiniteGrid from './infinite-grid.svelte'
+	import {tooltip} from '$lib/components/tooltip-attachment.js'
 
 	const {channels = [], slug: initialSlug, display: initialDisplay, longitude, latitude, zoom} = $props()
 
@@ -15,7 +17,7 @@
 	let filter = $state('20+')
 	let shuffled = $state(true)
 
-	/** @type {'grid' | 'list' | 'map' | 'coordinates' | 'spectrum' | 'drift'}*/
+	/** @type {'grid' | 'list' | 'map' | 'tuner' | 'infinite'}*/
 	let display = $derived(appState.channels_display || initialDisplay || 'grid')
 
 	/*
@@ -70,7 +72,11 @@
 </script>
 
 {#snippet displayBtn(prop, icon)}
-	<button title={`View as ${prop}`} class:active={display === prop} onclick={() => setDisplay(prop)}>
+	<button
+		{@attach tooltip({content: `View as ${prop}`})}
+		class:active={display === prop}
+		onclick={() => setDisplay(prop)}
+	>
 		<Icon {icon} />
 	</button>
 {/snippet}
@@ -97,9 +103,7 @@
 			{@render displayBtn('list', 'unordered-list')}
 			{@render displayBtn('map', 'map')}
 			{@render displayBtn('tuner', 'radio')}
-			<a href="/infinite" class="btn">
-				<Icon icon="infinite" />
-			</a>
+			{@render displayBtn('infinite', 'infinite')}
 		</div>
 	</menu>
 
@@ -116,6 +120,8 @@
 		{/if}
 	{:else if display === 'tuner'}
 		<SpectrumScanner channels={realChannels.filtered} />
+	{:else if display === 'infinite'}
+		<InfiniteGrid channels={realChannels.filtered} />
 	{:else}
 		<ol class={display}>
 			{#each realChannels.displayed as channel (channel.id)}

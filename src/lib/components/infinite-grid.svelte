@@ -4,16 +4,16 @@
 	import {InertiaPlugin} from 'gsap/InertiaPlugin'
 	import {InfiniteGrid, throttle} from '$lib/infinite-grid.js'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
+	import ButtonPlay from '$lib/components/button-play.svelte'
+	import ChannelHero from '$lib/components/channel-hero.svelte'
 
 	gsap.registerPlugin(Draggable, InertiaPlugin)
 
-	const {data} = $props()
-
-	const channels = $derived(data.channels.length > 0 ? data.channels : [{name: 'Loading...', slug: '', image: ''}])
+	const {channels = []} = $props()
 
 	const grid = new InfiniteGrid({
 		cellWidth: 320,
-		cellHeight: 180,
+		cellHeight: 320,
 		gap: 30,
 		viewportBuffer: 4,
 		getContent: (x, y) => {
@@ -83,13 +83,17 @@
 	<main bind:this={mainEl}>
 		{#each visibleItems as item (item.id)}
 			<article style="transform: translate({item.x}px, {item.y}px);">
-				<a href="/{item.content.channel.slug}">
+				{#if item.content.channel}
+					<!-- <ChannelHero channel={item.content.channel} /> -->
 					<figure>
-						<ChannelAvatar id={item.content.channel.image} alt={item.content.channel.name} size={64} />
+						<a href="/{item.content.channel.slug}">
+							<ChannelAvatar id={item.content.channel.image} alt={item.content.channel.name} size={64} />
+						</a>
 					</figure>
+					<ButtonPlay channel={item.content.channel} />
 					<h3>{item.content.channel.name}</h3>
-					<small>{item.content.coordinates}</small>
-				</a>
+					<small class="coordinates">{item.content.coordinates}</small>
+				{/if}
 			</article>
 		{/each}
 	</main>
@@ -121,24 +125,29 @@
 
 	article {
 		position: absolute;
-	}
-
-	article a {
 		/* must match width/height in infinite-grid js */
 		width: 320px;
-		height: 180px;
+		height: 320px;
+
 		display: flex;
 		place-items: center;
 		justify-content: center;
 		flex-flow: column;
+		place-items: center;
+
 		background: var(--bg-2);
-		padding: 1rem 0;
 		border-radius: var(--border-radius);
-		text-decoration: none;
+	}
+
+	.coordinates {
+		position: absolute;
+		bottom: 0.3rem;
+		right: 0.5rem;
 	}
 
 	figure {
 		width: 5rem;
+		margin-bottom: 1rem;
 		:global(img) {
 			width: 100%;
 		}
