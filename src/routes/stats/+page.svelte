@@ -12,7 +12,14 @@
 		topChannels: [],
 		listeningHabits: '',
 		temporalPatterns: null,
-		skipRate: 0
+		skipRate: 0,
+		// DB stats
+		totalChannelsInDb: 0,
+		totalTracksInDb: 0,
+		tracksWithoutMeta: 0,
+		avgTracksPerChannel: 0,
+		newestChannel: null,
+		oldestChannel: null
 	})
 
 	onMount(async () => {
@@ -95,6 +102,39 @@
 				.slice(0, 20)
 				.map(([tag, count]) => ({tag, count}))
 
+			// Database stats
+			const dbStats = await pg.sql`
+				SELECT
+					(SELECT COUNT(*) FROM channels) as total_channels,
+					(SELECT COUNT(*) FROM tracks) as total_tracks,
+					(SELECT COUNT(*) FROM tracks_with_meta WHERE duration IS NULL OR title IS NULL) as tracks_without_meta,
+					(SELECT ROUND(COUNT(*)::numeric / (SELECT COUNT(*) FROM channels WHERE (SELECT COUNT(*) FROM tracks WHERE channel_id = channels.id) > 0), 1)) as avg_tracks_per_channel
+			`
+
+			const channelAges = await pg.sql`
+				SELECT name, slug, created_at
+				FROM channels
+				WHERE created_at IS NOT NULL
+				ORDER BY created_at DESC
+				LIMIT 1
+			`
+
+			const oldestChannel = await pg.sql`
+				SELECT name, slug, created_at
+				FROM channels
+				WHERE created_at IS NOT NULL
+				ORDER BY created_at ASC
+				LIMIT 1
+			`
+
+			const dbRow = dbStats.rows[0]
+			stats.totalChannelsInDb = Number(dbRow.total_channels)
+			stats.totalTracksInDb = Number(dbRow.total_tracks)
+			stats.tracksWithoutMeta = Number(dbRow.tracks_without_meta)
+			stats.avgTracksPerChannel = Number(dbRow.avg_tracks_per_channel)
+			stats.newestChannel = channelAges.rows[0] || null
+			stats.oldestChannel = oldestChannel.rows[0] || null
+
 			// Generate natural language habits
 			stats.listeningHabits = generateHabitsText(temporalResult.rows, stats)
 			stats.temporalPatterns = temporalResult.rows
@@ -154,6 +194,34 @@
 		</p>
 
 		<p>Skip rate: <strong>{stats.skipRate}%</strong></p>
+	</section>
+
+	<section>
+		<header>
+			<h2>database</h2>
+		</header>
+		<p>
+			<strong>{stats.totalChannelsInDb.toLocaleString()}</strong> channels with
+			<strong>{stats.totalTracksInDb.toLocaleString()}</strong> tracks (avg {stats.avgTracksPerChannel} tracks per channel)
+		</p>
+
+		{#if stats.tracksWithoutMeta > 0}
+			<p><strong>{stats.tracksWithoutMeta.toLocaleString()}</strong> tracks missing metadata</p>
+		{/if}
+
+		{#if stats.newestChannel}
+			<p>
+				newest: <a href="/{stats.newestChannel.slug}">{stats.newestChannel.name}</a>
+				<small>({new Date(stats.newestChannel.created_at).toLocaleDateString()})</small>
+			</p>
+		{/if}
+
+		{#if stats.oldestChannel}
+			<p>
+				oldest: <a href="/{stats.oldestChannel.slug}">{stats.oldestChannel.name}</a>
+				<small>({new Date(stats.oldestChannel.created_at).toLocaleDateString()})</small>
+			</p>
+		{/if}
 	</section>
 
 	{#if stats.topChannels.length > 0}
