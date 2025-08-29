@@ -51,8 +51,8 @@
 	{:else if activeTab === 'related'}
 		<TrackRelated {track} />
 	{:else}
-		<TrackMetaR5 data={track} />
 		<TrackCard {track} />
+		<TrackMetaR5 data={track} />
 	{/if}
 
 	<hr />
