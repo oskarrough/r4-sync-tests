@@ -3,6 +3,7 @@
 	import {Draggable} from 'gsap/Draggable'
 	import {InertiaPlugin} from 'gsap/InertiaPlugin'
 	import {InfiniteGrid, throttle} from '$lib/infinite-grid.js'
+	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 
 	gsap.registerPlugin(Draggable, InertiaPlugin)
 
@@ -16,10 +17,14 @@
 		gap: 40,
 		viewportBuffer: 4,
 		getContent: (x, y) => {
-			// Use items array, with fallback for empty case
-			const channelNames = items.length > 0 ? items : ['Loading...']
-			const itemIndex = (Math.abs(x) + Math.abs(y)) % channelNames.length
-			return `${channelNames[itemIndex]} (${x}, ${y})`
+			const channels = data.channels.length > 0 ? data.channels : [{name: 'Loading...', slug: '', image: ''}]
+			const itemIndex = (Math.abs(x) + Math.abs(y)) % channels.length
+			const channel = channels[itemIndex]
+			
+			return {
+				channel,
+				coordinates: `(${x}, ${y})`
+			}
 		}
 	})
 
@@ -45,6 +50,7 @@
 		draggable = Draggable.create(mainEl, {
 			type: 'x,y',
 			inertia: true,
+			dragResistance: 0.5,
 			trigger: mainEl.parentElement,
 			onDrag() {
 				// Drag right = see content to the left (negative virtual position)
@@ -76,7 +82,13 @@
 	<main bind:this={mainEl}>
 		{#each visibleItems as item (item.id)}
 			<article style="transform: translate({item.x}px, {item.y}px);">
-				{item.content}
+				<a href="/{item.content.channel.slug}" class="channel-link">
+					<figure>
+						<ChannelAvatar id={item.content.channel.image} alt={item.content.channel.name} size={64} />
+					</figure>
+					<h3>{item.content.channel.name}</h3>
+					<small>{item.content.coordinates}</small>
+				</a>
 			</article>
 		{/each}
 	</main>
@@ -85,8 +97,10 @@
 <style>
 	.infinite-container {
 		position: fixed;
-		inset: 10%;
-		border: 2px solid var(--color-red);
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
 		overflow: hidden;
 		background: var(--bg-1);
 		cursor: grab;
@@ -105,17 +119,32 @@
 	}
 
 	article {
-		border-radius: var(--border-radius);
-		display: flex;
-		place-items: center;
-		place-content: center;
-		font-size: var(--font-7);
 		position: absolute;
-		background: var(--bg-2);
-		text-align: center;
-		line-height: 1.2;
 		/* must match width/height in infinite-grid js */
 		width: 320px;
 		height: 200px;
+
+	}
+
+	article a {
+		display: flex;
+		place-items: center;
+		align-content: center;
+		flex-flow: column;
+		border-radius: var(--border-radius);
+		background: var(--bg-2);
+		text-decoration: none;
+		padding: 1rem 0;
+		gap: 0.5rem;
+	}
+
+	figure {
+		width: 3rem;
+	}
+
+	h3 {
+		font-size: var(--font-7);
+		text-align: center;
+		line-height: 1.2;
 	}
 </style>
