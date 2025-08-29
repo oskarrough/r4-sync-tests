@@ -21,7 +21,9 @@
 		markerGroup: null,
 		markerInstances: new Map(),
 		newMarker: null,
-		debounceTimer: null
+		debounceTimer: null,
+		isInitialized: false,
+		isProgrammaticChange: false
 	})
 
 	// Derive only the valid markers
@@ -78,7 +80,15 @@
 			})
 		}
 
+		// Set initial view without triggering events
+		mapState.isProgrammaticChange = true
 		map.setView([latitude || 0, longitude || 0], zoom)
+
+		// Mark as initialized after initial view is set
+		setTimeout(() => {
+			mapState.isInitialized = true
+			mapState.isProgrammaticChange = false
+		}, 200)
 
 		return {
 			destroy() {
@@ -92,6 +102,9 @@
 	}
 
 	function handleChange() {
+		// Skip if not initialized or if change is programmatic
+		if (!mapState.isInitialized || mapState.isProgrammaticChange) return
+
 		if (mapState.debounceTimer) clearTimeout(mapState.debounceTimer)
 		mapState.debounceTimer = setTimeout(() => {
 			if (!mapState.instance) return
@@ -153,19 +166,31 @@
 		// Handle active marker and view positioning
 		if (activeMarker) {
 			setTimeout(() => activeMarker.marker.openPopup(), 100)
+			mapState.isProgrammaticChange = true
 			mapState.instance.setView([activeMarker.data.latitude, activeMarker.data.longitude], zoom)
+			setTimeout(() => (mapState.isProgrammaticChange = false), 100)
 		} else if (validMarkers.length === 1) {
 			const {latitude, longitude} = validMarkers[0]
+			mapState.isProgrammaticChange = true
 			mapState.instance.setView([latitude, longitude], zoom)
+			setTimeout(() => (mapState.isProgrammaticChange = false), 100)
 		} else if (validMarkers.length > 1 && !page?.url?.searchParams?.get('zoom')) {
-			mapState.instance.fitBounds(mapState.markerGroup.getBounds().pad(0.2))
+			// Only fit bounds if we have actual markers in the group
+			const bounds = mapState.markerGroup.getBounds()
+			if (bounds.isValid()) {
+				mapState.isProgrammaticChange = true
+				mapState.instance.fitBounds(bounds.pad(0.2))
+				setTimeout(() => (mapState.isProgrammaticChange = false), 100)
+			}
 		}
 	})
 
 	// Sync zoom changes from props
 	$effect(() => {
 		if (mapState.instance && zoom !== mapState.instance.getZoom()) {
+			mapState.isProgrammaticChange = true
 			mapState.instance.setZoom(zoom)
+			setTimeout(() => (mapState.isProgrammaticChange = false), 100)
 		}
 	})
 

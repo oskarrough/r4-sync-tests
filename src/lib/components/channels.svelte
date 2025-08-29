@@ -60,6 +60,15 @@
 	function setDisplay(value = 'grid') {
 		display = value
 		appState.channels_display = display
+		const query = new URL(page.url).searchParams
+		query.set('display', display)
+		// Preserve map params if switching to map view
+		if (value !== 'map') {
+			query.delete('latitude')
+			query.delete('longitude')
+			query.delete('zoom')
+		}
+		goto(`?${query.toString()}`, {replaceState: true, keepFocus: true})
 	}
 
 	function handleMapChange({latitude, longitude, zoom}) {
