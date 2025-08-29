@@ -7,30 +7,31 @@
 
 	gsap.registerPlugin(Draggable, InertiaPlugin)
 
-	/** @type {import('./$types').PageData} */
 	const {data} = $props()
 
-	let draggable
+	const channels = $derived(data.channels.length > 0 ? data.channels : [{name: 'Loading...', slug: '', image: ''}])
+
 	const grid = new InfiniteGrid({
 		cellWidth: 320,
-		cellHeight: 200,
-		gap: 40,
+		cellHeight: 180,
+		gap: 30,
 		viewportBuffer: 4,
 		getContent: (x, y) => {
-			const channels = data.channels.length > 0 ? data.channels : [{name: 'Loading...', slug: '', image: ''}]
-			const itemIndex = (Math.abs(x) + Math.abs(y)) % channels.length
+			//const itemIndex = Math.abs(y * 1000 + x) % channels.length
+			//const itemIndex = Math.abs(y * Math.ceil(window.innerWidth / 320) + x) % channels.length
+			const itemIndex = Math.abs(y * 10 + x) % channels.length
 			const channel = channels[itemIndex]
-			
+
 			return {
 				channel,
 				coordinates: `(${x}, ${y})`
 			}
 		}
 	})
+	let visibleItems = $state(grid.generateVisibleItems())
 
 	let mainEl
-	const items = $derived(data.channels.map((x) => x.name))
-	let visibleItems = $state(grid.generateVisibleItems())
+	let draggable
 
 	const updateGrid = throttle(() => {
 		visibleItems = grid.generateVisibleItems()
@@ -82,7 +83,7 @@
 	<main bind:this={mainEl}>
 		{#each visibleItems as item (item.id)}
 			<article style="transform: translate({item.x}px, {item.y}px);">
-				<a href="/{item.content.channel.slug}" class="channel-link">
+				<a href="/{item.content.channel.slug}">
 					<figure>
 						<ChannelAvatar id={item.content.channel.image} alt={item.content.channel.name} size={64} />
 					</figure>
@@ -97,7 +98,7 @@
 <style>
 	.infinite-container {
 		position: fixed;
-		top: 0;
+		top: 2.9rem;
 		left: 0;
 		right: 0;
 		bottom: 0;
@@ -120,31 +121,33 @@
 
 	article {
 		position: absolute;
-		/* must match width/height in infinite-grid js */
-		width: 320px;
-		height: 200px;
-
 	}
 
 	article a {
+		/* must match width/height in infinite-grid js */
+		width: 320px;
+		height: 180px;
 		display: flex;
 		place-items: center;
-		align-content: center;
+		justify-content: center;
 		flex-flow: column;
-		border-radius: var(--border-radius);
 		background: var(--bg-2);
-		text-decoration: none;
 		padding: 1rem 0;
-		gap: 0.5rem;
+		border-radius: var(--border-radius);
+		text-decoration: none;
 	}
 
 	figure {
-		width: 3rem;
+		width: 5rem;
+		:global(img) {
+			width: 100%;
+		}
 	}
 
 	h3 {
 		font-size: var(--font-7);
 		text-align: center;
 		line-height: 1.2;
+		margin: 1rem 0 0;
 	}
 </style>

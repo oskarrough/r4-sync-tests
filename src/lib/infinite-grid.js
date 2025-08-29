@@ -1,8 +1,6 @@
 /**
  * Infinite grid engine for virtual scrolling
- * @module infinite-grid
  */
-
 export class InfiniteGrid {
 	constructor(config = {}) {
 		this.cellWidth = config.cellWidth || 180

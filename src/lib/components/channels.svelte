@@ -97,6 +97,9 @@
 			{@render displayBtn('list', 'unordered-list')}
 			{@render displayBtn('map', 'map')}
 			{@render displayBtn('tuner', 'radio')}
+			<a href="/infinite" class="btn">
+				<Icon icon="infinite" />
+			</a>
 		</div>
 	</menu>
 
