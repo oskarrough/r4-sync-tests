@@ -15,7 +15,7 @@
 	<title>Settings & About - R5</title>
 </svelte:head>
 
-<article>
+<article class="SmallContainer">
 	<section>
 		<h2>Settings</h2>
 	</section>
@@ -75,8 +75,5 @@
 	}
 	section {
 		margin: 0.5rem 0.5rem 2rem;
-	}
-	p {
-		max-width: 100ch;
 	}
 </style>

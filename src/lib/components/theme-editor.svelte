@@ -7,10 +7,16 @@
 
 	const cssVariables = [
 		{
-			name: '--color-accent',
-			label: 'accent color',
-			description: 'color for links, highlights et cetera',
+			name: '--color-accent-light',
+			label: 'accent color (light)',
+			description: 'accent color for light theme',
 			default: '#6d28d9'
+		},
+		{
+			name: '--color-accent-dark',
+			label: 'accent color (dark)',
+			description: 'accent color for dark theme',
+			default: '#b8e68a'
 		}
 	]
 
@@ -32,14 +38,18 @@
 
 	const applyVariablesToDOM = () => {
 		const root = document.documentElement
-		cssVariables.forEach(({name}) => {
-			const value = customVariables[name]
-			if (value) {
-				root.style.setProperty(name, value)
-			} else {
-				root.style.removeProperty(name)
-			}
-		})
+
+		// Handle accent colors - create light-dark() value if both are set
+		const lightAccent = customVariables['--color-accent-light']
+		const darkAccent = customVariables['--color-accent-dark']
+		if (lightAccent || darkAccent) {
+			const light = lightAccent || '#6d28d9'
+			const dark = darkAccent || '#b8e68a'
+			root.style.setProperty('--color-accent', `light-dark(${light}, ${dark})`)
+		} else {
+			root.style.removeProperty('--color-accent')
+		}
+
 		// Handle --scaling separately
 		const scalingValue = customVariables['--scaling']
 		if (scalingValue) {
@@ -53,6 +63,13 @@
 			root.style.setProperty('--border-radius', borderRadiusValue)
 		} else {
 			root.style.removeProperty('--border-radius')
+		}
+		// Handle --media-radius separately
+		const mediaRadiusValue = customVariables['--media-radius']
+		if (mediaRadiusValue !== undefined) {
+			root.style.setProperty('--media-radius', mediaRadiusValue)
+		} else {
+			root.style.removeProperty('--media-radius')
 		}
 	}
 
@@ -119,6 +136,18 @@
 			/>
 			<span></span>
 			<small>Round, round, around we go</small>
+		</div>
+
+		<div>
+			<label for={`${uid}--media-radius`}>rounded artwork</label>
+			<input
+				type="checkbox"
+				checked={customVariables['--media-radius'] !== '0'}
+				onchange={(e) => updateVariable('--media-radius', e.target.checked ? '0.4rem' : '0')}
+				id={`${uid}--media-radius`}
+			/>
+			<span></span>
+			<small>Round corners on track artwork</small>
 		</div>
 
 		<div>
