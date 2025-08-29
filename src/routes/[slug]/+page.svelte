@@ -87,7 +87,7 @@
 			{:then whatevs}
 				{@const ids = trackIds.length ? trackIds : whatevs.map((x) => x.id)}
 				{#if ids.length > 0}
-					<Tracklist {ids} />
+					<Tracklist {ids} grouped={1} />
 				{:else}
 					<p>No tracks found{searchQuery ? ` for "${searchQuery}"` : ''}</p>
 				{/if}
@@ -145,7 +145,7 @@
 	h1 + p {
 		font-size: var(--font-7);
 		line-height: 1.3;
-		max-width: 60ch;
+		/* max-width: 80ch; */
 	}
 
 	small {

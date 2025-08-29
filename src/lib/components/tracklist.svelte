@@ -4,11 +4,35 @@
 
 	/** @typedef {import('$lib/types').Track} Track */
 
-	/** @type {{tracks?: Track[], ids?: string[], footer?: (props: {track: Track}) => any}} */
-	const {tracks: tracksProp, ids, footer} = $props()
+	/** @type {{tracks?: Track[], ids?: string[], footer?: (props: {track: Track}) => any, grouped?: boolean}} */
+	const {tracks: tracksProp, ids, footer, grouped = false} = $props()
 
 	/** @type {Track[]}*/
 	let tracks = $state([])
+
+	/** @type {Map<string, Map<string, Track[]>>} */
+	let groupedTracks = $derived.by(() => {
+		if (!grouped || !tracks.length) return new Map()
+		
+		const groups = new Map()
+		tracks.forEach(track => {
+			const date = new Date(track.created_at)
+			const year = date.getFullYear().toString()
+			const month = date.toLocaleString('en', { month: 'long' })
+			
+			if (!groups.has(year)) {
+				groups.set(year, new Map())
+			}
+			const yearGroup = groups.get(year)
+			
+			if (!yearGroup.has(month)) {
+				yearGroup.set(month, [])
+			}
+			yearGroup.get(month).push(track)
+		})
+		
+		return groups
+	})
 
 	$effect(() => {
 		if (tracksProp) {
@@ -39,14 +63,37 @@
 </script>
 
 {#if tracks.length}
-	<ul class="list tracks">
-		{#each tracks as track, index (index)}
-			<li>
-				<TrackCard {track} {index} />
-				{@render footer?.({track})}
-			</li>
-		{/each}
-	</ul>
+	{#if grouped}
+		<div class="timeline">
+			{#each groupedTracks as [year, months]}
+				<section class="year">
+					<h2>{year}</h2>
+					{#each months as [month, monthTracks]}
+						<section class="month">
+							<h3>{month}</h3>
+							<ul class="list tracks">
+								{#each monthTracks as track, index (track.id)}
+									<li>
+										<TrackCard {track} {index} />
+										{@render footer?.({track})}
+									</li>
+								{/each}
+							</ul>
+						</section>
+					{/each}
+				</section>
+			{/each}
+		</div>
+	{:else}
+		<ul class="list tracks">
+			{#each tracks as track, index (index)}
+				<li>
+					<TrackCard {track} {index} />
+					{@render footer?.({track})}
+				</li>
+			{/each}
+		</ul>
+	{/if}
 {/if}
 
 <style>
@@ -54,5 +101,31 @@
 		contain: content;
 		content-visibility: auto;
 		contain-intrinsic-height: auto 3rem;
+	}
+	
+	.year,
+	.month {
+		contain: layout style;
+		content-visibility: auto;
+	}
+
+	.month {
+		margin-bottom: 1rem;
+	}
+
+	h2,
+	h3 {
+		font-weight: 600;
+		margin-left: 0.5rem;
+	}
+
+	.year h2 {
+		display: inline-flex;
+		position: sticky;
+		top: 0;
+		z-index: 1;
+		background: var(--bg-1);
+		/*
+		 */
 	}
 </style>

@@ -64,7 +64,7 @@
 		</div>
 		<time>
 			<span class="mobile"><Icon icon="options-horizontal" size={16} /></span>
-			{#if track.channel_slug}<small class="slug">@{track.channel_slug}</small>{/if}
+			<!-- {#if track.channel_slug}<small class="slug">@{track.channel_slug}</small>{/if} -->
 			<small>{formatDate(new Date(track.created_at))}</small>
 		</time>
 	</a>
