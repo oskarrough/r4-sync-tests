@@ -4,7 +4,7 @@ A prototype exploring the future of Radio4000. Local-first music player with cli
 
 ## Documentation
 
-See the ./docs/index.md`and`CLAUDE.md` files.
+See the [`docs`](./docs) folder and `CLAUDE.md` files.
 
 ## Developing
 
