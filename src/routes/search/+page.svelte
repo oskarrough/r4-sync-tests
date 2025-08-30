@@ -51,7 +51,7 @@
 	async function playSearchResults() {
 		const ids = tracks.map((t) => t.id)
 		await setPlaylist(ids)
-		await playTrack(ids[0])
+		await playTrack(ids[0], null, 'play_search')
 	}
 </script>
 

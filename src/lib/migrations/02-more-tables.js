@@ -4,8 +4,8 @@ export default `CREATE TABLE IF NOT EXISTS play_history (
     started_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     ended_at TIMESTAMP WITH TIME ZONE,
     ms_played INTEGER DEFAULT 0,
-    reason_start TEXT, -- 'user_click', 'user_next', 'user_previous', 'auto_next', 'shuffle_next', 'broadcast_sync', 'playlist_load'
-    reason_end TEXT,   -- 'track_completed', 'user_next', 'user_previous', 'user_stop', 'playlist_change', 'youtube_error', 'broadcast_sync'
+    reason_start TEXT, -- see PlayReasonStart in types.ts
+    reason_end TEXT,   -- see PlayReasonEnd in types.ts
     shuffle BOOLEAN DEFAULT false,
     skipped BOOLEAN DEFAULT false
 );

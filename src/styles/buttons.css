@@ -56,6 +56,10 @@ button:disabled,
 	}
 }
 
+a.active {
+	color: var(--color-accent);
+}
+
 button.active,
 .btn.active {
 	border-color: var(--color-accent);

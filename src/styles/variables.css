@@ -110,7 +110,7 @@
 	--gray-11: light-dark(lch(20% 1 282), lch(90% 2 104));
 	--gray-12: light-dark(lch(10% 0 282), lch(91% 6 104));
 
-	/* --test-black: #000000;
+	--test-black: #000000;
 	--test-white: #ffffff;
 	--test-fl-red: #ff0000;
 	--test-fl-green: #00ff00;
@@ -126,7 +126,7 @@
 	--test-magenta: #660066;
 	--test-yellow: #ffbf00;
 	--test-olive: #666600;
-	--test-gray: #999999; */
+	--test-gray: #999999;
 
 	/* --color-background: #fff; */
 	/* --color-overlay: var(--black-a6); */

@@ -66,7 +66,7 @@ export const r4 = {
 		readUser: async () => {
 			const {data, error} = await r4.sdk.supabase.auth.getUser()
 			if (error) throw error
-			return {data: data.user}
+			return data.user
 		}
 	},
 

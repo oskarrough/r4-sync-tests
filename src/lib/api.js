@@ -9,7 +9,8 @@ import {shuffleArray} from '$lib/utils.ts'
 
 const log = logger.ns('api').seal()
 
-/** @typedef {object} User
+/**
+ * @typedef {object} User
  * @prop {string} id
  * @prop {string} email
  */
@@ -36,6 +37,7 @@ export async function checkUser() {
 		if (wasSignedOut && appState.channels.length) {
 			syncFollowers(appState.channels[0]).catch((err) => log.error('sync_followers_on_signin_error', err))
 		}
+
 		return user
 	} catch (err) {
 		log.warn('check_user_error', err)
@@ -44,8 +46,8 @@ export async function checkUser() {
 
 /**
  * @param {string} id
- * @param {string} endReason
- * @param {string} startReason
+ * @param {import('$lib/types').PlayEndReason} endReason - why was the previous (if any) track stopped?
+ * @param {import('$lib/types').PlayStartReason} startReason - why was this track played?
  */
 export async function playTrack(id, endReason, startReason) {
 	log.log('play_track', {id, endReason, startReason})
@@ -172,7 +174,7 @@ export function togglePlayPause() {
 
 /**
  * @param {object} options
- * @param {string} options.previousTrackId
+ * @param {string} [options.previousTrackId]
  * @param {string} options.nextTrackId
  * @param {string} options.endReason
  * @param {string} options.startReason

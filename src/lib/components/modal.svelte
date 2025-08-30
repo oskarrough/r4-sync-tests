@@ -1,5 +1,6 @@
 <script>
 	import Icon from '$lib/components/icon.svelte'
+
 	let {showModal = $bindable(), header, children} = $props()
 
 	let dialog = $state() // HTMLDialogElement
