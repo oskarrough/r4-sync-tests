@@ -133,7 +133,15 @@ export interface PlayHistory {
  * - play_search: Started from search results
  * - track_error: Previous track had error, auto-advancing
  */
-export type PlayStartReason = 'user_click_track' | 'user_next' | 'user_prev' | 'play_channel' | 'auto_next' | 'broadcast_sync' | 'play_search' | 'track_error'
+export type PlayStartReason =
+	| 'user_click_track'
+	| 'user_next'
+	| 'user_prev'
+	| 'play_channel'
+	| 'auto_next'
+	| 'broadcast_sync'
+	| 'play_search'
+	| 'track_error'
 
 /**
  * Why a track stopped playing
@@ -145,7 +153,14 @@ export type PlayStartReason = 'user_click_track' | 'user_next' | 'user_prev' | '
  * - youtube_error: YouTube player error
  * - broadcast_sync: Stopped due to broadcast sync
  */
-export type PlayEndReason = 'track_completed' | 'user_next' | 'user_prev' | 'user_stop' | 'playlist_change' | 'youtube_error' | 'broadcast_sync'
+export type PlayEndReason =
+	| 'track_completed'
+	| 'user_next'
+	| 'user_prev'
+	| 'user_stop'
+	| 'playlist_change'
+	| 'youtube_error'
+	| 'broadcast_sync'
 
 export interface Ok<T> {
 	ok: true

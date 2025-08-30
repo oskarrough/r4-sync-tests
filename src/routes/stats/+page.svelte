@@ -2,6 +2,8 @@
 	import {onMount} from 'svelte'
 	import {pg} from '$lib/r5/db'
 	import {extractHashtags} from '$lib/utils.ts'
+	import {page} from '$app/state'
+	import Icon from '$lib/components/icon.svelte'
 
 	let stats = $state({
 		totalPlays: 0,
@@ -26,7 +28,11 @@
 		// Patterns
 		daysSinceFirstPlay: 0,
 		streakDays: 0,
-		mostActiveHour: null
+		mostActiveHour: null,
+		// Reason analytics
+		startReasons: [],
+		endReasons: [],
+		userInitiatedRate: 0
 	})
 
 	onMount(async () => {
@@ -220,6 +226,30 @@
 							p.completions.length > 0 ? p.completions.reduce((a, b) => a + b, 0) / p.completions.length : 0
 					}))
 					.sort((a, b) => b.plays - a.plays)
+
+				// Reason analytics
+				const startReasons = {}
+				const endReasons = {}
+				plays.forEach((p) => {
+					if (p.reason_start) {
+						startReasons[p.reason_start] = (startReasons[p.reason_start] || 0) + 1
+					}
+					if (p.reason_end) {
+						endReasons[p.reason_end] = (endReasons[p.reason_end] || 0) + 1
+					}
+				})
+				stats.startReasons = Object.entries(startReasons)
+					.sort(([, a], [, b]) => b - a)
+					.map(([reason, count]) => ({reason, count}))
+				stats.endReasons = Object.entries(endReasons)
+					.sort(([, a], [, b]) => b - a)
+					.map(([reason, count]) => ({reason, count}))
+
+				// User vs auto listening
+				const userInitiated = plays.filter((p) =>
+					['user_click_track', 'user_next', 'user_prev', 'play_channel', 'play_search'].includes(p.reason_start)
+				).length
+				stats.userInitiatedRate = Math.round((userInitiated / plays.length) * 100)
 			}
 		} catch (err) {
 			console.error('Stats generation failed:', err)
@@ -232,7 +262,20 @@
 </svelte:head>
 
 <article class="SmallContainer">
-	<p>Statistics from your local data and play history.</p>
+	<menu>
+		<a class="btn" href="/stats" class:active={page.route.id === '/stats'}>
+			<Icon icon="chart-scatter" size={20} /> Stats
+		</a>
+		<a class="btn" href="/history" class:active={page.route.id === '/history'}>
+			<Icon icon="history" size={20} /> History
+		</a>
+	</menu>
+
+	<header>
+		<h1>Statistics</h1>
+		<p>Statistics from your local data and play history.</p>
+	</header>
+
 	<section>
 		<header>
 			<h2>activity</h2>
@@ -257,6 +300,10 @@
 
 		{#if stats.mostActiveHour !== null}
 			<p>most active around {stats.mostActiveHour}:00</p>
+		{/if}
+
+		{#if stats.userInitiatedRate > 0}
+			<p>{stats.userInitiatedRate}% user-initiated • {100 - stats.userInitiatedRate}% automatic</p>
 		{/if}
 	</section>
 
@@ -309,6 +356,34 @@
 				{/each}
 			</div>
 			<p>{stats.totalChannelsInDb.toLocaleString()} total channels</p>
+		</section>
+	{/if}
+
+	{#if stats.startReasons.length > 0}
+		<section>
+			<header>
+				<h2>Patterns</h2>
+			</header>
+			<div class="reasons">
+				<div>
+					<h3>play reasons</h3>
+					{#each stats.startReasons.slice(0, 5) as { reason, count } (reason)}
+						<div class="reason-line">
+							{reason}
+							{count}
+						</div>
+					{/each}
+				</div>
+				<div>
+					<h3>stop reasons</h3>
+					{#each stats.endReasons.slice(0, 5) as { reason, count } (reason)}
+						<div class="reason-line">
+							{reason}
+							{count}
+						</div>
+					{/each}
+				</div>
+			</div>
 		</section>
 	{/if}
 
@@ -374,6 +449,24 @@
 				height: 0 !important;
 				/* hover state */
 			}
+		}
+	}
+
+	.reasons {
+		display: flex;
+		gap: 0rem;
+		padding: 0rem;
+
+		h3 {
+			text-transform: uppercase;
+			font-weight: bold;
+			margin-bottom: 0.5rem;
+		}
+
+		.reason-line {
+			display: flex;
+			justify-content: space-between;
+			min-width: 12em;
 		}
 	}
 </style>
