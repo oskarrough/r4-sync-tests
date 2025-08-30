@@ -51,53 +51,49 @@ export async function v1({slug = '', limit = LIMIT} = {}) {
 	}
 }
 
-/** Pull channels from remote sources and store locally */
-export async function pull({id, slug = '', limit = LIMIT} = {}) {
-	// If ID provided, resolve to slug first (ID takes precedence)
-	if (id) {
+async function pullAll({limit = LIMIT} = {}) {
+	const channels = await r4Api.channels.readChannels(limit)
+	await insert(channels)
+	await pullV1Channels({limit}) // must happen after r4 insert, as migrated channels exist both in v1 and r4
+	return await local({limit})
+}
+
+/** Pulls either..
+ * a) all channels (if no id || slug),
+ * b) a single channel from local, or r4, falling back to v1 */
+export async function pull({id = '', slug = '', limit = LIMIT} = {}) {
+	if (id && !slug) {
 		slug = await channelIdToSlug(id)
 	}
 
-	if (slug) {
-		// Check local first
-		const localChannels = await local({slug})
-		if (localChannels.length) {
-			// Update in background if outdated?
-			// if (await outdated(slug)) {
-			// 	log.info(`pull skipped @${slug}, even though local copy is outdated though`)
-			// 	// pullTracks({slug}).catch((error) => log.error(error))
-			// } else {
-			// 	log.info(`pulling @${slug} -> up to date`)
-			// }
+	if (!slug) return await pullAll({limit})
 
-			return localChannels
-		}
-
-		// Try r4
-		try {
-			const channels = await r4({slug})
-			if (channels.length) {
-				await insert(channels)
-				return await local({slug})
-			}
-		} catch {
-			// Channel not found in r4, continue to v1
-		}
-
-		// Try v1
-		const v1Channels = await v1({slug})
-		if (v1Channels.length) {
-			await insert(v1Channels)
-			return await local({slug})
-		}
-
-		throw new Error(`pull_channels:channel_not_found: ${slug}`)
+	// Prefer local
+	const localChannels = await local({slug})
+	if (localChannels.length) {
+		return localChannels
 	}
 
-	const channels = await r4Api.channels.readChannels(limit)
-	await insert(channels)
-	await pullV1Channels({limit}) // must happen after r4 is inserted
-	return await local({limit})
+	// Second prio is r4
+	try {
+		const channels = await r4({slug})
+		if (channels.length) {
+			await insert(channels)
+			return await local({slug})
+		}
+	} catch {
+		// This is ok, continue to v1
+	}
+
+	// Last is v1
+	const v1Channels = await v1({slug})
+	if (v1Channels.length) {
+		await insert(v1Channels)
+		return await local({slug})
+	}
+
+	// Else 404
+	throw new Error(`pull_channels:channel_not_found: ${slug}`)
 }
 
 /** Insert channels into local database */
