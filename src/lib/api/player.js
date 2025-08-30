@@ -72,7 +72,7 @@ export function next(track, activeQueue, endReason) {
 	if (next) {
 		// Keep the endReason as-is, but use descriptive startReason
 		const startReason =
-			endReason === 'track_completed' ? 'auto_next' : endReason.includes('youtube_error') ? 'track_error' : endReason
+			endReason === 'track_completed' ? 'auto_next' : endReason.startsWith('youtube_error') ? 'track_error' : endReason
 		playTrack(next, endReason, startReason)
 	} else {
 		log.info('No next track available')

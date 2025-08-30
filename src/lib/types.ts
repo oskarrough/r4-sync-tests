@@ -150,7 +150,7 @@ export type PlayStartReason =
  * - user_prev: User clicked previous button
  * - user_stop: User clicked stop/pause
  * - playlist_change: Playlist/queue changed while playing
- * - youtube_error: YouTube player error
+ * - youtube_error: YouTube player error (stored as youtube_error_${code} with specific error codes)
  * - broadcast_sync: Stopped due to broadcast sync
  */
 export type PlayEndReason =
