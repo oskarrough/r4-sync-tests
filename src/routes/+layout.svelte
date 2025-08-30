@@ -60,7 +60,7 @@
 		$state.snapshot(appState)
 		persistAppState()
 			.then(() => {
-				log.info('persisted app_state', $state.snapshot(appState))
+				log.debug('persisted app_state', $state.snapshot(appState))
 			})
 			.catch((err) => {
 				goto(`/recovery?err=${err.message}`)

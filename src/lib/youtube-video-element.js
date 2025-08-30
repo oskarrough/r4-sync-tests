@@ -212,11 +212,17 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 
 				// Respect autoplay attribute when reusing player
 				// Check if API methods are available before calling them
-				await this.loadComplete
-				if (this.api.loadVideoById && this.api.cueVideoById) {
+				// console.log('waiting for loadComplete', {isLoaded: this.isLoaded})
+				this.loadComplete.then(() => {
+					// console.log('loadComplete')
+				})
+
+				if (this.api) {
 					if (this.autoplay) {
+						// console.log('loadVideoById called', videoId)
 						this.api.loadVideoById(videoId)
 					} else {
+						// console.log('cueVideoById called', videoId)
 						this.api.cueVideoById(videoId)
 					}
 				} else {
@@ -227,6 +233,7 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 
 				// Also set a timeout fallback in case state doesn't change
 				setTimeout(() => {
+					console.log('still not loaded?')
 					if (!this.isLoaded) {
 						this.api.removeEventListener('onStateChange', stateHandler)
 						onVideoCued()
@@ -267,6 +274,7 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 					this.dispatchEvent(new Event('loadcomplete'))
 					this.isLoaded = true
 					this.loadComplete.resolve()
+					console.log('onReady!')
 				},
 				onError: (error) => {
 					console.error(error)
