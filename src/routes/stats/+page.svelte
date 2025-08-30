@@ -1,9 +1,9 @@
 <script>
 	import {onMount} from 'svelte'
-	import {pg} from '$lib/r5/db'
-	import {extractHashtags} from '$lib/utils.ts'
 	import {page} from '$app/state'
 	import Icon from '$lib/components/icon.svelte'
+	import {pg} from '$lib/r5/db'
+	import {extractHashtags} from '$lib/utils.ts'
 
 	let stats = $state({
 		totalPlays: 0,
@@ -19,9 +19,7 @@
 		totalTracksInDb: 0,
 		tracksWithoutMeta: 0,
 		avgTracksPerChannel: 0,
-		// Timeline
 		channelTimeline: [],
-		// Recently discovered
 		recentlyPlayed: [],
 		// Track stats
 		mostReplayedTrack: null,
@@ -35,8 +33,11 @@
 		userInitiatedRate: 0
 	})
 
+	let ready = $state(false)
+
 	onMount(async () => {
 		await generateStats()
+		ready = true
 	})
 
 	async function generateStats() {
@@ -160,9 +161,9 @@
 				})
 			stats.recentlyPlayed = Object.values(recentTracks)
 				.sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())
-				.slice(0, 5)
+				.slice(0, 3)
 
-			// Most replayed track
+			// Most replayed tracks (top 3)
 			const trackPlays = {}
 			plays.forEach((p) => {
 				const key = p.track_id
@@ -171,12 +172,13 @@
 						title: p.title,
 						channel_name: p.channel_name,
 						channel_slug: p.channel_slug,
+						track_id: p.track_id,
 						play_count: 0
 					}
 				}
 				trackPlays[key].play_count++
 			})
-			stats.mostReplayedTrack = Object.values(trackPlays).sort((a, b) => b.play_count - a.play_count)[0] || null
+			stats.mostReplayedTrack = Object.values(trackPlays).sort((a, b) => b.play_count - a.play_count).slice(0, 3)
 
 			// Listening streak and patterns
 			if (plays.length > 0) {
@@ -276,15 +278,23 @@
 		<p>Statistics from your local data and play history.</p>
 	</header>
 
+	{#if !ready}
+	<section>
+		<header>
+			<h2>activity preparing, i am</h2>
+		</header>
+	</section>
+	{:else}
+
 	<section>
 		<header>
 			<h2>activity</h2>
 		</header>
 
 		<p>
-			<strong>{stats.totalPlays.toLocaleString()}</strong> plays •
+			<strong>{stats.uniqueChannels.toLocaleString()}</strong> radios •
 			<strong>{stats.uniqueTracks.toLocaleString()}</strong> tracks •
-			<strong>{stats.uniqueChannels.toLocaleString()}</strong> radios
+			<strong>{stats.totalPlays.toLocaleString()}</strong> plays
 		</p>
 
 		<p>
@@ -307,66 +317,53 @@
 		{/if}
 	</section>
 
-	{#if stats.mostReplayedTrack}
+	{#if stats.mostReplayedTrack.length > 0}
 		<section>
 			<header>
 				<h2>on repeat</h2>
 			</header>
-			<p>
-				"{stats.mostReplayedTrack.title}" by
-				<a href="/{stats.mostReplayedTrack.channel_slug}">{stats.mostReplayedTrack.channel_name}</a>
-				• {stats.mostReplayedTrack.play_count} plays
-			</p>
-		</section>
-	{/if}
-
-	{#if stats.recentlyPlayed.length > 0}
-		<section>
-			<header>
-				<h2>recently discovered</h2>
-			</header>
 			<ol>
-				{#each stats.recentlyPlayed as track (track.id)}
+				{#each stats.mostReplayedTrack as track}
 					<li>
-						"{track.title}" •
-						<a href="/{track.channel_slug}">{track.channel_name}</a>
+						<a href="/{track.channel_slug}">@{track.channel_slug}</a>
+						&rarr;
+						<a href={`/${track.channel_slug}/${track.track_id}`}>
+							<em>{track.title}</em>
+						</a>
+						• {track.play_count} plays
 					</li>
 				{/each}
 			</ol>
 		</section>
 	{/if}
 
-	{#if stats.channelTimeline.length > 1}
-		{@const max = Math.max(...stats.channelTimeline.map((m) => m.count))}
-
+	{#if stats.recentlyPlayed.length > 0}
 		<section>
 			<header>
-				<h2>station timeline</h2>
+				<h2>recently played</h2>
 			</header>
-			<div class="timeline">
-				{#each stats.channelTimeline as month, i (i)}
-					<div
-						class="bar"
-						style="height: {(month.count / max) * 100}%"
-						title="{new Date(month.month).toLocaleDateString('en-US', {
-							month: 'short',
-							year: 'numeric'
-						})}: {month.count} channels"
-					></div>
+			<ol>
+				{#each stats.recentlyPlayed as track (track.id)}
+					<li>
+						<a href="/{track.channel_slug}">@{track.channel_slug}</a>
+						&rarr;
+						<a href={`/${track.channel_slug}/${track.id}`}>
+							<em>{track.title}</em>
+						</a>
+					</li>
 				{/each}
-			</div>
-			<p>{stats.totalChannelsInDb.toLocaleString()} total channels</p>
+			</ol>
+			<p style="text-align:right"><a href="/history">full play history &rarr;</a></p>
 		</section>
 	{/if}
 
 	{#if stats.startReasons.length > 0}
 		<section>
-			<header>
-				<h2>Patterns</h2>
-			</header>
 			<div class="reasons">
 				<div>
-					<h3>play reasons</h3>
+					<header>
+						<h2>play reasons</h2>
+					</header>
 					{#each stats.startReasons.slice(0, 5) as { reason, count } (reason)}
 						<div class="reason-line">
 							{reason}
@@ -375,7 +372,9 @@
 					{/each}
 				</div>
 				<div>
-					<h3>stop reasons</h3>
+					<header>
+						<h2>stop reasons</h2>
+					</header>
 					{#each stats.endReasons.slice(0, 5) as { reason, count } (reason)}
 						<div class="reason-line">
 							{reason}
@@ -392,16 +391,42 @@
 			<h2>database</h2>
 		</header>
 		<p>
-			{stats.totalChannelsInDb.toLocaleString()} radios •
-			{stats.totalTracksInDb.toLocaleString()} tracks
-			<small>&larr; local tracks</small>
-		</p>
-		<p>
-			~{stats.avgTracksPerChannel} tracks per channel
-		</p>
-		<p>{(stats.totalTracksInDb - stats.tracksWithoutMeta).toLocaleString()} tracks analyzed metadata</p>
-	</section>
-</article>
+							{stats.totalChannelsInDb.toLocaleString()} radios •
+							{stats.totalTracksInDb.toLocaleString()} tracks
+							<small>&larr; local tracks</small>
+						</p>
+						<p>
+							~{stats.avgTracksPerChannel} tracks per channel
+						</p>
+						<p>{(stats.totalTracksInDb - stats.tracksWithoutMeta).toLocaleString()} tracks analyzed metadata</p>
+					</section>
+
+	{#if stats.channelTimeline.length > 1}
+		{@const max = Math.max(...stats.channelTimeline.map((m) => m.count))}
+		<section>
+			<div class="timeline">
+				{#each stats.channelTimeline as month, i (i)}
+					<div
+						class="bar"
+						style="height: {(month.count / max) * 100}%"
+						title="{new Date(month.month).toLocaleDateString('en-US', {
+							month: 'short',
+							year: 'numeric'
+						})}: {month.count} channels"
+					></div>
+				{/each}
+			</div>
+			<header>
+				<h2 style="text-align:right">{stats.totalChannelsInDb.toLocaleString()} Radio4000 channels over time</h2>
+			</header>
+		</section>
+		<br/>
+	{/if}
+
+
+
+				{/if}
+			</article>
 
 <style>
 	article {
@@ -442,12 +467,11 @@
 			background: var(--accent-9);
 			min-height: 2px;
 			transition:
-				height 200ms,
-				opacity 0.2s;
+			height 200ms,
+			opacity 0.2s;
 
 			&:hover {
 				height: 0 !important;
-				/* hover state */
 			}
 		}
 	}
@@ -456,17 +480,11 @@
 		display: flex;
 		gap: 0rem;
 		padding: 0rem;
+	}
 
-		h3 {
-			text-transform: uppercase;
-			font-weight: bold;
-			margin-bottom: 0.5rem;
-		}
-
-		.reason-line {
-			display: flex;
-			justify-content: space-between;
-			min-width: 12em;
-		}
+	.reason-line {
+		display: flex;
+		justify-content: space-between;
+		min-width: 12em;
 	}
 </style>
