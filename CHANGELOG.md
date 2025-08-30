@@ -2,6 +2,9 @@
 
 ## August 2025
 
+- Added play/pause/next/prev commands to the /cli page
+- The /stats page is neater and shows some new stuff
+- Fixed more playback bugs
 - Added a new, experimental (as always) 2d infinite grid for browsing channels
 - Continuous playback (should) be more stable
 - The documentation for the app is better, and can be deployed as a website if needed
