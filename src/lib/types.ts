@@ -124,43 +124,43 @@ export interface PlayHistory {
 
 /**
  * Why a track started playing
+ * - auto_next: Automatic advance after track completed
+ * - broadcast_sync: Synced from broadcast
+ * - play_channel: Started playing a channel (first track)
+ * - play_search: Started from search results
+ * - track_error: Previous track had error, auto-advancing
  * - user_click_track: User clicked on a specific track
  * - user_next: User clicked next button
  * - user_prev: User clicked previous button
- * - play_channel: Started playing a channel (first track)
- * - auto_next: Automatic advance after track completed
- * - broadcast_sync: Synced from broadcast
- * - play_search: Started from search results
- * - track_error: Previous track had error, auto-advancing
  */
 export type PlayStartReason =
+	| 'auto_next'
+	| 'broadcast_sync'
+	| 'play_channel'
+	| 'play_search'
+	| 'track_error'
 	| 'user_click_track'
 	| 'user_next'
 	| 'user_prev'
-	| 'play_channel'
-	| 'auto_next'
-	| 'broadcast_sync'
-	| 'play_search'
-	| 'track_error'
 
 /**
  * Why a track stopped playing
+ * - broadcast_sync: Stopped due to broadcast sync
+ * - playlist_change: Playlist/queue changed while playing
  * - track_completed: Track played to the end naturally
  * - user_next: User clicked next button
  * - user_prev: User clicked previous button
  * - user_stop: User clicked stop/pause
- * - playlist_change: Playlist/queue changed while playing
  * - youtube_error: YouTube player error (stored as youtube_error_${code} with specific error codes)
- * - broadcast_sync: Stopped due to broadcast sync
  */
 export type PlayEndReason =
+	| 'broadcast_sync'
+	| 'playlist_change'
 	| 'track_completed'
 	| 'user_next'
 	| 'user_prev'
 	| 'user_stop'
-	| 'playlist_change'
 	| 'youtube_error'
-	| 'broadcast_sync'
 
 export interface Ok<T> {
 	ok: true

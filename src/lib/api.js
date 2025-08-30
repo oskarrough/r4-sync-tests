@@ -56,7 +56,7 @@ export async function playTrack(id, endReason, startReason) {
 	if (!track) throw new Error(`play_track_error: Missing local track: ${id}`)
 
 	// Set flag for user-initiated playback
-	const userInitiatedReasons = ['user_click_track', 'user_next', 'user_prev', 'play_channel']
+	const userInitiatedReasons = ['user_click_track', 'user_next', 'user_prev', 'play_channel', 'play_search']
 	if (userInitiatedReasons.includes(startReason)) {
 		globalThis.__userInitiatedPlay = true
 	}
