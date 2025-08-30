@@ -46,8 +46,8 @@ export async function checkUser() {
 
 /**
  * @param {string} id
- * @param {string} endReason
- * @param {string} startReason
+ * @param {import('$lib/types').PlayEndReason} endReason - why was the previous (if any) track stopped?
+ * @param {import('$lib/types').PlayStartReason} startReason - why was this track played?
  */
 export async function playTrack(id, endReason, startReason) {
 	log.log('play_track', {id, endReason, startReason})

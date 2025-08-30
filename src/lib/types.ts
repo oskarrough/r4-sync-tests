@@ -122,25 +122,30 @@ export interface PlayHistory {
 	skipped: boolean
 }
 
-export const PlayReasonStart = {
-	USER_CLICK: 'user_click',
-	USER_NEXT: 'user_next',
-	USER_PREVIOUS: 'user_previous',
-	AUTO_NEXT: 'auto_next',
-	SHUFFLE_NEXT: 'shuffle_next',
-	BROADCAST_SYNC: 'broadcast_sync',
-	PLAYLIST_LOAD: 'playlist_load'
-} as const
+/**
+ * Why a track started playing
+ * - user_click_track: User clicked on a specific track
+ * - user_next: User clicked next button
+ * - user_prev: User clicked previous button
+ * - play_channel: Started playing a channel (first track)
+ * - auto_next: Automatic advance after track completed
+ * - broadcast_sync: Synced from broadcast
+ * - play_search: Started from search results
+ * - track_error: Previous track had error, auto-advancing
+ */
+export type PlayStartReason = 'user_click_track' | 'user_next' | 'user_prev' | 'play_channel' | 'auto_next' | 'broadcast_sync' | 'play_search' | 'track_error'
 
-export const PlayReasonEnd = {
-	TRACK_COMPLETED: 'track_completed',
-	USER_NEXT: 'user_next',
-	USER_PREVIOUS: 'user_previous',
-	USER_STOP: 'user_stop',
-	PLAYLIST_CHANGE: 'playlist_change',
-	YOUTUBE_ERROR: 'youtube_error',
-	BROADCAST_SYNC: 'broadcast_sync'
-} as const
+/**
+ * Why a track stopped playing
+ * - track_completed: Track played to the end naturally
+ * - user_next: User clicked next button
+ * - user_prev: User clicked previous button
+ * - user_stop: User clicked stop/pause
+ * - playlist_change: Playlist/queue changed while playing
+ * - youtube_error: YouTube player error
+ * - broadcast_sync: Stopped due to broadcast sync
+ */
+export type PlayEndReason = 'track_completed' | 'user_next' | 'user_prev' | 'user_stop' | 'playlist_change' | 'youtube_error' | 'broadcast_sync'
 
 export interface Ok<T> {
 	ok: true

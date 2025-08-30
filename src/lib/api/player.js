@@ -55,10 +55,10 @@ export function togglePlay(yt) {
 
 /**
  * @param {Track | undefined} track
- * @param {string[]} activeQueue
- * @param {string} reason
+ * @param {string[]} activeQueue - we need to know whether we're playing the playlist_tracks or playlist_tracks_shuffled
+ * @param {string} endReason - why the current track is ending
  */
-export function next(track, activeQueue, reason) {
+export function next(track, activeQueue, endReason) {
 	if (!track?.id) {
 		log.warn('No current track')
 		return
@@ -70,8 +70,10 @@ export function next(track, activeQueue, reason) {
 	const idx = activeQueue.indexOf(track.id)
 	const next = activeQueue[idx + 1]
 	if (next) {
-		const startReason = reason === 'track_completed' || reason === 'youtube_error' ? 'auto_next' : reason
-		playTrack(next, reason, startReason)
+		// Keep the endReason as-is, but use descriptive startReason
+		const startReason =
+			endReason === 'track_completed' ? 'auto_next' : endReason.includes('youtube_error') ? 'track_error' : endReason
+		playTrack(next, endReason, startReason)
 	} else {
 		log.info('No next track available')
 	}
@@ -80,9 +82,9 @@ export function next(track, activeQueue, reason) {
 /**
  * @param {Track | undefined} track
  * @param {string[]} activeQueue
- * @param {string} reason
+ * @param {string} endReason - why the current track is ending
  */
-export function previous(track, activeQueue, reason) {
+export function previous(track, activeQueue, endReason) {
 	if (!track?.id) {
 		log.warn('No current track')
 		return
@@ -95,7 +97,7 @@ export function previous(track, activeQueue, reason) {
 	const idx = activeQueue.indexOf(track.id)
 	const prev = activeQueue[idx - 1]
 	if (prev) {
-		playTrack(prev, reason, reason)
+		playTrack(prev, endReason, 'user_prev')
 	} else {
 		log.info('No previous track available')
 	}
