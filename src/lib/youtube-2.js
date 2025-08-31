@@ -3,7 +3,7 @@ import {logger} from '$lib/logger'
 const log = logger.ns('youtube-2').seal()
 
 class YouTube2Element extends HTMLElement {
-	static observedAttributes = ['src']
+	static observedAttributes = ['src', 'autoplay', 'controls', 'muted', 'playsinline']
 
 	isLoaded = false
 	api = null
@@ -57,19 +57,26 @@ class YouTube2Element extends HTMLElement {
 		try {
 			this.api = new globalThis.YT.Player(iframe, {
 				playerVars: {
+					controls: this.hasAttribute('controls') ? 1 : 0,
+					autoplay: this.hasAttribute('autoplay') ? 1 : 0,
+					mute: this.hasAttribute('muted') ? 1 : 0,
+					playsinline: this.hasAttribute('playsinline') ? 1 : 0,
 					enablejsapi: 1,
-					origin: window.location.origin
+					origin: window.location.origin,
+					rel: 0, // Don't show related videos
+					iv_load_policy: 3, // Hide annotations
+					modestbranding: 1, // Minimal YouTube branding
+					showinfo: 0 // Hide video info (deprecated but kept for older embeds)
 				},
 				events: {
 					onReady: () => {
-						console.log('onready called')
 						this.isLoaded = true
 						this.#resolveLoad()
-						log.debug('READY! API loaded and ready, isLoaded:', this.isLoaded)
+						log.debug('onReady')
 
 						// Load video if src is already set or was pending
 						if (this.src || this.#pendingVideoLoad) {
-							console.log('loadvideo?')
+							log.debug('onReady calling loadVideo')
 							this.#pendingVideoLoad = false
 							this.#loadVideo()
 						}
@@ -91,11 +98,16 @@ class YouTube2Element extends HTMLElement {
 				}
 			})
 			log.debug('YT.Player created:', !!this.api)
-			
+
 			// Add event listeners after player creation
 			this.api.addEventListener('onVideoProgress', () => {
-				log.debug('onVideoProgress fired, dispatching timeupdate')
+				// log.debug('onVideoProgress fired, dispatching timeupdate')
 				this.dispatchEvent(new Event('timeupdate'))
+			})
+			
+			this.api.addEventListener('onVolumeChange', () => {
+				log.debug('onVolumeChange fired, dispatching volumechange')
+				this.dispatchEvent(new Event('volumechange'))
 			})
 		} catch (error) {
 			log.error('Failed to create YT.Player:', error)
@@ -209,6 +221,40 @@ class YouTube2Element extends HTMLElement {
 
 	get error() {
 		return this.#error
+	}
+
+	get volume() {
+		if (!this.api || !this.api.getVolume) return 1
+		return this.api.getVolume() / 100
+	}
+
+	set volume(val) {
+		// Don't check equality if API isn't ready
+		if (this.api?.getVolume && this.volume === val) return
+		this.#loadComplete.then(() => {
+			log.debug('setting volume to:', val)
+			if (this.api?.setVolume) {
+				this.api.setVolume(val * 100)
+			}
+		})
+	}
+
+	get muted() {
+		if (!this.api || !this.api.isMuted) return false
+		return this.api.isMuted()
+	}
+
+	set muted(val) {
+		// Don't check equality if API isn't ready
+		if (this.api?.isMuted && this.muted === val) return
+		this.#loadComplete.then(() => {
+			log.debug('setting muted to:', val)
+			if (val && this.api?.mute) {
+				this.api.mute()
+			} else if (!val && this.api?.unMute) {
+				this.api.unMute()
+			}
+		})
 	}
 
 	get src() {
