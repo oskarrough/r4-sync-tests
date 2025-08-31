@@ -27,6 +27,7 @@ class R5Formatter extends Formatter {
 /** Access logs via store.logs */
 export const store = setup({
 	cache: true,
+	activeLevel: 7, // 7 is debug
 	format: 'r5',
 	formatters: {
 		r5: R5Formatter

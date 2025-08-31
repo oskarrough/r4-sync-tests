@@ -2,7 +2,8 @@
 	import 'media-chrome'
 	//import 'youtube-video-element'
 	//import '$lib/youtube-video-element-original.js'
-	import '$lib/youtube-video-element.js'
+	//import '$lib/youtube-video-element.js'
+	import '$lib/youtube-2.js'
 	import {toggleQueuePanel, togglePlayerExpanded} from '$lib/api'
 	import {togglePlay, next, previous, toggleShuffle, play} from '$lib/api/player'
 	import {appState} from '$lib/app-state.svelte'
@@ -54,7 +55,10 @@
 		const tid = appState.playlist_track
 
 		const trackChanged = tid && tid !== track?.id
-		if (!trackChanged) return
+		if (!trackChanged) {
+			console.log('same track. @todo maybe call play unless user did not play already?', tid, track?.id)
+			return
+		}
 
 		const ytplayer = yt || document.querySelector('youtube-video')
 		const paused = ytplayer.paused
@@ -150,18 +154,10 @@
 			bind:this={yt}
 			{src}
 			autoplay={userHasPlayed || undefined}
-			playsinline={1}
-			volume={appState.volume}
-			muted={appState.volume === 0}
-			onloadcomplete={() => {
-				//prebuffer()
-				applyInitialVolume()
-			}}
 			onplay={handlePlay}
 			onpause={handlePause}
 			onended={handleEndTrack}
 			onerror={handleError}
-			volumechange={handleVolumeChange}
 		></youtube-video>
 		<media-loading-indicator slot="centered-chrome"></media-loading-indicator>
 	</media-controller>

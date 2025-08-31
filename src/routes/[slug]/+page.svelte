@@ -23,7 +23,6 @@
 
 	onMount(() => {
 		data.tracksPromise.then((x) => {
-			console.log('setting page tracks', x)
 			tracks = x
 		})
 

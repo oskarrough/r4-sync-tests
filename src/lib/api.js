@@ -6,6 +6,7 @@ import {r5} from '$lib/r5'
 import {pg} from '$lib/r5/db'
 import {pull as pullFollowers, sync as syncFollowers} from '$lib/r5/followers'
 import {shuffleArray} from '$lib/utils.ts'
+import {play} from '$lib/api/player'
 
 const log = logger.ns('api').seal()
 
@@ -89,6 +90,9 @@ export async function playTrack(id, endReason, startReason) {
 			})
 		}
 	}
+
+	console.log('playTrack calling play()')
+	play()
 }
 
 /**

@@ -9,19 +9,22 @@ import {shuffleArray} from '$lib/utils.ts'
 /** @typedef {HTMLElement & {paused: boolean, play(): void, pause(): void} | null} YouTubePlayer */
 
 /** @param {YouTubePlayer} yt */
-const log = logger.ns('player').seal()
+const log = logger.ns('api/player').seal()
 
-export function play(yt) {
+export function play() {
+	const yt = document.querySelector('youtube-video')
 	if (!yt) {
 		log.warn('YouTube player not ready')
 		return Promise.reject(new Error('YouTube player not ready'))
 	}
-	console.log('paused before yt.play?', yt.paused)
+
+	log.debug('play() check', yt, 'paused?', yt.paused)
+
 	const promise = yt.play()
 	if (promise !== undefined) {
 		return promise
 			.then(() => {
-				// log.log('play() succeeded')
+				log.log('play() succeeded')
 			})
 			.catch((error) => {
 				log.warn('play() was prevented:', error.message || error)

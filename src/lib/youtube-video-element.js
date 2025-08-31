@@ -1,4 +1,7 @@
 // https://developers.google.com/youtube/iframe_api_reference
+import {logger} from '$lib/logger'
+
+const log = logger.ns('<youtube-video>').seal()
 
 const EMBED_BASE = 'https://www.youtube.com/embed'
 const EMBED_BASE_NOCOOKIE = 'https://www.youtube-nocookie.com/embed'
@@ -11,6 +14,7 @@ const PLAYLIST_MATCH_SRC = /(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/.*?[?&]li
 
 function getTemplateHTML(attrs, props = {}) {
 	const iframeAttrs = {
+		id: 'yt-player-iframe',
 		src: serializeIframeUrl(attrs, props),
 		frameborder: 0,
 		width: '100%',
@@ -85,7 +89,7 @@ function serializeIframeUrl(attrs, props) {
 	return `${embedBase}?${serialize(extendedParams)}`
 }
 
-class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
+class YoutubeVideoElement extends HTMLElement {
 	static getTemplateHTML = getTemplateHTML
 	static shadowRootOptions = {mode: 'open'}
 	static observedAttributes = [
@@ -100,21 +104,97 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 		'src'
 	]
 
-	loadComplete = new PublicPromise()
-	#loadRequested
-	#hasLoaded
+	#ready = new PublicPromise()
+	#readyResolved = false
 	#readyState = 0
 	#seeking = false
 	#seekComplete
-	isLoaded = false
+	#videoChangeComplete = null
+
+	get ready() {
+		return this.#ready
+	}
 	#error = null
 	#config = null
-	#seekInterval = null
-	#progressInterval = null
 
 	constructor() {
 		super()
+		console.log(4242, 'constructor')
 		this.#upgradeProperty('config')
+	}
+
+	async connectedCallback() {
+		log.debug('connected - api exists?', !!this.api)
+
+		// Create shadow DOM and iframe immediately
+		if (!this.shadowRoot) {
+			this.attachShadow({mode: 'open'})
+		}
+
+		if (!this.src) return
+
+		// Don't create player if already exists
+		if (this.api) {
+			log.debug('api already exists, skipping creation')
+			return
+		}
+
+		const attrs = namedNodeMapToObject(this.attributes)
+		this.shadowRoot.innerHTML = getTemplateHTML(attrs, this)
+
+		// Wait for iframe to be in DOM and ready
+		await new Promise((resolve) => setTimeout(resolve, 50))
+		const iframe = this.shadowRoot.querySelector('#yt-player-iframe')
+
+		if (!iframe) {
+			log.error('iframe not found in shadow DOM')
+			return
+		}
+
+		// Load YouTube API and create player
+		const YT = await loadScript(API_URL, API_GLOBAL, API_GLOBAL_READY)
+
+		log.debug('creating YT.Player with iframe:', !!iframe, 'iframe.id:', iframe.id, 'iframe.src:', iframe.src)
+
+		// Set up ready handler before creating player
+		const handleReady = () => {
+			if (!this.#readyResolved) {
+				this.#readyResolved = true
+				this.#ready.resolve()
+				log.debug('yt ready - onReady fired!')
+			}
+		}
+
+		const handleError = (error) => {
+			console.error('YT Player error:', error, this.src)
+			this.#error = {
+				code: error.data,
+				message: `YouTube iframe player error #${error.data}`
+			}
+			this.#ready.reject(new Error(`YouTube error: ${error.data}`))
+			this.dispatchEvent(new Event('error'))
+		}
+
+		log.debug('about to create YT.Player...')
+		this.api = new YT.Player(iframe, {
+			events: {
+				onReady: handleReady,
+				onError: handleError
+			}
+		})
+		log.debug('YT.Player created, api exists:', !!this.api)
+
+		// Set up event listeners immediately after player creation (like npm version)
+		this.#setupEventListeners()
+
+		// Fallback timeout if onReady never fires
+		setTimeout(() => {
+			if (!this.#readyResolved) {
+				log.warn('onReady timeout, resolving manually')
+				this.#readyResolved = true
+				this.#ready.resolve()
+			}
+		}, 3000)
 	}
 
 	get config() {
@@ -126,179 +206,67 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 	}
 
 	async load() {
-		if (this.#loadRequested) return
+		log.info('load')
 
-		if (!this.shadowRoot) {
-			this.attachShadow({mode: 'open'})
-		}
+		await this.#ready
 
-		const isFirstLoad = !this.#hasLoaded
+		if (!this.src) return
 
-		if (this.#hasLoaded) {
-			this.loadComplete = new PublicPromise()
-			this.isLoaded = false
-		}
-		this.#hasLoaded = true
+		// Extract video ID from the new src
+		const videoMatch = this.src.match(VIDEO_MATCH_SRC)
+		const videoId = videoMatch?.[1]
 
-		// Clean up existing intervals before setting up new ones
-		if (this.#seekInterval) {
-			clearInterval(this.#seekInterval)
-			this.#seekInterval = null
-		}
-		if (this.#progressInterval) {
-			clearInterval(this.#progressInterval)
-			this.#progressInterval = null
-		}
+		if (videoId && this.api) {
+			log.debug('changing video', videoId)
 
-		// Wait 1 tick to allow other attributes to be set.
-		this.#loadRequested = Promise.resolve()
-		await this.#loadRequested
-		this.#loadRequested = null
-
-		this.#readyState = 0
-		this.dispatchEvent(new Event('emptied'))
-
-		let oldApi = this.api
-		this.api = null
-
-		if (!this.src) {
-			// Removes the <iframe> containing the player.
-			oldApi?.destroy()
-			return
-		}
-
-		this.dispatchEvent(new Event('loadstart'))
-
-		let iframe = this.shadowRoot.querySelector('iframe')
-		let attrs = namedNodeMapToObject(this.attributes)
-
-		if (isFirstLoad && iframe) {
-			this.#config = JSON.parse(iframe.getAttribute('data-config') || '{}')
-		}
-
-		// Check if we already have a player instance and the iframe exists
-		if (oldApi && iframe && iframe.src) {
-			// Extract video ID from the new src
-			const videoMatch = this.src.match(VIDEO_MATCH_SRC)
-			const videoId = videoMatch?.[1]
-
-			if (videoId) {
-				// Use loadVideoById to change video without recreating player
-				this.api = oldApi
-
-				// Wait for the video to be ready before firing events
-				const onVideoCued = () => {
-					// Fire the same events as onReady since loadVideoById doesn't trigger it
-					this.#readyState = 1 // HTMLMediaElement.HAVE_METADATA
-					this.dispatchEvent(new Event('loadedmetadata'))
-					this.dispatchEvent(new Event('durationchange'))
-					this.dispatchEvent(new Event('volumechange'))
-					this.dispatchEvent(new Event('loadcomplete'))
-
-					this.isLoaded = true
-					this.loadComplete.resolve()
-				}
-
-				// Listen for the video to be cued/ready
-				const stateHandler = (event) => {
-					// State 5 = video cued, State 1 = playing (if autoplay)
-					if (event.data === 5 || event.data === 1) {
-						this.api.removeEventListener('onStateChange', stateHandler)
-						onVideoCued()
+			// Create promise that resolves when video is ready
+			this.#videoChangeComplete = new Promise((resolve) => {
+				const handleStateChange = (event) => {
+					// Video is ready when it's cued (5) or buffering/playing (3,1)
+					if ([1, 3, 5].includes(event.data)) {
+						this.api.removeEventListener('onStateChange', handleStateChange)
+						resolve()
+						this.#videoChangeComplete = null
 					}
 				}
+				this.api.addEventListener('onStateChange', handleStateChange)
+			})
 
-				this.api.addEventListener('onStateChange', stateHandler)
+			if (this.autoplay) {
+				this.api.loadVideoById(videoId)
+			} else {
+				this.api.cueVideoById(videoId)
+			}
 
-				// Respect autoplay attribute when reusing player
-				// Check if API methods are available before calling them
-				// console.log('waiting for loadComplete', {isLoaded: this.isLoaded})
-				this.loadComplete.then(() => {
-					// console.log('loadComplete')
-				})
+			await this.#videoChangeComplete
+			log.debug('video change complete')
+		}
+	}
 
-				if (this.isLoaded) {
-					if (this.autoplay) {
-						// console.log('loadVideoById called', videoId)
-						this.api.loadVideoById(videoId)
-					} else {
-						// console.log('cueVideoById called', videoId)
-						this.api.cueVideoById(videoId)
-					}
-				} else {
-					// API not fully ready, skip and let normal flow handle it
-					console.warn('YouTube API methods not ready, skipping video load')
-					return
-				}
+	async attributeChangedCallback(attrName, oldValue, newValue) {
+		log.log('attrChange', attrName, oldValue, newValue)
+		if (attrName === 'src' && oldValue === newValue) {
+			log.debug('@todo handle same track, if its not playing, call play')
+		}
+		if (oldValue === newValue) return
 
-				// Also set a timeout fallback in case state doesn't change
-				setTimeout(() => {
-					console.log('still not loaded?')
-					if (!this.isLoaded) {
-						this.api.removeEventListener('onStateChange', stateHandler)
-						onVideoCued()
-					}
-				}, 1000)
-
-				return
+		// This is required to come before the await for resolving loadComplete.
+		switch (attrName) {
+			case 'src':
+			case 'autoplay':
+			case 'controls':
+			case 'loop':
+			case 'playsinline': {
+				this.load()
 			}
 		}
+	}
 
-		// Only create iframe/player if we don't have one or it's truly needed
-		if (!iframe?.src) {
-			this.shadowRoot.innerHTML = getTemplateHTML(attrs, this)
-			iframe = this.shadowRoot.querySelector('iframe')
-		} else if (!oldApi) {
-			// We have an iframe but no API instance - need to create player
-			if (iframe.src !== serializeIframeUrl(attrs, this)) {
-				if (this.#hasLoaded && !isFirstLoad) {
-					console.warn('recreating youtube iframe')
-				}
-				this.shadowRoot.innerHTML = getTemplateHTML(attrs, this)
-				iframe = this.shadowRoot.querySelector('iframe')
-			}
-		} else {
-			// We have both iframe and API but couldn't reuse - this shouldn't happen
-			console.warn('this should not happen')
-			return
-		}
-
-		const YT = await loadScript(API_URL, API_GLOBAL, API_GLOBAL_READY)
-		this.api = new YT.Player(iframe, {
-			events: {
-				onReady: () => {
-					this.#readyState = 1 // HTMLMediaElement.HAVE_METADATA
-					this.dispatchEvent(new Event('loadedmetadata'))
-					this.dispatchEvent(new Event('durationchange'))
-					this.dispatchEvent(new Event('volumechange'))
-					this.dispatchEvent(new Event('loadcomplete'))
-					this.isLoaded = true
-					this.loadComplete.resolve()
-					console.log('onReady!')
-				},
-				onError: (error) => {
-					console.error(error)
-					this.#error = {
-						code: error.data,
-						message: `YouTube iframe player error #${error.data}; visit https://developers.google.com/youtube/iframe_api_reference#onError for the full error message.`
-					}
-					this.dispatchEvent(new Event('error'))
-				}
-			}
-		})
-
-		/* onStateChange
-      -1 (unstarted)
-      0 (ended)
-      1 (playing)
-      2 (paused)
-      3 (buffering)
-      5 (video cued).
-    */
-
+	#setupEventListeners() {
+		const YT = globalThis.YT
 		let lastCurrentTime = 0
-
 		let playFired = false
+
 		this.api.addEventListener('onStateChange', (event) => {
 			const state = event.data
 			if (state === YT.PlayerState.PLAYING || state === YT.PlayerState.BUFFERING) {
@@ -314,7 +282,7 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 					this.#seekComplete?.resolve()
 					this.dispatchEvent(new Event('seeked'))
 				}
-				this.#readyState = 3 // HTMLMediaElement.HAVE_FUTURE_DATA
+				this.#readyState = 3
 				this.dispatchEvent(new Event('playing'))
 			} else if (state === YT.PlayerState.PAUSED) {
 				const diff = Math.abs(this.currentTime - lastCurrentTime)
@@ -329,7 +297,6 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 				playFired = false
 				this.dispatchEvent(new Event('pause'))
 				this.dispatchEvent(new Event('ended'))
-
 				if (this.loop) {
 					this.play()
 				}
@@ -347,63 +314,26 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 		this.api.addEventListener('onVideoProgress', () => {
 			this.dispatchEvent(new Event('timeupdate'))
 		})
-
-		await this.loadComplete
-
-		this.#seekInterval = setInterval(() => {
-			const diff = Math.abs(this.currentTime - lastCurrentTime)
-			const bufferedEnd = this.buffered.end(this.buffered.length - 1)
-			if (this.seeking && bufferedEnd > 0.1) {
-				this.#seeking = false
-				this.#seekComplete?.resolve()
-				this.dispatchEvent(new Event('seeked'))
-			} else if (!this.seeking && diff > 0.1) {
-				this.#seeking = true
-				this.dispatchEvent(new Event('seeking'))
-			}
-			lastCurrentTime = this.currentTime
-		}, 50)
-
-		let lastBufferedEnd
-		this.#progressInterval = setInterval(() => {
-			const bufferedEnd = this.buffered.end(this.buffered.length - 1)
-			if (bufferedEnd >= this.duration) {
-				clearInterval(this.#progressInterval)
-				this.#progressInterval = null
-				this.#readyState = 4 // HTMLMediaElement.HAVE_ENOUGH_DATA
-			}
-			if (lastBufferedEnd !== bufferedEnd) {
-				lastBufferedEnd = bufferedEnd
-				this.dispatchEvent(new Event('progress'))
-			}
-		}, 100)
-	}
-
-	async attributeChangedCallback(attrName, oldValue, newValue) {
-		if (oldValue === newValue) return
-
-		// This is required to come before the await for resolving loadComplete.
-		switch (attrName) {
-			case 'src':
-			case 'autoplay':
-			case 'controls':
-			case 'loop':
-			case 'playsinline': {
-				this.load()
-			}
-		}
 	}
 
 	async play() {
+		log.debug('play() called - api:', !!this.api, 'videoChangeInProgress:', !!this.#videoChangeComplete)
 		this.#seekComplete = null
-		await this.loadComplete
+		await this.#ready
+
+		// Wait for any ongoing video change to complete
+		if (this.#videoChangeComplete) {
+			log.debug('waiting for video change to complete')
+			await this.#videoChangeComplete
+		}
+
 		// yt.playVideo doesn't return a play promise.
 		this.api?.playVideo()
 		return createPlayPromise(this)
 	}
 
 	async pause() {
-		await this.loadComplete
+		await this.#ready
 		return this.api?.pauseVideo()
 	}
 
@@ -429,16 +359,16 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 	}
 
 	/* onStateChange
-    -1 (unstarted)
-    0 (ended)
-    1 (playing)
-    2 (paused)
-    3 (buffering)
-    5 (video cued).
-  */
+		-1 (unstarted)
+		0 (ended)
+		1 (playing)
+		2 (paused)
+		3 (buffering)
+		5 (video cued).
+	*/
 
 	get paused() {
-		if (!this.isLoaded) return !this.autoplay
+		if (!this.api) return !this.autoplay
 		return [-1, 0, 2, 5].includes(this.api?.getPlayerState?.())
 	}
 
@@ -456,7 +386,7 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 	}
 
 	get buffered() {
-		if (!this.isLoaded) return createTimeRanges()
+		if (!this.api) return createTimeRanges()
 		const progress = this.api?.getVideoLoadedFraction() * this.api?.getDuration()
 		if (progress > 0) {
 			return createTimeRanges(0, progress)
@@ -480,7 +410,7 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 	set currentTime(val) {
 		if (this.currentTime === val) return
 		this.#seekComplete = new PublicPromise()
-		this.loadComplete.then(() => {
+		this.#ready.then(() => {
 			this.api?.seekTo(val, true)
 			if (this.paused) {
 				this.#seekComplete?.then(() => {
@@ -511,14 +441,14 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 
 	set muted(val) {
 		if (this.muted === val) return
-		this.loadComplete.then(() => {
+		this.#ready.then(() => {
 			if (val) this.api?.mute()
 			else this.api?.unMute()
 		})
 	}
 
 	get muted() {
-		if (!this.isLoaded) return this.defaultMuted
+		if (!this.api) return this.defaultMuted
 		return this.api?.isMuted?.()
 	}
 
@@ -528,7 +458,7 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 
 	set playbackRate(val) {
 		if (this.playbackRate === val) return
-		this.loadComplete.then(() => {
+		this.#ready.then(() => {
 			this.api?.setPlaybackRate(val)
 		})
 	}
@@ -553,13 +483,13 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 
 	set volume(val) {
 		if (this.volume === val) return
-		this.loadComplete.then(() => {
+		this.#ready.then(() => {
 			this.api?.setVolume(val * 100)
 		})
 	}
 
 	get volume() {
-		if (!this.isLoaded) return 1
+		if (!this.api) return 1
 		return this.api?.getVolume() / 100
 	}
 
