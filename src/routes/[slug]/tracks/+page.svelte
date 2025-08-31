@@ -49,14 +49,14 @@
 
 		:global(section.CoverFlip) {
 			align-items: flex-start;
-			width: 20vw;
+			width: 100%;
 			height: 100%;
 		}
 	}
 
 	.item {
 		all: unset;
-		width: 100%;
+		width: 20vw;
 		height: 100%;
 
 		img {
@@ -70,11 +70,11 @@
 		content: '';
 		position: absolute;
 		width: 1rem;
-		height: 1rem;
-		background: var(--test-yellow);
+		height: 100%;
+		background: var(--test-fl-orange);
 		top: 0;
 		right: -1rem;
-		transition: all 200ms;
+		transition: all 150ms;
 	}
 
 	.item.active {
@@ -92,8 +92,8 @@
 		color: var(--test-fl-yellow);
 
 		position: fixed;
-		top: 50%;
-		left: 30vw;
+		bottom: 50%;
+		left: calc(30vw + 1rem);
 		z-index: 1;
 		h3,
 		p {
