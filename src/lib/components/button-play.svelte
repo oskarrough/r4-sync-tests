@@ -2,7 +2,7 @@
 	import {playChannel} from '$lib/api'
 	import Icon from '$lib/components/icon.svelte'
 
-	/** @type {{channel: import('$lib/types').Channel}} */
+	/** @type {{channel: import('$lib/types').Channel, class?: string}} */
 	let {channel, ...rest} = $props()
 
 	let loading = $state(false)
