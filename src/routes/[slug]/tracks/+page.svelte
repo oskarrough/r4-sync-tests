@@ -8,10 +8,11 @@
 	let tracks = $derived(r5.tracks.local({slug: page.params.slug, limit: 100}))
 </script>
 
+<div class="page">
 {#await tracks}
 	<p>Loading...</p>
 {:then tracks}
-	{#if tracks.length === -1}
+	{#if tracks.length === 0}
 		<p>No tracks found.</p>
 	{:else}
 		<CoverFlip items={tracks} scrollItemsPerNotch={1}>
@@ -36,23 +37,30 @@
 		</CoverFlip>
 	{/if}
 {/await}
+</div>
 
 <style>
-	:global(section.CoverFlip) {
+	.page {
+		position: fixed;
 		width: 100%;
-		height: 100vh;
-		align-items: flex-start;
+		height: 100%;
 		background: var(--test-black);
 		padding-left: 10vw;
+
+		:global(section.CoverFlip) {
+			align-items: flex-start;
+			width: 20vw;
+			height: 100%;
+		}
 	}
 
 	.item {
 		all: unset;
-		width: 25vw;
+		width: 100%;
 		height: 100%;
+
 		img {
-			height: 100%;
-			object-fit: cover;
+			aspect-ratio: 320 / 180;
 		}
 	}
 
@@ -79,9 +87,13 @@
 	.current {
 		background: var(--test-fl-blue);
 		color: var(--test-fl-cyan);
+
+		background: var(--test-fl-orange);
+		color: var(--test-fl-yellow);
+
 		position: fixed;
 		top: 50%;
-		left: 35vw;
+		left: 30vw;
 		z-index: 1;
 		h3,
 		p {

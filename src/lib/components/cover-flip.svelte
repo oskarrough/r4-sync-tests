@@ -30,30 +30,10 @@
 			}
 		})
 
-		// Smooth scrolling mapped to timeline time by items-per-notch
+		// Direct scrolling without animation
 		const wrapTime = gsap.utils.wrap(0, loop.duration())
 		const timePerItem = loop.duration() / elements.length
 		let playhead = {time: 0}
-		let lastActiveIndex = -1
-		const scrub = gsap.to(playhead, {
-			time: 0,
-			onUpdate() {
-				// Drive the loop timeline and update active preview while scrubbing
-				loop.time(wrapTime(playhead.time))
-				const i = typeof loop.closestIndex === 'function' ? loop.closestIndex() : -1
-				if (i !== -1 && i !== lastActiveIndex) {
-					activeElement?.classList.remove('active')
-					const el = elements[i]
-					el?.classList.add('active')
-					activeElement = el
-					lastActiveIndex = i
-					activeIndex = i
-				}
-			},
-			duration: 0,
-			ease: 'power2.out',
-			paused: true
-		})
 
 		function normalizeWheel(e) {
 			// Normalize delta to discrete notches
@@ -71,18 +51,8 @@
 			e.preventDefault()
 			const notches = normalizeWheel(e)
 			const deltaTime = notches * scrollItemsPerNotch * timePerItem
-			// Snap instantly without tweening
 			playhead.time += deltaTime
 			loop.time(wrapTime(playhead.time))
-			const i = typeof loop.closestIndex === 'function' ? loop.closestIndex() : -1
-			if (i !== -1 && i !== lastActiveIndex) {
-				activeElement?.classList.remove('active')
-				const el = elements[i]
-				el?.classList.add('active')
-				activeElement = el
-				lastActiveIndex = i
-				activeIndex = i
-			}
 		}
 
 		container.addEventListener('wheel', handleWheel, {passive: false})
@@ -90,8 +60,6 @@
 		return () => {
 			container?.removeEventListener('wheel', handleWheel)
 			loop?.kill?.()
-			loop = null
-			activeElement = null
 		}
 	})
 
@@ -103,9 +71,9 @@
 
 <section class="CoverFlip" bind:this={container} {...rest}>
 	{#each items as itemData, index (index)}
-		<button class="CoverFlip-item" onclick={() => handleClick(index)}>
+		<div class="CoverFlip-item" onclick={() => handleClick(index)}>
 			{@render item({item: itemData, index, active: index === activeIndex})}
-		</button>
+		</div>
 	{/each}
 </section>
 
@@ -114,7 +82,7 @@
 {/if}
 
 <style>
-	section {
+	.CoverFlip {
 		width: 30%;
 		height: 50vh;
 		position: relative;
@@ -124,8 +92,7 @@
 		overflow: hidden;
 	}
 
-	button {
-		all: unset;
+	.CoverFlip-item {
 		display: flex;
 		align-items: center;
 		justify-content: center;
