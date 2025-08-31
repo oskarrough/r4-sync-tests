@@ -46,7 +46,7 @@ export async function checkUser() {
 
 /**
  * @param {string} id
- * @param {import('$lib/types').PlayEndReason} endReason - why was the previous (if any) track stopped?
+ * @param {import('$lib/types').PlayEndReason | null} endReason - why was the previous (if any) track stopped?
  * @param {import('$lib/types').PlayStartReason} startReason - why was this track played?
  */
 export async function playTrack(id, endReason, startReason) {
@@ -176,10 +176,10 @@ export function togglePlayPause() {
  * @param {object} options
  * @param {string} [options.previousTrackId]
  * @param {string} options.nextTrackId
- * @param {string} options.endReason
+ * @param {string} [options.endReason]
  * @param {string} options.startReason
  */
-export async function addPlayHistory({previousTrackId, nextTrackId, endReason, startReason}) {
+export async function addPlayHistory({previousTrackId, nextTrackId, endReason = '', startReason}) {
 	const {rows} = await pg.sql`SELECT shuffle FROM app_state WHERE id = 1`
 	const shuffleState = rows[0]?.shuffle || false
 
