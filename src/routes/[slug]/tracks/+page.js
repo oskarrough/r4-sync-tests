@@ -1,5 +1,3 @@
-import {redirect} from '@sveltejs/kit'
-
-export function load({params}) {
+export function load() {
 	// redirect(308, `/${params.slug}`)
 }

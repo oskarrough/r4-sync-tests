@@ -1,6 +1,5 @@
 <script>
 	import {onMount} from 'svelte'
-	import {page} from '$app/state'
 	import {relativeDate, relativeDateSolar} from '$lib/dates'
 	import Icon from '$lib/components/icon.svelte'
 	import ChannelHero from '$lib/components/channel-hero.svelte'
@@ -8,7 +7,6 @@
 	import Tracklist from '$lib/components/tracklist.svelte'
 	import LinkEntities from '$lib/components/link-entities.svelte'
 	import ButtonFollow from '$lib/components/button-follow.svelte'
-	import CoverFlip from '$lib/components/cover-flip.svelte'
 	import {r5} from '$lib/r5'
 
 	let {data} = $props()

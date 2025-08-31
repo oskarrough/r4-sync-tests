@@ -4,22 +4,10 @@ import {InertiaPlugin} from 'gsap/InertiaPlugin'
 
 gsap.registerPlugin(Draggable, InertiaPlugin)
 
-/*
-This helper function makes a group of elements animate along the x-axis in a seamless, responsive loop.
-
-Features:
- - Uses yPercent so that even if the heights change (like if the window gets resized), it should still work in most cases.
- - When each item animates to the left or right enough, it will loop back to the other side
- - Optionally pass in a config object with values like draggable: true, center: true, speed (default: 1, which travels at roughly 100 pixels per second), paused (boolean), repeat, reversed, and paddingBottom.
- - The returned timeline will have the following methods added to it:
-   - next() - animates to the next element using a timeline.tweenTo() which it returns. You can pass in a vars object to control duration, easing, etc.
-   - previous() - animates to the previous element using a timeline.tweenTo() which it returns. You can pass in a vars object to control duration, easing, etc.
-   - toIndex() - pass in a zero-based index value of the element that it should animate to, and optionally pass in a vars object to control duration, easing, etc. Always goes in the shortest direction
-   - current() - returns the current index (if an animation is in-progress, it reflects the final index)
-   - times - an Array of the times on the timeline where each element hits the "starting" spot.
-*/
 /**
- * Create a seamless vertical looping timeline for a list of elements.
+ * This helper function makes a group of elements animate along the x-axis in a seamless, responsive loop.
+ * Uses yPercent so that even if the heights change (like if the window gets resized), it should still work in most cases.
+ * When each item animates to the left or right enough, it will loop back to the other side
  *
  * @param {Element[]|NodeList|Array<HTMLElement>|string} items - Elements (or selector) to loop.
  * @param {Object} [config] - Loop configuration.
@@ -32,35 +20,26 @@ Features:
  * @param {number|string} [config.paddingBottom=0] - Extra bottom spacing (px); string is parsed with `parseFloat`.
  * @param {false|number|((v:number)=>number)} [config.snap=1] - Snap granularity. `false` disables; number = increment; function = custom snap.
  * @param {(el:Element, index:number)=>void} [config.onChange] - Called when the closest/active item changes.
- * @returns {import('gsap').core.Timeline & {
- *   next: (vars?: any) => any,
- *   previous: (vars?: any) => any,
- *   toIndex: (index: number, vars?: any) => any,
- *   current: () => number,
- *   times: number[],
- *   draggable?: any,
- *   closestIndex: (setCurrent?: boolean) => number,
- * }}
  */
 export function verticalLoop(items, config) {
 	let timeline
 	items = gsap.utils.toArray(items)
 	config = config || {}
+
 	gsap.context(() => {
-		// use a context so that if this is called from within another context or a gsap.matchMedia(), we can perform proper cleanup like the "resize" event handler on the window
+		// use a context so that if this is called from within another context or a gsap.matchMedia(), we can perform proper cleanup like the "resize" event handler on the window. is this needed?
 		let onChange = config.onChange,
 			lastIndex = 0,
 			tl = gsap.timeline({
 				repeat: config.repeat,
-				onUpdate:
-					onChange &&
-					function () {
-						let i = tl.closestIndex()
-						if (lastIndex !== i) {
-							lastIndex = i
-							onChange(items[i], i)
-						}
-					},
+				onUpdate: () => {
+					if (!onChange) return
+					const i = tl.closestIndex()
+					if (lastIndex !== i) {
+						lastIndex = i
+						onChange(items[i], i)
+					}
+				},
 				paused: config.paused,
 				defaults: {ease: 'none'},
 				onReverseComplete: () => tl.totalTime(tl.rawTime() + tl.duration() * 100)
@@ -107,11 +86,11 @@ export function verticalLoop(items, config) {
 			timeWrap,
 			populateOffsets = () => {
 				timeOffset = center ? (tl.duration() * (container.offsetHeight / 2)) / totalHeight : 0
-					if (center) {
-						times.forEach((t, i) => {
-							times[i] = timeWrap(tl.labels['label' + i] + (tl.duration() * heights[i]) / 2 / totalHeight - timeOffset)
-						})
-					}
+				if (center) {
+					times.forEach((t, i) => {
+						times[i] = timeWrap(tl.labels['label' + i] + (tl.duration() * heights[i]) / 2 / totalHeight - timeOffset)
+					})
+				}
 			},
 			getClosest = (values, value, wrap) => {
 				let i = values.length,
@@ -162,13 +141,13 @@ export function verticalLoop(items, config) {
 				let progress = tl.progress()
 				tl.progress(0, true)
 				populateHeights()
-					if (deep) populateTimeline()
+				if (deep) populateTimeline()
 				populateOffsets()
-					if (deep && tl.draggable && tl.paused()) {
-						tl.time(times[curIndex], true)
-					} else {
-						tl.progress(progress, true)
-					}
+				if (deep && tl.draggable && tl.paused()) {
+					tl.time(times[curIndex], true)
+				} else {
+					tl.progress(progress, true)
+				}
 			},
 			onResize = () => refresh(true),
 			proxy
@@ -179,9 +158,9 @@ export function verticalLoop(items, config) {
 		window.addEventListener('resize', onResize)
 		function toIndex(index, vars) {
 			vars = vars || {}
-				if (Math.abs(index - curIndex) > length / 2) {
-					index += index > curIndex ? -length : length // always go in the shortest direction
-				}
+			if (Math.abs(index - curIndex) > length / 2) {
+				index += index > curIndex ? -length : length // always go in the shortest direction
+			}
 			let newIndex = gsap.utils.wrap(0, length, index),
 				time = times[newIndex]
 			if (time > tl.time() !== index > curIndex && index !== curIndex) {
@@ -216,11 +195,11 @@ export function verticalLoop(items, config) {
 		}
 		if (config.draggable && typeof Draggable === 'function') {
 			proxy = document.createElement('div')
-				let wrap = gsap.utils.wrap(0, 1),
-					ratio,
-					startProgress,
-					draggable,
-					lastSnap,
+			let wrap = gsap.utils.wrap(0, 1),
+				ratio,
+				startProgress,
+				draggable,
+				lastSnap,
 				initChangeY,
 				wasPlaying,
 				align = () => tl.progress(wrap(startProgress + (draggable.startY - draggable.y) * ratio)),
@@ -255,26 +234,26 @@ export function verticalLoop(items, config) {
 						wrappedTime = timeWrap(time),
 						snapTime = times[getClosest(times, wrappedTime, tl.duration())],
 						dif = snapTime - wrappedTime
-						if (Math.abs(dif) > tl.duration() / 2) {
-							dif += dif < 0 ? tl.duration() : -tl.duration()
-						}
+					if (Math.abs(dif) > tl.duration() / 2) {
+						dif += dif < 0 ? tl.duration() : -tl.duration()
+					}
 					lastSnap = (time + dif) / tl.duration() / -ratio
 					return lastSnap
 				},
 				onRelease() {
 					syncIndex()
-						if (draggable.isThrowing) indexIsDirty = true
+					if (draggable.isThrowing) indexIsDirty = true
 				},
 				onThrowComplete: () => {
 					syncIndex()
-						if (wasPlaying) tl.play()
+					if (wasPlaying) tl.play()
 				}
 			})[0]
 			tl.draggable = draggable
 		}
 		tl.closestIndex(true)
 		lastIndex = curIndex
-			if (onChange) onChange(items[curIndex], curIndex)
+		if (onChange) onChange(items[curIndex], curIndex)
 		timeline = tl
 		return () => window.removeEventListener('resize', onResize) // cleanup
 	})

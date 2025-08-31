@@ -324,7 +324,7 @@
 					<h2>on repeat</h2>
 				</header>
 				<ol>
-					{#each stats.mostReplayedTrack as track}
+					{#each stats.mostReplayedTrack as track (track.track_id)}
 						<li>
 							<a href="/{track.channel_slug}">@{track.channel_slug}</a>
 							&rarr;
