@@ -11,6 +11,7 @@ class YouTube2Element extends HTMLElement {
 	#resolveLoad = null
 	#pendingVideoLoad = false
 	#autoplayAttempted = false
+	#error = null
 
 	constructor() {
 		super()
@@ -79,10 +80,23 @@ class YouTube2Element extends HTMLElement {
 					},
 					onError: (error) => {
 						log.error('YouTube error:', error.data)
+						this.#error = {
+							code: error.data,
+							message: `YouTube iframe player error #${error.data}`
+						}
+						this.dispatchEvent(new Event('error'))
+						// Fire durationchange to reset UI on error
+						this.dispatchEvent(new Event('durationchange'))
 					}
 				}
 			})
 			log.debug('YT.Player created:', !!this.api)
+			
+			// Add event listeners after player creation
+			this.api.addEventListener('onVideoProgress', () => {
+				log.debug('onVideoProgress fired, dispatching timeupdate')
+				this.dispatchEvent(new Event('timeupdate'))
+			})
 		} catch (error) {
 			log.error('Failed to create YT.Player:', error)
 		}
@@ -92,6 +106,7 @@ class YouTube2Element extends HTMLElement {
 		const YT = globalThis.YT
 		if (state === YT.PlayerState.PLAYING) {
 			this.dispatchEvent(new Event('play'))
+			this.dispatchEvent(new Event('playing'))
 		} else if (state === YT.PlayerState.PAUSED) {
 			this.dispatchEvent(new Event('pause'))
 		} else if (state === YT.PlayerState.ENDED) {
@@ -124,8 +139,12 @@ class YouTube2Element extends HTMLElement {
 
 		log.debug('loading video:', videoId)
 
-		// Reset autoplay attempt flag for new video
+		// Reset state for new video
 		this.#autoplayAttempted = false
+		this.#error = null
+
+		// Fire durationchange to signal new media
+		this.dispatchEvent(new Event('durationchange'))
 
 		if (this.hasAttribute('autoplay')) {
 			this.api.loadVideoById(videoId)
@@ -171,6 +190,25 @@ class YouTube2Element extends HTMLElement {
 		if (!this.isLoaded) return true
 		const state = this.api?.getPlayerState?.()
 		return state !== globalThis.YT?.PlayerState.PLAYING
+	}
+
+	get currentTime() {
+		return this.api?.getCurrentTime?.() ?? 0
+	}
+
+	set currentTime(val) {
+		if (this.currentTime === val) return
+		this.#loadComplete.then(() => {
+			this.api?.seekTo(val, true)
+		})
+	}
+
+	get duration() {
+		return this.api?.getDuration?.() ?? NaN
+	}
+
+	get error() {
+		return this.#error
 	}
 
 	get src() {
