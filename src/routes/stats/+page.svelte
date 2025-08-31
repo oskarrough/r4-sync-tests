@@ -178,7 +178,9 @@
 				}
 				trackPlays[key].play_count++
 			})
-			stats.mostReplayedTrack = Object.values(trackPlays).sort((a, b) => b.play_count - a.play_count).slice(0, 3)
+			stats.mostReplayedTrack = Object.values(trackPlays)
+				.sort((a, b) => b.play_count - a.play_count)
+				.slice(0, 3)
 
 			// Listening streak and patterns
 			if (plays.length > 0) {
@@ -279,154 +281,150 @@
 	</header>
 
 	{#if !ready}
-	<section>
-		<header>
-			<h2>activity preparing, i am</h2>
-		</header>
-	</section>
+		<section>
+			<header>
+				<h2>activity preparing, i am</h2>
+			</header>
+		</section>
 	{:else}
+		<section>
+			<header>
+				<h2>activity</h2>
+			</header>
 
-	<section>
-		<header>
-			<h2>activity</h2>
-		</header>
-
-		<p>
-			<strong>{stats.uniqueChannels.toLocaleString()}</strong> radios •
-			<strong>{stats.uniqueTracks.toLocaleString()}</strong> tracks •
-			<strong>{stats.totalPlays.toLocaleString()}</strong> plays
-		</p>
-
-		<p>
-			{Math.floor(stats.totalListeningTime / 60)}h {stats.totalListeningTime % 60}m total •
-			{stats.skipRate}% skipped
-		</p>
-
-		{#if stats.daysSinceFirstPlay > 0}
 			<p>
-				listening for {stats.daysSinceFirstPlay} days • active on {stats.streakDays} of them
+				<strong>{stats.uniqueChannels.toLocaleString()}</strong> radios •
+				<strong>{stats.uniqueTracks.toLocaleString()}</strong> tracks •
+				<strong>{stats.totalPlays.toLocaleString()}</strong> plays
 			</p>
+
+			<p>
+				{Math.floor(stats.totalListeningTime / 60)}h {stats.totalListeningTime % 60}m total •
+				{stats.skipRate}% skipped
+			</p>
+
+			{#if stats.daysSinceFirstPlay > 0}
+				<p>
+					listening for {stats.daysSinceFirstPlay} days • active on {stats.streakDays} of them
+				</p>
+			{/if}
+
+			{#if stats.mostActiveHour !== null}
+				<p>most active around {stats.mostActiveHour}:00</p>
+			{/if}
+
+			{#if stats.userInitiatedRate > 0}
+				<p>{stats.userInitiatedRate}% user-initiated • {100 - stats.userInitiatedRate}% automatic</p>
+			{/if}
+		</section>
+
+		{#if stats.mostReplayedTrack.length > 0}
+			<section>
+				<header>
+					<h2>on repeat</h2>
+				</header>
+				<ol>
+					{#each stats.mostReplayedTrack as track (track.track_id)}
+						<li>
+							<a href="/{track.channel_slug}">@{track.channel_slug}</a>
+							&rarr;
+							<a href={`/${track.channel_slug}/${track.track_id}`}>
+								<em>{track.title}</em>
+							</a>
+							• {track.play_count} plays
+						</li>
+					{/each}
+				</ol>
+			</section>
 		{/if}
 
-		{#if stats.mostActiveHour !== null}
-			<p>most active around {stats.mostActiveHour}:00</p>
+		{#if stats.recentlyPlayed.length > 0}
+			<section>
+				<header>
+					<h2>recently played</h2>
+				</header>
+				<ol>
+					{#each stats.recentlyPlayed as track (track.id)}
+						<li>
+							<a href="/{track.channel_slug}">@{track.channel_slug}</a>
+							&rarr;
+							<a href={`/${track.channel_slug}/${track.id}`}>
+								<em>{track.title}</em>
+							</a>
+						</li>
+					{/each}
+				</ol>
+				<p style="text-align:right"><a href="/history">full play history &rarr;</a></p>
+			</section>
 		{/if}
 
-		{#if stats.userInitiatedRate > 0}
-			<p>{stats.userInitiatedRate}% user-initiated • {100 - stats.userInitiatedRate}% automatic</p>
+		{#if stats.startReasons.length > 0}
+			<section>
+				<div class="reasons">
+					<div>
+						<header>
+							<h2>play reasons</h2>
+						</header>
+						{#each stats.startReasons.slice(0, 5) as { reason, count } (reason)}
+							<div class="reason-line">
+								{reason}
+								{count}
+							</div>
+						{/each}
+					</div>
+					<div>
+						<header>
+							<h2>stop reasons</h2>
+						</header>
+						{#each stats.endReasons.slice(0, 5) as { reason, count } (reason)}
+							<div class="reason-line">
+								{reason}
+								{count}
+							</div>
+						{/each}
+					</div>
+				</div>
+			</section>
 		{/if}
-	</section>
 
-	{#if stats.mostReplayedTrack.length > 0}
 		<section>
 			<header>
-				<h2>on repeat</h2>
+				<h2>database</h2>
 			</header>
-			<ol>
-				{#each stats.mostReplayedTrack as track}
-					<li>
-						<a href="/{track.channel_slug}">@{track.channel_slug}</a>
-						&rarr;
-						<a href={`/${track.channel_slug}/${track.track_id}`}>
-							<em>{track.title}</em>
-						</a>
-						• {track.play_count} plays
-					</li>
-				{/each}
-			</ol>
+			<p>
+				{stats.totalChannelsInDb.toLocaleString()} radios •
+				{stats.totalTracksInDb.toLocaleString()} tracks
+				<small>&larr; local tracks</small>
+			</p>
+			<p>
+				~{stats.avgTracksPerChannel} tracks per channel
+			</p>
+			<p>{(stats.totalTracksInDb - stats.tracksWithoutMeta).toLocaleString()} tracks analyzed metadata</p>
 		</section>
-	{/if}
 
-	{#if stats.recentlyPlayed.length > 0}
-		<section>
-			<header>
-				<h2>recently played</h2>
-			</header>
-			<ol>
-				{#each stats.recentlyPlayed as track (track.id)}
-					<li>
-						<a href="/{track.channel_slug}">@{track.channel_slug}</a>
-						&rarr;
-						<a href={`/${track.channel_slug}/${track.id}`}>
-							<em>{track.title}</em>
-						</a>
-					</li>
-				{/each}
-			</ol>
-			<p style="text-align:right"><a href="/history">full play history &rarr;</a></p>
-		</section>
-	{/if}
-
-	{#if stats.startReasons.length > 0}
-		<section>
-			<div class="reasons">
-				<div>
-					<header>
-						<h2>play reasons</h2>
-					</header>
-					{#each stats.startReasons.slice(0, 5) as { reason, count } (reason)}
-						<div class="reason-line">
-							{reason}
-							{count}
-						</div>
+		{#if stats.channelTimeline.length > 1}
+			{@const max = Math.max(...stats.channelTimeline.map((m) => m.count))}
+			<section>
+				<div class="timeline">
+					{#each stats.channelTimeline as month, i (i)}
+						<div
+							class="bar"
+							style="height: {(month.count / max) * 100}%"
+							title="{new Date(month.month).toLocaleDateString('en-US', {
+								month: 'short',
+								year: 'numeric'
+							})}: {month.count} channels"
+						></div>
 					{/each}
 				</div>
-				<div>
-					<header>
-						<h2>stop reasons</h2>
-					</header>
-					{#each stats.endReasons.slice(0, 5) as { reason, count } (reason)}
-						<div class="reason-line">
-							{reason}
-							{count}
-						</div>
-					{/each}
-				</div>
-			</div>
-		</section>
+				<header>
+					<h2 style="text-align:right">{stats.totalChannelsInDb.toLocaleString()} Radio4000 channels over time</h2>
+				</header>
+			</section>
+			<br />
+		{/if}
 	{/if}
-
-	<section>
-		<header>
-			<h2>database</h2>
-		</header>
-		<p>
-							{stats.totalChannelsInDb.toLocaleString()} radios •
-							{stats.totalTracksInDb.toLocaleString()} tracks
-							<small>&larr; local tracks</small>
-						</p>
-						<p>
-							~{stats.avgTracksPerChannel} tracks per channel
-						</p>
-						<p>{(stats.totalTracksInDb - stats.tracksWithoutMeta).toLocaleString()} tracks analyzed metadata</p>
-					</section>
-
-	{#if stats.channelTimeline.length > 1}
-		{@const max = Math.max(...stats.channelTimeline.map((m) => m.count))}
-		<section>
-			<div class="timeline">
-				{#each stats.channelTimeline as month, i (i)}
-					<div
-						class="bar"
-						style="height: {(month.count / max) * 100}%"
-						title="{new Date(month.month).toLocaleDateString('en-US', {
-							month: 'short',
-							year: 'numeric'
-						})}: {month.count} channels"
-					></div>
-				{/each}
-			</div>
-			<header>
-				<h2 style="text-align:right">{stats.totalChannelsInDb.toLocaleString()} Radio4000 channels over time</h2>
-			</header>
-		</section>
-		<br/>
-	{/if}
-
-
-
-				{/if}
-			</article>
+</article>
 
 <style>
 	article {
@@ -467,8 +465,8 @@
 			background: var(--accent-9);
 			min-height: 2px;
 			transition:
-			height 200ms,
-			opacity 0.2s;
+				height 200ms,
+				opacity 0.2s;
 
 			&:hover {
 				height: 0 !important;

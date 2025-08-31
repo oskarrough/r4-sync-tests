@@ -1,6 +1,5 @@
 <script>
 	import {onMount} from 'svelte'
-	import {page} from '$app/state'
 	import {relativeDate, relativeDateSolar} from '$lib/dates'
 	import Icon from '$lib/components/icon.svelte'
 	import ChannelHero from '$lib/components/channel-hero.svelte'
@@ -21,16 +20,12 @@
 
 	/** @type {string[]} */
 	let trackIds = $derived([])
-	let searchQuery = $derived(data.search || '')
 
 	onMount(() => {
 		data.tracksPromise.then((x) => {
 			console.log('setting page tracks', x)
 			tracks = x
 		})
-
-		const search = page.url.searchParams.get('search')
-		if (search) searchQuery = search
 
 		// Update tracks if they are outdated.
 		if (channel.tracks_synced_at) {
@@ -87,9 +82,10 @@
 			{:then whatevs}
 				{@const ids = trackIds.length ? trackIds : whatevs.map((x) => x.id)}
 				{#if ids.length > 0}
+					<!-- <CoverFlip tracks={whatevs} /> -->
 					<Tracklist {ids} grouped={1} />
 				{:else}
-					<p>No tracks found{searchQuery ? ` for "${searchQuery}"` : ''}</p>
+					<p>No tracks</p>
 				{/if}
 			{:catch error}
 				<p>error loading tracks: {error.message}</p>

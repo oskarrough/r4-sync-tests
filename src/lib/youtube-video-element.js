@@ -217,7 +217,7 @@ class YoutubeVideoElement extends (globalThis.HTMLElement ?? class {}) {
 					// console.log('loadComplete')
 				})
 
-				if (this.api) {
+				if (this.isLoaded) {
 					if (this.autoplay) {
 						// console.log('loadVideoById called', videoId)
 						this.api.loadVideoById(videoId)
