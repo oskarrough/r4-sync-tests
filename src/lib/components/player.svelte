@@ -1,9 +1,7 @@
 <script>
 	import 'media-chrome'
 	//import 'youtube-video-element'
-	//import '$lib/youtube-video-element-original.js'
-	//import '$lib/youtube-video-element.js'
-	import '$lib/youtube-2.js'
+	import '$lib/youtube-video-custom-element.js'
 	import {toggleQueuePanel, togglePlayerExpanded} from '$lib/api'
 	import {togglePlay, next, previous, toggleShuffle, play} from '$lib/api/player'
 	import {appState} from '$lib/app-state.svelte'

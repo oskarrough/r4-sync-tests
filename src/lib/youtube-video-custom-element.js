@@ -1,8 +1,8 @@
 import {logger} from '$lib/logger'
 
-const log = logger.ns('youtube-2').seal()
+const log = logger.ns('youtube-video').seal()
 
-/** You always think this isn't so complicated, but it is. */
+/** You always think this isn't so complicated, but it is. We did this player so many times. Last attempt to not write it was using the `<youtube-video>` element from the media-chrome project. But that also failed since it doesn't do the extra tricks needed to ensure playback */
 class YouTube2Element extends HTMLElement {
 	static observedAttributes = ['src', 'autoplay', 'controls', 'muted', 'playsinline']
 
@@ -11,14 +11,11 @@ class YouTube2Element extends HTMLElement {
 
 	isLoaded = false
 
-	/** @type {Promise} */
-	// #loadComplete = null
+	/** Use this to await the `onReady` event from the YT API. Call `resolveLoad()` once ready. */
 	#loadComplete = new Promise((resolve) => {
 		this.#resolveLoad = resolve
 	})
-
-	/** This will resolve the `loadComplete` promise
-	 *  @type {function | null} */
+	/** @type {function | null} */
 	#resolveLoad = null
 	#pendingVideoLoad = false
 	#autoplayAttempted = false
@@ -29,13 +26,6 @@ class YouTube2Element extends HTMLElement {
 	constructor() {
 		super()
 		this.attachShadow({mode: 'open'})
-
-		// This is how we await the "onReady" event from the YT API.
-		// this.loadComplete is the promise
-		// this.resolveLoad() is the function that resolves it
-		// this.#loadComplete = new Promise((resolve) => {
-		// 	this.#resolveLoad = resolve
-		// })
 	}
 
 	async connectedCallback() {
