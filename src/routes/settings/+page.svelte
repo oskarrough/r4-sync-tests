@@ -47,15 +47,13 @@
 	<section>
 		<h2>About</h2>
 		<p>
-			Just like <a href="https://radio4000.com">radio4000.com</a>, this web app pulls its data from the Radio4000
-			PostgreSQL database. But it pulls it into another PostgreSQL database sitting locally, directly in your browser
-			via WASM. This makes it feel faster, more app-feeling hopefully. Pull channels from R4 (including version 1) by
-			<em>syncing</em> above &uarr;
+			This is an experimental client for Radio4000. Just like <a href="https://radio4000.com">radio4000.com</a>, this
+			web app pulls its data from the same Radio4000 PostgreSQL database. But it pulls it into <em>another</em> PostgreSQL
+			database. One sitting locally, directly in your browser.
 		</p>
-		<br />
 		<p>
-			You can add tracks to your radio. But creating a radio, editing tracks etc. is not yet possible. go to the og site
-			for that.
+			One obvious thing still missing is the ability create a new radio. If you want one, please do so on radio4000.com
+			and come back here. You can add tracks just fine.
 		</p>
 		<p>
 			<a href="https://matrix.to/#/#radio4000:matrix.org" rel="noreferrer">Chat with us</a>

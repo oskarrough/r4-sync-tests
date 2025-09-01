@@ -11,7 +11,14 @@
 		return appState.shortcuts || DEFAULT_KEY_BINDINGS
 	})
 
-	const shortcutActions = ['togglePlayerExpanded', 'openSearch', 'togglePlayPause', 'toggleQueuePanel', 'toggleTheme', 'toggleShuffle']
+	const shortcutActions = [
+		'togglePlayerExpanded',
+		'openSearch',
+		'togglePlayPause',
+		'toggleQueuePanel',
+		'toggleTheme',
+		'toggleShuffle'
+	]
 
 	const availableActions = shortcutActions.map((name) => ({
 		name,
