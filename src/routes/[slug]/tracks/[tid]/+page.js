@@ -3,11 +3,13 @@ import {error} from '@sveltejs/kit'
 import {logger} from '$lib/logger'
 import {r5} from '$lib/r5'
 
+const log = logger.ns('track_route').seal()
+
 /**
  * Wait for the db to be ready, query track + channel locally
  * @type {import('./$types').PageLoad} */
 export async function load({parent, params, depends}) {
-	depends('track-meta')
+	depends('track:meta')
 	await parent()
 	const pg = await getPg()
 	if (!pg) {
@@ -37,7 +39,7 @@ export async function load({parent, params, depends}) {
 		error(404, 'Track not found in this channel')
 	}
 
-	logger.log('track_page:load', {track, channel})
+	log.info('load', {track, channel})
 
 	return {
 		track,

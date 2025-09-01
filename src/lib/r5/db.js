@@ -52,7 +52,7 @@ export async function createPg(persist = browser) {
 			const dataDir = browser ? (persist ? 'idb://radio4000test2' : 'memory://') : './cli-db'
 
 			if (browser && useWorker) {
-				log.log('createPg with worker')
+				log.debug('creating PGLite worker')
 				pg = await PGliteWorker.create(
 					new Worker(new URL('./db-worker.js', import.meta.url), {
 						type: 'module'
@@ -66,7 +66,7 @@ export async function createPg(persist = browser) {
 				)
 			} else if (browser) {
 				// Browser without worker
-				log.log('createPg in main thread')
+				log.debug('creating PGLite browser')
 				const {PGlite} = await import('@electric-sql/pglite')
 				const {pg_trgm} = await import('@electric-sql/pglite/contrib/pg_trgm')
 				pg = await PGlite.create({
@@ -79,6 +79,7 @@ export async function createPg(persist = browser) {
 				})
 			} else {
 				// CLI/Node fallback
+				log.log('creating PGLite node')
 				const {PGlite} = await import('@electric-sql/pglite')
 				const {pg_trgm} = await import('@electric-sql/pglite/contrib/pg_trgm')
 				pg = await PGlite.create({
