@@ -14,6 +14,7 @@
 	import {onMount} from 'svelte'
 	import {checkUser} from '$lib/api'
 	import {goto} from '$app/navigation'
+	import {applyCustomCssVariables} from '$lib/apply-css-variables'
 
 	const log = logger.ns('layout').seal()
 
@@ -47,12 +48,9 @@
 		}
 	})
 
-	function applyCustomCssVariables() {
-		const root = document.documentElement
-		Object.entries(appState.custom_css_variables || {}).forEach(([name, value]) => {
-			if (value) root.style.setProperty(name, value)
-		})
-	}
+	$effect(() => {
+		applyCustomCssVariables()
+	})
 
 	$effect(() => {
 		if (skipPersist) return

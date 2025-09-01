@@ -1,82 +1,159 @@
 <script>
 	import {appState} from '$lib/app-state.svelte'
+	import {applyCustomCssVariables} from '$lib/apply-css-variables'
 	import InputRange from '$lib/components/input-range.svelte'
+	import InputColor from '$lib/components/input-color.svelte'
 	import ThemeToggle from '$lib/components/theme-toggle.svelte'
 
 	const uid = $props.id()
 
-	const cssVariables = [
+	// Base colors that generate scales
+	const baseColors = [
 		{
-			name: '--color-accent-light',
-			label: 'accent color (light)',
-			description: 'accent color for light theme',
-			default: '#6d28d9'
+			name: '--accent-base-light',
+			label: 'accent (light)',
+			description: 'generates accent-1 through accent-12',
+			default: '#6d28d9',
+			theme: 'light'
 		},
 		{
-			name: '--color-accent-dark',
-			label: 'accent color (dark)',
-			description: 'accent color for dark theme',
-			default: '#b8e68a'
+			name: '--accent-base-dark',
+			label: 'accent (dark)',
+			description: 'generates accent-1 through accent-12',
+			default: '#b8e68a',
+			theme: 'dark'
+		},
+		{
+			name: '--gray-base-light',
+			label: 'gray (light)',
+			description: 'generates gray-1 through gray-12',
+			default: '#988B8B',
+			theme: 'light'
+		},
+		{
+			name: '--gray-base-dark',
+			label: 'gray (dark)',
+			description: 'generates gray-1 through gray-12',
+			default: '#988B8B',
+			theme: 'dark'
 		}
 	]
 
-	const customVariables = $derived(appState.custom_css_variables || {})
+	// Optional overrides
+	const overrides = [
+		{
+			name: '--button-bg-light',
+			label: 'button bg (light)',
+			description: 'override button background',
+			default: '#fff',
+			theme: 'light'
+		},
+		{
+			name: '--button-bg-dark',
+			label: 'button bg (dark)',
+			description: 'override button background',
+			default: '#000',
+			theme: 'dark'
+		},
+		{
+			name: '--button-color-light',
+			label: 'button text (light)',
+			description: 'override button text color',
+			default: '#000',
+			theme: 'light'
+		},
+		{
+			name: '--button-color-dark',
+			label: 'button text (dark)',
+			description: 'override button text color',
+			default: '#fff',
+			theme: 'dark'
+		}
+	]
 
+	const currentTheme = $derived(appState.theme || 'auto')
+	const isActiveVariable = (variable) => {
+		if (variable.theme === 'both') return true
+		if (currentTheme === 'auto') return true
+		return variable.theme === currentTheme
+	}
+
+	const customVariables = $derived(appState.custom_css_variables || {})
 	const getCurrentValue = (variable) => customVariables[variable.name] || variable.default
 
-	const updateVariable = (name, value) => {
-		appState.custom_css_variables = value.trim()
-			? {...customVariables, [name]: value}
-			: Object.fromEntries(Object.entries(customVariables).filter(([k]) => k !== name))
-		applyVariablesToDOM()
-	}
+	let debounceTimer = $state()
+	let applyTimer = $state()
 
+	const updateVariable = (name, value) => {
+		console.log(name, value)
+
+		// Debounce both CSS application and database persistence
+		clearTimeout(applyTimer)
+		clearTimeout(debounceTimer)
+
+		applyTimer = setTimeout(() => {
+			applyCustomCssVariables({...customVariables, [name]: value.trim()})
+		}, 50) // Fast visual feedback
+
+		debounceTimer = setTimeout(() => {
+			if (value.trim()) {
+				appState.custom_css_variables[name] = value.trim()
+			} else {
+				delete appState.custom_css_variables[name]
+			}
+		}, 300) // Slower database persistence
+	}
 	const resetToDefaults = () => {
 		appState.custom_css_variables = {}
-		applyVariablesToDOM()
+		applyCustomCssVariables($state.snapshot(appState.custom_css_variables))
 	}
 
-	const applyVariablesToDOM = () => {
-		const root = document.documentElement
+	let importText = $state('')
+	let exportFeedback = $state('')
 
-		// Handle accent colors - create light-dark() value if both are set
-		const lightAccent = customVariables['--color-accent-light']
-		const darkAccent = customVariables['--color-accent-dark']
-		if (lightAccent || darkAccent) {
-			const light = lightAccent || '#6d28d9'
-			const dark = darkAccent || '#b8e68a'
-			root.style.setProperty('--color-accent', `light-dark(${light}, ${dark})`)
-		} else {
-			root.style.removeProperty('--color-accent')
-		}
+	const exportTheme = async () => {
+		const variables = appState.custom_css_variables || {}
+		const themeString = Object.entries(variables)
+			.map(([key, value]) => `${key}:${value}`)
+			.join(';')
 
-		// Handle --scaling separately
-		const scalingValue = customVariables['--scaling']
-		if (scalingValue) {
-			root.style.setProperty('--scaling', scalingValue)
-		} else {
-			root.style.removeProperty('--scaling')
-		}
-		// Handle --border-radius separately
-		const borderRadiusValue = customVariables['--border-radius']
-		if (borderRadiusValue !== undefined) {
-			root.style.setProperty('--border-radius', borderRadiusValue)
-		} else {
-			root.style.removeProperty('--border-radius')
-		}
-		// Handle --media-radius separately
-		const mediaRadiusValue = customVariables['--media-radius']
-		if (mediaRadiusValue !== undefined) {
-			root.style.setProperty('--media-radius', mediaRadiusValue)
-		} else {
-			root.style.removeProperty('--media-radius')
+		try {
+			await navigator.clipboard.writeText(themeString)
+			exportFeedback = 'copied to clipboard'
+			setTimeout(() => (exportFeedback = ''), 2000)
+		} catch {
+			exportFeedback = 'failed to copy'
+			setTimeout(() => (exportFeedback = ''), 2000)
 		}
 	}
 
-	// Apply on initial load
-	$effect(() => {
-		applyVariablesToDOM()
-	})
+	const importTheme = () => {
+		if (!importText.trim()) return
+
+		try {
+			const variables = {}
+			const pairs = importText.split(';')
+
+			for (const pair of pairs) {
+				if (!pair.trim()) continue
+				const [key, value] = pair.split(':')
+				if (!key || !value) continue
+
+				let cleanKey = key.trim()
+				if (!cleanKey.startsWith('--')) {
+					cleanKey = '--' + cleanKey
+				}
+
+				variables[cleanKey] = value.trim()
+			}
+
+			appState.custom_css_variables = {...appState.custom_css_variables, ...variables}
+			applyCustomCssVariables($state.snapshot(appState.custom_css_variables))
+			importText = ''
+		} catch (error) {
+			console.error('Failed to import theme:', error)
+		}
+	}
 </script>
 
 <section>
@@ -90,19 +167,42 @@
 			<label>theme</label>
 			<ThemeToggle />
 		</div>
-		{#each cssVariables as variable (variable.name)}
-			<div>
-				<label for={`${uid}-${variable.name}`}>{variable.label}</label>
-				<input
-					type="color"
+
+		{#each baseColors as variable (variable.name)}
+			<div class:inactive={!isActiveVariable(variable)}>
+				<label hidden for={`${uid}-${variable.name}`}>{variable.label}</label>
+				<InputColor
+					label={variable.label}
 					value={getCurrentValue(variable)}
 					onchange={(e) => updateVariable(variable.name, e.target.value)}
 					id={`${uid}-${variable.name}`}
 				/>
 				<input
+					hidden
 					type="text"
 					value={getCurrentValue(variable)}
 					placeholder="e.g. #ff6b6b"
+					onchange={(e) => updateVariable(variable.name, e.target.value)}
+				/>
+				<small>{variable.description}</small>
+			</div>
+		{/each}
+
+		{#each overrides as variable (variable.name)}
+			<div class:inactive={!isActiveVariable(variable)}>
+				<label hidden for={`${uid}-${variable.name}`}>{variable.label}</label>
+				<InputColor
+					label={variable.label}
+					value={getCurrentValue(variable) || '#808080'}
+					onchange={(e) => updateVariable(variable.name, e.target.value)}
+					id={`${uid}-${variable.name}`}
+					disabled={!getCurrentValue(variable)}
+				/>
+				<input
+					hidden
+					type="text"
+					value={getCurrentValue(variable)}
+					placeholder="inherit"
 					onchange={(e) => updateVariable(variable.name, e.target.value)}
 				/>
 				<small>{variable.description}</small>
@@ -157,6 +257,20 @@
 			<small>Toggle track thumbnails in track lists and player</small>
 		</div>
 	</form>
+
+	<details class="theme-sharing">
+		<summary>share theme</summary>
+		<div class="export-section">
+			<button onclick={exportTheme} type="button">Export theme</button>
+			{#if exportFeedback}
+				<span class="feedback">{exportFeedback}</span>
+			{/if}
+		</div>
+		<div class="import-section">
+			<input type="text" bind:value={importText} placeholder="paste theme string here" class="import-input" />
+			<button onclick={importTheme} type="button" disabled={!importText.trim()}>Apply</button>
+		</div>
+	</details>
 </section>
 
 <style>
@@ -169,14 +283,6 @@
 		align-items: center;
 		gap: 1rem;
 		margin-bottom: 1rem;
-	}
-
-	input[type='color'] {
-		width: 3rem;
-		height: 2rem;
-		border: none;
-		border-radius: var(--border-radius);
-		cursor: pointer;
 	}
 
 	input[type='text'] {
@@ -209,5 +315,59 @@
 
 	small {
 		grid-column: 1 / -1;
+	}
+
+	.inactive {
+		display: none;
+		opacity: 0.2;
+	}
+
+	details {
+		margin-top: 1rem;
+		margin-left: 1rem;
+	}
+
+	summary {
+		cursor: pointer;
+		user-select: none;
+		margin-bottom: 0.5rem;
+	}
+
+	.custom-css {
+		margin-top: 0.5rem;
+	}
+
+	.custom-css textarea {
+		width: 100%;
+		font-family: var(--monospace);
+		font-size: var(--font-3);
+		padding: 0.5rem;
+		background: var(--gray-2);
+		border: 1px solid var(--gray-6);
+		border-radius: var(--border-radius);
+	}
+
+	.theme-sharing {
+		margin-top: 1rem;
+		margin-left: 1rem;
+	}
+
+	.export-section,
+	.import-section {
+		display: flex;
+		gap: 0.5rem;
+		align-items: center;
+		margin-bottom: 0.5rem;
+	}
+
+	.import-input {
+		width: 20rem;
+		font-family: var(--monospace);
+		font-size: var(--font-3);
+	}
+
+	.feedback {
+		font-size: var(--font-3);
+		color: var(--color-accent);
 	}
 </style>

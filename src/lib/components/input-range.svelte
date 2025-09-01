@@ -80,7 +80,7 @@
 		left: 0;
 		right: 0;
 		pointer-events: none;
-		background: var(--color-acidgreen);
+		background: var(--gray-1);
 		display: flex;
 		justify-content: space-between;
 	}
