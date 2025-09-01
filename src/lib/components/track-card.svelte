@@ -12,10 +12,11 @@
 		track: Track
 		index?: number
 		showImage?: boolean
+		showSlug?: boolean
 		children?: Snippet<[Track]>
 	}
 
-	let {track, index, showImage = true, children}: Props = $props()
+	let {track, index, showImage = true, showSlug = false, children}: Props = $props()
 
 	const permalink = $derived(`/${track.channel_slug}/tracks/${track.id}`)
 	const active = $derived(track.id === appState.playlist_track)
@@ -65,6 +66,7 @@
 		<time>
 			<span class="mobile"><Icon icon="options-horizontal" size={16} /></span>
 			<small>{formatDate(new Date(track.created_at))}</small>
+			{#if showSlug}<small>@{track.channel_slug}</small>{/if}
 		</time>
 	</a>
 	{@render children?.({track})}

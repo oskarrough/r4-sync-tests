@@ -96,7 +96,7 @@
 				<ul class="list">
 					{#each tracks as track, index (track.id)}
 						<li>
-							<TrackCard {track} {index} />
+							<TrackCard {track} {index} showSlug={true} />
 						</li>
 					{/each}
 				</ul>
