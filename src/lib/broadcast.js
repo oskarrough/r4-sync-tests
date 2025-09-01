@@ -101,7 +101,7 @@ export async function stopBroadcast(channelId) {
  * @returns {() => void} unsubscribe function
  */
 export function watchBroadcasts(onChange) {
-	log.log('broadcasts_watch_started')
+	log.debug('watching for remote changes')
 
 	// Load initial data
 	r4.broadcasts

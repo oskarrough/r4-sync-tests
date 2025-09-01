@@ -6,6 +6,7 @@ import {r5} from '$lib/r5'
 import {pg} from '$lib/r5/db'
 import {pull as pullFollowers, sync as syncFollowers} from '$lib/r5/followers'
 import {shuffleArray} from '$lib/utils.ts'
+import {play} from '$lib/api/player'
 
 const log = logger.ns('api').seal()
 
@@ -89,6 +90,9 @@ export async function playTrack(id, endReason, startReason) {
 			})
 		}
 	}
+
+	log.debug('playTrack calling play()')
+	play()
 }
 
 /**
@@ -229,8 +233,8 @@ export async function followChannel(followerId, channelId) {
 			try {
 				await r4.channels.followChannel(followerId, channelId)
 				await pg.sql`
-					UPDATE followers 
-					SET synced_at = CURRENT_TIMESTAMP 
+					UPDATE followers
+					SET synced_at = CURRENT_TIMESTAMP
 					WHERE follower_id = ${followerId} AND channel_id = ${channelId}
 				`
 				log.log('follow_synced', {followerId, channelId})

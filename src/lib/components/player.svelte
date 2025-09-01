@@ -1,8 +1,7 @@
 <script>
 	import 'media-chrome'
 	//import 'youtube-video-element'
-	//import '$lib/youtube-video-element-original.js'
-	import '$lib/youtube-video-element.js'
+	import '$lib/youtube-video-custom-element.js'
 	import {toggleQueuePanel, togglePlayerExpanded} from '$lib/api'
 	import {togglePlay, next, previous, toggleShuffle, play} from '$lib/api/player'
 	import {appState} from '$lib/app-state.svelte'
@@ -40,7 +39,7 @@
 	let didPlay = $state(false)
 	let userHasPlayed = $state(false)
 	const canPlay = $derived(Boolean(channel && track))
-	const autoplay = $derived(userHasPlayed ? 1 : 0)
+	// const autoplay = $derived(userHasPlayed ? 1 : 0)
 	const isListeningToBroadcast = $derived(Boolean(appState.listening_to_channel_id))
 
 	/** @type {string} */
@@ -52,12 +51,15 @@
 
 	$effect(async () => {
 		const tid = appState.playlist_track
-
 		const trackChanged = tid && tid !== track?.id
-		if (!trackChanged) return
 
-		const ytplayer = yt || document.querySelector('youtube-video')
-		const paused = ytplayer.paused
+		if (!trackChanged) {
+			log.debug('same track. @todo maybe call play unless user did not play already?', tid, track?.id)
+			return
+		}
+
+		// const ytplayer = yt || document.querySelector('youtube-video')
+		// const paused = ytplayer.paused
 
 		await setChannelFromTrack(tid)
 
@@ -68,21 +70,21 @@
 			log.log('Setting userHasPlayed=true for user-initiated track change')
 		}
 
-		log.log('track changed', {
-			track: track?.title,
-			yt,
-			paused,
-			didPlay,
-			autoplay,
-			userHasPlayed,
-			hidden: document.hidden
-		})
+		// log.log('track changed', {
+		// 	track: track?.title,
+		// 	yt,
+		// 	paused,
+		// 	didPlay,
+		// 	autoplay,
+		// 	userHasPlayed,
+		// 	hidden: document.hidden
+		// })
 
 		// Auto-play if we were already playing when track changed
-		if (didPlay && yt) {
+		if (didPlay) {
 			log.log('Auto-playing next track')
 			try {
-				await play(yt)
+				await play()
 			} catch (error) {
 				log.warn('Playback failed:', error)
 			}
@@ -93,6 +95,7 @@
 	async function setChannelFromTrack(tid) {
 		if (!tid || tid === track?.id) return
 		track = (await pg.sql`select * from tracks_with_meta where id = ${tid}`).rows[0]
+		if (!track) throw new Error('Track not found: ${tid}')
 		channel = (await r5.channels.local({slug: track.channel_slug}))[0]
 	}
 
@@ -120,17 +123,17 @@
 		next(track, activeQueue, 'track_completed')
 	}
 
-	function applyInitialVolume() {
-		yt.volume = appState.volume
-		yt.muted = appState.volume === 0
-	}
+	// function applyInitialVolume() {
+	// 	yt.volume = appState.volume
+	// 	yt.muted = appState.volume === 0
+	// }
 
-	function handleVolumeChange(e) {
-		const {volume} = e.target
-		if (appState.volume === volume) return
-		appState.volume = volume
-		log.log('volumeChange', volume)
-	}
+	// function handleVolumeChange(e) {
+	// 	const {volume} = e.target
+	// 	if (appState.volume === volume) return
+	// 	appState.volume = volume
+	// 	log.log('volumeChange', volume)
+	// }
 </script>
 
 <div class={['player', appState.player_expanded ? 'expanded' : 'compact']}>
@@ -150,18 +153,10 @@
 			bind:this={yt}
 			{src}
 			autoplay={userHasPlayed || undefined}
-			playsinline={1}
-			volume={appState.volume}
-			muted={appState.volume === 0}
-			onloadcomplete={() => {
-				//prebuffer()
-				applyInitialVolume()
-			}}
 			onplay={handlePlay}
 			onpause={handlePause}
 			onended={handleEndTrack}
 			onerror={handleError}
-			volumechange={handleVolumeChange}
 		></youtube-video>
 		<media-loading-indicator slot="centered-chrome"></media-loading-indicator>
 	</media-controller>

@@ -9,34 +9,34 @@
 </script>
 
 <div class="page">
-{#await tracks}
-	<p>Loading...</p>
-{:then tracks}
-	{#if tracks.length === 0}
-		<p>No tracks found.</p>
-	{:else}
-		<CoverFlip items={tracks} scrollItemsPerNotch={1}>
-			{#snippet item({item, active})}
-				{@const ytid = extractYouTubeId(item.url)}
-				<button class="item" class:active onclick={() => playTrack(item.id, null, 'user_click_track')}>
-					{#if ytid}
-						<img src={`https://i.ytimg.com/vi/${ytid}/mqdefault.jpg`} alt={item.title} />
-					{:else}
-						no ytid for {item.url}
-					{/if}
-				</button>
-			{/snippet}
-			{#snippet active({item})}
-				<div class="current">
-					<h3>{item.title}</h3>
-					{#if item.description}
-						<p>{item.description}</p>
-					{/if}
-				</div>
-			{/snippet}
-		</CoverFlip>
-	{/if}
-{/await}
+	{#await tracks}
+		<p>Loading...</p>
+	{:then tracks}
+		{#if tracks.length === 0}
+			<p>No tracks found.</p>
+		{:else}
+			<CoverFlip items={tracks} scrollItemsPerNotch={1}>
+				{#snippet item({item, active})}
+					{@const ytid = extractYouTubeId(item.url)}
+					<button class="item" class:active onclick={() => playTrack(item.id, null, 'user_click_track')}>
+						{#if ytid}
+							<img src={`https://i.ytimg.com/vi/${ytid}/mqdefault.jpg`} alt={item.title} />
+						{:else}
+							no ytid for {item.url}
+						{/if}
+					</button>
+				{/snippet}
+				{#snippet active({item})}
+					<div class="current">
+						<h3>{item.title}</h3>
+						{#if item.description}
+							<p>{item.description}</p>
+						{/if}
+					</div>
+				{/snippet}
+			</CoverFlip>
+		{/if}
+	{/await}
 </div>
 
 <style>

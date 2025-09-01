@@ -20,7 +20,7 @@
 	async function updateTrackMeta(meta) {
 		console.log('Metadata updated:', meta)
 		// Re-run the load function to get fresh data
-		await invalidate('track-meta')
+		await invalidate('track:meta')
 	}
 </script>
 
