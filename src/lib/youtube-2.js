@@ -2,31 +2,44 @@ import {logger} from '$lib/logger'
 
 const log = logger.ns('youtube-2').seal()
 
+/** You always think this isn't so complicated, but it is. */
 class YouTube2Element extends HTMLElement {
 	static observedAttributes = ['src', 'autoplay', 'controls', 'muted', 'playsinline']
 
-	isLoaded = false
+	/** @type {YT.Player | null} */
 	api = null
-	#loadComplete = null
+
+	isLoaded = false
+
+	/** @type {Promise} */
+	// #loadComplete = null
+	#loadComplete = new Promise((resolve) => {
+		this.#resolveLoad = resolve
+	})
+
+	/** This will resolve the `loadComplete` promise
+	 *  @type {function | null} */
 	#resolveLoad = null
 	#pendingVideoLoad = false
 	#autoplayAttempted = false
-	#error = null
+
+	/** @type {YT.PlayerError | null} */
+	#errorCode = null
 
 	constructor() {
 		super()
-		this.#loadComplete = new Promise((resolve) => {
-			this.#resolveLoad = resolve
-		})
-		log.debug('constructor')
+		this.attachShadow({mode: 'open'})
+
+		// This is how we await the "onReady" event from the YT API.
+		// this.loadComplete is the promise
+		// this.resolveLoad() is the function that resolves it
+		// this.#loadComplete = new Promise((resolve) => {
+		// 	this.#resolveLoad = resolve
+		// })
 	}
 
 	async connectedCallback() {
-		log.debug('connected')
-
-		if (!this.shadowRoot) {
-			this.attachShadow({mode: 'open'})
-		}
+		if (!this.shadowRoot) return
 
 		// Create iframe with proper YouTube embed params
 		this.shadowRoot.innerHTML = `
@@ -46,15 +59,16 @@ class YouTube2Element extends HTMLElement {
 	}
 
 	async #initializePlayer() {
-		const iframe = this.shadowRoot.querySelector('#player')
-		log.debug('initializePlayer with iframe:', !!iframe, 'and YT.Player exists:', !!globalThis.YT.Player)
+		log.debug('initializePlayer')
+		const iframe = this.shadowRoot?.querySelector('iframe')
 
-		// Set a dummy video src or the iframe might not initialize properly
-		if (!iframe.src) {
-			iframe.src = 'https://www.youtube.com/embed/dQw4w9WgXcQ?enablejsapi=1'
+		// When initializing without a src, the YT player doesn't fire the good events :( Ideally we don't have to precue any videos. But it did solve autoplay in some cases.
+		if (iframe && !iframe.src) {
+			iframe.src = this.getAttribute('src') || 'https://www.youtube.com/embed/dQw4w9WgXcQ?enablejsapi=1'
 		}
 
 		try {
+			/* @ts-expect-error iframe is an iframe shut up */
 			this.api = new globalThis.YT.Player(iframe, {
 				playerVars: {
 					controls: this.hasAttribute('controls') ? 1 : 0,
@@ -71,8 +85,8 @@ class YouTube2Element extends HTMLElement {
 				events: {
 					onReady: () => {
 						this.isLoaded = true
-						this.#resolveLoad()
-						log.debug('onReady')
+						this.#resolveLoad?.()
+						log.debug('ready')
 
 						// Load video if src is already set or was pending
 						if (this.src || this.#pendingVideoLoad) {
@@ -87,24 +101,26 @@ class YouTube2Element extends HTMLElement {
 					},
 					onError: (error) => {
 						log.error('YouTube error:', error.data)
-						this.#error = {
-							code: error.data,
-							message: `YouTube iframe player error #${error.data}`
-						}
-						this.dispatchEvent(new Event('error'))
+						this.#errorCode = error.data
 						// Fire durationchange to reset UI on error
-						this.dispatchEvent(new Event('durationchange'))
+						// this.dispatchEvent(new Event('durationchange'))
+						// this.#ready.reject(new Error(`YouTube error: ${error.data}`))
+						this.dispatchEvent(new Event('error'))
+					},
+					onAutoplayBlocked: (notsure) => {
+						log.info('browser blocked autoplay', notsure)
 					}
 				}
 			})
 			log.debug('YT.Player created:', !!this.api)
 
-			// Add event listeners after player creation
+			// @ts-expect-error onVideoProgress is undocumented but works
 			this.api.addEventListener('onVideoProgress', () => {
-				// log.debug('onVideoProgress fired, dispatching timeupdate')
+				log.debug('onVideoProgress fired, dispatching timeupdate')
 				this.dispatchEvent(new Event('timeupdate'))
 			})
-			
+
+			// @ts-expect-error onVolumeChange is undocumented but works
 			this.api.addEventListener('onVolumeChange', () => {
 				log.debug('onVolumeChange fired, dispatching volumechange')
 				this.dispatchEvent(new Event('volumechange'))
@@ -127,7 +143,7 @@ class YouTube2Element extends HTMLElement {
 			// If video is cued and autoplay is enabled, start playing (only once per video)
 			log.debug('video cued with autoplay, calling playVideo()')
 			this.#autoplayAttempted = true
-			this.api.playVideo()
+			this.api?.playVideo()
 		}
 	}
 
@@ -145,19 +161,18 @@ class YouTube2Element extends HTMLElement {
 
 	async #loadVideo() {
 		await this.#loadComplete
-
 		const videoId = this.#extractVideoId(this.src)
+		log.debug('loadVideo', videoId)
 		if (!videoId) return
-
-		log.debug('loading video:', videoId)
 
 		// Reset state for new video
 		this.#autoplayAttempted = false
-		this.#error = null
+		this.#errorCode = null
 
 		// Fire durationchange to signal new media
 		this.dispatchEvent(new Event('durationchange'))
 
+		if (!this.api) return
 		if (this.hasAttribute('autoplay')) {
 			this.api.loadVideoById(videoId)
 		} else {
@@ -172,23 +187,24 @@ class YouTube2Element extends HTMLElement {
 	}
 
 	async play() {
+		log.debug('play')
 		await this.#loadComplete
-		log.debug('play() called')
-		if (this.api) {
-			// If video is in unstarted state (-1), try to cue it first
-			const state = this.api.getPlayerState()
-			if (state === -1 && this.src) {
-				const videoId = this.#extractVideoId(this.src)
-				if (videoId) {
-					log.debug('video unstarted, cueing first')
-					this.api.cueVideoById(videoId)
-					// Small delay to let it cue
-					await new Promise((resolve) => setTimeout(resolve, 100))
-				}
+		if (!this.api) return
+
+		// If video is in unstarted state (-1), try to cue it first
+		//
+		const state = this.api.getPlayerState()
+		if (state === -1 && this.src) {
+			const videoId = this.#extractVideoId(this.src)
+			if (videoId) {
+				log.debug('video unstarted, cueing first')
+				this.api.cueVideoById(videoId)
+				// Small delay to let it cue
+				await new Promise((resolve) => setTimeout(resolve, 100))
 			}
-			this.api.playVideo()
 		}
-		return Promise.resolve()
+
+		this.api.playVideo()
 	}
 
 	async pause() {
@@ -212,6 +228,14 @@ class YouTube2Element extends HTMLElement {
 		if (this.currentTime === val) return
 		this.#loadComplete.then(() => {
 			this.api?.seekTo(val, true)
+
+			// why this?
+			// if (this.paused) {
+			// 	this.#seekComplete?.then(() => {
+			// 		if (!this.#seekComplete) return
+			// 		this.api?.pauseVideo()
+			// 	})
+			// }
 		})
 	}
 
@@ -220,7 +244,7 @@ class YouTube2Element extends HTMLElement {
 	}
 
 	get error() {
-		return this.#error
+		return this.#errorCode
 	}
 
 	get volume() {

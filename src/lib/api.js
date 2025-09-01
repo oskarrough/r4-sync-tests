@@ -91,7 +91,7 @@ export async function playTrack(id, endReason, startReason) {
 		}
 	}
 
-	console.log('playTrack calling play()')
+	log.debug('playTrack calling play()')
 	play()
 }
 
@@ -233,8 +233,8 @@ export async function followChannel(followerId, channelId) {
 			try {
 				await r4.channels.followChannel(followerId, channelId)
 				await pg.sql`
-					UPDATE followers 
-					SET synced_at = CURRENT_TIMESTAMP 
+					UPDATE followers
+					SET synced_at = CURRENT_TIMESTAMP
 					WHERE follower_id = ${followerId} AND channel_id = ${channelId}
 				`
 				log.log('follow_synced', {followerId, channelId})
