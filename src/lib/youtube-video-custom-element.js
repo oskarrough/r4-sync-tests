@@ -12,11 +12,10 @@ class YouTube2Element extends HTMLElement {
 	isLoaded = false
 
 	/** Use this to await the `onReady` event from the YT API. Call `resolveLoad()` once ready. */
-	#loadComplete = new Promise((resolve) => {
-		this.#resolveLoad = resolve
-	})
+	#loadComplete
 	/** @type {function | null} */
 	#resolveLoad = null
+
 	#pendingVideoLoad = false
 	#autoplayAttempted = false
 
@@ -26,6 +25,9 @@ class YouTube2Element extends HTMLElement {
 	constructor() {
 		super()
 		this.attachShadow({mode: 'open'})
+		this.#loadComplete = new Promise((resolve) => {
+			this.#resolveLoad = resolve
+		})
 	}
 
 	async connectedCallback() {
@@ -106,7 +108,7 @@ class YouTube2Element extends HTMLElement {
 
 			// @ts-expect-error onVideoProgress is undocumented but works
 			this.api.addEventListener('onVideoProgress', () => {
-				log.debug('onVideoProgress fired, dispatching timeupdate')
+				// log.debug('onVideoProgress fired, dispatching timeupdate')
 				this.dispatchEvent(new Event('timeupdate'))
 			})
 
