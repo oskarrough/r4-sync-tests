@@ -1,8 +1,8 @@
 # Keyboard shortcuts
 
-Keyboard shortcuts call functions from $lib/api.js.
+Keyboard shortcuts call functions from $lib/api.js and other files.
 
-On /settings you can customize shortcuts. Your config is stored in the local database.
+Visit /settings which includes <KeyboardEditor> to customize shortcuts. Your config is stored in the local database.
 
 ```
 {
@@ -10,3 +10,5 @@ On /settings you can customize shortcuts. Your config is stored in the local dat
 	"$mod+k": "openSearch",
 }
 ```
+
+The actual keyboard events are attached through <KeyboardShortcuts> in layout.svelte.
