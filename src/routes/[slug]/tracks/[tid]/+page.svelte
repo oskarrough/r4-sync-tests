@@ -84,7 +84,7 @@
 			}
 
 			&.active {
-				background: var(--color-accent);
+				background: var(--accent-9);
 				color: var(--gray-1);
 
 				&::before {

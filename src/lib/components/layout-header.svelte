@@ -94,7 +94,7 @@
 		place-items: center;
 		gap: 0.2rem;
 		padding: 0.5rem;
-		background: var(--header-bg, var(--bg-2));
+		background: var(--header-bg);
 		border-bottom: 1px solid light-dark(var(--gray-5), var(--gray-5));
 		transition: background 150ms;
 

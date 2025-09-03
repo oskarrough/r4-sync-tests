@@ -20,12 +20,12 @@
 
 	div > :global(.icon) {
 		position: absolute;
-		left: 0.5rem;
+		left: 0.35rem;
 		z-index: 1;
 		opacity: 0.5;
 	}
 
 	input[type='search'] {
-		padding-left: 1.7rem;
+		padding-left: 1.5rem;
 	}
 </style>

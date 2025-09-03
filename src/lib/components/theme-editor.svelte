@@ -10,28 +10,28 @@
 	// Base colors that generate scales
 	const baseColors = [
 		{
-			name: '--accent-base-light',
+			name: '--accent-light',
 			label: 'accent (light)',
 			description: 'generates accent-1 through accent-12',
 			default: '#6d28d9',
 			theme: 'light'
 		},
 		{
-			name: '--accent-base-dark',
+			name: '--accent-dark',
 			label: 'accent (dark)',
 			description: 'generates accent-1 through accent-12',
 			default: '#b8e68a',
 			theme: 'dark'
 		},
 		{
-			name: '--gray-base-light',
+			name: '--gray-light',
 			label: 'gray (light)',
 			description: 'generates gray-1 through gray-12',
 			default: '#988B8B',
 			theme: 'light'
 		},
 		{
-			name: '--gray-base-dark',
+			name: '--gray-dark',
 			label: 'gray (dark)',
 			description: 'generates gray-1 through gray-12',
 			default: '#988B8B',
@@ -117,13 +117,20 @@
 			.map(([key, value]) => `${key}:${value}`)
 			.join(';')
 
+		if (!themeString) {
+			exportFeedback = 'no custom theme to export'
+			setTimeout(() => (exportFeedback = ''), 3000)
+			return
+		}
+
 		try {
 			await navigator.clipboard.writeText(themeString)
-			exportFeedback = 'copied to clipboard'
-			setTimeout(() => (exportFeedback = ''), 2000)
-		} catch {
-			exportFeedback = 'failed to copy'
-			setTimeout(() => (exportFeedback = ''), 2000)
+			exportFeedback = `copied to clipboard (${Object.keys(variables).length} variables)`
+			setTimeout(() => (exportFeedback = ''), 4000)
+		} catch (error) {
+			console.error('Clipboard error:', error)
+			exportFeedback = 'failed to copy - check console'
+			setTimeout(() => (exportFeedback = ''), 4000)
 		}
 	}
 
@@ -154,61 +161,99 @@
 			console.error('Failed to import theme:', error)
 		}
 	}
+
+	const grays = [...Array(12).keys()].map((i) => `--gray-${i + 1}`)
+	const accents = [...Array(12).keys()].map((i) => `--accent-${i + 1}`)
 </script>
 
 <section>
-	<header>
-		<h2>Theme editor</h2>
+	<menu>
+		<ThemeToggle />
 		<button onclick={resetToDefaults}>Reset theme to defaults</button>
-	</header>
+	</menu>
+
+	<br/>
+
+	<h2>Colors</h2>
+	<!-- <p>Prefer your own style? Who doesn't. Choose a gray tone and an <em>accent</em> color.</p> -->
+	{#each baseColors as variable, i (variable.name + i)}
+		<div class:inactive={!isActiveVariable(variable)}>
+			<label hidden for={`${uid}-${variable.name}`}>{variable.label}</label>
+			<InputColor
+				label={variable.label}
+				value={getCurrentValue(variable)}
+				onchange={(e) => updateVariable(variable.name, e.target.value)}
+			/>
+			<input
+				hidden
+				type="text"
+				value={getCurrentValue(variable)}
+				placeholder="e.g. #ff6b6b"
+				onchange={(e) => updateVariable(variable.name, e.target.value)}
+			/>
+			<small>{variable.description}</small>
+		</div>
+	{/each}
+
+	{#each overrides as variable (variable.name)}
+		<div class:inactive={!isActiveVariable(variable)}>
+			<label hidden for={`${uid}-${variable.name}`}>{variable.label}</label>
+			<InputColor
+				label={variable.label}
+				value={getCurrentValue(variable)}
+				onchange={(e) => updateVariable(variable.name, e.target.value)}
+				disabled={!getCurrentValue(variable)}
+			/>
+			<input
+				hidden
+				type="text"
+				value={getCurrentValue(variable)}
+				placeholder="inherit"
+				onchange={(e) => updateVariable(variable.name, e.target.value)}
+			/>
+			<small>{variable.description}</small>
+		</div>
+	{/each}
+
+	<br/>
+
+	<div class="color-grid">
+		{#each grays as name (name)}
+			<div class="color-swatch">
+				<figure style="background-color: var({name})"></figure>
+				<code>{name}</code>
+			</div>
+		{/each}
+	</div>
+
+	<div class="color-grid">
+		{#each accents as name (name)}
+			<div class="color-swatch">
+				<figure style="background-color: var({name})"></figure>
+				<code>{name}</code>
+			</div>
+		{/each}
+	</div>
+
+	<details class="theme-sharing">
+		<summary class="Button">Share theme</summary>
+		<div class="export-section">
+			<button onclick={exportTheme} type="button">Export theme</button>
+			{#if exportFeedback}
+				<small>{exportFeedback}</small>
+			{/if}
+		</div>
+		<div class="row">
+			<input type="text" bind:value={importText} placeholder="Paste theme string here" class="import-input" />
+			<button onclick={importTheme} type="button" disabled={!importText.trim()}>Apply</button>
+		</div>
+	</details>
+
+	<br />
+
+	<h2>Layout</h2>
 
 	<form>
-		<div>
-			<label>theme</label>
-			<ThemeToggle />
-		</div>
-
-		{#each baseColors as variable (variable.name)}
-			<div class:inactive={!isActiveVariable(variable)}>
-				<label hidden for={`${uid}-${variable.name}`}>{variable.label}</label>
-				<InputColor
-					label={variable.label}
-					value={getCurrentValue(variable)}
-					onchange={(e) => updateVariable(variable.name, e.target.value)}
-					id={`${uid}-${variable.name}`}
-				/>
-				<input
-					hidden
-					type="text"
-					value={getCurrentValue(variable)}
-					placeholder="e.g. #ff6b6b"
-					onchange={(e) => updateVariable(variable.name, e.target.value)}
-				/>
-				<small>{variable.description}</small>
-			</div>
-		{/each}
-
-		{#each overrides as variable (variable.name)}
-			<div class:inactive={!isActiveVariable(variable)}>
-				<label hidden for={`${uid}-${variable.name}`}>{variable.label}</label>
-				<InputColor
-					label={variable.label}
-					value={getCurrentValue(variable) || '#808080'}
-					onchange={(e) => updateVariable(variable.name, e.target.value)}
-					id={`${uid}-${variable.name}`}
-					disabled={!getCurrentValue(variable)}
-				/>
-				<input
-					hidden
-					type="text"
-					value={getCurrentValue(variable)}
-					placeholder="inherit"
-					onchange={(e) => updateVariable(variable.name, e.target.value)}
-				/>
-				<small>{variable.description}</small>
-			</div>
-		{/each}
-
 		<div>
 			<label for={`${uid}--scaling`}>scale</label>
 			<InputRange
@@ -257,20 +302,6 @@
 			<small>Toggle track thumbnails in track lists and player</small>
 		</div>
 	</form>
-
-	<details class="theme-sharing">
-		<summary>share theme</summary>
-		<div class="export-section">
-			<button onclick={exportTheme} type="button">Export theme</button>
-			{#if exportFeedback}
-				<span class="feedback">{exportFeedback}</span>
-			{/if}
-		</div>
-		<div class="import-section">
-			<input type="text" bind:value={importText} placeholder="paste theme string here" class="import-input" />
-			<button onclick={importTheme} type="button" disabled={!importText.trim()}>Apply</button>
-		</div>
-	</details>
 </section>
 
 <style>
@@ -278,11 +309,8 @@
 		margin-bottom: 1rem;
 	}
 
-	header {
-		display: flex;
-		align-items: center;
-		gap: 1rem;
-		margin-bottom: 1rem;
+	menu {
+		margin: 1rem 0;
 	}
 
 	input[type='text'] {
@@ -325,49 +353,5 @@
 	details {
 		margin-top: 1rem;
 		margin-left: 1rem;
-	}
-
-	summary {
-		cursor: pointer;
-		user-select: none;
-		margin-bottom: 0.5rem;
-	}
-
-	.custom-css {
-		margin-top: 0.5rem;
-	}
-
-	.custom-css textarea {
-		width: 100%;
-		font-family: var(--monospace);
-		font-size: var(--font-3);
-		padding: 0.5rem;
-		background: var(--gray-2);
-		border: 1px solid var(--gray-6);
-		border-radius: var(--border-radius);
-	}
-
-	.theme-sharing {
-		margin-top: 1rem;
-		margin-left: 1rem;
-	}
-
-	.export-section,
-	.import-section {
-		display: flex;
-		gap: 0.5rem;
-		align-items: center;
-		margin-bottom: 0.5rem;
-	}
-
-	.import-input {
-		width: 20rem;
-		font-family: var(--monospace);
-		font-size: var(--font-3);
-	}
-
-	.feedback {
-		font-size: var(--font-3);
-		color: var(--color-accent);
 	}
 </style>

@@ -22,7 +22,6 @@ button,
 	background: var(--button-bg, var(--gray-1));
 	color: var(--button-color, var(--gray-12));
 	border: 1px solid var(--gray-6);
-	border-color: light-dark(var(--accent-11), var(-accent-8)); /* maybe */
 	border-radius: var(--border-radius);
 	box-shadow:
 		lch(0 0 0 / 0.06) 0px 4px 4px -1px,
@@ -36,13 +35,13 @@ button:focus,
 button:hover,
 .btn:focus,
 .btn:hover {
-	border-color: var(--color-accent);
+	border-color: var(--accent-9);
 }
 
 select:active,
 button:focus,
 .btn:focus {
-	outline: 2px solid var(--color-accent);
+	outline: 2px solid var(--accent-9);
 	outline-offset: -2px;
 }
 
@@ -57,16 +56,16 @@ button:disabled,
 }
 
 a.active {
-	color: var(--color-accent);
+	color: var(--accent-9);
 }
 
 button.active,
 .btn.active {
-	border-color: var(--color-accent);
+	border-color: var(--accent-9);
 	background-color: var(--accent-3);
 
 	svg {
-		color: var(--color-accent);
+		color: var(--accent-9);
 	}
 }
 
@@ -107,7 +106,7 @@ button.danger:focus,
 
 button.primary,
 .button.primary {
-	border-color: var(--color-accent);
+	border-color: var(--accent-9);
 
 	&:hover {
 		background: color-mix(in lab, var(--color-accent), black 70%);

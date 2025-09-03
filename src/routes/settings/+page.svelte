@@ -22,7 +22,9 @@
 	<section>
 		<h2>Alpha software</h2>
 		<p>
-			If the app is acting weird, tracks not loading or just broken, try <a href="/recovery">recovery</a>.
+			If the app is acting weird, tracks not loading or just broken, try <a href="/recovery">recovery</a>. Or
+			<a href="https://matrix.to/#/#radio4000:matrix.org" rel="noreferrer">join the public Radio4000 Matrix chat room</a
+			>.
 		</p>
 	</section>
 	<section>
@@ -39,7 +41,8 @@
 		{/if}
 	</section>
 	<section>
-		<ThemeEditor />
+		<h2>Theme</h2>
+		<p><a href="/settings/theme">Theme settings</a></p>
 	</section>
 	<section>
 		<KeyboardEditor />
@@ -69,7 +72,7 @@
 
 <style>
 	article {
-		padding-bottom: var(--player-compact-space);
+		padding-bottom: calc(var(--player-compact-space) + 4rem);
 	}
 	section {
 		margin: 0.5rem 0.5rem 2rem;

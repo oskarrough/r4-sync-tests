@@ -10,21 +10,6 @@
 		'--color-tan'
 	]
 
-	const grayScale = [
-		'--gray-1',
-		'--gray-2',
-		'--gray-3',
-		'--gray-4',
-		'--gray-5',
-		'--gray-6',
-		'--gray-7',
-		'--gray-8',
-		'--gray-9',
-		'--gray-10',
-		'--gray-11',
-		'--gray-12'
-	]
-
 	const newColors = [
 		'--color-blue2',
 		'--color-green2',
@@ -34,25 +19,12 @@
 		'--color-yellow2'
 	]
 
-	// LCH color scales
+	// color scales
 	const blueScale = ['--blue-1', '--blue-2', '--blue-3', '--blue-4', '--blue-5', '--blue-6', '--blue-7']
 	const greenScale = ['--green-1', '--green-2', '--green-3', '--green-4', '--green-5', '--green-6', '--green-7']
 	const yellowScale = ['--yellow-1', '--yellow-2', '--yellow-3', '--yellow-4', '--yellow-5', '--yellow-6', '--yellow-7']
 	const redScale = ['--red-1', '--red-2', '--red-3', '--red-4', '--red-5', '--red-6']
 	const pinkScale = ['--pink-1', '--pink-2', '--pink-3', '--pink-4', '--pink-5', '--pink-6', '--pink-7']
-	const neutralScale = [
-		'--neutral-1',
-		'--neutral-2',
-		'--neutral-3',
-		'--neutral-4',
-		'--neutral-5',
-		'--neutral-6',
-		'--neutral-7',
-		'--neutral-8',
-		'--neutral-9',
-		'--neutral-10',
-		'--neutral-11'
-	]
 
 	const fontSizes = ['--font-1', '--font-2', '--font-3', '--font-4', '--font-5', '--font-6', '--font-7', '--font-8']
 </script>
@@ -68,11 +40,9 @@
 		<h2>Base Colors</h2>
 		<div class="color-grid">
 			{#each baseColors as colorVar (colorVar)}
-				<div class="color-item">
-					<div class="color-swatch" style="background-color: var({colorVar})"></div>
-					<div class="color-info">
-						<code>{colorVar}</code>
-					</div>
+				<div class="color-swatch">
+					<figure class="color-swatch" style="background-color: var({colorVar})"></figure>
+					<code>{colorVar}</code>
 				</div>
 			{/each}
 		</div>
@@ -82,11 +52,9 @@
 		<h2>New Colors (…2)</h2>
 		<div class="color-row">
 			{#each newColors as colorVar (colorVar)}
-				<div class="color-item">
-					<div class="color-swatch" style="background-color: var({colorVar})"></div>
-					<div class="color-info">
-						<code>{colorVar}</code>
-					</div>
+				<div class="color-swatch">
+					<figure class="color-swatch" style="background-color: var({colorVar})"></figure>
+					<code>{colorVar}</code>
 				</div>
 			{/each}
 		</div>
@@ -96,11 +64,9 @@
 		<h2>Blue Scale (1–7)</h2>
 		<div class="color-row">
 			{#each blueScale as colorVar (colorVar)}
-				<div class="color-item">
-					<div class="color-swatch" style="background-color: var({colorVar})"></div>
-					<div class="color-info">
-						<code>{colorVar}</code>
-					</div>
+				<div class="color-swatch">
+					<figure class="color-swatch" style="background-color: var({colorVar})"></figure>
+					<code>{colorVar}</code>
 				</div>
 			{/each}
 		</div>
@@ -110,11 +76,9 @@
 		<h2>Green Scale (1–7)</h2>
 		<div class="color-row">
 			{#each greenScale as colorVar (colorVar)}
-				<div class="color-item">
-					<div class="color-swatch" style="background-color: var({colorVar})"></div>
-					<div class="color-info">
-						<code>{colorVar}</code>
-					</div>
+				<div class="color-swatch">
+					<figure class="color-swatch" style="background-color: var({colorVar})"></figure>
+					<code>{colorVar}</code>
 				</div>
 			{/each}
 		</div>
@@ -124,11 +88,9 @@
 		<h2>Yellow Scale (1–7)</h2>
 		<div class="color-row">
 			{#each yellowScale as colorVar (colorVar)}
-				<div class="color-item">
-					<div class="color-swatch" style="background-color: var({colorVar})"></div>
-					<div class="color-info">
-						<code>{colorVar}</code>
-					</div>
+				<div class="color-swatch">
+					<figure class="color-swatch" style="background-color: var({colorVar})"></figure>
+					<code>{colorVar}</code>
 				</div>
 			{/each}
 		</div>
@@ -138,11 +100,9 @@
 		<h2>Red Scale (1–6)</h2>
 		<div class="color-row">
 			{#each redScale as colorVar (colorVar)}
-				<div class="color-item">
-					<div class="color-swatch" style="background-color: var({colorVar})"></div>
-					<div class="color-info">
-						<code>{colorVar}</code>
-					</div>
+				<div class="color-swatch">
+					<figure class="color-swatch" style="background-color: var({colorVar})"></figure>
+					<code>{colorVar}</code>
 				</div>
 			{/each}
 		</div>
@@ -152,39 +112,9 @@
 		<h2>Pink Scale (1–7)</h2>
 		<div class="color-row">
 			{#each pinkScale as colorVar (colorVar)}
-				<div class="color-item">
-					<div class="color-swatch" style="background-color: var({colorVar})"></div>
-					<div class="color-info">
-						<code>{colorVar}</code>
-					</div>
-				</div>
-			{/each}
-		</div>
-	</section>
-
-	<section>
-		<h2>Neutral Scale (1–11)</h2>
-		<div class="color-row">
-			{#each neutralScale as colorVar (colorVar)}
-				<div class="color-item">
-					<div class="color-swatch" style="background-color: var({colorVar})"></div>
-					<div class="color-info">
-						<code>{colorVar}</code>
-					</div>
-				</div>
-			{/each}
-		</div>
-	</section>
-
-	<section>
-		<h2>Gray Scale (1-12)</h2>
-		<div class="color-grid">
-			{#each grayScale as grayVar (grayVar)}
-				<div class="color-item">
-					<div class="color-swatch" style="background-color: var({grayVar})"></div>
-					<div class="color-info">
-						<code>{grayVar}</code>
-					</div>
+				<div class="color-swatch">
+					<figure class="color-swatch" style="background-color: var({colorVar})"></figure>
+					<code>{colorVar}</code>
 				</div>
 			{/each}
 		</div>
@@ -235,42 +165,9 @@
 		margin: 0 0.5rem;
 	}
 
-	.color-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-		gap: 1rem;
-	}
-
-	.color-row {
-		display: flex;
-		gap: 1rem;
-		flex-wrap: nowrap;
-		overflow-x: auto;
-	}
-
-	.color-row .color-item {
-		min-width: 200px;
-	}
-
 	h2 {
 		margin-top: 3rem;
 		margin-bottom: 0.5rem;
-	}
-
-	.color-item {
-		border: 1px solid var(--gray-4);
-		border-radius: var(--border-radius);
-		overflow: hidden;
-		background: var(--gray-2);
-	}
-
-	.color-swatch {
-		height: 80px;
-		width: 100%;
-	}
-
-	.color-info {
-		padding: 0.5rem;
 	}
 
 	.variable-grid {

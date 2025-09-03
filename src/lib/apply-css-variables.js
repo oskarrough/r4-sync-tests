@@ -1,5 +1,3 @@
-import {generateAccentScale, generateGrayScale} from './generate-color-scales.js'
-
 export function applyCustomCssVariables(customVariables = {}) {
 	const root = document.documentElement
 
@@ -7,17 +5,12 @@ export function applyCustomCssVariables(customVariables = {}) {
 
 	// Reset everything if empty
 	if (!Object.keys(customVariables).length) {
-		// Clear accent scale
-		for (let i = 1; i <= 12; i++) {
-			root.style.removeProperty(`--accent-${i}`)
-		}
-		// Clear gray scale (will fallback to defaults in CSS)
-		for (let i = 1; i <= 12; i++) {
-			root.style.removeProperty(`--gray-${i}`)
-		}
+		// Clear base colors (scales will fallback to defaults in CSS)
+		root.style.removeProperty('--gray-light')
+		root.style.removeProperty('--gray-dark')
+		root.style.removeProperty('--accent-light')
+		root.style.removeProperty('--accent-dark')
 		// Clear other custom properties
-		root.style.removeProperty('--color-accent')
-		root.style.removeProperty('--bg-1')
 		root.style.removeProperty('--button-bg')
 		root.style.removeProperty('--button-color')
 		root.style.removeProperty('--scaling')
@@ -26,31 +19,23 @@ export function applyCustomCssVariables(customVariables = {}) {
 		return
 	}
 
-	// Generate accent scale if base colors are provided
-	const accentBaseLight = customVariables['--accent-base-light']
-	const accentBaseDark = customVariables['--accent-base-dark']
-
-	if (accentBaseLight || accentBaseDark) {
-		const accentScale = generateAccentScale(accentBaseLight, accentBaseDark)
-		Object.entries(accentScale).forEach(([name, value]) => {
-			root.style.setProperty(name, value)
-		})
-
-		// Also set the main accent color
-		const light = accentBaseLight || '#6d28d9'
-		const dark = accentBaseDark || '#b8e68a'
-		root.style.setProperty('--color-accent', `light-dark(${light}, ${dark})`)
+	// Set base colors directly - CSS will handle the scales
+	const accentBaseLight = customVariables['--accent-light']
+	const accentBaseDark = customVariables['--accent-dark']
+	if (accentBaseLight) {
+		root.style.setProperty('--gray-light', accentBaseLight)
+	}
+	if (accentBaseDark) {
+		root.style.setProperty('--accent-dark', accentBaseDark)
 	}
 
-	// Generate gray scale if base colors are provided
-	const grayBaseLight = customVariables['--gray-base-light']
-	const grayBaseDark = customVariables['--gray-base-dark']
-
-	if (grayBaseLight || grayBaseDark) {
-		const grayScale = generateGrayScale(grayBaseLight, grayBaseDark)
-		Object.entries(grayScale).forEach(([name, value]) => {
-			root.style.setProperty(name, value)
-		})
+	const grayBaseLight = customVariables['--gray-light']
+	const grayBaseDark = customVariables['--gray-dark']
+	if (grayBaseLight) {
+		root.style.setProperty('--gray-light', grayBaseLight)
+	}
+	if (grayBaseDark) {
+		root.style.setProperty('--gray-dark', grayBaseDark)
 	}
 
 	// Handle button overrides
@@ -73,10 +58,10 @@ export function applyCustomCssVariables(customVariables = {}) {
 	// Apply all other custom variables (non-generated ones like scaling, border-radius)
 	Object.entries(customVariables).forEach(([name, value]) => {
 		const systemVariables = [
-			'--accent-base-light',
-			'--accent-base-dark',
-			'--gray-base-light',
-			'--gray-base-dark',
+			'--gray-light',
+			'--gray-dark',
+			'--accent-light',
+			'--accent-dark',
 			'--button-bg-light',
 			'--button-bg-dark',
 			'--button-color-light',

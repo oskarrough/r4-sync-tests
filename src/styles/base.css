@@ -27,7 +27,7 @@ html {
 	line-height: 1.5;
 	font-weight: 400;
 	text-rendering: optimizeLegibility;
-	font-family: firava, system-ui, sans-serif;
+	font-family: var(--sans-serif);
 	scroll-behavior: smooth;
 	color-scheme: light dark;
 	interpolate-size: allow-keywords;
@@ -58,7 +58,7 @@ body {
 }
 
 ::selection {
-	/* background: var(--color-accent); */
+	/* background: var(--accent-9); */
 }
 
 * {
@@ -118,7 +118,7 @@ hr {
 
 small {
 	font-size: var(--font-3);
-	color: var(--gray-8);
+	color: var(--gray-10);
 }
 
 ul,
@@ -177,7 +177,7 @@ dl.meta {
 	}
 
 	a {
-		color: var(--color-accent);
+		color: var(--accent-9);
 	}
 
 	img {

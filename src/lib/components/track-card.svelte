@@ -83,7 +83,7 @@
 		cursor: default;
 
 		&:focus {
-			outline: 2px solid var(--color-accent);
+			outline: 2px solid var(--accent-9);
 			outline-offset: -2px;
 		}
 	}
@@ -115,7 +115,7 @@
 	.title {
 		color: var(--gray-11);
 		.active & {
-			background: var(--color-accent);
+			background: var(--accent-9);
 			color: var(--gray-1);
 		}
 	}

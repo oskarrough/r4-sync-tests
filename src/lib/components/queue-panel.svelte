@@ -176,7 +176,7 @@
 		display: flex;
 		flex-direction: column;
 		height: 100%;
-		background: var(--aside-bg, var(--bg-2));
+		background: var(--aside-bg);
 		border-left: 1px solid var(--gray-6);
 
 		/* perf trick! */

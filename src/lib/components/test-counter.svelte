@@ -14,6 +14,6 @@
 	}
 
 	:global(a.active) button {
-		border-color: var(--color-accent);
+		border-color: var(--accent-9);
 	}
 </style>

@@ -1,0 +1,144 @@
+/** This was the first theme of R5. No longer used, but kept for inspiration as it still has some nice colors */
+
+:root {
+	--gray-1: light-dark(lch(97.5% 0 282), lch(7% 1.867 272));
+	--gray-2: light-dark(lch(94% 2 282), lch(10% 3.033 272));
+	--gray-3: light-dark(lch(92% 2 282), lch(14% 4.2 272));
+	--gray-4: light-dark(lch(89% 0 282), lch(19% 3.54 272));
+	--gray-5: light-dark(lch(85% 0 282), lch(25% 3.54 272));
+	--gray-6: light-dark(lch(75% 1 282), lch(35% 1.35 272));
+	--gray-7: light-dark(lch(65% 1 282), lch(45% 1.35 272));
+	--gray-8: light-dark(lch(55% 1 282), lch(55% 1.35 272));
+	--gray-9: light-dark(lch(45% 1 282), lch(65% 1.35 272));
+	--gray-10: light-dark(lch(35% 1 282), lch(75% 2 104));
+	--gray-11: light-dark(lch(20% 1 282), lch(90% 2 104));
+	--gray-12: light-dark(lch(10% 0 282), lch(91% 6 104));
+
+	--gray-1: light-dark(oklch(from #988b8b 98% calc(c * 0.2) h), oklch(from #666666 8% calc(c * 0.4) h));
+	--gray-2: light-dark(oklch(from #988b8b 95% calc(c * 0.3) h), oklch(from #666666 12% calc(c * 0.5) h));
+	--gray-3: light-dark(oklch(from #988b8b 91% calc(c * 0.4) h), oklch(from #666666 16% calc(c * 0.6) h));
+	--gray-4: light-dark(oklch(from #988b8b 86% calc(c * 0.5) h), oklch(from #666666 22% calc(c * 0.7) h));
+	--gray-5: light-dark(oklch(from #988b8b 80% calc(c * 0.6) h), oklch(from #666666 28% calc(c * 0.8) h));
+	--gray-6: light-dark(oklch(from #988b8b 71% calc(c * 0.7) h), oklch(from #666666 36% calc(c * 0.9) h));
+	--gray-7: light-dark(oklch(from #988b8b 61% calc(c * 0.8) h), oklch(from #666666 46% calc(c * 1) h));
+	--gray-8: light-dark(oklch(from #988b8b 51% calc(c * 0.9) h), oklch(from #666666 56% calc(c * 1.1) h));
+	--gray-9: light-dark(oklch(from #988b8b 41% calc(c * 1) h), oklch(from #666666 66% calc(c * 1.2) h));
+	--gray-10: light-dark(oklch(from #988b8b 31% calc(c * 1.1) h), oklch(from #666666 76% calc(c * 1.3) h));
+	--gray-11: light-dark(oklch(from #988b8b 18% calc(c * 1.2) h), oklch(from #666666 89% calc(c * 1.4) h));
+	--gray-12: light-dark(oklch(from #988b8b 10% calc(c * 1.3) h), oklch(from #666666 94% calc(c * 1.5) h));
+
+	--accent-1: light-dark(oklch(from #5d1ae6 98% calc(c * 0.15) h), oklch(from #b8e68a 12% calc(c * 0.2) h));
+	--accent-2: light-dark(oklch(from #5d1ae6 95% calc(c * 0.25) h), oklch(from #b8e68a 16% calc(c * 0.3) h));
+	--accent-3: light-dark(oklch(from #5d1ae6 92% calc(c * 0.35) h), oklch(from #b8e68a 20% calc(c * 0.4) h));
+	--accent-4: light-dark(oklch(from #5d1ae6 88% calc(c * 0.45) h), oklch(from #b8e68a 24% calc(c * 0.5) h));
+	--accent-5: light-dark(oklch(from #5d1ae6 83% calc(c * 0.55) h), oklch(from #b8e68a 28% calc(c * 0.6) h));
+	--accent-6: light-dark(oklch(from #5d1ae6 77% calc(c * 0.65) h), oklch(from #b8e68a 32% calc(c * 0.7) h));
+	--accent-7: light-dark(oklch(from #5d1ae6 70% calc(c * 0.75) h), oklch(from #b8e68a 38% calc(c * 0.8) h));
+	--accent-8: light-dark(oklch(from #5d1ae6 62% calc(c * 0.85) h), oklch(from #b8e68a 44% calc(c * 0.9) h));
+	--accent-9: light-dark(#5d1ae6, #b8e68a);
+	--accent-10: light-dark(oklch(from #5d1ae6 calc(l * 0.85) c h), oklch(from #b8e68a calc(l * 1.1) c h));
+	--accent-11: light-dark(oklch(from #5d1ae6 calc(l * 0.65) c h), oklch(from #b8e68a calc(l * 1.2) c h));
+	--accent-12: light-dark(oklch(from #5d1ae6 20% c h), oklch(from #b8e68a 92% calc(c * 0.7) h));
+
+	--test-black: #000000;
+	--test-white: #ffffff;
+	--test-fl-red: #ff0000;
+	--test-fl-green: #00ff00;
+	--test-fl-blue: #0000ff;
+	--test-fl-cyan: #00ffff;
+	--test-fl-magenta: #ff00ff;
+	--test-fl-yellow: #ffff00;
+	--test-fl-orange: #ff6600;
+	--test-maroon: #660000;
+	--test-green: #00a645;
+	--test-blue: #000066;
+	--test-cyan: #006666;
+	--test-magenta: #660066;
+	--test-yellow: #ffbf00;
+	--test-olive: #666600;
+	--test-gray: #999999;
+
+	/* --color-background: #fff; */
+	/* --color-overlay: var(--black-a6); */
+	/* --color-panel-solid: #fff; */
+	/* --color-panel-translucent: #ffffffb3; */
+	/* --color-surface: #ffffffd9; */
+	/* --color-transparent: #0000; */
+
+}
+
+/*
+	--color-green: hsl(120, 21%, 52%);
+	--color-lavender: hsl(257, 62%, 82%);
+	--color-light-blue: #8fbfdc;
+	--color-light-gray: #e8e8d3;
+	--color-orange: #ffb964;
+	--color-purple: #5d1ae6;
+	--color-red: hsl(11, 78%, 38%);
+	--color-slate: #668799;
+	--color-tan: #c59f6f;
+	--color-yellow: hsl(33, 82%, 58%);
+	--color-acidgreen: #b8e68a;
+	--color-deeppurple: hsl(295, 22%, 12%);
+
+	--color-blue2: #7a8db3;
+	--color-green2: #99ad6a;
+	--color-pink2: #f0a0c0;
+	--color-purple2: #6f43c5;
+	--color-red2: #cf6a4c;
+	--color-yellow2: #eec674;
+
+	--blue-7: lch(20% 10.6 269.69);
+	--blue-6: lch(24% 12.1 269.69);
+	--blue-5: lch(37% 16.1 269.69);
+	--blue-4: lch(58.19% 22.43 269.69);
+	--blue-3: lch(76.5% 12.4 269.69);
+	--blue-2: lch(89.5% 4.8 269.69);
+	--blue-1: lch(93.5% 2.7 269.69);
+
+	--green-7: lch(20% 14 115.94);
+	--green-6: lch(24% 16.7 115.94);
+	--green-5: lch(37% 22.4 115.94);
+	--green-4: lch(56.5% 30.7 115.94);
+	--green-3: lch(67.96% 35.57 115.94);
+	--green-2: lch(89.5% 39.3 115.94);
+	--green-1: lch(93.5% 33.5 115.94);
+
+	--yellow-7: lch(20% 19 74.93);
+	--yellow-6: lch(24% 22.8 74.93);
+	--yellow-5: lch(37% 31.2 74.93);
+	--yellow-4: lch(56.5% 42.7 74.93);
+	--yellow-3: lch(77.29% 54.51 74.93);
+	--yellow-2: lch(89.5% 17.9 74.93);
+	--yellow-1: lch(93.5% 9.5 74.93);
+
+	--red-6: lch(20% 22.9 42.52);
+	--red-5: lch(24% 27.9 42.52);
+	--red-4: lch(37% 40.2 42.52);
+	--red-3: lch(56.74% 52.92 42.52);
+	--red-2: lch(76.5% 22.8 42.52);
+	--red-1: lch(93.5% 4.3 42.52);
+
+	--pink-7: lch(20% 32 353.8);
+	--pink-6: lch(24% 36.7 353.8);
+	--pink-5: lch(37% 48.7 353.8);
+	--pink-4: lch(56.5% 66.1 353.8);
+	--pink-3: lch(74.69% 33.96 353.8);
+	--pink-2: lch(89.5% 11.2 353.8);
+	--pink-1: lch(93.5% 6.3 353.8);
+
+	--neutral-1: hsl(60deg 30% 90%);
+	--neutral-2: hsl(60deg 30% 86%);
+	--neutral-3: #babaa6;
+	--neutral-4: #959682;
+	--neutral-5: #808070;
+	--neutral-6: #4e4e43;
+	--neutral-7: #404040;
+	--neutral-8: #333333;
+	--neutral-9: #30302c;
+	--neutral-10: #1c1c1c;
+	--neutral-11: #151515;
+}
+
+
+ */

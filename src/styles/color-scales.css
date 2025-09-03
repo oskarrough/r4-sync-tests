@@ -1,0 +1,148 @@
+/*
+ * Color scales that reference base variables
+ * Base colors: --accent-light, --accent-dark, --gray-light, --gray-dark
+ * 
+ * GUIDE TO DESIGNING YOUR OWN COLOR SCALES:
+ * 
+ * Our final approach combines the best of both worlds:
+ * 
+ * ACCENT COLORS (dynamic from base):
+ * - Uses base color's lightness and chroma dynamically
+ * - accent-9 = exact base color, others derived from it
+ * - Gives users full control over accent character
+ * 
+ * GRAY COLORS (fixed lightness, proportional chroma):
+ * - Uses FIXED lightness values based on UX research
+ * - Light theme: 99% → 97% → 96% → 94% → 93% → 91% → 89% → 82% → 65% → 61% → 54% → 20%
+ * - Dark theme: 95% → 94% → 70% → 60% → 54% → 43% → 36% → 32% → 30% → 27% → 25% → 19%
+ * - ASYMMETRIC patterns: light themes need subtle backgrounds + strong text,
+ *   dark themes need strong backgrounds + subtle dark variations
+ * - Uses PROPORTIONAL chroma from base color (0.5x to 1.6x multipliers)
+ * 
+ * KEY LEARNINGS:
+ * 
+ * 1. ASYMMETRIC LIGHTNESS WORKS BETTER:
+ *    - Light mode: tiny steps at top, big jump to text at bottom
+ *    - Dark mode: big jump from backgrounds, tiny steps at bottom
+ *    - Matches how we actually use grays in interfaces
+ * 
+ * 2. PROPORTIONAL CHROMA IS MORE NATURAL:
+ *    - Multiplying base color's chroma feels better than fixed values  
+ *    - Pure grays (#000, #fff) stay neutral, tinted grays stay proportional
+ *    - Range: 0.5x (subtle backgrounds) → 1.6x (strong text)
+ * 
+ * 3. INDUSTRY PATTERNS EXIST FOR A REASON:
+ *    - Tailwind's lightness curves aren't arbitrary - they're UX-optimized
+ *    - Small steps where you need subtle variation, big jumps where you need contrast
+ *    - Compare: Tailwind neutral=0, zinc=0.017, gray=0.034, slate=0.046 chroma
+ * 
+ * BROWSER SUPPORT:
+ * - oklch(from var(...)) works in modern browsers
+ * - Avoid nested min(calc(...)) - causes compatibility issues  
+ * - Simple calc() operations work reliably
+ * - Values 0-1 instead of percentages work fine
+ */
+
+:root {
+	/* Main accent color for easy reference */
+	--accent: light-dark(var(--accent-light), var(--accent-dark));
+
+	/* Accent scale - 12 steps from base colors */
+	--accent-1: light-dark(
+		oklch(from var(--accent-light) 98% calc(c * 0.15) h),
+		oklch(from var(--accent-dark) 12% calc(c * 0.2) h)
+	);
+	--accent-2: light-dark(
+		oklch(from var(--accent-light) 95% calc(c * 0.25) h),
+		oklch(from var(--accent-dark) 16% calc(c * 0.3) h)
+	);
+	--accent-3: light-dark(
+		oklch(from var(--accent-light) 92% calc(c * 0.35) h),
+		oklch(from var(--accent-dark) 20% calc(c * 0.4) h)
+	);
+	--accent-4: light-dark(
+		oklch(from var(--accent-light) 88% calc(c * 0.45) h),
+		oklch(from var(--accent-dark) 24% calc(c * 0.5) h)
+	);
+	--accent-5: light-dark(
+		oklch(from var(--accent-light) 83% calc(c * 0.55) h),
+		oklch(from var(--accent-dark) 28% calc(c * 0.6) h)
+	);
+	--accent-6: light-dark(
+		oklch(from var(--accent-light) 77% calc(c * 0.65) h),
+		oklch(from var(--accent-dark) 32% calc(c * 0.7) h)
+	);
+	--accent-7: light-dark(
+		oklch(from var(--accent-light) 70% calc(c * 0.75) h),
+		oklch(from var(--accent-dark) 38% calc(c * 0.8) h)
+	);
+	--accent-8: light-dark(
+		oklch(from var(--accent-light) 62% calc(c * 0.85) h),
+		oklch(from var(--accent-dark) 44% calc(c * 0.9) h)
+	);
+	--accent-9: light-dark(var(--accent-light), var(--accent-dark));
+	--accent-10: light-dark(
+		oklch(from var(--accent-light) calc(l * 0.85) c h),
+		oklch(from var(--accent-dark) calc(l * 1.1) c h)
+	);
+	--accent-11: light-dark(
+		oklch(from var(--accent-light) calc(l * 0.65) c h),
+		oklch(from var(--accent-dark) calc(l * 1.2) c h)
+	);
+	--accent-12: light-dark(
+		oklch(from var(--accent-light) 20% c h),
+		oklch(from var(--accent-dark) 92% calc(c * 0.7) h)
+	);
+
+	/* Gray scale - uses base color's natural chroma, multiplied for each step */
+	/* Light theme: tiny steps at top, big jump to dark text at end */
+	/* Dark theme: big jump from light bg, tiny steps at bottom */
+	--gray-1: light-dark(
+		oklch(from var(--gray-light) 0.99 calc(c * 0.5) h),
+		oklch(from var(--gray-dark) 0.19 calc(c * 1.6) h)
+	);
+	--gray-2: light-dark(
+		oklch(from var(--gray-light) 0.97 calc(c * 0.6) h),
+		oklch(from var(--gray-dark) 0.25 calc(c * 1.5) h)
+	);
+	--gray-3: light-dark(
+		oklch(from var(--gray-light) 0.96 calc(c * 0.7) h),
+		oklch(from var(--gray-dark) 0.27 calc(c * 1.4) h)
+	);
+	--gray-4: light-dark(
+		oklch(from var(--gray-light) 0.94 calc(c * 0.8) h),
+		oklch(from var(--gray-dark) 0.30 calc(c * 1.3) h)
+	);
+	--gray-5: light-dark(
+		oklch(from var(--gray-light) 0.93 calc(c * 0.9) h),
+		oklch(from var(--gray-dark) 0.32 calc(c * 1.2) h)
+	);
+	--gray-6: light-dark(
+		oklch(from var(--gray-light) 0.91 c h),
+		oklch(from var(--gray-dark) 0.36 calc(c * 1.1) h)
+	);
+	--gray-7: light-dark(
+		oklch(from var(--gray-light) 0.89 calc(c * 1.1) h),
+		oklch(from var(--gray-dark) 0.43 c h)
+	);
+	--gray-8: light-dark(
+		oklch(from var(--gray-light) 0.82 calc(c * 1.2) h),
+		oklch(from var(--gray-dark) 0.54 calc(c * 1.0) h)
+	);
+	--gray-9: light-dark(
+		oklch(from var(--gray-light) 0.65 calc(c * 1.3) h),
+		oklch(from var(--gray-dark) 0.60 calc(c * 0.9) h)
+	);
+	--gray-10: light-dark(
+		oklch(from var(--gray-light) 0.61 calc(c * 1.4) h),
+		oklch(from var(--gray-dark) 0.70 calc(c * 0.8) h)
+	);
+	--gray-11: light-dark(
+		oklch(from var(--gray-light) 0.54 calc(c * 1.5) h),
+		oklch(from var(--gray-dark) 0.94 calc(c * 0.6) h)
+	);
+	--gray-12: light-dark(
+		oklch(from var(--gray-light) 0.20 calc(c * 1.6) h),
+		oklch(from var(--gray-dark) 0.95 calc(c * 0.5) h)
+	);
+}

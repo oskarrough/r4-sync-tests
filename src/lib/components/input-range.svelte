@@ -70,7 +70,7 @@
 		cursor: pointer;
 		position: relative;
 		z-index: 2;
-		accent-color: var(--color-accent);
+		accent-color: var(--accent-9);
 	}
 
 	.marks {

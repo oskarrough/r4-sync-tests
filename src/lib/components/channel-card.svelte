@@ -65,7 +65,7 @@
 	}
 
 	article > a:hover h3 {
-		color: var(--color-accent);
+		color: var(--accent-9);
 		text-decoration-line: underline;
 		text-decoration-thickness: 0.1px;
 		text-decoration-color: var(--gray-10);
@@ -74,7 +74,7 @@
 
 	article > a:focus,
 	article :global(button):focus {
-		outline: 2px solid var(--color-accent);
+		outline: 2px solid var(--accent-9);
 		outline-offset: -2px;
 	}
 

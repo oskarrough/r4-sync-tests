@@ -1,89 +1,15 @@
 :root {
-	/* --color-green: #799d6a; */
-	--color-green: hsl(120, 21%, 52%);
-	/* --color-lavender: #c6b6ee; */
-	--color-lavender: hsl(257, 62%, 82%);
-	--color-light-blue: #8fbfdc;
-	--color-light-gray: #e8e8d3;
-	--color-orange: #ffb964;
-	--color-purple: hsl(259.7, 80.3%, 50.2%);
-	--color-red: hsl(11, 78%, 38%);
-	--color-slate: #668799;
-	--color-tan: #c59f6f;
-	--color-yellow: hsl(33, 82%, 58%);
-	--color-acidgreen: #b8e68a;
-	--color-deeppurple: hsl(295, 22%, 12%);
-
-	/* test colors ununsed */
-	--color-blue2: #7a8db3;
-	--color-green2: #99ad6a;
-	--color-pink2: #f0a0c0;
-	--color-purple2: #6f43c5;
-	--color-red2: #cf6a4c;
-	--color-yellow2: #eec674;
-
-	/* blue */
-	--blue-7: lch(20% 10.6 269.69);
-	--blue-6: lch(24% 12.1 269.69);
-	--blue-5: lch(37% 16.1 269.69);
-	--blue-4: lch(58.19% 22.43 269.69);
-	--blue-3: lch(76.5% 12.4 269.69);
-	--blue-2: lch(89.5% 4.8 269.69);
-	--blue-1: lch(93.5% 2.7 269.69);
-
-	/* green */
-	--green-7: lch(20% 14 115.94);
-	--green-6: lch(24% 16.7 115.94);
-	--green-5: lch(37% 22.4 115.94);
-	--green-4: lch(56.5% 30.7 115.94);
-	--green-3: lch(67.96% 35.57 115.94);
-	--green-2: lch(89.5% 39.3 115.94);
-	--green-1: lch(93.5% 33.5 115.94);
-
-	/* yellow */
-	--yellow-7: lch(20% 19 74.93);
-	--yellow-6: lch(24% 22.8 74.93);
-	--yellow-5: lch(37% 31.2 74.93);
-	--yellow-4: lch(56.5% 42.7 74.93);
-	--yellow-3: lch(77.29% 54.51 74.93);
-	--yellow-2: lch(89.5% 17.9 74.93);
-	--yellow-1: lch(93.5% 9.5 74.93);
-
-	/* red */
-	--red-6: lch(20% 22.9 42.52);
-	--red-5: lch(24% 27.9 42.52);
-	--red-4: lch(37% 40.2 42.52);
-	--red-3: lch(56.74% 52.92 42.52);
-	--red-2: lch(76.5% 22.8 42.52);
-	--red-1: lch(93.5% 4.3 42.52);
-
-	/* pink */
-	--pink-7: lch(20% 32 353.8);
-	--pink-6: lch(24% 36.7 353.8);
-	--pink-5: lch(37% 48.7 353.8);
-	--pink-4: lch(56.5% 66.1 353.8);
-	--pink-3: lch(74.69% 33.96 353.8);
-	--pink-2: lch(89.5% 11.2 353.8);
-	--pink-1: lch(93.5% 6.3 353.8);
-
-	--neutral-1: hsl(60deg 30% 90%);
-	--neutral-2: hsl(60deg 30% 86%);
-	--neutral-3: #babaa6;
-	--neutral-4: #959682;
-	--neutral-5: #808070;
-	--neutral-6: #4e4e43;
-	--neutral-7: #404040;
-	--neutral-8: #333333;
-	--neutral-9: #30302c;
-	--neutral-10: #1c1c1c;
-	--neutral-11: #151515;
-
+	/* layout */
 	--scaling: 1;
-
 	--space-1: calc(0.2rem * var(--scaling));
 	--space-2: calc(0.5rem * var(--scaling));
 	--space-3: calc(1rem * var(--scaling));
+	--border-radius: 0.4rem;
+	--media-radius: 0;
 
+	/* typography */
+	--sans-serif: firava, system-ui, sans-serif;
+	--monospace: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
 	--font-1: 0.6875rem;
 	--font-2: 0.75rem;
 	--font-3: 0.8125rem;
@@ -94,80 +20,18 @@
 	--font-8: 1.5rem;
 	--font-9: 2.25rem;
 
-	--border-radius: 0.4rem;
-	--media-radius: 0;
+	/* throughout the app we use this three-layered bg naming */
+	/*--bg-1: var(--gray-1);*/
+	/*--bg-2: var(--gray-2);*/
+	/*--bg-3: var(--gray-3);*/
 
-	--gray-1: light-dark(lch(97.5% 0 282), lch(7% 1.867 272));
-	--gray-2: light-dark(lch(94% 2 282), lch(10% 3.033 272));
-	--gray-3: light-dark(lch(92% 2 282), lch(14% 4.2 272));
-	--gray-4: light-dark(lch(89% 0 282), lch(19% 3.54 272));
-	--gray-5: light-dark(lch(85% 0 282), lch(25% 3.54 272));
-	--gray-6: light-dark(lch(75% 1 282), lch(35% 1.35 272));
-	--gray-7: light-dark(lch(65% 1 282), lch(45% 1.35 272));
-	--gray-8: light-dark(lch(55% 1 282), lch(55% 1.35 272));
-	--gray-9: light-dark(lch(45% 1 282), lch(65% 1.35 272));
-	--gray-10: light-dark(lch(35% 1 282), lch(75% 2 104));
-	--gray-11: light-dark(lch(20% 1 282), lch(90% 2 104));
-	--gray-12: light-dark(lch(10% 0 282), lch(91% 6 104));
-
-	--test-black: #000000;
-	--test-white: #ffffff;
-	--test-fl-red: #ff0000;
-	--test-fl-green: #00ff00;
-	--test-fl-blue: #0000ff;
-	--test-fl-cyan: #00ffff;
-	--test-fl-magenta: #ff00ff;
-	--test-fl-yellow: #ffff00;
-	--test-fl-orange: #ff6600;
-	--test-maroon: #660000;
-	--test-green: #00a645;
-	--test-blue: #000066;
-	--test-cyan: #006666;
-	--test-magenta: #660066;
-	--test-yellow: #ffbf00;
-	--test-olive: #666600;
-	--test-gray: #999999;
-
-	/* --color-background: #fff; */
-	/* --color-overlay: var(--black-a6); */
-	/* --color-panel-solid: #fff; */
-	/* --color-panel-translucent: #ffffffb3; */
-	/* --color-surface: #ffffffd9; */
-	/* --color-transparent: #0000; */
-
-	--accent-1: color-mix(in lab, white, var(--color-accent) 95%);
-	--accent-2: color-mix(in lab, white, var(--color-accent) 90%);
-	--accent-3: color-mix(in lab, white, var(--color-accent) 85%);
-	--accent-4: color-mix(in lab, white, var(--color-accent) 75%);
-	--accent-5: color-mix(in lab, white, var(--color-accent) 65%);
-	--accent-6: color-mix(in lab, white, var(--color-accent) 50%);
-	--accent-7: color-mix(in lab, white, var(--color-accent) 35%);
-	--accent-8: color-mix(in lab, white, var(--color-accent) 20%);
-	--accent-9: var(--color-accent);
-	--accent-10: color-mix(in lab, black, var(--color-accent) 70%);
-	--accent-11: color-mix(in lab, black, var(--color-accent) 50%);
-	--accent-12: color-mix(in lab, black, var(--color-accent) 20%);
-
-	/** These variables should be exposed to users. well, really all should, but yea. */
-	--color-accent: light-dark(var(--color-purple), var(--color-acidgreen));
-
-	--bg-1: var(--gray-1);
-	--bg-2: var(--gray-2);
-	--bg-3: var(--gray-3);
-	/* --bg-1: hsl(from var(--gray-1) h s 4%); */
-	/* --bg-2: hsl(from var(--gray-1) h s 8%); */
-	/* --bg-3: hsl(from var(--bg-1) h s l / 90%); */
-	/* --bg-3: var(--bg-1); */
-	--header-bg: var(--bg-2);
-	--aside-bg: var(--bg-2);
-	--footer-bg: var(--bg-3);
-	/* --button-bg: var(--gray-1); */
-	/* --button-bg: var(--blue-1); */
-	/* color-mix(in lab, var(--gray-2), var(--color-accent) 7%) */
-	/* --footer-bg: light-dark( */
-	/* 	hsl(from var(--color-accent) h s 90%), */
-	/* 	color-mix(in lab, var(--gray-1), var(--color-accent) 14%) */
-	/* ); */
+	/* and you can control the background of each panel individually as well */
+	--header-bg: var(--bg-1);
+	--aside-bg: var(--bg-1);
+	--footer-bg: var(--bg-1);
+	/*--header-bg: var(--bg-1);*/
+	/*--aside-bg: var(--bg-2);*/
+	/*--footer-bg: var(--bg-3);*/
 
 	/* breakpoints */
 	--breakpoint-xs: 520px;
@@ -176,10 +40,8 @@
 	--breakpoint-lg: 1280px;
 	--breakpoint-xl: 1640px;
 
-	/* Forlayout think in boxes, flex (rows), grid, section (vertical spacing) and containers (max width) */
+	/* For layout think in boxes, flex (rows), grid, section (vertical spacing) and containers (max width) */
 	--player-compact-size: 8rem;
-
-	--monospace: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
 }
 
 :root.light {

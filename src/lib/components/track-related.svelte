@@ -37,6 +37,6 @@
 
 <style>
 	a {
-		color: var(--color-accent);
+		color: var(--accent-9);
 	}
 </style>
