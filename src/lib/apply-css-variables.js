@@ -23,7 +23,7 @@ export function applyCustomCssVariables(customVariables = {}) {
 	const accentBaseLight = customVariables['--accent-light']
 	const accentBaseDark = customVariables['--accent-dark']
 	if (accentBaseLight) {
-		root.style.setProperty('--gray-light', accentBaseLight)
+		root.style.setProperty('--accent-light', accentBaseLight)
 	}
 	if (accentBaseDark) {
 		root.style.setProperty('--accent-dark', accentBaseDark)

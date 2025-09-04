@@ -68,26 +68,25 @@
 }
 
 /*
+
+
+	--color-acidgreen: #b8e68a;
+	--color-blue2: #7a8db3;
+	--color-deeppurple: hsl(295, 22%, 12%);
+	--color-green2: #99ad6a;
 	--color-green: hsl(120, 21%, 52%);
 	--color-lavender: hsl(257, 62%, 82%);
 	--color-light-blue: #8fbfdc;
 	--color-light-gray: #e8e8d3;
 	--color-orange: #ffb964;
+	--color-pink2: #f0a0c0;
+	--color-purple2: #6f43c5;
 	--color-purple: #5d1ae6;
-	--color-red: hsl(11, 78%, 38%);
 	--color-slate: #668799;
 	--color-tan: #c59f6f;
 	--color-yellow: hsl(33, 82%, 58%);
-	--color-acidgreen: #b8e68a;
-	--color-deeppurple: hsl(295, 22%, 12%);
-
-	--color-blue2: #7a8db3;
-	--color-green2: #99ad6a;
-	--color-pink2: #f0a0c0;
-	--color-purple2: #6f43c5;
-	--color-red2: #cf6a4c;
 	--color-yellow2: #eec674;
-
+ 
 	--blue-7: lch(20% 10.6 269.69);
 	--blue-6: lch(24% 12.1 269.69);
 	--blue-5: lch(37% 16.1 269.69);

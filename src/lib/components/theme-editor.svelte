@@ -14,28 +14,28 @@
 			name: '--accent-light',
 			label: 'accent (light)',
 			description: 'generates accent-1 through accent-12',
-			default: '#6d28d9',
+			default: 'oklch(0.5 0.25 290)',
 			theme: 'light'
 		},
 		{
 			name: '--accent-dark',
 			label: 'accent (dark)',
 			description: 'generates accent-1 through accent-12',
-			default: '#b8e68a',
+			default: 'lch(86 48 124)',
 			theme: 'dark'
 		},
 		{
 			name: '--gray-light',
-			label: 'gray (light)',
+			label: 'gray tones',
 			description: 'generates gray-1 through gray-12',
-			default: '#988B8B',
+			default: 'oklch(0.67 0.01 0)',
 			theme: 'light'
 		},
 		{
 			name: '--gray-dark',
-			label: 'gray (dark)',
+			label: 'gray tones',
 			description: 'generates gray-1 through gray-12',
-			default: '#988B8B',
+			default: 'oklch(0.67 0.01 0)',
 			theme: 'dark'
 		}
 	]
@@ -93,7 +93,7 @@
 
 		applyTimer = setTimeout(() => {
 			applyCustomCssVariables({...customVariables, [name]: value.trim()})
-		}, 50) // Fast visual feedback
+		}, 50)
 
 		debounceTimer = setTimeout(() => {
 			if (value.trim()) {
@@ -101,7 +101,7 @@
 			} else {
 				delete appState.custom_css_variables[name]
 			}
-		}, 300) // Slower database persistence
+		}, 300)
 	}
 	const resetToDefaults = () => {
 		appState.custom_css_variables = {}
@@ -182,7 +182,7 @@
 				<label for={`${uid}--border-radius`}>rounded corners</label>
 				<input
 					type="checkbox"
-					checked={customVariables['--border-radius'] !== '0'}
+					checked={customVariables['--border-radius'] ? customVariables['--border-radius'] !== '0' : true}
 					onchange={(e) => updateVariable('--border-radius', e.target.checked ? '0.4rem' : '0')}
 					id={`${uid}--border-radius`}
 				/>
@@ -194,7 +194,7 @@
 				<label for={`${uid}--media-radius`}>rounded artwork</label>
 				<input
 					type="checkbox"
-					checked={customVariables['--media-radius'] !== '0'}
+					checked={customVariables['--media-radius'] ? customVariables['--media-radius'] !== '0' : true}
 					onchange={(e) => updateVariable('--media-radius', e.target.checked ? '0.4rem' : '0')}
 					id={`${uid}--media-radius`}
 				/>

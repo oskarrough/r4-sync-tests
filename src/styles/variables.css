@@ -5,7 +5,7 @@
 	--space-2: calc(0.5rem * var(--scaling));
 	--space-3: calc(1rem * var(--scaling));
 	--border-radius: 0.4rem;
-	--media-radius: 0;
+	--media-radius: 0.4rem;
 
 	/* typography */
 	--sans-serif: firava, system-ui, sans-serif;

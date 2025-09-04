@@ -23,7 +23,7 @@
 	<section>
 		<h2>Account</h2>
 		{#if appState.user}
-			<p>You are signed in as {appState.user.email}.</p>
+			<p>You are signed in as {appState.user.email}</p>
 			<p>
 				<button onclick={() => logout()}>Log out</button>
 			</p>
@@ -78,7 +78,7 @@
 
 <style>
 	article {
-		padding-bottom: calc(var(--player-compact-space) + 4rem);
+		padding-bottom: calc(var(--player-compact-space) + 6rem);
 	}
 	section {
 		margin: 0.5rem 0.5rem 2rem;
