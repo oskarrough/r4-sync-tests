@@ -20,18 +20,10 @@
 	--font-8: 1.5rem;
 	--font-9: 2.25rem;
 
-	/* throughout the app we use this three-layered bg naming */
-	/*--bg-1: var(--gray-1);*/
-	/*--bg-2: var(--gray-2);*/
-	/*--bg-3: var(--gray-3);*/
-
 	/* and you can control the background of each panel individually as well */
-	--header-bg: var(--bg-1);
-	--aside-bg: var(--bg-1);
-	--footer-bg: var(--bg-1);
-	/*--header-bg: var(--bg-1);*/
-	/*--aside-bg: var(--bg-2);*/
-	/*--footer-bg: var(--bg-3);*/
+	--header-bg: var(--gray-1);
+	--aside-bg: var(--gray-1);
+	--footer-bg: var(--gray-1);
 
 	/* breakpoints */
 	--breakpoint-xs: 520px;

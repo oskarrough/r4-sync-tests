@@ -7,6 +7,8 @@
 
 	const uid = $props.id()
 
+	const fontSizes = ['--font-1', '--font-2', '--font-3', '--font-4', '--font-5', '--font-6', '--font-7', '--font-8']
+
 	// Base colors that generate scales
 	const baseColors = [
 		{
@@ -109,29 +111,16 @@
 	}
 
 	let importText = $state('')
-	let exportFeedback = $state('')
-
-	const exportTheme = async () => {
+	let exportString = $derived.by(() => {
 		const variables = appState.custom_css_variables || {}
 		const themeString = Object.entries(variables)
 			.map(([key, value]) => `${key}:${value}`)
 			.join(';')
+		return themeString
+	})
 
-		if (!themeString) {
-			exportFeedback = 'no custom theme to export'
-			setTimeout(() => (exportFeedback = ''), 3000)
-			return
-		}
-
-		try {
-			await navigator.clipboard.writeText(themeString)
-			exportFeedback = `copied to clipboard (${Object.keys(variables).length} variables)`
-			setTimeout(() => (exportFeedback = ''), 4000)
-		} catch (error) {
-			console.error('Clipboard error:', error)
-			exportFeedback = 'failed to copy - check console'
-			setTimeout(() => (exportFeedback = ''), 4000)
-		}
+	function copyTheme() {
+		navigator.clipboard.writeText(exportString)
 	}
 
 	const importTheme = () => {
@@ -166,15 +155,15 @@
 	const accents = [...Array(12).keys()].map((i) => `--accent-${i + 1}`)
 </script>
 
-<section>
+<div class="SmallContainer">
 	<menu>
 		<ThemeToggle />
 		<button onclick={resetToDefaults}>Reset theme to defaults</button>
 	</menu>
 
-	<br/>
+	<br />
+	<h2>Theme</h2>
 
-	<h2>Colors</h2>
 	<!-- <p>Prefer your own style? Who doesn't. Choose a gray tone and an <em>accent</em> color.</p> -->
 	{#each baseColors as variable, i (variable.name + i)}
 		<div class:inactive={!isActiveVariable(variable)}>
@@ -215,42 +204,39 @@
 		</div>
 	{/each}
 
-	<br/>
-
-	<div class="color-grid">
-		{#each grays as name (name)}
-			<div class="color-swatch">
-				<figure style="background-color: var({name})"></figure>
-				<code>{name}</code>
-			</div>
-		{/each}
-	</div>
-
-	<div class="color-grid">
-		{#each accents as name (name)}
-			<div class="color-swatch">
-				<figure style="background-color: var({name})"></figure>
-				<code>{name}</code>
-			</div>
-		{/each}
-	</div>
-
-	<details class="theme-sharing">
-		<summary class="Button">Share theme</summary>
-		<div class="export-section">
-			<button onclick={exportTheme} type="button">Export theme</button>
-			{#if exportFeedback}
-				<small>{exportFeedback}</small>
-			{/if}
-		</div>
-		<div class="row">
-			<input type="text" bind:value={importText} placeholder="Paste theme string here" class="import-input" />
-			<button onclick={importTheme} type="button" disabled={!importText.trim()}>Apply</button>
-		</div>
-	</details>
-
 	<br />
+	<h2>Share theme</h2>
+	<div class="row">
+		<input type="text" readonly value={exportString} class="export-input" />
+		<button onclick={copyTheme}>Copy</button>
+	</div>
+	<div class="row">
+		<input type="text" bind:value={importText} placeholder="Paste theme string to import" class="import-input" />
+		<button onclick={importTheme} type="button" disabled={!importText.trim()}>Apply theme</button>
+	</div>
+</div>
 
+<div class="color-grid">
+	{#each grays as name (name)}
+		<div class="color-swatch">
+			<figure style="background-color: var({name})"></figure>
+			<code>{name}</code>
+		</div>
+	{/each}
+</div>
+
+<div class="color-grid">
+	{#each accents as name (name)}
+		<div class="color-swatch">
+			<figure style="background-color: var({name})"></figure>
+			<code>{name}</code>
+		</div>
+	{/each}
+</div>
+
+<br />
+
+<div class="SmallContainer">
 	<h2>Layout</h2>
 
 	<form>
@@ -302,15 +288,56 @@
 			<small>Toggle track thumbnails in track lists and player</small>
 		</div>
 	</form>
+</div>
+
+<br />
+
+<section class="SmallContainer">
+	<h2>Typo(graphy)</h2>
+	<div class="variable-grid">
+		{#each fontSizes as sizeVar (sizeVar)}
+			<article style="--size: var({sizeVar})">
+				<h3>{sizeVar}</h3>
+				<p>
+					Sample text. The man writes like he's permanently high on incense and good intentions. Every sentence floats
+					along with this oiled mystical confidence, as if he's personally received a download from the cosmos and is
+					graciously sharing the password with the rest of us mortals. "Your children are not your children"—well,
+					thanks Khalil.
+				</p>
+			</article>
+		{/each}
+	</div>
+</section>
+
+<section class="SmallContainer">
+	<h2>A form</h2>
+	<form>
+		<div>
+			<label
+				>Your name
+				<input type="text" />
+			</label>
+		</div>
+		<div>
+			<label
+				>Your age
+				<input type="number" />
+			</label>
+		</div>
+		<div>
+			<button type="button">Cancel</button>
+			<button type="submit">Submit</button>
+		</div>
+	</form>
 </section>
 
 <style>
 	section {
-		margin-bottom: 1rem;
+		margin-bottom: 3rem;
 	}
 
-	menu {
-		margin: 1rem 0;
+	h2 {
+		margin-bottom: 0.5rem;
 	}
 
 	input[type='text'] {
@@ -323,35 +350,40 @@
 		flex-flow: column;
 		gap: 0.5rem;
 		align-items: flex-start;
-	}
 
-	form label {
-		user-select: none;
-		&::after {
-			content: '→';
-			margin: 0 1rem 0 0.1em;
-			display: inline-block;
+		label {
+			user-select: none;
 		}
-	}
 
-	form > div {
-		display: grid;
-		grid-template-columns: auto auto 1fr;
-		gap: 0 0.5rem;
-		align-items: center;
-	}
+		> div {
+			display: grid;
+			grid-template-columns: auto auto 1fr;
+			gap: 0 0.5rem;
+			align-items: center;
+		}
 
-	small {
-		grid-column: 1 / -1;
+		small {
+			grid-column: 1 / -1;
+		}
 	}
 
 	.inactive {
 		display: none;
-		opacity: 0.2;
 	}
 
-	details {
-		margin-top: 1rem;
-		margin-left: 1rem;
+	.variable-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(60ch, 1fr));
+
+		h3 {
+			border-left: calc(var(--size) * 2) solid;
+			padding-left: 0.5rem;
+		}
+
+		p {
+			font-size: var(--size);
+			padding: 0.5rem;
+			border-left: 1px solid;
+		}
 	}
 </style>

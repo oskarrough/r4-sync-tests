@@ -117,9 +117,8 @@
 
 	h2,
 	h3 {
-		font-weight: 600;
 		margin-left: 0.5rem;
-		color: var(--gray-8);
+		color: var(--gray-9);
 	}
 
 	.year h2 {
@@ -127,8 +126,6 @@
 		position: sticky;
 		top: 0;
 		z-index: 1;
-		background: var(--bg-1);
-		/*
-		 */
+		background: var(--gray-1);
 	}
 </style>

@@ -20,10 +20,10 @@
 		<h2>Settings</h2>
 	</section>
 	<section>
-		<h2>Alpha software</h2>
+		<h2>Help it's broken</h2>
 		<p>
-			If the app is acting weird, tracks not loading or just broken, try <a href="/recovery">recovery</a>. Or
-			<a href="https://matrix.to/#/#radio4000:matrix.org" rel="noreferrer">join the public Radio4000 Matrix chat room</a
+			Very likely. Well, not very likely but likely. If the app is acting weird, tracks not loading or just broken, try <a href="/recovery">recovery</a>. Or
+			<a href="https://matrix.to/#/#radiaao4000:matrix.org" rel="noreferrer">join the public Radio4000 Matrix chat room</a
 			>.
 		</p>
 	</section>
@@ -34,14 +34,13 @@
 				<button onclick={() => logout()}>Logout</button>
 			</p>
 		{:else}
-			<p>You only need an account if you want to have a radio and add tracks.</p>
 			<p>
 				<a href="/auth">Create account or sign in</a>
 			</p>
 		{/if}
 	</section>
 	<section>
-		<h2>Theme</h2>
+		<h2>Appearance</h2>
 		<p><a href="/settings/theme">Theme settings</a></p>
 	</section>
 	<section>

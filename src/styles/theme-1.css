@@ -1,8 +1,11 @@
 :root {
-	--gray-light: #988b8b;
-	--accent-light: #6d28d9;
-	--gray-dark: #988b8b;
+	/* Default base colors for generating a color scale */
+	--gray-light: oklch(0.67 0.01 0);
+
+	--accent-light: oklch(0.5 0.25 290);
+	--gray-dark: oklch(0.67 0.01 0);
 	--accent-dark: #b8e68a;
+
 	--button-bg: var(--gray-1);
 	--button-color: var(--gray-12);
 }

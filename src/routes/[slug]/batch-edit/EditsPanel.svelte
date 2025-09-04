@@ -117,13 +117,13 @@
 		display: flex;
 		flex-direction: column;
 		height: 100%;
-		background: var(--bg-2);
+		background: var(--gray-2);
 		border-left: 1px solid var(--gray-6);
 	}
 
 	aside > header {
 		padding: 0.5rem;
-		background: var(--bg-3);
+		background: var(--gray-1);
 		border-bottom: 1px solid var(--gray-7);
 		display: flex;
 		justify-content: space-between;

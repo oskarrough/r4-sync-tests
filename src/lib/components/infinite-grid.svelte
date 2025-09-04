@@ -106,7 +106,7 @@
 		right: 0;
 		bottom: 0;
 		overflow: hidden;
-		background: var(--bg-1);
+		background: var(--gray-1);
 		cursor: grab;
 	}
 
@@ -134,7 +134,7 @@
 		flex-flow: column;
 		place-items: center;
 
-		background: var(--bg-2);
+		background: var(--gray-2);
 		border-radius: var(--border-radius);
 	}
 

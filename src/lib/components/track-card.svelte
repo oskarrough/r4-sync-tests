@@ -92,7 +92,7 @@
 		width: 1.5rem;
 		margin: auto 0;
 		flex-shrink: 0;
-		color: var(--gray-7);
+		color: var(--gray-8);
 		font-size: var(--font-1);
 		text-align: right;
 	}
@@ -113,7 +113,6 @@
 	}
 
 	.title {
-		color: var(--gray-11);
 		.active & {
 			background: var(--accent-9);
 			color: var(--gray-1);
@@ -123,7 +122,7 @@
 	p {
 		margin: 0;
 		:global(a) {
-			color: var(--gray-8);
+			color: var(--gray-11);
 		}
 	}
 

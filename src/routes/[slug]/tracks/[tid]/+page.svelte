@@ -88,7 +88,7 @@
 				color: var(--gray-1);
 
 				&::before {
-					background: var(--bg-1);
+					background: var(--gray-1);
 					color: var(--gray-12);
 				}
 			}

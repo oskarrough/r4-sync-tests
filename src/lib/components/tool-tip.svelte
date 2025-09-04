@@ -63,7 +63,7 @@
 		font-size: var(--font-3);
 		color: var(--gray-11);
 		border: 1px solid var(--gray-6);
-		background: var(--bg-1);
+		background: var(--gray-1);
 		border-radius: var(--border-radius);
 		max-width: 200px;
 		pointer-events: none;

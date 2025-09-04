@@ -3,22 +3,20 @@
 </script>
 
 <svelte:head>
-	<title>R4/Settings/Theme</title>
+	<title>Appearance/theme settings</title>
 </svelte:head>
 
-<article class="nopSmallContainer">
+<article class="SmallContainer">
 	<header>
-		<p><a href="/settings">Settings</a> / Theme</p>
+		<p><a href="/settings">Settings</a> / Appearance</p>
 	</header>
-
-	<section>
-		<ThemeEditor />
-	</section>
 </article>
 
+<ThemeEditor />
+
 <style>
-	article {
-		margin: 0.5rem 0.5rem 0;
-		padding-bottom: calc(var(--player-compact-space) + 4rem);
+	article > header {
+		margin-top: 0.5rem;
+		margin-bottom: 1rem;
 	}
 </style>

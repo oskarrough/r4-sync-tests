@@ -205,7 +205,7 @@
 		top: 0;
 		z-index: 1;
 		font-weight: bold;
-		background: var(--bg-3);
+		background: var(--gray-1);
 		border-bottom: 1px solid var(--gray-7);
 	}
 
