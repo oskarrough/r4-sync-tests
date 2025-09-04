@@ -23,8 +23,9 @@
 	<section>
 		<h2>Account</h2>
 		{#if appState.user}
+			<p>You are signed in as {appState.user.email}.</p>
 			<p>
-				<button onclick={() => logout()}>Logout</button>
+				<button onclick={() => logout()}>Log out</button>
 			</p>
 		{:else}
 			<p>
