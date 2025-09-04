@@ -126,6 +126,7 @@ figure {
 	margin: 0;
 }
 
+r4-sign-up,
 r4-sign-in,
 r4-sign-out,
 r4-track-create {
@@ -148,4 +149,3 @@ r4-track-create {
 		}
 	}
 }
-
