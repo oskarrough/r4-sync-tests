@@ -39,10 +39,6 @@ html {
 
 	background: var(--gray-1);
 	color: var(--gray-12);
-
-	transition:
-		background 150ms,
-		color 150ms;
 }
 
 html {
