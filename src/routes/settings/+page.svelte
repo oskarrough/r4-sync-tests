@@ -78,7 +78,7 @@
 
 <style>
 	article {
-		padding-bottom: calc(var(--player-compact-space) + 6rem);
+		margin-bottom: calc(var(--player-compact-size));
 	}
 	section {
 		margin: 0.5rem 0.5rem 2rem;
