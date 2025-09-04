@@ -16,3 +16,10 @@ Migrations must be written in a way that they can be run multiple times e.g. `if
 While we are in alpha, it's ok to change existing migrations. Once in production: new migrations only.
 
 Refer with the `types.ts` and `migrations/*.js` for the exact schema.
+
+### Current migrations:
+
+- 01-initial-schema.js: Core tables (channels, tracks, app_state)
+- 02-more-tables.js: Additional tables (followers, play_history, track_meta)
+- 03-functions-and-views.js: Database functions and views
+- 04-custom-css.js: Add custom_css column to app_state for raw CSS variable overrides

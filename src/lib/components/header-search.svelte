@@ -93,3 +93,9 @@
 		{/each}
 	</datalist>
 </form>
+
+<style>
+	:global(input[type="search"])  {
+		min-width: 24ch;
+	}
+	</style>

@@ -20,9 +20,11 @@
 		<h2>Settings</h2>
 	</section>
 	<section>
-		<h2>Alpha software</h2>
+		<h2>Help it's broken</h2>
 		<p>
-			If the app is acting weird, tracks not loading or just broken, try <a href="/recovery">recovery</a>.
+			Very likely. Well, not very likely but likely. If the app is acting weird, tracks not loading or just broken, try <a href="/recovery">recovery</a>. Or
+			<a href="https://matrix.to/#/#radiaao4000:matrix.org" rel="noreferrer">join the public Radio4000 Matrix chat room</a
+			>.
 		</p>
 	</section>
 	<section>
@@ -32,14 +34,14 @@
 				<button onclick={() => logout()}>Logout</button>
 			</p>
 		{:else}
-			<p>You only need an account if you want to have a radio and add tracks.</p>
 			<p>
 				<a href="/auth">Create account or sign in</a>
 			</p>
 		{/if}
 	</section>
 	<section>
-		<ThemeEditor />
+		<h2>Appearance</h2>
+		<p><a href="/settings/theme">Theme settings</a></p>
 	</section>
 	<section>
 		<KeyboardEditor />
@@ -47,15 +49,13 @@
 	<section>
 		<h2>About</h2>
 		<p>
-			Just like <a href="https://radio4000.com">radio4000.com</a>, this web app pulls its data from the Radio4000
-			PostgreSQL database. But it pulls it into another PostgreSQL database sitting locally, directly in your browser
-			via WASM. This makes it feel faster, more app-feeling hopefully. Pull channels from R4 (including version 1) by
-			<em>syncing</em> above &uarr;
+			This is an experimental client for Radio4000. Just like <a href="https://radio4000.com">radio4000.com</a>, this
+			web app pulls its data from the same Radio4000 PostgreSQL database. But it pulls it into <em>another</em> PostgreSQL
+			database. One sitting locally, directly in your browser.
 		</p>
-		<br />
 		<p>
-			You can add tracks to your radio. But creating a radio, editing tracks etc. is not yet possible. go to the og site
-			for that.
+			One obvious thing still missing is the ability create a new radio. If you want one, please do so on radio4000.com
+			and come back here. You can add tracks just fine.
 		</p>
 		<p>
 			<a href="https://matrix.to/#/#radio4000:matrix.org" rel="noreferrer">Chat with us</a>
@@ -71,7 +71,7 @@
 
 <style>
 	article {
-		padding-bottom: var(--player-compact-space);
+		padding-bottom: calc(var(--player-compact-space) + 4rem);
 	}
 	section {
 		margin: 0.5rem 0.5rem 2rem;

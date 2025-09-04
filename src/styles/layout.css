@@ -4,6 +4,7 @@
 	max-width: 80ch;
 	margin-left: auto;
 	margin-right: auto;
+	padding: 0 0.5rem;
 }
 
 /* Use on containers that need scrolling */
@@ -30,9 +31,82 @@
 
 .grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); /* < 180 ensures two cols on most mobile */
 	margin: 0.5rem;
 	gap: 2rem 1rem;
 	padding: 0;
 	list-style: none;
+}
+
+.row {
+	display: flex;
+	flex-flow: row wrap;
+	gap: 0.5rem;
+}
+
+menu {
+	display: flex;
+	gap: 0.2rem;
+	margin: 0;
+	padding: 0;
+
+	hr {
+		margin: auto 0.4em;
+		width: 1px;
+		height: 1em;
+		background: var(--gray-6);
+	}
+}
+
+menu.row {
+	gap: 0.2rem;
+}
+
+dl.meta {
+	display: grid;
+	grid-template-columns: max-content 1fr;
+	gap: 0 1rem;
+
+	dt {
+		color: var(--gray-10);
+	}
+
+	dd {
+		margin: 0;
+	}
+
+	a {
+		color: var(--accent-9);
+	}
+
+	img {
+		max-width: 150px;
+		height: auto;
+		border-radius: var(--border-radius);
+	}
+}
+
+.color-grid {
+	display: grid;
+	grid-template-columns: repeat(12, 1fr);
+	/*grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));*/
+	gap: 0.2rem;
+	margin: 0.5rem;
+
+	figure {
+		height: 4rem;
+	}
+
+	code {
+		font-size: var(--font-3);
+		font-family: inherit;
+		padding: 0.2rem;
+	}
+}
+
+.color-swatch {
+	border: 1px solid var(--gray-4);
+	border-radius: var(--border-radius);
+	overflow: hidden;
+	background: var(--gray-2);
 }

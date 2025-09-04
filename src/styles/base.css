@@ -27,7 +27,7 @@ html {
 	line-height: 1.5;
 	font-weight: 400;
 	text-rendering: optimizeLegibility;
-	font-family: firava, system-ui, sans-serif;
+	font-family: var(--sans-serif);
 	scroll-behavior: smooth;
 	color-scheme: light dark;
 	interpolate-size: allow-keywords;
@@ -37,7 +37,7 @@ html {
 	-webkit-text-size-adjust: 100%;
 	text-size-adjust: 100%; /* ios? */
 
-	background: var(--bg-1);
+	background: var(--gray-1);
 	color: var(--gray-12);
 
 	transition:
@@ -58,7 +58,7 @@ body {
 }
 
 ::selection {
-	/* background: var(--color-accent); */
+	/* background: var(--accent-9); */
 }
 
 * {
@@ -118,7 +118,7 @@ hr {
 
 small {
 	font-size: var(--font-3);
-	color: var(--gray-8);
+	color: var(--gray-10);
 }
 
 ul,
@@ -149,40 +149,3 @@ r4-track-create {
 	}
 }
 
-menu {
-	display: flex;
-	gap: 0.2rem;
-	margin: 0;
-	padding: 0;
-
-	hr {
-		margin: auto 0.4em;
-		width: 1px;
-		height: 1em;
-		background: var(--gray-6);
-	}
-}
-
-dl.meta {
-	display: grid;
-	grid-template-columns: max-content 1fr;
-	gap: 0 1rem;
-
-	dt {
-		color: var(--gray-10);
-	}
-
-	dd {
-		margin: 0;
-	}
-
-	a {
-		color: var(--color-accent);
-	}
-
-	img {
-		max-width: 150px;
-		height: auto;
-		border-radius: var(--border-radius);
-	}
-}
