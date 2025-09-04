@@ -9,5 +9,5 @@
 </script>
 
 <button onclick={toggleThemeApi}>
-	<Icon {icon} size={20} />
+	<Icon {icon} size={20} /> {theme}
 </button>

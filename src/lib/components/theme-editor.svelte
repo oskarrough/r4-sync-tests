@@ -9,7 +9,6 @@
 
 	const fontSizes = ['--font-1', '--font-2', '--font-3', '--font-4', '--font-5', '--font-6', '--font-7', '--font-8']
 
-	// Base colors that generate scales
 	const baseColors = [
 		{
 			name: '--accent-light',
@@ -41,7 +40,6 @@
 		}
 	]
 
-	// Optional overrides
 	const overrides = [
 		{
 			name: '--button-bg-light',
@@ -73,22 +71,22 @@
 		}
 	]
 
-	const currentTheme = $derived(appState.theme || 'auto')
+	let debounceTimer = $state()
+	let applyTimer = $state()
+
+	const prefersLight = $derived(window.matchMedia('(prefers-color-scheme: light)').matches)
+	const currentTheme = $derived(appState.theme ?? (prefersLight ? 'light' : 'dark'))
+
 	const isActiveVariable = (variable) => {
-		if (variable.theme === 'both') return true
-		if (currentTheme === 'auto') return true
+		// if (variable.theme === 'both') return true
+		if (!currentTheme) return variable
 		return variable.theme === currentTheme
 	}
 
 	const customVariables = $derived(appState.custom_css_variables || {})
 	const getCurrentValue = (variable) => customVariables[variable.name] || variable.default
 
-	let debounceTimer = $state()
-	let applyTimer = $state()
-
 	const updateVariable = (name, value) => {
-		console.log(name, value)
-
 		// Debounce both CSS application and database persistence
 		clearTimeout(applyTimer)
 		clearTimeout(debounceTimer)
@@ -156,64 +154,118 @@
 </script>
 
 <div class="SmallContainer">
-	<menu>
+	<section>
+		<h1>Appearance</h1>
 		<ThemeToggle />
-		<button onclick={resetToDefaults}>Reset theme to defaults</button>
-	</menu>
+	</section>
 
-	<br />
-	<h2>Theme</h2>
+	<section>
+		<h2>Layout</h2>
+		<form>
+			<div>
+				<label for={`${uid}--scaling`}>scale</label>
+				<InputRange
+					value={customVariables['--scaling'] || 1}
+					min={0.9}
+					max={1.1}
+					step={0.05}
+					id={`${uid}--scaling`}
+					oninput={(e) => {
+						updateVariable('--scaling', e.target.value)
+					}}
+				/>
+				<span>{customVariables['--scaling'] || '1'}</span>
+				<small>scale the interface to your measure</small>
+			</div>
 
-	<!-- <p>Prefer your own style? Who doesn't. Choose a gray tone and an <em>accent</em> color.</p> -->
-	{#each baseColors as variable, i (variable.name + i)}
-		<div class:inactive={!isActiveVariable(variable)}>
-			<label hidden for={`${uid}-${variable.name}`}>{variable.label}</label>
-			<InputColor
-				label={variable.label}
-				value={getCurrentValue(variable)}
-				onchange={(e) => updateVariable(variable.name, e.target.value)}
-			/>
-			<input
-				hidden
-				type="text"
-				value={getCurrentValue(variable)}
-				placeholder="e.g. #ff6b6b"
-				onchange={(e) => updateVariable(variable.name, e.target.value)}
-			/>
-			<small>{variable.description}</small>
+			<div>
+				<label for={`${uid}--border-radius`}>rounded corners</label>
+				<input
+					type="checkbox"
+					checked={customVariables['--border-radius'] !== '0'}
+					onchange={(e) => updateVariable('--border-radius', e.target.checked ? '0.4rem' : '0')}
+					id={`${uid}--border-radius`}
+				/>
+				<span></span>
+				<small>Round, round, around we go</small>
+			</div>
+
+			<div>
+				<label for={`${uid}--media-radius`}>rounded artwork</label>
+				<input
+					type="checkbox"
+					checked={customVariables['--media-radius'] !== '0'}
+					onchange={(e) => updateVariable('--media-radius', e.target.checked ? '0.4rem' : '0')}
+					id={`${uid}--media-radius`}
+				/>
+				<span></span>
+				<small>Round corners on track artwork</small>
+			</div>
+
+			<div>
+				<label for={`${uid}-hide-artwork`}>hide track artwork</label>
+				<input type="checkbox" bind:checked={appState.hide_track_artwork} id={`${uid}-hide-artwork`} />
+				<span></span>
+				<small>Toggle track thumbnails in track lists and player</small>
+			</div>
+		</form>
+	</section>
+
+	<section>
+		<h2>Create your own theme</h2>
+		{#each baseColors as variable, i (variable.name + i)}
+			<div class:inactive={!isActiveVariable(variable)}>
+				<label hidden for={`${uid}-${variable.name}`}>{variable.label}</label>
+				<InputColor
+					label={variable.label}
+					value={getCurrentValue(variable)}
+					onchange={(e) => updateVariable(variable.name, e.target.value)}
+				/>
+				<input
+					hidden
+					type="text"
+					value={getCurrentValue(variable)}
+					placeholder="e.g. #ff6b6b"
+					onchange={(e) => updateVariable(variable.name, e.target.value)}
+				/>
+				<small>{variable.description}</small>
+			</div>
+		{/each}
+
+		{#each overrides as variable (variable.name)}
+			<div class:inactive={!isActiveVariable(variable)}>
+				<label hidden for={`${uid}-${variable.name}`}>{variable.label}</label>
+				<InputColor
+					label={variable.label}
+					value={getCurrentValue(variable)}
+					onchange={(e) => updateVariable(variable.name, e.target.value)}
+					disabled={!getCurrentValue(variable)}
+				/>
+				<input
+					hidden
+					type="text"
+					value={getCurrentValue(variable)}
+					placeholder="inherit"
+					onchange={(e) => updateVariable(variable.name, e.target.value)}
+				/>
+				<small>{variable.description}</small>
+			</div>
+		{/each}
+
+		<button style="margin-top: 0.5rem" onclick={resetToDefaults}>Reset colors to defaults</button>
+	</section>
+
+	<section>
+		<h2>Share theme</h2>
+		<div class="row">
+			<input type="text" readonly value={exportString} class="export-input" />
+			<button onclick={copyTheme}>Copy theme</button>
 		</div>
-	{/each}
-
-	{#each overrides as variable (variable.name)}
-		<div class:inactive={!isActiveVariable(variable)}>
-			<label hidden for={`${uid}-${variable.name}`}>{variable.label}</label>
-			<InputColor
-				label={variable.label}
-				value={getCurrentValue(variable)}
-				onchange={(e) => updateVariable(variable.name, e.target.value)}
-				disabled={!getCurrentValue(variable)}
-			/>
-			<input
-				hidden
-				type="text"
-				value={getCurrentValue(variable)}
-				placeholder="inherit"
-				onchange={(e) => updateVariable(variable.name, e.target.value)}
-			/>
-			<small>{variable.description}</small>
+		<div class="row">
+			<input type="text" bind:value={importText} placeholder="Paste theme string to import" class="import-input" />
+			<button onclick={importTheme} type="button" disabled={!importText.trim()}>Apply theme</button>
 		</div>
-	{/each}
-
-	<br />
-	<h2>Share theme</h2>
-	<div class="row">
-		<input type="text" readonly value={exportString} class="export-input" />
-		<button onclick={copyTheme}>Copy</button>
-	</div>
-	<div class="row">
-		<input type="text" bind:value={importText} placeholder="Paste theme string to import" class="import-input" />
-		<button onclick={importTheme} type="button" disabled={!importText.trim()}>Apply theme</button>
-	</div>
+	</section>
 </div>
 
 <div class="color-grid">
@@ -235,61 +287,6 @@
 </div>
 
 <br />
-
-<div class="SmallContainer">
-	<h2>Layout</h2>
-
-	<form>
-		<div>
-			<label for={`${uid}--scaling`}>scale</label>
-			<InputRange
-				value={customVariables['--scaling'] || 1}
-				min={0.9}
-				max={1.1}
-				step={0.05}
-				id={`${uid}--scaling`}
-				oninput={(e) => {
-					console.log('Raw slider value:', e.target.value)
-					updateVariable('--scaling', e.target.value)
-				}}
-			/>
-			<span>{customVariables['--scaling'] || '1'}</span>
-			<small>scale the interface to your measure</small>
-		</div>
-
-		<div>
-			<label for={`${uid}--border-radius`}>rounded corners</label>
-			<input
-				type="checkbox"
-				checked={customVariables['--border-radius'] !== '0'}
-				onchange={(e) => updateVariable('--border-radius', e.target.checked ? '0.4rem' : '0')}
-				id={`${uid}--border-radius`}
-			/>
-			<span></span>
-			<small>Round, round, around we go</small>
-		</div>
-
-		<div>
-			<label for={`${uid}--media-radius`}>rounded artwork</label>
-			<input
-				type="checkbox"
-				checked={customVariables['--media-radius'] !== '0'}
-				onchange={(e) => updateVariable('--media-radius', e.target.checked ? '0.4rem' : '0')}
-				id={`${uid}--media-radius`}
-			/>
-			<span></span>
-			<small>Round corners on track artwork</small>
-		</div>
-
-		<div>
-			<label for={`${uid}-hide-artwork`}>hide track artwork</label>
-			<input type="checkbox" bind:checked={appState.hide_track_artwork} id={`${uid}-hide-artwork`} />
-			<span></span>
-			<small>Toggle track thumbnails in track lists and player</small>
-		</div>
-	</form>
-</div>
-
 <br />
 
 <section class="SmallContainer">
@@ -333,7 +330,7 @@
 
 <style>
 	section {
-		margin-bottom: 3rem;
+		margin-bottom: 2rem;
 	}
 
 	h2 {
@@ -344,8 +341,11 @@
 		width: 10rem;
 	}
 
-	form {
+	.indent {
 		margin-left: 1rem;
+	}
+
+	form {
 		display: flex;
 		flex-flow: column;
 		gap: 0.5rem;

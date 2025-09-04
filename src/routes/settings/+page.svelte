@@ -19,14 +19,7 @@
 	<section>
 		<h2>Settings</h2>
 	</section>
-	<section>
-		<h2>Help it's broken</h2>
-		<p>
-			Very likely. Well, not very likely but likely. If the app is acting weird, tracks not loading or just broken, try <a href="/recovery">recovery</a>. Or
-			<a href="https://matrix.to/#/#radiaao4000:matrix.org" rel="noreferrer">join the public Radio4000 Matrix chat room</a
-			>.
-		</p>
-	</section>
+
 	<section>
 		<h2>Account</h2>
 		{#if appState.user}
@@ -39,13 +32,26 @@
 			</p>
 		{/if}
 	</section>
+
 	<section>
 		<h2>Appearance</h2>
-		<p><a href="/settings/theme">Theme settings</a></p>
+		<p><a href="/settings/appearance">Customize theme and layout</a></p>
 	</section>
+
 	<section>
 		<KeyboardEditor />
 	</section>
+
+	<section>
+		<h2>Help</h2>
+		<p>
+			Very likely. Well, not very likely but likely. If the app is acting weird, tracks not loading or just broken, try <a href="/recovery">recovery</a>. Or
+			<a href="https://matrix.to/#/#radiaao4000:matrix.org" rel="noreferrer">join the public Radio4000 Matrix chat room</a
+			>.
+		</p>
+	</section>
+
+
 	<section>
 		<h2>About</h2>
 		<p>
