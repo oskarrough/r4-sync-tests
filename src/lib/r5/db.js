@@ -29,6 +29,10 @@ export let pg
 /** @type {Promise<import('@electric-sql/pglite/live').PGliteWithLive> | null} */
 let pgInitPromise = null
 
+// Store migration promise to prevent concurrent migration attempts
+/** @type {Promise<void> | null} */
+let migrationPromise = null
+
 /**
  * @param {boolean} persist - Switch between in-memory and OPFS persisted indexeddb for PostgreSQL
  * @returns {Promise<import('@electric-sql/pglite/live').PGliteWithLive>}
@@ -178,29 +182,44 @@ export async function exportDatabase() {
 
 /** Runs a list of SQL migrations on the database */
 export async function migrate() {
-	if (!pg) pg = await createPg()
-	await pg.exec(`
-		create table if not exists migrations (
-			id serial primary key,
-			name text not null unique,
-			applied_at timestamp default current_timestamp
-		);
-	`)
-	const [result] = await pg.exec('select name from migrations')
-	const appliedMigrationNames = result.rows.map((x) => x.name)
-	for (const migration of migrations) {
-		if (!appliedMigrationNames.includes(migration.name)) {
-			try {
-				await pg.exec(migration.sql)
-				await pg.query('insert into migrations (name) values ($1);', [migration.name])
-				log.debug(`migration_applied ${migration.name}`)
-			} catch (err) {
-				log.error('migration_error', err, migration, appliedMigrationNames)
-				throw err
+	// If migration is already in progress, wait for it to complete
+	if (migrationPromise) {
+		return migrationPromise
+	}
+
+	// Start migration and store the promise
+	migrationPromise = (async () => {
+		if (!pg) pg = await createPg()
+		await pg.exec(`
+			create table if not exists migrations (
+				id serial primary key,
+				name text not null unique,
+				applied_at timestamp default current_timestamp
+			);
+		`)
+		const [result] = await pg.exec('select name from migrations')
+		const appliedMigrationNames = result.rows.map((x) => x.name)
+		for (const migration of migrations) {
+			if (!appliedMigrationNames.includes(migration.name)) {
+				try {
+					await pg.exec(migration.sql)
+					await pg.query('insert into migrations (name) values ($1);', [migration.name])
+					log.debug(`migration_applied ${migration.name}`)
+				} catch (err) {
+					log.error('migration_error', err, migration, appliedMigrationNames)
+					throw err
+				}
 			}
 		}
+		log.debug('migrated db')
+	})()
+
+	try {
+		await migrationPromise
+	} finally {
+		// Clear the promise when done (success or failure)
+		migrationPromise = null
 	}
-	log.debug('migrated db')
 }
 
 export async function reset() {
