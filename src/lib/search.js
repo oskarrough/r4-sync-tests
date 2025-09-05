@@ -1,3 +1,4 @@
+import {r5} from '$lib/r5'
 import {pg} from '$lib/r5/db'
 
 /**
@@ -79,8 +80,8 @@ export function parseMentionQuery(searchQuery) {
 }
 
 /**
- * Perform complete search - handles both regular and mention queries
- * @param {string} searchQuery - search query (may start with @)
+ * Search local channels and tracks
+ * @param {string} searchQuery - search query (may start with @slug)
  * @returns {Promise<{channels: Array, tracks: Array}>}
  */
 export async function searchAll(searchQuery) {
@@ -88,22 +89,19 @@ export async function searchAll(searchQuery) {
 		return {channels: [], tracks: []}
 	}
 
+	// "@channel-slug query" syntax. For example:
+	// "@good-time-radio 80s" returns that specific channel including tracks matching the second part
 	const isMention = searchQuery.startsWith('@')
-
 	if (isMention) {
 		const {channelSlug, trackQuery} = parseMentionQuery(searchQuery)
 
-		// Always search for matching channels
-		const channels = await searchChannels(channelSlug)
-
-		// If we have a track query, search tracks within that channel
+		const channels = await r5.channels.local({slug: channelSlug})
 		const tracks = trackQuery ? await searchTracks(trackQuery, channelSlug) : []
 
 		return {channels, tracks}
 	}
 
-	// Regular search
 	const [channels, tracks] = await Promise.all([searchChannels(searchQuery), searchTracks(searchQuery)])
-
 	return {channels, tracks}
 }
+
