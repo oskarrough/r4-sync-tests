@@ -57,3 +57,30 @@ textarea {
 	min-height: 4rem;
 	line-height: inherit;
 }
+
+r4-sign-up,
+r4-password-reset,
+r4-password-update,
+r4-sign-in,
+r4-sign-out,
+r4-channel-create,
+r4-track-create {
+	form,
+	fieldset {
+		display: flex;
+		flex-flow: column;
+	}
+	form {
+		gap: 0.5rem;
+	}
+	fieldset {
+		margin: 0;
+		border: 0;
+		padding: 0;
+		gap: 0.2rem;
+
+		&[hidden] {
+			display: none;
+		}
+	}
+}

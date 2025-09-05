@@ -3,13 +3,15 @@
 	//import {appState} from '$lib/app-state.svelte'
 
 	function handleSubmit(event) {
-		goto(`/${event.data.slug}`)
+		const {slug} = event.detail
+		if (slug) goto(`/${slug}`)
 	}
 </script>
 
-<article>
+<article class="MiniContainer">
 	<header>
-		<p>Choose a name for your new Radio4000 channel (can be changed anytime)</p>
+		<p>What do you want to name your Radio4000 channel? <small>(can be changed anytime)</small></p>
 	</header>
+	<br />
 	<r4-channel-create onsubmit={handleSubmit}></r4-channel-create>
 </article>

@@ -1,20 +1,19 @@
 # Todos
 
-List of possible improvements to the architecture, idea, cli and web application.  
+List of possible improvements to the architecture, idea, cli and web application.
 Verify and evaluate todos before taking them on. They might be outdated or just not good ideas.
 
 ## Backlog
 
-- crud channels: create/edit/delete channel functionality 
+- crud channels: create/edit/delete channel functionality
 - crud tracks: edit/delete track functionality (we have add)
-- implement password reset flow (supabase auth) 
+- implement password reset flow (supabase auth)
 - share buttons/embeds (evaluate if needed)
-- soundcloud player support (media-chrome compatible element) 
-- local file player for mp3/m4a uploads 
+- soundcloud player support (media-chrome compatible element)
+- local file player for mp3/m4a uploads
 - refactor batch-edit feature (exists but needs work)
-- add validation layer at sync boundaries (remote->local) using lightweight lib like zod 4
+- add validation layer at sync boundaries (remote->local) using lib like zod 4
 - allow users to mark a musicbrainz or discogs meta track data as wrong. Since we auto-match on the track title, there's a relatively high chance it's wrong. If it's wrong, users can delete the meta data for that track. But then it'd just match it again on reload. How do we deal with this, do we spend effort on this?
-- when is a local channel updated again (pulled)? To get any  new tracks via outdated(). 
 - run `bun run check` and slowly get rid of these warnings - tidy codebase
 - What should happen when you play a track that is not part of the current loaded playlist? Replace playlist (with what?)? Just play, ignore palyslist?
 - analyze https://svelte.dev/docs/svelte/$effect#When-not-to-use-$effect - keep up with Svelte 5 patterns
@@ -26,15 +25,12 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 - V1 compatibility: v1 channels can't be followed/broadcasted because remote supabase doesn't know about their foreign keys. V1 channels have firebase_id but don't exist in remote postgres, causing FK constraint failures. Solution ideas: use string-based IDs instead of proper foreign keys, or create placeholder records in remote for v1 channels.
 - implement event sourcing pattern: events table {type, payload, timestamp} for state changes, enables undo/replay
 - implement backup/restore: export/import full pglite database as json or sql dump
+- rethink the methods and naming in lib/api vs lib/player/api
 - enhance logger: expose store.logs in devtools ui
-- separate api layers: split ui operations (toggleTheme, openSearch) from data operations in api.js
-- extract reusable debouncing utility instead of per-component implementation
-- clarify data flow patterns - document and standardize when operations hit local vs remote database
 - create standardized loading/error boundaries for async operations in ui
 - find a way to share `track_meta` data between users. push it remote, how? security?
 - We're using the media-chrome project for the player. It supports audio, video and different third-party "media elements" like YouTube, Spotify and others. But there's no Soundcloud, which some R4 radios use. If we wanna keep Soundcloud, we have to make a player for it. https://www.media-chrome.org/docs/en/media-element#compatible-media-elements
 - cli: Better progress reporting with download speeds, concurrent status
-- cli: allow sql queries 
+- cli: allow sql queries
 - cli download error handling: retry logic, download state tracking, failure persistence
 - cli download file scanning: old CLI scans `<folder>/<slug>/tracks/*.m4a`, new CLI has no file ops
-

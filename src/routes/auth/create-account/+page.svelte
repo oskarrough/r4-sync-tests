@@ -1,6 +1,4 @@
 <script>
-	import {goto} from '$app/navigation'
-
 	let didSubmit = $state(false)
 
 	function onSubmit(event) {
@@ -13,35 +11,39 @@
 	<title>Create account - R5</title>
 </svelte:head>
 
-<article>
+<article class="MiniContainer">
 	<header>
 		<p><a href="/auth">auth</a> / create-account</p>
 	</header>
 
-	<h1>Create account</h1>
-
 	{#if !didSubmit}
-		<r4-sign-up hcaptcha-site-key="b0a493f2-49df-486b-bdee-b8459f7b1c21" onsubmit={onSubmit}></r4-sign-up>
+		<h1>Create Radio4000 account</h1>
+		<r4-sign-up onsubmit={onSubmit}></r4-sign-up>
+		<footer>
+			<p>Already have an account? <a href="/auth/login">Sign in &rarr;</a></p>
+			<p>
+				<small>
+					Having trouble? <a href="https://matrix.to/#/#radio4000:matrix.org" target="_blank">Chat with us</a>
+				</small>
+			</p>
+		</footer>
 	{:else}
-		<p>Now, last step — please check your e-mail. You will receive an email with a link to verify your account.</p>
+		<h1>Welcome, almost done!</h1>
+		<p>Please check your e-mail.<br /><br />Click the link in the mail to activate your account.</p>
 	{/if}
-
-	<footer>
-		<p>Already have an account? <a href="/auth/sign-in">Sign in &rarr;</a></p>
-		<p>
-			Having trouble? <a href="https://matrix.to/#/#radio4000:matrix.org" target="_blank">Chat with the community</a>
-		</p>
-	</footer>
 </article>
 
 <style>
 	article {
-		max-width: 600px;
-		margin: 0.5rem auto;
+		margin-top: 0.5rem;
+	}
+
+	header {
+		margin-bottom: 3vh;
 	}
 
 	h1 {
-		margin: 3vh auto;
+		margin-bottom: 3vh;
 		font-size: var(--font-7);
 		text-align: center;
 	}

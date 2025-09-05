@@ -89,10 +89,7 @@
 		oklch(from var(--accent-light) calc(l * 0.65) c h),
 		oklch(from var(--accent-dark) calc(l * 1.2) c h)
 	);
-	--accent-12: light-dark(
-		oklch(from var(--accent-light) 20% c h),
-		oklch(from var(--accent-dark) 92% calc(c * 0.7) h)
-	);
+	--accent-12: light-dark(oklch(from var(--accent-light) 20% c h), oklch(from var(--accent-dark) 92% calc(c * 0.7) h));
 
 	/* Gray scale - uses base color's natural chroma, multiplied for each step */
 	/* Light theme: tiny steps at top, big jump to dark text at end */
@@ -111,38 +108,32 @@
 	);
 	--gray-4: light-dark(
 		oklch(from var(--gray-light) 0.94 calc(c * 0.8) h),
-		oklch(from var(--gray-dark) 0.30 calc(c * 1.3) h)
+		oklch(from var(--gray-dark) 0.3 calc(c * 1.3) h)
 	);
 	--gray-5: light-dark(
 		oklch(from var(--gray-light) 0.93 calc(c * 0.9) h),
 		oklch(from var(--gray-dark) 0.32 calc(c * 1.2) h)
 	);
-	--gray-6: light-dark(
-		oklch(from var(--gray-light) 0.91 c h),
-		oklch(from var(--gray-dark) 0.36 calc(c * 1.1) h)
-	);
-	--gray-7: light-dark(
-		oklch(from var(--gray-light) 0.89 calc(c * 1.1) h),
-		oklch(from var(--gray-dark) 0.43 c h)
-	);
+	--gray-6: light-dark(oklch(from var(--gray-light) 0.91 c h), oklch(from var(--gray-dark) 0.36 calc(c * 1.1) h));
+	--gray-7: light-dark(oklch(from var(--gray-light) 0.89 calc(c * 1.1) h), oklch(from var(--gray-dark) 0.43 c h));
 	--gray-8: light-dark(
 		oklch(from var(--gray-light) 0.82 calc(c * 1.2) h),
-		oklch(from var(--gray-dark) 0.54 calc(c * 1.0) h)
+		oklch(from var(--gray-dark) 0.54 calc(c * 1) h)
 	);
 	--gray-9: light-dark(
 		oklch(from var(--gray-light) 0.65 calc(c * 1.3) h),
-		oklch(from var(--gray-dark) 0.60 calc(c * 0.9) h)
+		oklch(from var(--gray-dark) 0.6 calc(c * 0.9) h)
 	);
 	--gray-10: light-dark(
 		oklch(from var(--gray-light) 0.61 calc(c * 1.4) h),
-		oklch(from var(--gray-dark) 0.70 calc(c * 0.8) h)
+		oklch(from var(--gray-dark) 0.7 calc(c * 0.8) h)
 	);
 	--gray-11: light-dark(
 		oklch(from var(--gray-light) 0.54 calc(c * 1.5) h),
 		oklch(from var(--gray-dark) 0.94 calc(c * 0.6) h)
 	);
 	--gray-12: light-dark(
-		oklch(from var(--gray-light) 0.20 calc(c * 1.6) h),
+		oklch(from var(--gray-light) 0.2 calc(c * 1.6) h),
 		oklch(from var(--gray-dark) 0.95 calc(c * 0.5) h)
 	);
 }

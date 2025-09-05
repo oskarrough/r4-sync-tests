@@ -21,4 +21,3 @@ See the following files:
 
 - variables.css
 - color-scales.css
-

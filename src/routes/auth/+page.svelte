@@ -2,35 +2,54 @@
 	import IconR4 from '$lib/icon-r4.svelte'
 	import {appState} from '$lib/app-state.svelte'
 	import {sdk} from '@radio4000/sdk'
+	import ChannelCard from '$lib/components/channel-card.svelte'
+	import {pg} from '$lib/r5/db.js'
+
+	const userChannels = $derived.by(async () => {
+		if (!appState.channels?.length) return []
+		const result = await pg.sql`select * from channels where id = ANY(${appState.channels})`
+		return result.rows
+	})
 </script>
 
 <svelte:head>
 	<title>Auth - R5</title>
 </svelte:head>
 
-<article>
+<article class="SmallContainer">
 	<figure class="logo">
 		<IconR4 />
 	</figure>
 
 	{#if appState.user}
-		<p>Signed in as {appState.user.email}.</p>
-		{#each appState.channels as id (id)}
-			<p>channel id: {id}</p>
-		{/each}
+		<p>You are signed in with {appState.user.email}.</p>
 		<p><button type="button" onclick={() => sdk.auth.signOut()}>Logout</button></p>
-		{#if !appState.channels}
-			<p>
-				<a href="/create-channel"> Create radio channel </a>
-			</p>
-		{/if}
+
+		{#await userChannels}
+			<p>Loading your channels...</p>
+		{:then channels}
+			{#if channels.length > 0}
+				<div class="channels-grid">
+					{#each channels as channel (channel.id)}
+						<ChannelCard {channel} />
+					{/each}
+				</div>
+			{:else}
+				<br />
+				<p>Let's <a href="/create-channel">create your radio channel</a>.</p>
+			{/if}
+		{:catch error}
+			<p>Error loading channels: {error.message}</p>
+			<br />
+			<p>Let's <a href="/create-channel">create your radio channel</a>.</p>
+		{/await}
 	{:else}
 		<menu class="options">
 			<a href="/auth/create-account">
-				<h3>Create an account</h3>
+				<h3>Create account</h3>
 				<p>I'm new to Radio4000</p>
 			</a>
-			<a href="/auth/signin">
+			<a href="/auth/login">
 				<h3>Sign in</h3>
 				<p>I already have a channel</p>
 			</a>
@@ -39,6 +58,10 @@
 </article>
 
 <style>
+	article {
+		margin-top: 0.5rem;
+	}
+
 	.logo {
 		display: block;
 		text-align: center;
@@ -49,9 +72,11 @@
 		}
 	}
 
-	article {
-		max-width: 600px;
-		margin: 0 auto;
+	.channels-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+		gap: 1rem;
+		margin-top: 2rem;
 	}
 
 	.options {

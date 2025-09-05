@@ -95,7 +95,7 @@
 </form>
 
 <style>
-	:global(input[type="search"])  {
+	:global(input[type='search']) {
 		min-width: 24ch;
 	}
-	</style>
+</style>

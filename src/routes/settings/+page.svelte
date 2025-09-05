@@ -1,7 +1,6 @@
 <script>
 	import {sdk} from '@radio4000/sdk'
 	import KeyboardEditor from '$lib/components/keyboard-editor.svelte'
-	import ThemeEditor from '$lib/components/theme-editor.svelte'
 	import {appState} from '$lib/app-state.svelte'
 
 	const sha = $derived(__GIT_INFO__.sha)
@@ -46,12 +45,14 @@
 	<section>
 		<h2>Help</h2>
 		<p>
-			Very likely. Well, not very likely but likely. If the app is acting weird, tracks not loading or just broken, try <a href="/recovery">recovery</a>. Or
-			<a href="https://matrix.to/#/#radiaao4000:matrix.org" rel="noreferrer">join the public Radio4000 Matrix chat room</a
+			Very likely. Well, not very likely but likely. If the app is acting weird, tracks not loading or just broken, try <a
+				href="/recovery">recovery</a
+			>. Or
+			<a href="https://matrix.to/#/#radiaao4000:matrix.org" rel="noreferrer"
+				>join the public Radio4000 Matrix chat room</a
 			>.
 		</p>
 	</section>
-
 
 	<section>
 		<h2>About</h2>

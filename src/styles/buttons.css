@@ -29,7 +29,7 @@ button,
 
 	transition-property: border, background-color, color, opacity, transform;
 	transition-duration: 150ms;
-	transition-timing-function: cubic-bezier(.4,0,.2,1);
+	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 
 	&:active {
 		transform: scaleX(0.97) scaleY(0.97);
@@ -109,11 +109,13 @@ button.danger:focus,
 	border-color: color-mix(in lab, var(--color-red), black 10%);
 }
 
+button[role='primary'],
 button.primary,
 .button.primary {
-	border-color: var(--accent-9);
+	background: var(--accent-9);
+	color: var(--gray-1);
 
 	&:hover {
-		background: color-mix(in lab, var(--color-accent), black 70%);
+		background: var(--accent-10);
 	}
 }

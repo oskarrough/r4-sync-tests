@@ -20,17 +20,16 @@ const migrations = [
 	{name: '03-functions-and-views', sql: migration03sql}
 ]
 
-// Singleton instance stored globally to prevent multiple initializations
-// The module-level export can be re-initialized on re-imports, so we use globalThis
+/**
+ * Prevents concurrent initialization of the PG database
+ * @type {Promise<import('@electric-sql/pglite/live').PGliteWithLive> | null} */
+let pgInitPromise = null
+
 /** @type {import('@electric-sql/pglite/live').PGliteWithLive} */
 export let pg
 
-// Store initialization promise to prevent concurrent initialization attempts
-/** @type {Promise<import('@electric-sql/pglite/live').PGliteWithLive> | null} */
-let pgInitPromise = null
-
-// Store migration promise to prevent concurrent migration attempts
-/** @type {Promise<void> | null} */
+/** Prevents concurrent migration attempts
+ * @type {Promise<void> | null} */
 let migrationPromise = null
 
 /**
