@@ -311,3 +311,91 @@ export async function isFollowing(followerId, channelId) {
 	`
 	return rows.length > 0
 }
+
+/**
+ * Get aggregated hashtag statistics for a channel
+ * @param {string} slug - Channel slug
+ * @param {number} [limit] - Optional limit for number of tags returned
+ * @returns {Promise<Array<{tag: string, count: number}>>} Array of tags with their usage counts
+ */
+export async function getChannelTags(slug, limit, {startDate, endDate} = {}) {
+	if (startDate && endDate) {
+		if (limit) {
+			const {rows} = await pg.sql`
+				SELECT 
+					unnest(tags) as tag,
+					COUNT(*)::int as count
+				FROM tracks_with_meta
+				WHERE channel_slug = ${slug}
+					AND tags IS NOT NULL
+					AND created_at >= ${startDate} 
+					AND created_at < ${endDate}
+				GROUP BY tag
+				ORDER BY count DESC, tag ASC
+				LIMIT ${limit}
+			`
+			return rows
+		} else {
+			const {rows} = await pg.sql`
+				SELECT 
+					unnest(tags) as tag,
+					COUNT(*)::int as count
+				FROM tracks_with_meta
+				WHERE channel_slug = ${slug}
+					AND tags IS NOT NULL
+					AND created_at >= ${startDate} 
+					AND created_at < ${endDate}
+				GROUP BY tag
+				ORDER BY count DESC, tag ASC
+			`
+			return rows
+		}
+	} else {
+		if (limit) {
+			const {rows} = await pg.sql`
+				SELECT 
+					unnest(tags) as tag,
+					COUNT(*)::int as count
+				FROM tracks_with_meta
+				WHERE channel_slug = ${slug}
+					AND tags IS NOT NULL
+				GROUP BY tag
+				ORDER BY count DESC, tag ASC
+				LIMIT ${limit}
+			`
+			return rows
+		} else {
+			const {rows} = await pg.sql`
+				SELECT 
+					unnest(tags) as tag,
+					COUNT(*)::int as count
+				FROM tracks_with_meta
+				WHERE channel_slug = ${slug}
+					AND tags IS NOT NULL
+				GROUP BY tag
+				ORDER BY count DESC, tag ASC
+			`
+			return rows
+		}
+	}
+}
+
+/**
+ * Get the date range (first and last track) for a channel
+ * @param {string} slug - Channel slug
+ * @returns {Promise<{minDate: Date, maxDate: Date}>} Date range
+ */
+export async function getChannelDateRange(slug) {
+	const {rows} = await pg.sql`
+		SELECT 
+			MIN(created_at) as min_date,
+			MAX(created_at) as max_date
+		FROM tracks_with_meta
+		WHERE channel_slug = ${slug}
+	`
+	const result = rows[0]
+	return {
+		minDate: result?.min_date ? new Date(result.min_date) : new Date(),
+		maxDate: result?.max_date ? new Date(result.max_date) : new Date()
+	}
+}

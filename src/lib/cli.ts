@@ -73,6 +73,7 @@ const cli = yargs(hideBin(process.argv))
 
 Usage:
   $0 search <query> [--channels|--tracks] [--json]
+  $0 tags <slug> [--json] [--limit=<n>]               # Show hashtag statistics
   $0 pull <slug> [--dry-run]                          # Smart sync (local->r4->v1) both channel+tracks
   $0 channels list [slug] [--source=<src>] [--json]   # Explicit source query
   $0 channels pull [slug] [--dry-run]                 # Force remote pull
@@ -85,6 +86,7 @@ Usage:
 	)
 	.example('$0 pull ko002', 'Smart sync channel+tracks (local first)')
 	.example('$0 search ko002', 'Search everything for "ko002"')
+	.example('$0 tags tobha --limit 10', 'Show top 10 hashtags for @tobha')
 	.example('$0 tracks list ko002 --source r4 --limit 5', 'List 5 tracks from remote')
 	.example('$0 channels list --source local --json', 'Get local channels as JSON')
 	.example('$0 channels pull ko002', 'Force pull channel from remote')
@@ -323,6 +325,50 @@ cli.command(
 							console.log(`  ${formatTrack(track)}`)
 						}
 					}
+				}
+			}
+		} catch (error) {
+			handleError(error)
+		}
+	}
+)
+
+// Tags command - aggregate hashtags from track descriptions
+cli.command(
+	'tags <slug>',
+	'Show hashtag usage statistics for a channel',
+	(yargs) =>
+		yargs
+			.positional('slug', {describe: 'Channel slug', type: 'string', demandOption: true})
+			.option('json', {
+				type: 'boolean',
+				default: false,
+				describe: 'Output as JSON'
+			})
+			.option('limit', {
+				type: 'number',
+				describe: 'Limit number of tags shown'
+			})
+			.group(['json', 'limit'], 'Options:'),
+	async (argv) => {
+		try {
+			const results = await r5.tags.local(argv.slug, argv.limit)
+
+			if (results.length === 0) {
+				console.log(`No tags found for channel '${argv.slug}'`)
+				return
+			}
+
+			if (argv.json) {
+				process.stdout.write(JSON.stringify(results, null, 2))
+				process.stdout.write('\n')
+			} else {
+				console.log(`Tags for @${argv.slug}:`)
+				for (const {tag, count} of results) {
+					console.log(`  ${tag.padEnd(30)} ${count}`)
+				}
+				if (!argv.limit) {
+					console.log(`\nTotal: ${results.length} unique tags`)
 				}
 			}
 		} catch (error) {
