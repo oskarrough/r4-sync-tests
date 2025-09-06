@@ -4,7 +4,7 @@ A prototype exploring the future of Radio4000. Local-first music player with cli
 
 ## Documentation
 
-See the [`docs`](./docs) folder and `CLAUDE.md` files.
+See the [`docs`](./docs) folder.
 
 ## Developing
 
@@ -19,7 +19,7 @@ The `main` branch deploys to https://pg.radio4000.com for now.
 
 ## Credits
 
-- https://pglite.dev/docs/api
-- https://github.com/hellogreg/firava
-- https://icons.obra.studio/
-- [`sv`](https://github.com/sveltejs/cli) svelte cli
+- framework = https://svelte.dev/
+- local database = https://pglite.dev/
+- font = https://github.com/hellogreg/firava
+- icons = https://icons.obra.studio/
