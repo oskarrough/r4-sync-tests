@@ -104,4 +104,3 @@ export async function searchAll(searchQuery) {
 	const [channels, tracks] = await Promise.all([searchChannels(searchQuery), searchTracks(searchQuery)])
 	return {channels, tracks}
 }
-

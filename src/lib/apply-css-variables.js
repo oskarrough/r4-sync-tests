@@ -1,8 +1,6 @@
 export function applyCustomCssVariables(customVariables = {}) {
 	const root = document.documentElement
 
-	console.log('applying', customVariables)
-
 	// Reset everything if empty
 	if (!Object.keys(customVariables).length) {
 		// Clear base colors (scales will fallback to defaults in CSS)

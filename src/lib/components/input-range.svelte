@@ -1,7 +1,7 @@
 <script>
-	let {value = $bindable(0), min = 0, max = 100, step = 4, oninput, ...props} = $props()
+	let {value = $bindable(0), min = 0, max = 100, step = 4, visualStep, oninput, ...props} = $props()
 
-	let marks = $derived(Math.floor((max - min) / step) + 1)
+	let marks = $derived(Math.floor((max - min) / (visualStep ?? step)) + 1)
 
 	let audioContext
 
