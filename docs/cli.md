@@ -8,6 +8,8 @@ bun src/lib/cli.ts --help
 
 ## Data sources
 
+The CLI uses its own, local PGLite database separate from the web app.
+
 The `list` commands require `--source`:
 
 - `local` - your local database exclusive to the cli (not shared with the webapp!)
