@@ -14,7 +14,9 @@ export async function load({parent, params}) {
 			error(404, `Channel not found: ${slug}`)
 		}
 
-		return {channel}
+		const tracks = (await r5.tracks.pull({ slug }))
+
+		return {channel, tracks}
 	} catch (err) {
 		console.error(err)
 		error(404, `Channel not found: ${err.message}`)
