@@ -1,5 +1,5 @@
 <script>
-	import {getChannelTags, getChannelDateRange} from '$lib/api'
+	import {local, getChannelDateRange} from '$lib/r5/tags'
 	import InputRange from '$lib/components/input-range.svelte'
 
 	const {data} = $props()
@@ -10,28 +10,23 @@
 	}
 
 	let filter = $state('all')
-	let timePeriod = $state('year') // 'year', 'quarter', 'month'
+	let timePeriod = $state('year')
 	let currentPeriod = $state(0)
+	let filteredTags = $state([])
+	let periods = $state([])
 
-	// Get date range for the channel
-	let dateRangePromise = $derived.by(() => getChannelDateRange(channel.slug))
-	let dateRange = $derived.by(async () => {
-		const result = await dateRangePromise
-		return result
-	})
-
-	// Calculate time periods based on date range
-	let timePeriods = $derived.by(async () => {
-		const range = await dateRange
+	// Load date range and generate periods
+	async function loadPeriods() {
+		const range = await getChannelDateRange(channel.slug)
 		if (!range) return []
 
-		const periods = []
+		const newPeriods = []
 		const start = new Date(range.minDate)
 		const end = new Date(range.maxDate)
 
 		if (timePeriod === 'year') {
 			for (let year = start.getFullYear(); year <= end.getFullYear(); year++) {
-				periods.push({
+				newPeriods.push({
 					label: year.toString(),
 					startDate: new Date(year, 0, 1),
 					endDate: new Date(year + 1, 0, 1)
@@ -43,7 +38,7 @@
 					const quarterStart = new Date(year, q * 3, 1)
 					const quarterEnd = new Date(year, (q + 1) * 3, 1)
 					if (quarterStart <= end && quarterEnd >= start) {
-						periods.push({
+						newPeriods.push({
 							label: `${year} Q${q + 1}`,
 							startDate: quarterStart,
 							endDate: quarterEnd
@@ -60,7 +55,7 @@
 			while (currentYear < endYear || (currentYear === endYear && currentMonth <= endMonth)) {
 				const monthStart = new Date(currentYear, currentMonth, 1)
 				const monthEnd = new Date(currentYear, currentMonth + 1, 1)
-				periods.push({
+				newPeriods.push({
 					label: monthStart.toLocaleDateString('en', {year: 'numeric', month: 'short'}),
 					startDate: monthStart,
 					endDate: monthEnd
@@ -73,31 +68,29 @@
 			}
 		}
 
-		return periods
-	})
+		periods = newPeriods
+		await loadTags()
+	}
 
-	// Get tags for current time period
-	let tags = $state([])
-	let filteredTags = $state([])
-
-	$effect(async () => {
-		const periods = await timePeriods
+	// Load tags based on current period and filter
+	async function loadTags() {
 		let result
 
-		if (!periods?.length || currentPeriod === 0) {
-			result = await getChannelTags(channel.slug)
+		if (currentPeriod === 0 || !periods.length) {
+			// All time
+			result = await local({slug: channel.slug})
 		} else {
+			// Specific period
 			const period = periods[currentPeriod - 1]
-			result = await getChannelTags(channel.slug, null, {
-				startDate: period.startDate.toISOString(),
-				endDate: period.endDate.toISOString()
+			result = await local({
+				slug: channel.slug,
+				startDate: period.startDate,
+				endDate: period.endDate
 			})
 		}
 
-		tags = result || []
-	})
-
-	$effect(() => {
+		// Apply filter
+		const tags = result || []
 		if (filter === 'all') {
 			filteredTags = tags
 		} else if (filter === 'single-use') {
@@ -105,81 +98,93 @@
 		} else if (filter === 'frequent') {
 			filteredTags = tags.filter((t) => t.count >= 5)
 		} else if (filter === 'rare') {
-			filteredTags = tags.filter((t) => t.count >= 2 && t.count <= 4)
+			filteredTags = tags.filter((t) => t.count >= 1 && t.count <= 4)
 		} else {
 			filteredTags = tags
 		}
-	})
+	}
 
-	let currentPeriodLabel = $derived.by(async () => {
-		const periods = await timePeriods
-		if (!periods?.length || currentPeriod === 0) return 'All time'
-		return periods[currentPeriod - 1]?.label || 'All time'
-	})
+	// Event handlers
+	function onTimePeriodChange() {
+		currentPeriod = 0
+		loadPeriods()
+	}
+
+	function onPeriodChange() {
+		loadTags()
+	}
+
+	function onFilterChange() {
+		loadTags()
+	}
+
+	// Initialize
+	loadPeriods()
+
+	let currentPeriodLabel = $derived(currentPeriod === 0 ? 'All time' : periods[currentPeriod - 1]?.label || 'All time')
 </script>
 
 <main>
 	<header class="row">
 		<h1>{channel.name} tags</h1>
-
-	<menu>
-		<div class="filters">
+		<menu>
 			<label title="Tag filter">
-				<select bind:value={filter}>
+				<select bind:value={filter} onchange={onFilterChange}>
 					<option value="all">All tags</option>
-					<option value="single-use">One-time use</option>
+					<option value="single-use">One-time tags</option>
 					<option value="frequent">Frequent (5+)</option>
-					<option value="rare">Rare (2-4)</option>
+					<option value="rare">Rare (1-4)</option>
 				</select>
 			</label>
 			<label title="Time period">
-				<select bind:value={timePeriod} onchange={() => (currentPeriod = 0)}>
+				<select bind:value={timePeriod} onchange={onTimePeriodChange}>
 					<option value="year">Years</option>
 					<option value="quarter">Quarters</option>
 					<option value="month">Months</option>
 				</select>
 			</label>
-		</div>
-	</menu>
+		</menu>
 	</header>
 
-	{#await timePeriods then periods}
-		{#if periods?.length > 0}
-			<div class="time-scrubber">
-				<div class="period-info">
-					{#await currentPeriodLabel then label}
-						<span class="current-period">{label}</span>
-					{/await}
-				</div>
-				<InputRange
-					min={0}
-					max={periods.length}
-					step={1}
-					bind:value={currentPeriod}
-					title="Scrub through time periods"
-				/>
-				<div class="period-labels">
-					<span>All time</span>
-					{#if periods.length < 20}
-						{#each periods as period, i (period.label)}
-							<span class:active={currentPeriod === i + 1}>{period.label}</span>
-						{/each}
-					{:else}
-						<span>{periods[0]?.label}</span>
-						<span>...</span>
-						<span>{periods[periods.length - 1]?.label}</span>
-					{/if}
-				</div>
+	{#if periods.length > 0}
+		<div class="time-scrubber">
+			<div class="period-info">
+				<span class="current-period">{currentPeriodLabel}</span>
 			</div>
-		{/if}
-	{/await}
+			<InputRange
+				min={0}
+				max={periods.length}
+				step={1}
+				visualStep={timePeriod === 'year'
+					? 1
+					: timePeriod === 'quarter'
+						? Math.max(1, Math.ceil(periods.length / 15))
+						: Math.max(1, Math.ceil(periods.length / 25))}
+				bind:value={currentPeriod}
+				oninput={onPeriodChange}
+				title="Scrub through time periods"
+			/>
+			<div class="period-labels">
+				<span>All time</span>
+				{#if periods.length < 20}
+					{#each periods as period, i (period.label)}
+						<span class:active={currentPeriod === i + 1}>{period.label}</span>
+					{/each}
+				{:else}
+					<span>{periods[0]?.label}</span>
+					<span>...</span>
+					<span>{periods[periods.length - 1]?.label}</span>
+				{/if}
+			</div>
+		</div>
+	{/if}
 
 	{#if filteredTags.length > 0}
 		<ol class="list">
 			{#each filteredTags as { tag, count } (tag)}
 				<li>
 					<span class="tag">{tag}</span>
-					<span class="count">{count})</span>
+					<span class="count">{count}</span>
 				</li>
 			{/each}
 		</ol>
@@ -199,45 +204,12 @@
 </main>
 
 <style>
-	main {
-		padding: 1rem;
+	header {
+		margin: 0.5rem 0.5rem 0;
+		place-items: center;
 	}
-
-	header h1 {
-		margin-bottom: 0.5rem;
-	}
-
-	menu {
-		position: sticky;
-		top: 0.5rem;
-		z-index: 1;
-
-		.filters {
-			display: flex;
-			align-items: center;
-			gap: 0.2rem;
-		}
-
-		label {
-			user-select: none;
-			display: flex;
-			align-items: center;
-			gap: 0.2rem;
-		}
-	}
-
-	.tag {
-	}
-
-	.count {
-	}
-
-	.period-context {
-		font-style: italic;
-	}
-
 	.time-scrubber {
-		margin: 2rem 0.5rem 1rem;
+		margin: 1rem 0.5rem 1rem;
 		padding: 1rem;
 		background: var(--gray-5);
 		border-radius: var(--border-radius);
@@ -246,6 +218,7 @@
 
 	.period-info {
 		text-align: center;
+		font-weight: bold;
 		margin-bottom: 0.5rem;
 	}
 
