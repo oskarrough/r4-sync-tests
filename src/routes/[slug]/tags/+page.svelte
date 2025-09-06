@@ -147,10 +147,8 @@
 	</header>
 
 	{#if periods.length > 0}
-		<div class="time-scrubber">
-			<div class="period-info">
-				<span class="current-period">{currentPeriodLabel}</span>
-			</div>
+		<div class="scrubber">
+			<h3>{currentPeriodLabel}</h3>
 			<InputRange
 				min={0}
 				max={periods.length}
@@ -164,7 +162,7 @@
 				oninput={onPeriodChange}
 				title="Scrub through time periods"
 			/>
-			<div class="period-labels">
+			<div class="scrubber-labels">
 				<span>All time</span>
 				{#if periods.length < 20}
 					{#each periods as period, i (period.label)}
@@ -183,7 +181,11 @@
 		<ol class="list">
 			{#each filteredTags as { tag, count } (tag)}
 				<li>
-					<span class="tag">{tag}</span>
+					<span class="tag">
+						<a href={`/search?search=@${channel.slug} ${tag}`}>
+							{tag}
+						</a>
+					</span>
 					<span class="count">{count}</span>
 				</li>
 			{/each}
@@ -208,7 +210,8 @@
 		margin: 0.5rem 0.5rem 0;
 		place-items: center;
 	}
-	.time-scrubber {
+
+	.scrubber {
 		margin: 1rem 0.5rem 1rem;
 		padding: 1rem;
 		background: var(--gray-5);
@@ -216,25 +219,36 @@
 		border: 1px solid var(--gray-7);
 	}
 
-	.period-info {
+	.scrubber h3 {
 		text-align: center;
 		font-weight: bold;
 		margin-bottom: 0.5rem;
 	}
 
-	.period-labels {
+	.scrubber-labels {
 		display: flex;
 		justify-content: space-between;
 		margin-top: 0.5rem;
 	}
 
-	.period-labels span {
+	.scrubber-labels span {
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
 
-	.period-labels span.active {
+	.scrubber-labels span.active {
 		color: var(--accent-9);
 	}
+
+	.list {
+		margin: 0 0.5rem;
+
+		.tag {
+		}
+
+		.count {
+		}
+	}
+
 </style>
