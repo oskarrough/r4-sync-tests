@@ -51,6 +51,10 @@
 	gap: 0.5rem;
 }
 
+.row--vcenter {
+	place-items: center;
+}
+
 menu {
 	display: flex;
 	gap: 0.2rem;
@@ -63,10 +67,10 @@ menu {
 		height: 1em;
 		background: var(--gray-6);
 	}
-}
 
-menu.row {
-	gap: 0.2rem;
+	&.row {
+		gap: 0.2rem;
+	}
 }
 
 dl.meta {

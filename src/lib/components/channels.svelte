@@ -91,7 +91,7 @@
 {/snippet}
 
 <div class={`layout layout--${display}`}>
-	<menu>
+	<menu class="filtermenu">
 		<div class="filters">
 			<label title="Channel filter">
 				<select bind:value={filter}>
@@ -162,7 +162,7 @@
 		}
 	}
 
-	menu {
+	.filtermenu {
 		position: sticky;
 		top: 0.5rem;
 		display: flex;
@@ -187,7 +187,7 @@
 		}
 	}
 
-	menu :global(svg) {
+	.filtermenu :global(svg) {
 		width: var(--font-5);
 		margin-right: 0.2em;
 	}

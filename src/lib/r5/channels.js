@@ -194,7 +194,7 @@ export async function outdated(slug) {
 async function readv1() {
 	const browser = typeof window !== 'undefined'
 	const filename = 'channels-v1-modified.json'
-	const res = browser ? await fetch(filename) : await fetch(`file://${process.cwd()}/static/${filename}`)
+	const res = browser ? await fetch(`/${filename}`) : await fetch(`file://${process.cwd()}/static/${filename}`)
 	return await res.json()
 }
 

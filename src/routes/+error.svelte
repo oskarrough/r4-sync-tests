@@ -5,10 +5,14 @@
 <article>
 	<p>An error happened:</p>
 	<h1>{page.status}: {page.error?.message || 'Unknown error'}</h1>
-	<p>
-		<a href="/recovery">Reset the app</a> (this wipes your local data only, e.g. safe, and usually solves it)
+
+	<hr />
+	<p class="row row--vcenter">
+		To repair, please first try to ❶ <button onclick={() => window.location.reload()}>Reload the app</button>
 	</p>
-	<p><button onclick={() => window.location.reload()}>Reload app</button></p>
+
+	<br />
+	<p class="row row--vcenter">If that didn't work &rarr; ② <a href="/recovery" class="btn">Reset the app</a></p>
 </article>
 
 <style>

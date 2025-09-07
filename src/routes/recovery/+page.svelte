@@ -49,6 +49,7 @@
 				<li>Recreate a fresh database</li>
 				<li>Allow you to start with fresh data from Radio4000</li>
 			</ul>
+			<p>Resetting will NOT delete any radios or tracks</p>
 		{/if}
 	</section>
 </main>
