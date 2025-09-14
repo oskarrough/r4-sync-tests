@@ -97,6 +97,14 @@ async function downloadTrack(track, folderPath, options = {}) {
 	} catch (error) {
 		const errorMsg = error.stderr?.toString() || error.message || 'Unknown error'
 		console.error(`Failed to download "${track.title}" (${track.url}): ${errorMsg}`)
+
+		// Check for common YouTube API issues
+		if (errorMsg.includes('HTTP Error 403') ||
+			errorMsg.includes('fragment 1 not found') ||
+			errorMsg.includes('Requested format is not available')) {
+			console.error('Try updating yt-dlp (`brew upgrade yt-dlp`)')
+		}
+
 		return {success: false, error: errorMsg}
 	}
 }
