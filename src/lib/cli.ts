@@ -450,7 +450,12 @@ cli.command(
 				describe: 'Premium token for YouTube Music',
 				type: 'string'
 			})
-			.group(['output', 'concurrency', 'dry-run'], 'Download Options:')
+			.option('retry-failed', {
+				describe: 'Retry recently failed downloads (within 24 hours)',
+				type: 'boolean',
+				default: false
+			})
+			.group(['output', 'concurrency', 'dry-run', 'retry-failed'], 'Download Options:')
 			.group(['premium', 'po-token'], 'Premium Options:')
 			.check((argv) => {
 				if (argv.premium && !argv['po-token']) {
@@ -469,7 +474,8 @@ cli.command(
 				concurrency: argv.concurrency,
 				simulate: argv['dry-run'],
 				premium: argv.premium,
-				poToken: argv['po-token']
+				poToken: argv['po-token'],
+				retryFailed: argv['retry-failed']
 			})
 		} catch (error) {
 			handleError(error)

@@ -4,6 +4,7 @@ import {logger} from '../logger.js'
 import migration01sql from '../migrations/01-initial-schema.js'
 import migration02sql from '../migrations/02-more-tables.js'
 import migration03sql from '../migrations/03-functions-and-views.js'
+import migration04sql from '../migrations/04-download-tracking.js'
 
 const browser = typeof window !== 'undefined'
 const log = logger.ns('db').seal()
@@ -17,7 +18,8 @@ const useWorker = true
 const migrations = [
 	{name: '01-initial-schema', sql: migration01sql},
 	{name: '02-more-tables', sql: migration02sql},
-	{name: '03-functions-and-views', sql: migration03sql}
+	{name: '03-functions-and-views', sql: migration03sql},
+	{name: '04-download-tracking', sql: migration04sql}
 ]
 
 /**
