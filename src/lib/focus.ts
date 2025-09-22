@@ -28,7 +28,7 @@ export function focusable_children(node: HTMLElement) {
 		const reordered = [...nodes.slice(index), ...nodes.slice(0, index)]
 
 		let i = (reordered.length + d) % reordered.length
-		let node
+		let node: HTMLElement
 
 		while ((node = reordered[i])) {
 			i += d

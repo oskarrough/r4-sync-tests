@@ -1,11 +1,11 @@
 <script>
-	import {goto} from '$app/navigation'
 	import {onMount} from 'svelte'
-	import {getPg, pg} from '$lib/r5/db'
-	import {toggleTheme, toggleQueuePanel} from '$lib/api'
-	import SearchInput from '$lib/components/search-input.svelte'
-	import {page} from '$app/state'
 	import {SvelteURLSearchParams} from 'svelte/reactivity'
+	import {goto} from '$app/navigation'
+	import {page} from '$app/state'
+	import {toggleQueuePanel, toggleTheme} from '$lib/api'
+	import SearchInput from '$lib/components/search-input.svelte'
+	import {getPg, pg} from '$lib/r5/db'
 
 	let debounceTimer = $state()
 	let allChannels = $state([])

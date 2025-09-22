@@ -2,8 +2,8 @@
 	import {onMount} from 'svelte'
 	import {createBrowserCli} from '$lib/cli-browser'
 	import PgliteRepl from '$lib/components/pglite-repl.svelte'
-	import {r5} from '$lib/r5'
 	import Terminal from '$lib/components/sdk-terminal.svelte'
+	import {r5} from '$lib/r5'
 
 	let terminalInput = $state('')
 	let baseOutput = $state([])

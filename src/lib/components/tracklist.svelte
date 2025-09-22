@@ -1,6 +1,6 @@
 <script>
-	import {incrementalLiveQuery} from '$lib/live-query'
 	import TrackCard from '$lib/components/track-card.svelte'
+	import {incrementalLiveQuery} from '$lib/live-query'
 
 	/** @typedef {import('$lib/types').Track} Track */
 

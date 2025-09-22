@@ -1,12 +1,12 @@
 <script>
 	import {onMount} from 'svelte'
-	import {relativeDate, relativeDateSolar} from '$lib/dates'
-	import Icon from '$lib/components/icon.svelte'
-	import ChannelHero from '$lib/components/channel-hero.svelte'
-	import ButtonPlay from '$lib/components/button-play.svelte'
-	import Tracklist from '$lib/components/tracklist.svelte'
-	import LinkEntities from '$lib/components/link-entities.svelte'
 	import ButtonFollow from '$lib/components/button-follow.svelte'
+	import ButtonPlay from '$lib/components/button-play.svelte'
+	import ChannelHero from '$lib/components/channel-hero.svelte'
+	import Icon from '$lib/components/icon.svelte'
+	import LinkEntities from '$lib/components/link-entities.svelte'
+	import Tracklist from '$lib/components/tracklist.svelte'
+	import {relativeDate, relativeDateSolar} from '$lib/dates'
 	import {r5} from '$lib/r5'
 
 	let {data} = $props()

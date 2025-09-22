@@ -31,7 +31,7 @@ export const defaultAppState: AppState = {
 	theme: undefined,
 	hide_track_artwork: false,
 
-	user: null
+	user: undefined
 }
 
 export const appState: AppState = $state({...defaultAppState})

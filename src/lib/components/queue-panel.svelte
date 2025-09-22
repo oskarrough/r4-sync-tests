@@ -1,13 +1,13 @@
 <script>
-	import {pg} from '$lib/r5/db'
-	import {liveQuery, incrementalLiveQuery} from '$lib/live-query'
+	import fuzzysort from 'fuzzysort'
 	import {appState} from '$lib/app-state.svelte'
-	import Tracklist from './tracklist.svelte'
-	import TrackCard from './track-card.svelte'
+	import {tooltip} from '$lib/components/tooltip-attachment.js'
+	import {incrementalLiveQuery, liveQuery} from '$lib/live-query'
+	import {pg} from '$lib/r5/db'
 	import Modal from './modal.svelte'
 	import SearchInput from './search-input.svelte'
-	import fuzzysort from 'fuzzysort'
-	import {tooltip} from '$lib/components/tooltip-attachment.js'
+	import TrackCard from './track-card.svelte'
+	import Tracklist from './tracklist.svelte'
 
 	let view = $state('queue') // 'queue' or 'history'
 	let showClearHistoryModal = $state(false)

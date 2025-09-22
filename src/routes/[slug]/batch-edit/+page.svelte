@@ -1,9 +1,9 @@
 <script>
-	import {r5} from '$lib/r5'
 	import {appState} from '$lib/app-state.svelte'
 	import {batchEdit} from '$lib/batch-edit.svelte'
-	import TrackRow from './TrackRow.svelte'
+	import {r5} from '$lib/r5'
 	import EditsPanel from './EditsPanel.svelte'
+	import TrackRow from './TrackRow.svelte'
 
 	let {data} = $props()
 

@@ -1,11 +1,11 @@
 <script>
 	import {goto} from '$app/navigation'
 	import {appState} from '$lib/app-state.svelte'
+	import Icon from '$lib/components/icon.svelte'
+	import Modal from '$lib/components/modal.svelte'
+	import {tooltip} from '$lib/components/tooltip-attachment.js'
 	import {r5} from '$lib/r5'
 	import {pg} from '$lib/r5/db'
-	import Modal from '$lib/components/modal.svelte'
-	import Icon from '$lib/components/icon.svelte'
-	import {tooltip} from '$lib/components/tooltip-attachment.js'
 
 	let showModal = $state(false)
 	let recentTracks = $state([])

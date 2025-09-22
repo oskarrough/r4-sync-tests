@@ -1,5 +1,5 @@
 <script>
-	import {followChannel, unfollowChannel, isFollowing as isFollowingChannel} from '$lib/api'
+	import {followChannel, isFollowing as isFollowingChannel, unfollowChannel} from '$lib/api'
 	import {appState} from '$lib/app-state.svelte'
 	import Icon from '$lib/components/icon.svelte'
 

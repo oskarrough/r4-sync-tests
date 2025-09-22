@@ -3,10 +3,10 @@
  * No yargs dependency, just string parsing and function calls
  */
 
-import {r5} from './r5/index.js'
 import * as playerApi from './api/player.js'
 import {appState} from './app-state.svelte'
 import {pg} from './r5/db'
+import {r5} from './r5/index.js'
 
 const COMMANDS = {
 	channels: {

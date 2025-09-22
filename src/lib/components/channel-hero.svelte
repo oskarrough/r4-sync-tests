@@ -1,7 +1,7 @@
 <script>
+	import ButtonFollow from './button-follow.svelte'
 	import ButtonPlay from './button-play.svelte'
 	import ChannelAvatar from './channel-avatar.svelte'
-	import ButtonFollow from './button-follow.svelte'
 
 	/** @type {{channel: import('$lib/types').Channel, size?: number}}*/
 	let {channel, size = 250} = $props()

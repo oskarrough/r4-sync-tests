@@ -1,12 +1,12 @@
 <script>
+	import {onMount} from 'svelte'
 	import {invalidateAll} from '$app/navigation'
 	import {page} from '$app/state'
-	import {r5} from '$lib/r5'
-	import Icon from '$lib/components/icon.svelte'
-	import Channels from '$lib/components/channels.svelte'
-	import {getPg} from '$lib/r5/db.js'
 	import {appState} from '$lib/app-state.svelte'
-	import {onMount} from 'svelte'
+	import Channels from '$lib/components/channels.svelte'
+	import Icon from '$lib/components/icon.svelte'
+	import {r5} from '$lib/r5'
+	import {getPg} from '$lib/r5/db.js'
 
 	// const {data} = $props()
 

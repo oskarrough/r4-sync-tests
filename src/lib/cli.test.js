@@ -1,6 +1,6 @@
-import {describe, it, expect} from 'vitest'
-import {exec} from 'child_process'
-import {promisify} from 'util'
+import {exec} from 'node:child_process'
+import {promisify} from 'node:util'
+import {describe, expect, it} from 'vitest'
 
 const execAsync = promisify(exec)
 const CLI = 'bun src/lib/cli.ts'

@@ -2,17 +2,17 @@
 	import 'media-chrome'
 	//import 'youtube-video-element'
 	import '$lib/youtube-video-custom-element.js'
-	import {toggleQueuePanel, togglePlayerExpanded} from '$lib/api'
-	import {togglePlay, next, previous, toggleShuffle, play} from '$lib/api/player'
+	import {togglePlayerExpanded, toggleQueuePanel} from '$lib/api'
+	import {next, play, previous, togglePlay, toggleShuffle} from '$lib/api/player'
 	import {appState} from '$lib/app-state.svelte'
-	import {logger} from '$lib/logger'
-	import {extractYouTubeId} from '$lib/utils.ts'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import Icon from '$lib/components/icon.svelte'
 	import LinkEntities from '$lib/components/link-entities.svelte'
-	import {r5} from '$lib/r5/index'
-	import {pg} from '$lib/r5/db'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
+	import {logger} from '$lib/logger'
+	import {pg} from '$lib/r5/db'
+	import {r5} from '$lib/r5/index'
+	import {extractYouTubeId} from '$lib/utils.ts'
 
 	/** @typedef {import('$lib/types').Track} Track */
 	/** @typedef {import('$lib/types').Channel} Channel */
@@ -95,7 +95,7 @@
 	async function setChannelFromTrack(tid) {
 		if (!tid || tid === track?.id) return
 		track = (await pg.sql`select * from tracks_with_meta where id = ${tid}`).rows[0]
-		if (!track) throw new Error('Track not found: ${tid}')
+		if (!track) throw new Error(`Track not found: ${tid}`)
 		channel = (await r5.channels.local({slug: track.channel_slug}))[0]
 	}
 

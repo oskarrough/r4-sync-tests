@@ -1,14 +1,14 @@
 <script>
-	import {page} from '$app/state'
 	import {goto} from '$app/navigation'
+	import {page} from '$app/state'
 	import {appState} from '$lib/app-state.svelte'
+	import {tooltip} from '$lib/components/tooltip-attachment.js'
 	import {shuffleArray} from '$lib/utils.ts'
-	import Icon from './icon.svelte'
 	import ChannelCard from './channel-card.svelte'
+	import Icon from './icon.svelte'
+	import InfiniteGrid from './infinite-grid.svelte'
 	import MapComponent from './map.svelte'
 	import SpectrumScanner from './spectrum-scanner.svelte'
-	import InfiniteGrid from './infinite-grid.svelte'
-	import {tooltip} from '$lib/components/tooltip-attachment.js'
 
 	const {channels = [], slug: initialSlug, display: initialDisplay, longitude, latitude, zoom} = $props()
 

@@ -134,9 +134,11 @@ async function downloadTrack(track, folderPath, options = {}) {
 		console.error(`Failed to download "${track.title}" (${track.url}): ${errorMsg}`)
 
 		// Check for common YouTube API issues
-		if (errorMsg.includes('HTTP Error 403') ||
+		if (
+			errorMsg.includes('HTTP Error 403') ||
 			errorMsg.includes('fragment 1 not found') ||
-			errorMsg.includes('Requested format is not available')) {
+			errorMsg.includes('Requested format is not available')
+		) {
 			console.error('Try updating yt-dlp (`brew upgrade yt-dlp`)')
 		}
 
@@ -187,7 +189,9 @@ export async function downloadChannel(slug, folderPath, options = {}) {
 	// Download with concurrency limit
 	const limit = pLimit(concurrency)
 	const results = await Promise.all(
-		tracks.map((track) => limit(() => downloadTrack(track, tracksFolder, {simulate, premium, poToken, skipRecentFailures: !retryFailed})))
+		tracks.map((track) =>
+			limit(() => downloadTrack(track, tracksFolder, {simulate, premium, poToken, skipRecentFailures: !retryFailed}))
+		)
 	)
 
 	// Count results

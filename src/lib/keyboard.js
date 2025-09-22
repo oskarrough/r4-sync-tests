@@ -1,6 +1,6 @@
 import {createKeybindingsHandler} from 'tinykeys'
-import * as api from '$lib/api.js'
 import {toggleShuffle} from '$lib/api/player.js'
+import {togglePlayerExpanded, openSearch, togglePlayPause, toggleQueuePanel} from '$lib/api.js'
 import {appState} from '$lib/app-state.svelte'
 
 /** Maps keybinding to functions from api.js */
@@ -17,8 +17,16 @@ export function initializeKeyboardShortcuts() {
 	const keyBindings = appState.shortcuts || DEFAULT_KEY_BINDINGS
 	const bindings = {}
 
+	const actionMap = {
+		toggleShuffle,
+		togglePlayerExpanded,
+		openSearch,
+		togglePlayPause,
+		toggleQueuePanel
+	}
+
 	for (const [key, actionName] of Object.entries(keyBindings)) {
-		const actionFn = actionName === 'toggleShuffle' ? toggleShuffle : api[actionName]
+		const actionFn = actionMap[actionName]
 		if (actionFn) {
 			bindings[key] = (event) => {
 				if (

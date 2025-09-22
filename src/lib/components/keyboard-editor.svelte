@@ -1,7 +1,7 @@
 <script>
-	import {DEFAULT_KEY_BINDINGS, initializeKeyboardShortcuts} from '$lib/keyboard'
 	import {appState} from '$lib/app-state.svelte'
 	import Icon from '$lib/components/icon.svelte'
+	import {DEFAULT_KEY_BINDINGS, initializeKeyboardShortcuts} from '$lib/keyboard'
 
 	const uid = $props.id()
 

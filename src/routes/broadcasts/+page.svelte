@@ -1,10 +1,10 @@
 <script>
-	import {joinBroadcast, leaveBroadcast, watchBroadcasts} from '$lib/broadcast'
 	import {appState} from '$lib/app-state.svelte'
+	import {joinBroadcast, leaveBroadcast, watchBroadcasts} from '$lib/broadcast'
 	import BroadcastControls from '$lib/components/broadcast-controls.svelte'
+	import ChannelCard from '$lib/components/channel-card.svelte'
 	import EnsureTrack from '$lib/components/ensure-track.svelte'
 	import {timeAgo} from '$lib/utils'
-	import ChannelCard from '$lib/components/channel-card.svelte'
 
 	const broadcastState = $state({
 		broadcasts: [],

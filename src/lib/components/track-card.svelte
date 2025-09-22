@@ -1,12 +1,12 @@
 <script lang="ts">
-	import {playTrack} from '$lib/api'
-	import {formatDate} from '$lib/dates'
-	import {extractYouTubeId} from '$lib/utils.ts'
-	import type {Track} from '$lib/types'
-	import LinkEntities from './link-entities.svelte'
-	import Icon from './icon.svelte'
 	import type {Snippet} from 'svelte'
+	import {playTrack} from '$lib/api'
 	import {appState} from '$lib/app-state.svelte'
+	import {formatDate} from '$lib/dates'
+	import type {Track} from '$lib/types'
+	import {extractYouTubeId} from '$lib/utils.ts'
+	import Icon from './icon.svelte'
+	import LinkEntities from './link-entities.svelte'
 
 	interface Props {
 		track: Track

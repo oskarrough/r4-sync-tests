@@ -1,7 +1,7 @@
 <script>
-	import InputRange from './input-range.svelte'
-	import ChannelCard from './channel-card.svelte'
 	import {generateFrequency} from '$lib/utils.ts'
+	import ChannelCard from './channel-card.svelte'
+	import InputRange from './input-range.svelte'
 
 	const {channels = [], min = 88.0, max = 108.0} = $props()
 
@@ -25,7 +25,7 @@
 				frequency: freq,
 				//signalStrength: Math.log10(Math.max(channel.track_count || 1, 1)) / Math.log10(2000) ** 5
 				//signalStrength: Math.log10(channel.track_count + 10) / 3.7
-				signalStrength: Math.min(1, Math.pow(channel.track_count / 400, 0.8))
+				signalStrength: Math.min(1, (channel.track_count / 400) ** 0.8)
 				//signalStrength: channel.track_count < 100
 				//? channel.track_count / 200  // linear for small stations
 				//: 0.5 + Math.log10(channel.track_count / 100) / 3  // log for established ones

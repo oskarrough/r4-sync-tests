@@ -1,7 +1,7 @@
 <script>
 	import {sdk} from '@radio4000/sdk'
-	import KeyboardEditor from '$lib/components/keyboard-editor.svelte'
 	import {appState} from '$lib/app-state.svelte'
+	import KeyboardEditor from '$lib/components/keyboard-editor.svelte'
 
 	const sha = $derived(__GIT_INFO__.sha)
 

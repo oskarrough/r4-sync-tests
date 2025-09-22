@@ -52,7 +52,7 @@ class BatchEdit {
 
 		// Group edits by track_id to batch changes per track
 		const trackEdits = new SvelteMap()
-		for (const edit of edits.rows) {
+		for (const edit of edits.rows as Array<{track_id: string; field: string; new_value: unknown}>) {
 			if (!trackEdits.has(edit.track_id)) {
 				trackEdits.set(edit.track_id, {})
 			}
@@ -62,13 +62,13 @@ class BatchEdit {
 		// Apply changes via SDK
 		console.log({trackEdits})
 		for (const [trackId, changes] of trackEdits) {
-			const {error} = await sdk.tracks.updateTrack(trackId, changes)
+			const {error} = await sdk.tracks.updateTrack(trackId as string, changes)
 			console.log('track edit error', error)
 			if (error) throw error
 
 			// Update local DB to match remote
 			await pg.transaction(async (tx) => {
-				for (const [field, value] of Object.entries(changes)) {
+				for (const [field, value] of Object.entries(changes as Record<string, unknown>)) {
 					await tx.sql`UPDATE tracks SET ${identifier`${field}`} = ${value} WHERE id = ${trackId}`
 				}
 			})

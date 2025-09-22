@@ -1,6 +1,6 @@
 <script>
-	import {local, getChannelDateRange} from '$lib/r5/tags'
 	import InputRange from '$lib/components/input-range.svelte'
+	import {getChannelDateRange, local} from '$lib/r5/tags'
 
 	const {data} = $props()
 	const {channel} = data

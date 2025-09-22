@@ -62,7 +62,10 @@ export const ENTITY_REGEX = /(^|\s)([#﹟＃@][\p{XID_Continue}\p{Extended_Picto
 /**
  * Parse text for entities (hashtags and mentions)
  */
-export function parseEntities(text, callback) {
+export function parseEntities(
+	text: string,
+	callback: (match: string, prefix: string, entity: string, offset: number) => unknown
+): unknown[] {
 	if (!text || typeof text !== 'string') return []
 
 	const entities = []
@@ -77,7 +80,7 @@ export function parseEntities(text, callback) {
 /**
  * Extract hashtags from text
  */
-export function extractHashtags(text) {
+export function extractHashtags(text: string): string[] {
 	if (!text || typeof text !== 'string') return []
 
 	const hashtags = []

@@ -1,3 +1,4 @@
+import {play} from '$lib/api/player'
 import {appState, defaultAppState} from '$lib/app-state.svelte'
 import {leaveBroadcast, upsertRemoteBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
@@ -6,7 +7,6 @@ import {r5} from '$lib/r5'
 import {pg} from '$lib/r5/db'
 import {pull as pullFollowers, sync as syncFollowers} from '$lib/r5/followers'
 import {shuffleArray} from '$lib/utils.ts'
-import {play} from '$lib/api/player'
 
 const log = logger.ns('api').seal()
 

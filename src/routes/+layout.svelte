@@ -1,20 +1,20 @@
 <script>
 	import '../styles/style.css'
 	import 'leaflet/dist/leaflet.css'
-	import LayoutHeader from '$lib/components/layout-header.svelte'
-	import LayoutFooter from '$lib/components/layout-footer.svelte'
-	import QueuePanel from '$lib/components/queue-panel.svelte'
+	import {appState, persistAppState} from '$lib/app-state.svelte'
 	import AuthListener from '$lib/components/auth-listener.svelte'
-	import LiveChat from '$lib/components/live-chat.svelte'
 	import DraggablePanel from '$lib/components/draggable-panel.svelte'
 	import KeyboardShortcuts from '$lib/components/keyboard-shortcuts.svelte'
-	import {appState, persistAppState} from '$lib/app-state.svelte'
+	import LayoutFooter from '$lib/components/layout-footer.svelte'
+	import LayoutHeader from '$lib/components/layout-header.svelte'
+	import LiveChat from '$lib/components/live-chat.svelte'
+	import QueuePanel from '$lib/components/queue-panel.svelte'
 	import '@radio4000/components'
-	import {logger} from '$lib/logger'
 	import {onMount} from 'svelte'
-	import {checkUser} from '$lib/api'
 	import {goto} from '$app/navigation'
+	import {checkUser} from '$lib/api'
 	import {applyCustomCssVariables} from '$lib/apply-css-variables'
+	import {logger} from '$lib/logger'
 
 	const log = logger.ns('layout').seal()
 

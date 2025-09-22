@@ -1,8 +1,8 @@
 <script>
-	import IconR4 from '$lib/icon-r4.svelte'
-	import {appState} from '$lib/app-state.svelte'
 	import {sdk} from '@radio4000/sdk'
+	import {appState} from '$lib/app-state.svelte'
 	import ChannelCard from '$lib/components/channel-card.svelte'
+	import IconR4 from '$lib/icon-r4.svelte'
 	import {pg} from '$lib/r5/db.js'
 
 	const userChannels = $derived.by(async () => {

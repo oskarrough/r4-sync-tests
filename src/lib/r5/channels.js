@@ -10,8 +10,8 @@ const LIMIT = 4000
 async function channelIdToSlug(id) {
 	const pg = await getPg()
 	// try to get slug local
-	const rows = await pg.sql`select slug from channels where id = ${id}`
-	if (rows.length) return rows[0].slug
+	const result = await pg.sql`select slug from channels where id = ${id}`
+	if (result.rows.length) return result.rows[0].slug
 	// fallback to r4 - query by ID not slug
 	try {
 		const {data} = await r4Api.sdk.supabase.from('channels').select('slug').eq('id', id).single().throwOnError()
@@ -175,8 +175,8 @@ export async function outdated(slug) {
 			.throwOnError()
 
 		// Compare timestamps (ignoring milliseconds)
-		const remoteMsRemoved = new Date(remoteLatest.updated_at).setMilliseconds(0)
-		const localMsRemoved = new Date(localLatest.updated_at).setMilliseconds(0)
+		const remoteMsRemoved = new Date(remoteLatest.updated_at || 0).setMilliseconds(0)
+		const localMsRemoved = new Date(localLatest.updated_at || 0).setMilliseconds(0)
 		const toleranceMs = 20 * 1000
 		const isOutdated = remoteMsRemoved - localMsRemoved > toleranceMs
 		if (isOutdated) {
@@ -194,8 +194,18 @@ export async function outdated(slug) {
 async function readv1() {
 	const browser = typeof window !== 'undefined'
 	const filename = 'channels-v1-modified.json'
-	const res = browser ? await fetch(`/${filename}`) : await fetch(`file://${process.cwd()}/static/${filename}`)
-	return await res.json()
+
+	if (browser) {
+		const res = await fetch(`/${filename}`)
+		return await res.json()
+	} else {
+		// Node.js environment - use fs to read the file
+		const fs = await import('node:fs')
+		const path = await import('node:path')
+		const filePath = path.join(process.cwd(), 'static', filename)
+		const content = fs.readFileSync(filePath, 'utf8')
+		return JSON.parse(content)
+	}
 }
 
 function parseFirebaseChannel(item) {

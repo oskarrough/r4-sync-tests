@@ -1,8 +1,8 @@
 <script>
-	import {base} from '$app/paths'
-	import {page} from '$app/state'
 	import L from 'leaflet'
 	import {goto} from '$app/navigation'
+	import {base} from '$app/paths'
+	import {page} from '$app/state'
 
 	const {
 		mapId = Date.now().toString(),
@@ -168,19 +168,25 @@
 			setTimeout(() => activeMarker.marker.openPopup(), 100)
 			mapState.isProgrammaticChange = true
 			mapState.instance.setView([activeMarker.data.latitude, activeMarker.data.longitude], zoom)
-			setTimeout(() => (mapState.isProgrammaticChange = false), 100)
+			setTimeout(() => {
+				mapState.isProgrammaticChange = false
+			}, 100)
 		} else if (validMarkers.length === 1) {
 			const {latitude, longitude} = validMarkers[0]
 			mapState.isProgrammaticChange = true
 			mapState.instance.setView([latitude, longitude], zoom)
-			setTimeout(() => (mapState.isProgrammaticChange = false), 100)
+			setTimeout(() => {
+				mapState.isProgrammaticChange = false
+			}, 100)
 		} else if (validMarkers.length > 1 && !page?.url?.searchParams?.get('zoom')) {
 			// Only fit bounds if we have actual markers in the group
 			const bounds = mapState.markerGroup.getBounds()
 			if (bounds.isValid()) {
 				mapState.isProgrammaticChange = true
 				mapState.instance.fitBounds(bounds.pad(0.2))
-				setTimeout(() => (mapState.isProgrammaticChange = false), 100)
+				setTimeout(() => {
+					mapState.isProgrammaticChange = false
+				}, 100)
 			}
 		}
 	})
@@ -190,7 +196,9 @@
 		if (mapState.instance && zoom !== mapState.instance.getZoom()) {
 			mapState.isProgrammaticChange = true
 			mapState.instance.setZoom(zoom)
-			setTimeout(() => (mapState.isProgrammaticChange = false), 100)
+			setTimeout(() => {
+				mapState.isProgrammaticChange = false
+			}, 100)
 		}
 	})
 

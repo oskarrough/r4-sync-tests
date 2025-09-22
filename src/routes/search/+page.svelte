@@ -1,10 +1,10 @@
 <script>
-	import {trap} from '$lib/focus'
 	import {page} from '$app/state'
-	import {r5} from '$lib/r5'
-	import {setPlaylist, addToPlaylist, playTrack} from '$lib/api'
+	import {addToPlaylist, playTrack, setPlaylist} from '$lib/api'
 	import ChannelCard from '$lib/components/channel-card.svelte'
 	import TrackCard from '$lib/components/track-card.svelte'
+	import {trap} from '$lib/focus'
+	import {r5} from '$lib/r5'
 
 	/** @type {import('$lib/types.ts').Channel[]} */
 	let channels = $state([])

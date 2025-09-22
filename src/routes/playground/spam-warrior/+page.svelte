@@ -1,10 +1,10 @@
 <script>
 	import {onMount} from 'svelte'
-	import {analyzeChannels, clearChannelSpam, getChannelTracks, analyzeChannel} from './spam-detector.js'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
-	import {pg} from '$lib/r5/db'
 	import {r5} from '$lib/r5'
+	import {pg} from '$lib/r5/db'
+	import {analyzeChannel, analyzeChannels, clearChannelSpam, getChannelTracks} from './spam-detector.js'
 
 	/** @type {Array<import('$lib/types').Channel & {spamAnalysis: {confidence: number, reasons: string[], isSpam: boolean}}>} */
 	let allChannels = $state([])

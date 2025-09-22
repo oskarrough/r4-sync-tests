@@ -1,8 +1,8 @@
 <script>
 	import {appState} from '$lib/app-state.svelte'
 	import {applyCustomCssVariables} from '$lib/apply-css-variables'
-	import InputRange from '$lib/components/input-range.svelte'
 	import InputColor from '$lib/components/input-color.svelte'
+	import InputRange from '$lib/components/input-range.svelte'
 	import ThemeToggle from '$lib/components/theme-toggle.svelte'
 
 	const uid = $props.id()
@@ -135,7 +135,7 @@
 
 				let cleanKey = key.trim()
 				if (!cleanKey.startsWith('--')) {
-					cleanKey = '--' + cleanKey
+					cleanKey = `--${cleanKey}`
 				}
 
 				variables[cleanKey] = value.trim()

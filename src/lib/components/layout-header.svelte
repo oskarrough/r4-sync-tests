@@ -1,8 +1,8 @@
 <script>
 	import {page} from '$app/state'
 	import {appState} from '$lib/app-state.svelte'
-	import AddTrackModal from '$lib/components/add-track-modal.svelte'
 	import {watchBroadcasts} from '$lib/broadcast'
+	import AddTrackModal from '$lib/components/add-track-modal.svelte'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import HeaderSearch from '$lib/components/header-search.svelte'
 	import Icon from '$lib/components/icon.svelte'

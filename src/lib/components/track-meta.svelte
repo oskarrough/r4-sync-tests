@@ -1,9 +1,9 @@
 <script>
+	import {logger} from '$lib/logger'
+	import {hunt as huntDiscogsUrl, pull as insertDiscogsMeta} from '$lib/metadata/discogs'
 	import {pull as insertMusicBrainzMeta} from '$lib/metadata/musicbrainz'
 	import {pullSingle as insertYouTubeMeta} from '$lib/metadata/youtube'
-	import {pull as insertDiscogsMeta, hunt as huntDiscogsUrl} from '$lib/metadata/discogs'
 	import {extractYouTubeId} from '$lib/utils.ts'
-	import {logger} from '$lib/logger'
 
 	const log = logger.ns('track-meta').seal()
 

@@ -1,13 +1,14 @@
 <script>
-	import {page} from '$app/state'
 	import {invalidate} from '$app/navigation'
+	import {page} from '$app/state'
+	import TrackCard from '$lib/components/track-card.svelte'
 	import TrackMeta from '$lib/components/track-meta.svelte'
+	import TrackMetaDiscogs from '$lib/components/track-meta-discogs.svelte'
+	import TrackMetaMusicbrainz from '$lib/components/track-meta-musicbrainz.svelte'
 	import TrackMetaR5 from '$lib/components/track-meta-r5.svelte'
 	import TrackMetaYoutube from '$lib/components/track-meta-youtube.svelte'
-	import TrackMetaMusicbrainz from '$lib/components/track-meta-musicbrainz.svelte'
-	import TrackMetaDiscogs from '$lib/components/track-meta-discogs.svelte'
 	import TrackRelated from '$lib/components/track-related.svelte'
-	import TrackCard from '$lib/components/track-card.svelte'
+
 	// import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	// import ButtonPlay from '$lib/components/button-play.svelte'
 	// import ChannelCard from '$lib/components/channel-card.svelte'

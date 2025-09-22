@@ -1,7 +1,7 @@
 <script>
+	import {appState} from '$lib/app-state.svelte'
 	import {trimWithEllipsis} from '$lib/utils.ts'
 	import ChannelHero from './channel-hero.svelte'
-	import {appState} from '$lib/app-state.svelte'
 
 	/** @type {{channel: import('$lib/types').Channel}}*/
 	let {channel, children} = $props()

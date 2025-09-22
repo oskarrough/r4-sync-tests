@@ -1,6 +1,6 @@
 <script>
-	import {onMount} from 'svelte'
 	import {sdk} from '@radio4000/sdk'
+	import {onMount} from 'svelte'
 
 	let message = $state('')
 	let messages = $state([])
