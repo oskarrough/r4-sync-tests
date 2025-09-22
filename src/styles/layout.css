@@ -73,6 +73,26 @@ menu {
 	}
 }
 
+menu[vertical] {
+	flex-flow: column;
+	/* background: var(--gray-2); */
+	border: 1px solid var(--gray-6);
+	border-radius: var(--border-radius);
+	gap: 0;
+
+	a {
+		padding: 0.5rem;
+		text-decoration: none;
+		&:hover {
+			background: light-dark(var(--gray-2), var(--gray-2));
+		}
+	}
+
+	a:not(:last-child) {
+		border-bottom: 1px solid var(--gray-4);
+	}
+}
+
 dl.meta {
 	display: grid;
 	grid-template-columns: max-content 1fr;

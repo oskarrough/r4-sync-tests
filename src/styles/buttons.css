@@ -111,7 +111,7 @@ button.danger:focus,
 
 button[role='primary'],
 button.primary,
-.button.primary {
+.btn.primary {
 	background: var(--accent-9);
 	color: var(--gray-1);
 
