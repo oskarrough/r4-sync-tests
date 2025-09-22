@@ -16,6 +16,7 @@
 <style>
 	figure {
 		position: relative;
+		container-type: inline-size;
 	}
 
 	figure :global(button) {
@@ -37,5 +38,11 @@
 
 	figure:hover :global(button) {
 		opacity: 1;
+	}
+
+	@container (max-width: 100px) {
+		figure :global(.follow) {
+			display: none;
+		}
 	}
 </style>

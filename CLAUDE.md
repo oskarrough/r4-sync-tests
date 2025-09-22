@@ -98,3 +98,5 @@ Ask me to perform queries on the db database for you, if it helps:
 (await window.r5.pg.sql`select * from app_state where id = 1`).rows[0]
 
 Do not attempt to start the dev server. The user will do that.
+
+When searching for text or files, prefer using `rg` or `rg --files` respectively because `rg` is much faster than alternatives like `grep`. 

@@ -106,12 +106,20 @@
 
 		menu {
 			margin-top: 0.5rem;
+			display: flex;
+			justify-content: center;
+			gap: 0.5rem;
+
+			@media (min-width: 520px) {
+				justify-content: flex-start;
+			}
 		}
 	}
 
 	article header :global(figure) {
-		margin: 0;
+		margin: 0.5rem auto 0;
 		min-width: 150px;
+		max-width: 300px;
 
 		@media (min-width: 520px) {
 			margin: 0.5rem 1rem 0rem 0.5rem;
@@ -127,6 +135,11 @@
 	h1,
 	h1 ~ p {
 		margin: 0 1.5rem;
+		text-align: center;
+
+		@media (min-width: 520px) {
+			text-align: left;
+		}
 	}
 
 	h1 {
@@ -135,6 +148,11 @@
 		font-size: var(--font-9);
 		gap: 0.5rem;
 		align-items: center;
+		place-content: center;
+
+		@media (min-width: 520px) {
+			place-content: flex-start;
+		}
 	}
 
 	h1 + p {
