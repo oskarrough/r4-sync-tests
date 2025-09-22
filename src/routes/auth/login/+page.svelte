@@ -1,13 +1,15 @@
 <script>
 	import {goto} from '$app/navigation'
+	import {page} from '$app/state'
 
-	// hcaptcha-site-key="b0a493f2-49df-486b-bdee-b8459f7b1c21"
-	//
 	function onSubmit(event) {
 		const error = event.detail.error
 		const user = event.detail.data.user
 		if (error) throw new Error(error)
-		if (user) goto('/settings')
+		if (user) {
+			const redirect = page.url.searchParams.get('redirect') || '/settings'
+			goto(redirect)
+		}
 		console.error('signinerror', {user, error})
 		throw new Error('Failed to sign in')
 	}
@@ -18,10 +20,6 @@
 </svelte:head>
 
 <article class="MiniContainer">
-	<header>
-		<p><a href="/auth">auth</a> / sign-in</p>
-	</header>
-
 	<h1>Log in to Radio4000</h1>
 	<r4-sign-in onsubmit={onSubmit}></r4-sign-in>
 

@@ -1,9 +1,13 @@
 <script>
 	import {sdk} from '@radio4000/sdk'
+	import {page} from '$app/state'
 	import {appState} from '$lib/app-state.svelte'
 	import ChannelCard from '$lib/components/channel-card.svelte'
 	import IconR4 from '$lib/icon-r4.svelte'
 	import {pg} from '$lib/r5/db.js'
+
+	const redirect = page.url.searchParams.get('redirect')
+	const redirectParam = redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''
 
 	const userChannels = $derived.by(async () => {
 		if (!appState.channels?.length) return []
@@ -45,11 +49,11 @@
 		{/await}
 	{:else}
 		<menu class="options">
-			<a href="/auth/create-account">
+			<a href="/auth/create-account{redirectParam}">
 				<h3>Create account</h3>
 				<p>I'm new to Radio4000</p>
 			</a>
-			<a href="/auth/login">
+			<a href="/auth/login{redirectParam}">
 				<h3>Sign in</h3>
 				<p>I already have a channel</p>
 			</a>

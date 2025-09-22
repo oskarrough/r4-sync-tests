@@ -1,5 +1,9 @@
 <script>
+	import {page} from '$app/state'
+
 	let didSubmit = $state(false)
+	const redirect = page.url.searchParams.get('redirect')
+	const redirectParam = redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''
 
 	function onSubmit(event) {
 		console.log(event, event.detail)
@@ -12,15 +16,11 @@
 </svelte:head>
 
 <article class="MiniContainer">
-	<header>
-		<p><a href="/auth">auth</a> / create-account</p>
-	</header>
-
 	{#if !didSubmit}
 		<h1>Create Radio4000 account</h1>
 		<r4-sign-up onsubmit={onSubmit}></r4-sign-up>
 		<footer>
-			<p>Already have an account? <a href="/auth/login">Sign in &rarr;</a></p>
+			<p>Already have an account? <a href="/auth/login{redirectParam}">Sign in &rarr;</a></p>
 			<p>
 				<small>
 					Having trouble? <a href="https://matrix.to/#/#radio4000:matrix.org" target="_blank">Chat with us</a>

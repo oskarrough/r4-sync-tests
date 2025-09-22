@@ -26,7 +26,7 @@
 
 	onMount(async () => {
 		await checkUser()
-		applyCustomCssVariables()
+		applyCustomCssVariables(appState.custom_css_variables)
 		// Ensure channels_display has a value before persisting
 		if (!appState.channels_display) {
 			appState.channels_display = 'grid'
@@ -49,7 +49,7 @@
 	})
 
 	$effect(() => {
-		applyCustomCssVariables()
+		applyCustomCssVariables(appState.custom_css_variables)
 	})
 
 	$effect(() => {
