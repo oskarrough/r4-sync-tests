@@ -62,11 +62,9 @@ Read more in `docs/local-database.md` and `docs/r5-sdk.md`.
 
 ## HTML/CSS
 
-- Use semantic elements like `header` or `menu` instead of divs
-- Rely existing global styles over new classes
 - Don't redefine button styles etc., as we have global styles in `styles/style.css`
-- Only create CSS classes when really needed
 - Use CSS custom property variables from variables.css (colors, font-sizing)
+- Right semantic elements (`<section>`, `<article>`, `<figure>`). No unnecessary container `<div>`s. Write HTML/CSS without classes by default. Use semantic elements, ARIA roles, data-\* attributes, and custom elements to express state/variants. Style via structure and modern selectors (:has, :where, :is), not class soup. Only introduce a class for 3rd-party hooks or proven reuse. Don't add arbitrary spacing or typography changes unless requested. Let browser defaults handle spacing, typography and most layout. Focus on styles critical for functionality. Reuse CSS custom property variables.
 
 ## Svelte 5 syntax
 
@@ -99,4 +97,4 @@ Ask me to perform queries on the db database for you, if it helps:
 
 Do not attempt to start the dev server. The user will do that.
 
-When searching for text or files, prefer using `rg` or `rg --files` respectively because `rg` is much faster than alternatives like `grep`. 
+When searching for text or files, prefer using `rg` or `rg --files` respectively because `rg` is much faster than alternatives like `grep`.

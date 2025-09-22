@@ -1,5 +1,10 @@
 # Changelog
 
+## September 2025
+
+- /[slug]/tags page
+- Improved CLI download with retry logic
+
 ## August 2025
 
 - Added play/pause/next/prev commands to the /cli page
