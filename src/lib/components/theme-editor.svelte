@@ -252,7 +252,7 @@
 			</div>
 		{/each}
 
-		<button style="margin-top: 0.5rem" onclick={resetToDefaults}>Reset colors to defaults</button>
+		<button style="margin-top: 0.5rem" onclick={resetToDefaults}>Reset layout and theme to defaults</button>
 	</section>
 
 	<section>

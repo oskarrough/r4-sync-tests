@@ -1,12 +1,12 @@
-# What is this? R5
+# Instructions for this project
 
-This file provides guidance to Claude and other LLMs working with code in this repository. Humans also welcome.
-A prototype local-first music player for Radio4000. The name in dev is `r5`.
-SvelteKit + Svelte 5 runes, PGlite (client-side postgres), @radio4000/sdk, jsdoc and sometimes typescript
+This file provides guidance to Claude and other LLM robots working with code in this repository.
 
-## Planning
 
-Use `todo.txt` to see current prios and find things to do.
+Humans also welcome.
+
+R5 is a prototype local-first music player for Radio4000. The name in dev is `r5`.
+SvelteKit + Svelte 5, PGlite (client-side postgres), @radio4000/sdk
 
 ## Documentation
 
@@ -90,11 +90,24 @@ Format and lint the code using `bun run lint`. Or use the claude code command /l
 
 When valuable, we can write tests using vitest. Put them next to the original file and name them xxx.test.js. Run tests with: `bun test [optional-name]`
 
-See docs/cli.md. The project has a CLI tool for database operations, run it with: `bun src/lib/cli.ts --help`. It is very useful for you to verify data orchestration works. Can also be piped, used with jq etc. The CLI does not share db with the web app.
+The user can run the web app and perform sql queries on the local database to debug:
 
-Ask me to perform queries on the db database for you, if it helps:
+```js
 (await window.r5.pg.sql`select * from app_state where id = 1`).rows[0]
+```
 
-Do not attempt to start the dev server. The user will do that.
+There is no need to start a dev server, as the user does it.
 
 When searching for text or files, prefer using `rg` or `rg --files` respectively because `rg` is much faster than alternatives like `grep`.
+
+## CLI
+
+See @docs/cli.md. The project has a CLI tool for database operations, run it with: `bun src/lib/cli.ts --help`. It is very useful for you to verify data orchestration works. Can also be piped, used with jq etc. The CLI does not share db with the web app.
+
+
+## Task-based agent approach
+
+1. Operate on tasks with `todo.txt` as your scratchpad
+2. Research, ask user for guidance when things aren't clear, or strategically important
+3. Review research, create a plan
+4. Implement plan

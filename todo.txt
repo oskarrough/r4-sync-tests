@@ -1,7 +1,7 @@
 # Todos
 
 List of possible improvements to the architecture, idea, cli and web application.
-Verify and evaluate todos before taking them on. They might be outdated or just not good ideas.
+Verify and evaluate todos before taking them on. They might be outdated or just not good ideas. Ask user for their preference.
 
 ## Backlog
 
@@ -34,3 +34,4 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 - cli: allow sql queries
 - cli download error handling: retry logic, download state tracking, failure persistence
 - cli download file scanning: old CLI scans `<folder>/<slug>/tracks/*.m4a`, new CLI has no file ops
+- improve broadcast feature 
