@@ -1,18 +1,18 @@
 /** This was the first theme of R5. No longer used, but kept for inspiration as it still has some nice colors */
 
 :root {
-	--gray-1: light-dark(lch(97.5% 0 282), lch(7% 1.867 272));
-	--gray-2: light-dark(lch(94% 2 282), lch(10% 3.033 272));
-	--gray-3: light-dark(lch(92% 2 282), lch(14% 4.2 272));
-	--gray-4: light-dark(lch(89% 0 282), lch(19% 3.54 272));
-	--gray-5: light-dark(lch(85% 0 282), lch(25% 3.54 272));
-	--gray-6: light-dark(lch(75% 1 282), lch(35% 1.35 272));
-	--gray-7: light-dark(lch(65% 1 282), lch(45% 1.35 272));
-	--gray-8: light-dark(lch(55% 1 282), lch(55% 1.35 272));
-	--gray-9: light-dark(lch(45% 1 282), lch(65% 1.35 272));
-	--gray-10: light-dark(lch(35% 1 282), lch(75% 2 104));
-	--gray-11: light-dark(lch(20% 1 282), lch(90% 2 104));
-	--gray-12: light-dark(lch(10% 0 282), lch(91% 6 104));
+	/* --gray-1: light-dark(lch(97.5% 0 282), lch(7% 1.867 272)); */
+	/* --gray-2: light-dark(lch(94% 2 282), lch(10% 3.033 272)); */
+	/* --gray-3: light-dark(lch(92% 2 282), lch(14% 4.2 272)); */
+	/* --gray-4: light-dark(lch(89% 0 282), lch(19% 3.54 272)); */
+	/* --gray-5: light-dark(lch(85% 0 282), lch(25% 3.54 272)); */
+	/* --gray-6: light-dark(lch(75% 1 282), lch(35% 1.35 272)); */
+	/* --gray-7: light-dark(lch(65% 1 282), lch(45% 1.35 272)); */
+	/* --gray-8: light-dark(lch(55% 1 282), lch(55% 1.35 272)); */
+	/* --gray-9: light-dark(lch(45% 1 282), lch(65% 1.35 272)); */
+	/* --gray-10: light-dark(lch(35% 1 282), lch(75% 2 104)); */
+	/* --gray-11: light-dark(lch(20% 1 282), lch(90% 2 104)); */
+	/* --gray-12: light-dark(lch(10% 0 282), lch(91% 6 104)); */
 
 	--gray-1: light-dark(oklch(from #988b8b 98% calc(c * 0.2) h), oklch(from #666666 8% calc(c * 0.4) h));
 	--gray-2: light-dark(oklch(from #988b8b 95% calc(c * 0.3) h), oklch(from #666666 12% calc(c * 0.5) h));
