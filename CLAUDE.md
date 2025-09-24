@@ -2,7 +2,6 @@
 
 This file provides guidance to Claude and other LLM robots working with code in this repository.
 
-
 Humans also welcome.
 
 R5 is a prototype local-first music player for Radio4000. The name in dev is `r5`.
@@ -93,7 +92,7 @@ When valuable, we can write tests using vitest. Put them next to the original fi
 The user can run the web app and perform sql queries on the local database to debug:
 
 ```js
-(await window.r5.pg.sql`select * from app_state where id = 1`).rows[0]
+;(await window.r5.pg.sql`select * from app_state where id = 1`).rows[0]
 ```
 
 There is no need to start a dev server, as the user does it.
@@ -103,7 +102,6 @@ When searching for text or files, prefer using `rg` or `rg --files` respectively
 ## CLI
 
 See @docs/cli.md. The project has a CLI tool for database operations, run it with: `bun src/lib/cli.ts --help`. It is very useful for you to verify data orchestration works. Can also be piped, used with jq etc. The CLI does not share db with the web app.
-
 
 ## Task-based agent approach
 
