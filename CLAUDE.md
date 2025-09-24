@@ -75,11 +75,12 @@ $effect(() => {
 })
 ```
 
-Snippets can be used for reusable "mini" components, when a file is too much https://svelte.dev/docs/svelte/snippet.
 Use $derived liberally. $derived can be mutated!
-Attachments can be used for reusable behaviours/effects on elements https://svelte.dev/docs/svelte/@attach.
+`await` can be used inside components' `<script>`, `$derived()`and markup.
+import`page`from`$app/state` (and not`$app/stores`)
 Use `bind:this` to get a reference to the element. You can even export methods on it.
-Import `page` from `$app/state`not`$app/stores` in Svelte 5.
+Snippets can be used for reusable "mini" components, when a file is too much https://svelte.dev/docs/svelte/snippet.
+Attachments can be used for reusable behaviours/effects on elements https://svelte.dev/docs/svelte/@attach.
 
 ## Debug Tricks
 
@@ -109,3 +110,9 @@ See @docs/cli.md. The project has a CLI tool for database operations, run it wit
 2. Research, ask user for guidance when things aren't clear, or strategically important
 3. Review research, create a plan
 4. Implement plan
+
+- Prefer using the src/lib/r5 sdk for reading data @docs/r5-sdk.md
+
+## @radio4000/components
+
+These are the custom elements used on radio4000.com and many also in this app. See their full docs on http://localhost:4000/docs.html.

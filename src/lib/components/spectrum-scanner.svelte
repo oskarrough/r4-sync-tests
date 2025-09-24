@@ -1,5 +1,6 @@
 <script>
 	import {generateFrequency} from '$lib/utils.ts'
+	import {playChannel} from '$lib/api'
 	import ChannelCard from './channel-card.svelte'
 	import InputRange from './input-range.svelte'
 
@@ -10,6 +11,9 @@
 	let selectedChannel = $state(null)
 	let isScanning = $state(false)
 	let scanDirection = $state(1) // 1 for up, -1 for down
+	let autoplay = $state(true)
+	let lastPlayedChannelId = $state(null)
+	let autoplayTimeout = null
 
 	let audioContext
 	let staticNode
@@ -48,7 +52,22 @@
 		const distance = Math.abs(closest.frequency - frequency)
 		const reception = Math.max(0, 1 - distance / 2) // Clear signal within 2 Hz
 
-		selectedChannel = reception > 0.3 ? {...closest, reception} : null
+		const newChannel = reception > 0.3 ? {...closest, reception} : null
+
+		selectedChannel = newChannel
+
+		// Debounced autoplay when landing on a new channel
+		if (autoplay && newChannel && newChannel.id !== lastPlayedChannelId) {
+			clearTimeout(autoplayTimeout)
+			autoplayTimeout = setTimeout(() => {
+				if (selectedChannel?.id === newChannel.id) {
+					lastPlayedChannelId = newChannel.id
+					playChannel(newChannel).catch((err) => console.warn('Autoplay failed:', err))
+				}
+			}, 500)
+		} else if (!newChannel) {
+			clearTimeout(autoplayTimeout)
+		}
 
 		updateStaticLevel(reception)
 	})
@@ -143,6 +162,7 @@
 				{isScanning ? 'Stop' : 'Scan'}
 			</button>
 			<button onclick={() => (frequency = Math.random() * (max - min) + min)}> Seek </button>
+			<button onclick={() => (autoplay = !autoplay)} class:active={autoplay}> Auto </button>
 		</menu>
 
 		<div class="signal-meter">
