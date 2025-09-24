@@ -148,7 +148,7 @@
 		margin: 0 1.5rem;
 		text-align: center;
 
-		@media (max-width: 520px) {
+		@media (min-width: 520px) {
 			text-align: left;
 			margin: 0;
 		}
