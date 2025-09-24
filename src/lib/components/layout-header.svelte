@@ -8,6 +8,7 @@
 	import Icon from '$lib/components/icon.svelte'
 	import TestCounter from '$lib/components/test-counter.svelte'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
+	import ThemeToggle from '$lib/components/theme-toggle.svelte'
 	import {r5} from '$lib/r5'
 
 	const {preloading} = $props()
@@ -76,6 +77,7 @@
 				<Icon icon="terminal" size={20} />
 			</a>
 		{/await}
+		<ThemeToggle showLabel={false} />
 		<a
 			href="/settings"
 			class="btn"

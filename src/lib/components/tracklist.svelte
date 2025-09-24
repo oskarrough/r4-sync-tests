@@ -68,7 +68,7 @@
 	{#if grouped}
 		<div class="timeline">
 			{#each groupedTracks as [year, months] (year)}
-				<section class="year">
+				<section>
 					<h2>{year}</h2>
 					{#each months as [month, monthTracks] (month)}
 						<section class="month">
@@ -105,8 +105,7 @@
 		contain-intrinsic-height: auto 3rem;
 	}
 
-	.year,
-	.month {
+	section {
 		contain: layout style;
 		content-visibility: auto;
 	}
@@ -118,10 +117,11 @@
 	h2,
 	h3 {
 		margin-left: 0.5rem;
-		color: var(--gray-9);
+		font-weight: 600;
 	}
 
-	.year h2 {
+	/* sticky year */
+	h2 {
 		display: inline-flex;
 		position: sticky;
 		top: 0;

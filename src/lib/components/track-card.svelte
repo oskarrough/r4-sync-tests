@@ -121,8 +121,9 @@
 
 	p {
 		margin: 0;
+		/* tags */
 		:global(a) {
-			color: var(--gray-11);
+			color: var(--gray-10);
 		}
 	}
 

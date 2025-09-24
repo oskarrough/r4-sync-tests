@@ -15,10 +15,7 @@
 
 <article class="SmallContainer">
 	{#if appState.user}
-		<section>
-			<p>Signed in as {appState.user.email}</p>
-			<p><button onclick={() => logout()}>Log out</button></p>
-		</section>
+		<p class="row row--vcenter">Signed in as {appState.user.email} <button onclick={() => logout()}>Log out</button></p>
 	{/if}
 
 	<menu vertical>
@@ -43,6 +40,10 @@
 <style>
 	article {
 		margin-bottom: calc(var(--player-compact-size));
+
+		> p {
+			margin-bottom: 1rem;
+		}
 	}
 	menu {
 		margin: 0 0 0.5rem;

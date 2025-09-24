@@ -47,32 +47,35 @@
 	<article>
 		<header>
 			<ChannelHero {channel} />
-			<menu>
-				<ButtonPlay {channel} class="primary" />
-				<ButtonFollow {channel} class="follow" />
-			</menu>
-			<h1>
-				{channel.name}
+			<div>
+				<menu>
+					<ButtonPlay {channel} class="primary" />
+					<ButtonFollow {channel} class="follow" />
+					<a href="/{channel.slug}/tags" class="btn">Tags</a>
+				</menu>
+				<h1>
+					{channel.name}
 
-				{#if channel.longitude && channel.latitude}
-					<a
-						href={`/?display=map&slug=${channel.slug}&longitude=${channel.longitude}&latitude=${channel.latitude}&zoom=15`}
-					>
-						<Icon icon="map" />
-					</a>
+					{#if channel.longitude && channel.latitude}
+						<a
+							href={`/?display=map&slug=${channel.slug}&longitude=${channel.longitude}&latitude=${channel.latitude}&zoom=15`}
+						>
+							<Icon icon="map" />
+						</a>
+					{/if}
+				</h1>
+				<p><LinkEntities slug={channel.slug} text={channel.description} /></p>
+				{#if channel.url}
+					<p><a href={channel.url} target="_blank" rel="noopener">{channel.url}</a></p>
 				{/if}
-			</h1>
-			<p><LinkEntities slug={channel.slug} text={channel.description} /></p>
-			{#if channel.url}
-				<p><a href={channel.url} target="_blank" rel="noopener">{channel.url}</a></p>
-			{/if}
-			<p>
-				<small>
-					Broadcasting since {relativeDateSolar(channel.created_at)}. Updated {relativeDate(
-						latestTrackDate || channel.updated_at
-					)}. {channel.track_count} tracks
-				</small>
-			</p>
+				<p>
+					<small>
+						Broadcasting since {relativeDateSolar(channel.created_at)}. Updated {relativeDate(
+							latestTrackDate || channel.updated_at
+						)}. {channel.track_count} tracks
+					</small>
+				</p>
+			</div>
 		</header>
 
 		<section>
@@ -108,10 +111,19 @@
 			margin-top: 0.5rem;
 			display: flex;
 			justify-content: center;
+			align-items: center;
 			gap: 0.5rem;
 
 			@media (min-width: 520px) {
 				justify-content: flex-start;
+			}
+		}
+
+		@media (min-width: 520px) {
+			display: grid;
+			grid-template-columns: 250px 1fr;
+			> *:not(figure) {
+				grid-column: 2;
 			}
 		}
 	}
@@ -123,7 +135,6 @@
 
 		@media (min-width: 520px) {
 			margin: 0.5rem 1rem 0rem 0.5rem;
-			float: left;
 			max-width: 250px;
 		}
 	}
@@ -137,8 +148,9 @@
 		margin: 0 1.5rem;
 		text-align: center;
 
-		@media (min-width: 520px) {
+		@media (max-width: 520px) {
 			text-align: left;
+			margin: 0;
 		}
 	}
 
