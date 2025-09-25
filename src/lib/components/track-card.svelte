@@ -22,9 +22,13 @@
 
 	const permalink = $derived(`/${track.channel_slug}/tracks/${track.id}`)
 	const active = $derived(track.id === appState.playlist_track)
-	const ytid = $derived.by(() => extractYouTubeId(track.url))
+	// Only extract YouTube ID when we need it for images
+	const ytid = $derived.by(() => {
+		if (!showImage || appState.hide_track_artwork) return null
+		return extractYouTubeId(track.url)
+	})
 	// default, mqdefault, hqdefault, sddefault, maxresdefault
-	const imageSrc = $derived(`https://i.ytimg.com/vi/${ytid}/mqdefault.jpg`)
+	const imageSrc = $derived(ytid ? `https://i.ytimg.com/vi/${ytid}/mqdefault.jpg` : null)
 
 	const click = (event: MouseEvent) => {
 		const el = event.target as HTMLElement

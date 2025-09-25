@@ -12,18 +12,7 @@ export async function load({parent, params, url}) {
 
 	try {
 		const channel = (await r5.channels.pull({slug}))[0]
-
-		// Return tracks promise without awaiting - let page stream it in
-		const tracksPromise = !channel.tracks_synced_at
-			? (() => {
-					console.log('tracks never synced, pulling')
-					return r5.tracks.pull({slug})
-				})()
-			: (() => {
-					return r5.tracks.local({slug})
-				})()
-
-		return {channel, slug, search, order, dir, tracksPromise}
+		return {channel, slug, search, order, dir}
 	} catch (err) {
 		console.error(err)
 		error(404, `Channel not found: ${err.message}`)

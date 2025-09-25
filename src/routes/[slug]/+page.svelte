@@ -21,20 +21,21 @@
 	/** @type {string[]} */
 	let trackIds = $derived([])
 
-	onMount(() => {
-		data.tracksPromise.then((x) => {
-			tracks = x
-		})
+	onMount(async () => {
+		// Load tracks after page render
+		const loadTracks = !channel.tracks_synced_at
+			? r5.tracks.pull({slug: data.slug})
+			: r5.tracks.local({slug: data.slug, fast: true})
+
+		tracks = await loadTracks
 
 		// Update tracks if they are outdated.
 		if (channel.tracks_synced_at) {
-			r5.channels.outdated(data.slug).then((isOutdated) => {
-				if (!isOutdated) return
+			const isOutdated = await r5.channels.outdated(data.slug)
+			if (isOutdated) {
 				console.log('[page.svelte] refreshing outdated tracks')
-				r5.tracks.pull({slug: data.slug}).then((freshTracks) => {
-					tracks = freshTracks
-				})
-			})
+				tracks = await r5.tracks.pull({slug: data.slug})
+			}
 		}
 	})
 </script>
@@ -79,19 +80,12 @@
 		</header>
 
 		<section>
-			{#await data.tracksPromise}
+			{#if tracks.length > 0}
+				<!-- <CoverFlip tracks={tracks} /> -->
+				<Tracklist {tracks} grouped={1} />
+			{:else}
 				<p style="margin-top:1rem; margin-left: 0.5rem;">Loading tracks…</p>
-			{:then whatevs}
-				{@const ids = trackIds.length ? trackIds : whatevs.map((x) => x.id)}
-				{#if ids.length > 0}
-					<!-- <CoverFlip tracks={whatevs} /> -->
-					<Tracklist {ids} grouped={1} />
-				{:else}
-					<p>No tracks</p>
-				{/if}
-			{:catch error}
-				<p>error loading tracks: {error.message}</p>
-			{/await}
+			{/if}
 		</section>
 	</article>
 {:else}

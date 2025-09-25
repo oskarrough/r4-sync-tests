@@ -4,7 +4,14 @@
 
 	/** @typedef {import('$lib/types').Track} Track */
 
-	/** @type {{tracks?: Track[], ids?: string[], footer?: (props: {track: Track}) => any, grouped?: boolean, canEdit?: boolean}} */
+	/** @type {{
+		tracks?: Track[],
+		ids?: string[],
+		footer?: (props: {track: Track}) => any,
+		grouped?: boolean,
+		canEdit?: boolean
+		}}
+	*/
 	const {tracks: tracksProp, ids, footer, grouped = false, canEdit = false} = $props()
 
 	/** @type {Track[]}*/
@@ -69,10 +76,10 @@
 		<div class="timeline">
 			{#each groupedTracks as [year, months] (year)}
 				<section>
-					<h2>{year}</h2>
+					<h2 caps>{year}</h2>
 					{#each months as [month, monthTracks] (month)}
 						<section class="month">
-							<h3>{month}</h3>
+							<h3 caps>{month}</h3>
 							<ul class="list tracks">
 								{#each monthTracks as track, index (track.id)}
 									<li>
