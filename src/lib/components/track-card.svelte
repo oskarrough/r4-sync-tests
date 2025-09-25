@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type {Snippet} from 'svelte'
+	import {goto} from '$app/navigation'
 	import {playTrack} from '$lib/api'
 	import {appState} from '$lib/app-state.svelte'
 	import {formatDate} from '$lib/dates'
@@ -27,20 +28,42 @@
 	const click = (event: MouseEvent) => {
 		const el = event.target as HTMLElement
 
-		if (el instanceof HTMLAnchorElement && el.href.includes('search=')) {
-			// Let hashtag/mention links through
-			return
-		}
+		if (el.closest('time')) return
 
-		if (el.closest('time')) {
-			// Let time element links through
-			return
-		}
+		// Let hashtag/mention links through
+		if (el instanceof HTMLAnchorElement && el.href.includes('search=')) return
 
 		event.preventDefault()
-		playTrack(track.id, '', 'user_click_track')
+		//playTrack(track.id, '', 'user_click_track')
 	}
 	const doubleClick = () => playTrack(track.id, '', 'user_click_track')
+
+	const addToRadio = (url: string) => {
+		// Trigger global modal via custom event
+		window.dispatchEvent(new CustomEvent('r5:openAddModal', {detail: {url}}))
+	}
+
+	let menuElement: HTMLElement
+
+	$effect(() => {
+		if (!menuElement) return
+
+		const handleToggle = (e: Event) => {
+			const menu = e.target as HTMLElement
+			if (menu.matches(':popover-open')) {
+				const button = document.querySelector(`[popovertarget="${menu.id}"]`) as HTMLElement
+				if (button) {
+					const rect = button.getBoundingClientRect()
+					menu.style.position = 'fixed'
+					menu.style.top = `${rect.bottom + 4}px`
+					menu.style.left = `${rect.right - 160}px`
+				}
+			}
+		}
+
+		menuElement.addEventListener('toggle', handleToggle)
+		return () => menuElement?.removeEventListener('toggle', handleToggle)
+	})
 </script>
 
 <article class:active>
@@ -65,10 +88,20 @@
 		</div>
 		<time>
 			<span class="mobile"><Icon icon="options-horizontal" size={16} /></span>
-			<small>{formatDate(new Date(track.created_at))}</small>
+			<!--<small>{formatDate(new Date(track.created_at))}</small>-->
 			{#if showSlug}<small>@{track.channel_slug}</small>{/if}
 		</time>
 	</a>
+	<r4-actions>
+		<button type="button" popovertarget="menu-{track.id}">
+			<Icon icon="options-horizontal" size={16} />
+		</button>
+		<menu popover="auto" id="menu-{track.id}" bind:this={menuElement}>
+			<a class="btn" href={permalink} role="menuitem">Details</a>
+			<button type="button" role="menuitem" onclick={() => addToRadio(track.url)}>Add track</button>
+			<button type="button" role="menuitem">Share</button>
+		</menu>
+	</r4-actions>
 	{@render children?.({track})}
 </article>
 
@@ -141,9 +174,6 @@
 		}
 	}
 
-	article {
-		container-type: inline-size;
-	}
 	@container (width < 80ch) {
 		.index,
 		time small {
@@ -151,6 +181,52 @@
 		}
 		time .mobile {
 			display: block;
+		}
+	}
+
+	article {
+		position: relative;
+		container-type: inline-size;
+	}
+
+	r4-actions {
+		position: absolute;
+		top: 0.5rem;
+		right: 0.5rem;
+
+		button:first-child {
+			padding: 0.5rem;
+			background: transparent;
+			border: none;
+			transition: all 222ms ease-in-out;
+
+			&:hover {
+				background-color: var(--gray-3);
+				border-radius: 50%;
+			}
+		}
+
+		menu {
+			display: none;
+			flex-direction: column;
+			align-items: stretch;
+			list-style: none;
+			background-color: var(--gray-2);
+			border: 1px solid var(--gray-7);
+			border-radius: var(--border-radius);
+			box-shadow: var(--c-shadow-modal);
+			width: 160px;
+			padding: 3px;
+			margin: 0;
+
+			&:popover-open {
+				display: flex;
+			}
+
+			button {
+				width: 100%;
+				text-align: left;
+			}
 		}
 	}
 </style>

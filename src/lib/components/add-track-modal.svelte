@@ -3,20 +3,28 @@
 	import {appState} from '$lib/app-state.svelte'
 	import Icon from '$lib/components/icon.svelte'
 	import Modal from '$lib/components/modal.svelte'
-	import {tooltip} from '$lib/components/tooltip-attachment.js'
-	import {r5} from '$lib/r5'
-	import {pg} from '$lib/r5/db'
+	import {tooltip} from './tooltip-attachment'
 
 	let showModal = $state(false)
 	let recentTracks = $state([])
+	let prefilledUrl = $state('')
+
+	export function openWithUrl(url) {
+		prefilledUrl = url
+		showModal = true
+	}
+
+	function handleGlobalModalEvent(event) {
+		if (canAddTrack) {
+			openWithUrl(event.detail.url)
+		} else {
+			goto('/auth')
+		}
+	}
 
 	const channelId = $derived(appState.channels?.length > 0 ? appState.channels[0] : undefined)
 	const isSignedIn = $derived(!!appState.user)
 	const canAddTrack = $derived(isSignedIn && channelId)
-
-	const channel = $derived.by(async () => {
-		return (await pg.sql`select * from channels where id = ${channelId}`).rows[0]
-	})
 
 	/** @param {KeyboardEvent} event */
 	function handleKeyDown(event) {
@@ -38,25 +46,26 @@
 		}
 	}
 
-	async function submit(event) {
+	function submit(event) {
 		const track = event.detail.data
 		recentTracks.unshift(track)
 		if (recentTracks.length > 3) recentTracks.pop()
 		console.log({track, recentTracks})
 
-		// Insert track into local db using r5.tracks.insert
-		try {
-			const channelData = await channel
-			if (channelData) {
-				await r5.tracks.insert(channelData.slug, [track])
-			}
-		} catch (error) {
-			console.error('Failed to insert track:', error)
-		}
+		// Clear prefilled URL and close modal
+		prefilledUrl = ''
+		showModal = false
+
+		// Dispatch event for parent to handle track insertion
+		document.dispatchEvent(
+			new CustomEvent('r5:trackAdded', {
+				detail: {track, channelId}
+			})
+		)
 	}
 </script>
 
-<svelte:window onkeydown={handleKeyDown} />
+<svelte:window onkeydown={handleKeyDown} on:r5:openAddModal={handleGlobalModalEvent} />
 
 <button onclick={handleAddTrackClick} {@attach tooltip({content: 'Add track'})}>
 	<Icon icon="add" size={20}></Icon>
@@ -64,17 +73,10 @@
 
 <Modal bind:showModal>
 	{#snippet header()}
-		<h2>
-			Add track
-			{#await channel then channelData}
-				{#if channelData}
-					to <a href={`/${channelData.slug}`}>{channelData.name}</a>
-				{/if}
-			{/await}
-		</h2>
+		<h2>Add track</h2>
 	{/snippet}
 
-	<r4-track-create channel_id={channelId} onsubmit={submit}></r4-track-create>
+	<r4-track-create channel_id={channelId} url={prefilledUrl} onsubmit={submit}></r4-track-create>
 
 	{#if recentTracks.length > 0}
 		<div class="recent-tracks">

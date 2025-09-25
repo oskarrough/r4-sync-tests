@@ -100,9 +100,11 @@
 
 <style>
 	li {
+		/*
 		contain: content;
 		content-visibility: auto;
 		contain-intrinsic-height: auto 3rem;
+		 */
 	}
 
 	section {
