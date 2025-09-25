@@ -40,6 +40,11 @@
 		{:else if isResetting}
 			<p>Resetting database...</p>
 		{:else}
+			<p class="row row--vcenter">
+				First try to ❶ <a href="/" class="btn">Reload the app</a>
+			</p>
+			<br />
+			<p>If that didn't work &rarr; ② Reset the database:</p>
 			<button onclick={resetDatabase} disabled={isResetting} class="danger"> Reset my local database </button>
 			<br />
 			<br />

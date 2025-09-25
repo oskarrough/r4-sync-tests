@@ -8,6 +8,7 @@
 	import Tracklist from '$lib/components/tracklist.svelte'
 	import {relativeDate, relativeDateSolar} from '$lib/dates'
 	import {r5} from '$lib/r5'
+	import {appState} from '$lib/app-state.svelte'
 
 	let {data} = $props()
 
@@ -17,6 +18,9 @@
 	let tracks = $state([])
 
 	let latestTrackDate = $derived(tracks[0]?.created_at)
+
+	const isSignedIn = $derived(!!appState.user)
+	const canEdit = $derived(isSignedIn && appState.channels?.includes(channel?.id))
 
 	/** @type {string[]} */
 	let trackIds = $derived([])
@@ -50,9 +54,12 @@
 			<ChannelHero {channel} />
 			<div>
 				<menu>
-					<ButtonPlay {channel} class="primary" />
-					<ButtonFollow {channel} class="follow" />
+					<ButtonPlay {channel} label="Play" />
+					<ButtonFollow {channel} />
 					<a href="/{channel.slug}/tags" class="btn">Tags</a>
+					{#if canEdit}
+						<a href="/{channel.slug}/edit" class="btn">Edit</a>
+					{/if}
 				</menu>
 				<h1>
 					{channel.name}
@@ -102,10 +109,16 @@
 		margin-bottom: 1rem;
 
 		menu {
-			margin-top: 0.5rem;
+			margin-top: 1rem;
+			justify-content: center;
 
 			@media (min-width: 520px) {
 				justify-content: flex-start;
+			}
+
+			:global(a,button) {
+				min-height: 2.5rem;
+				padding: 0.5rem 1rem;
 			}
 		}
 

@@ -8,7 +8,7 @@
 
 	<hr />
 	<p class="row row--vcenter">
-		To repair, please first try to ❶ <button onclick={() => window.location.reload()}>Reload the app</button>
+		To repair, please first try to ❶ <a href="/" class="btn">Reload the app</a>
 	</p>
 
 	<br />
@@ -21,5 +21,4 @@
 		display: flex;
 		flex-flow: column;
 	}
-
 </style>

@@ -71,11 +71,15 @@ menu {
 	&.row {
 		gap: 0.2rem;
 	}
+
+	a,
+	button {
+		cursor: default;
+	}
 }
 
 menu[vertical] {
 	flex-flow: column;
-	/* background: var(--gray-2); */
 	border: 1px solid var(--gray-6);
 	border-radius: var(--border-radius);
 	gap: 0;

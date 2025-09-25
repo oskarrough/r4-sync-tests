@@ -3,8 +3,8 @@
 	import {appState} from '$lib/app-state.svelte'
 	import Icon from '$lib/components/icon.svelte'
 
-	/** @type {{channel: import('$lib/types').Channel, class?: string}} */
-	let {channel, ...rest} = $props()
+	/** @type {{channel: import('$lib/types').Channel, label?: string, class?: string}} */
+	let {channel, label, ...rest} = $props()
 
 	let followerId = $derived(appState.channels?.[0] || 'local-user')
 	let isFollowing = $state(false)
@@ -35,5 +35,5 @@
 	aria-label={isFollowing ? 'Unfollow' : 'Follow'}
 	{...rest}
 >
-	<Icon icon={isFollowing ? 'favorite-fill' : 'favorite'} size={20} />
+	<Icon icon={isFollowing ? 'favorite-fill' : 'favorite'} size={20} /> {label}
 </button>
