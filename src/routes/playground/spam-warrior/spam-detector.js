@@ -303,9 +303,24 @@ export async function getChannelTracks(channelId, limit = 2) {
  */
 export function analyzeChannels(channels) {
 	return channels
-		.map((channel) => ({
-			...channel,
-			spamAnalysis: analyzeChannel(channel)
-		}))
+		.map((channel) => {
+			// If user has already decided to keep this channel, override spam detection
+			if (channel.spam === false) {
+				return {
+					...channel,
+					spamAnalysis: {
+						isSpam: false,
+						confidence: 0,
+						reasons: ['Manually marked as legitimate']
+					}
+				}
+			}
+
+			// Run normal spam analysis
+			return {
+				...channel,
+				spamAnalysis: analyzeChannel(channel)
+			}
+		})
 		.sort((a, b) => b.spamAnalysis.confidence - a.spamAnalysis.confidence)
 }

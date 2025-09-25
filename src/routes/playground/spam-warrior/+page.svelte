@@ -9,32 +9,22 @@
 	/** @type {Array<import('$lib/types').Channel & {spamAnalysis: {confidence: number, reasons: string[], isSpam: boolean}}>} */
 	let allChannels = $state([])
 	let loading = $state(true)
-	let showOnlyWithTracks = $state(true)
-	let showOnlySpam = $state(false)
-	let showOnlyWithImages = $state(false)
-	let showOnlyWithoutImages = $state(false)
+	let filterMode = $state('needsReview')
 	let batchFetching = $state(false)
 	let batchProgress = $state('')
 
-	// Filter channels based on algorithm results, user decisions, and track count
-	const channels = $derived(showOnlySpam ? allChannels.filter((ch) => ch.spamAnalysis.isSpam) : allChannels)
-
 	const filteredChannels = $derived.by(() => {
-		let filtered = channels
+		const highConfidenceSpam = allChannels.filter((ch) => ch.spamAnalysis.confidence > 0.3 && (ch.track_count ?? 0) < 5)
 
-		if (showOnlyWithTracks) {
-			filtered = filtered.filter((ch) => (ch.track_count ?? 0) > 0)
+		const needsReview = allChannels.filter((ch) => !highConfidenceSpam.includes(ch))
+
+		if (filterMode === 'highConfidenceSpam') {
+			return highConfidenceSpam
+		} else if (filterMode === 'needsReview') {
+			return needsReview
+		} else {
+			return allChannels
 		}
-
-		if (showOnlyWithImages) {
-			filtered = filtered.filter((ch) => ch.image && ch.image.trim() !== '')
-		}
-
-		if (showOnlyWithoutImages) {
-			filtered = filtered.filter((ch) => !ch.image || ch.image.trim() === '')
-		}
-
-		return filtered
 	})
 
 	const undecidedChannels = $derived(filteredChannels.filter((ch) => ch.spam == null))
@@ -96,24 +86,58 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 		await clearChannelSpam(channel.id)
 	}
 
-	const fetchTrackBatchSize = 30
+	async function clearAllSelections() {
+		if (!confirm('Clear all spam/keep decisions? This will reset all channels to undecided.')) {
+			return
+		}
+
+		try {
+			await pg.sql`UPDATE channels SET spam = NULL WHERE spam IS NOT NULL`
+
+			// Reset all channels in memory
+			for (const channel of allChannels) {
+				channel.spam = undefined
+			}
+
+			// Force reactivity
+			allChannels = [...allChannels]
+
+			alert('All selections cleared!')
+		} catch (error) {
+			console.error('Failed to clear selections:', error)
+			alert('Failed to clear selections')
+		}
+	}
 
 	async function batchFetchTracks() {
-		const channelsWithoutTracks = filteredChannels.filter((ch) => (ch.track_count ?? 0) === 0)
-		const batch = channelsWithoutTracks.slice(0, fetchTrackBatchSize)
+		// Check which channels actually have local tracks
+		const channelsNeedingTracks = []
+		for (const channel of filteredChannels) {
+			const localTracks = await getChannelTracks(channel.id)
+			if (localTracks.length === 0) {
+				channelsNeedingTracks.push(channel)
+			}
+		}
+		const channelsWithoutTracks = channelsNeedingTracks
 
-		if (batch.length === 0) {
+		if (channelsWithoutTracks.length === 0) {
 			alert('No channels without tracks found in current filter')
 			return
 		}
 
+		if (
+			!confirm(`Pull tracks for all ${channelsWithoutTracks.length} channels without tracks? This might take a while.`)
+		) {
+			return
+		}
+
 		batchFetching = true
-		batchProgress = `Fetching tracks for ${batch.length} channels...`
+		batchProgress = `Fetching tracks for ${channelsWithoutTracks.length} channels...`
 
 		try {
-			for (let i = 0; i < batch.length; i++) {
-				const channel = batch[i]
-				batchProgress = `Fetching ${i + 1}/${batch.length}: ${channel.name}`
+			for (let i = 0; i < channelsWithoutTracks.length; i++) {
+				const channel = channelsWithoutTracks[i]
+				batchProgress = `Fetching ${i + 1}/${channelsWithoutTracks.length}: ${channel.name}`
 
 				try {
 					await r5.tracks.pull({slug: channel.slug})
@@ -136,7 +160,7 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 			}
 
 			// Re-analyze channels with track data
-			for (const channel of batch) {
+			for (const channel of channelsWithoutTracks) {
 				if ((channel.track_count ?? 0) > 0) {
 					try {
 						const tracks = await getChannelTracks(channel.id)
@@ -149,7 +173,7 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 
 			// Force reactivity
 			allChannels = [...allChannels]
-			batchProgress = `✅ Completed batch fetch for ${batch.length} channels`
+			batchProgress = `✅ Completed batch fetch for ${channelsWithoutTracks.length} channels`
 
 			setTimeout(() => {
 				batchProgress = ''
@@ -171,7 +195,11 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 	<header>
 		<h1>Spam Warrior</h1>
 		<p>
-			Review {showOnlySpam ? 'suspected spam channels' : 'all local channels'} and generate SQL commands for deletion.
+			Review {filterMode === 'highConfidenceSpam'
+				? 'high confidence spam channels'
+				: filterMode === 'needsReview'
+					? 'channels that need manual review'
+					: 'all local channels'} and generate SQL commands for deletion.
 		</p>
 	</header>
 
@@ -180,40 +208,32 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 	{:else}
 		<p>
 			{undecidedChannels.length} pending • {deleteChannels.length} delete • {keepChannels.length} keep
-			{#if showOnlySpam}
-				<em>({channels.length} flagged channels)</em>
-			{:else}
-				<em>({allChannels.length} total channels)</em>
-			{/if}
+			<em>({filteredChannels.length} filtered / {allChannels.length} total channels)</em>
 		</p>
 
 		<menu class="controls">
 			<label>
-				<input type="checkbox" bind:checked={showOnlyWithTracks} />
-				Only channels with tracks
+				<input type="radio" bind:group={filterMode} value="highConfidenceSpam" />
+				High confidence spam (algorithm + &lt;5 tracks)
 			</label>
 			<label>
-				<input type="checkbox" bind:checked={showOnlySpam} />
-				Only suspected spam
-			</label>
-			<label>
-				<input type="checkbox" bind:checked={showOnlyWithImages} />
-				Only with images
-			</label>
-			<label>
-				<input type="checkbox" bind:checked={showOnlyWithoutImages} />
-				Only without images
+				<input type="radio" bind:group={filterMode} value="needsReview" />
+				Needs review (everything else)
 			</label>
 		</menu>
 
 		<div class="batch-controls">
 			<button onclick={batchFetchTracks} disabled={batchFetching}>
-				{batchFetching ? 'Fetching...' : `Fetch tracks for ${fetchTrackBatchSize} channels`}
+				{batchFetching ? 'Fetching...' : 'Pull tracks for all channels'}
 			</button>
 			{#if batchProgress}
 				<span>{batchProgress}</span>
 			{/if}
 		</div>
+
+		<menu>
+			<button onclick={clearAllSelections} style="background: var(--color-orange)"> Clear All Selections </button>
+		</menu>
 
 		{#if sqlCommands.length > 0}
 			<section>
@@ -227,7 +247,7 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 
 		<section class="channels">
 			<h2>
-				{showOnlySpam ? 'Suspected spam channels' : 'All channels'} for Review ({undecidedChannels.length})
+				Channels for Review ({undecidedChannels.length})
 			</h2>
 
 			{#each undecidedChannels as channel (channel.id)}
@@ -237,6 +257,9 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 					</div>
 					<div class="channel-content">
 						<strong><a href="/{channel.slug}">{channel.name}</a></strong> (@{channel.slug})
+						{#if channel.source === 'v1'}
+							<span style="background: var(--color-blue); color: white; padding: 0.1rem 0.3rem; border-radius: 0.2rem; font-size: 0.7rem;">V1</span>
+						{/if}
 						<span class="track-count">{channel.track_count ?? 0} tracks</span>
 						<em>{Math.round(channel.spamAnalysis.confidence * 100)}% spam</em>
 						{#if channel.description && channel.description.trim()}
@@ -253,40 +276,59 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 						{/if}
 
 						<div class="channel-tracks">
-							{#if (channel.track_count ?? 0) > 0}
-								<details open>
-									<summary>Sample tracks ({channel.track_count})</summary>
-									{#await getChannelTracks(channel.id)}
+							{#await getChannelTracks(channel.id)}
+								{#if (channel.track_count ?? 0) > 0}
+									<details open>
+										<summary>Sample tracks ({channel.track_count})</summary>
 										<p class="loading-tracks">Loading tracks...</p>
-									{:then tracks}
-										{#if tracks.length > 0}
-											<Tracklist {tracks} />
-										{:else}
-											<p class="no-tracks">No tracks found</p>
-										{/if}
-									{:catch error}
-										<p class="error-tracks">Error loading tracks: {error.message}</p>
-									{/await}
-								</details>
-							{:else}
-								<button
-									onclick={() =>
-										getChannelTracks(channel.id).then((tracks) => {
-											if (tracks.length > 0) {
-												channel.track_count = tracks.length
-												// Force reactivity
-												allChannels = [...allChannels]
-											}
-										})}
-								>
-									Check for tracks
-								</button>
-							{/if}
+									</details>
+								{:else}
+									<button
+										onclick={() =>
+											getChannelTracks(channel.id).then((tracks) => {
+												if (tracks.length > 0) {
+													channel.track_count = tracks.length
+													// Force reactivity
+													allChannels = [...allChannels]
+												}
+											})}
+									>
+										Check for tracks
+									</button>
+								{/if}
+							{:then tracks}
+								{#if tracks.length > 0}
+									<details open>
+										<summary>Sample tracks ({tracks.length})</summary>
+										<Tracklist {tracks} />
+									</details>
+								{:else if (channel.track_count ?? 0) > 0}
+									<p class="no-tracks">
+										Track count: {channel.track_count} but no local tracks found.
+										<button onclick={() => r5.tracks.pull({slug: channel.slug})}>Pull tracks</button>
+									</p>
+								{:else}
+									<button
+										onclick={() =>
+											getChannelTracks(channel.id).then((tracks) => {
+												if (tracks.length > 0) {
+													channel.track_count = tracks.length
+													// Force reactivity
+													allChannels = [...allChannels]
+												}
+											})}
+									>
+										Check for tracks
+									</button>
+								{/if}
+							{:catch error}
+								<p class="error-tracks">Error loading tracks: {error.message}</p>
+							{/await}
 						</div>
 					</div>
 					<div class="channel-actions">
 						<button onclick={() => markToKeep(channel)}>Keep</button>
-						<button onclick={() => markForDeletion(channel)}>Delete</button>
+						<button class="danger" onclick={() => markForDeletion(channel)}>Delete</button>
 					</div>
 				</div>
 			{/each}
