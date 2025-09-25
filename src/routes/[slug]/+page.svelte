@@ -116,7 +116,7 @@
 				justify-content: flex-start;
 			}
 
-			:global(a,button) {
+			:global(a, button) {
 				min-height: 2.5rem;
 				padding: 0.5rem 1rem;
 			}

@@ -35,5 +35,6 @@
 	aria-label={isFollowing ? 'Unfollow' : 'Follow'}
 	{...rest}
 >
-	<Icon icon={isFollowing ? 'favorite-fill' : 'favorite'} size={20} /> {label}
+	<Icon icon={isFollowing ? 'favorite-fill' : 'favorite'} size={20} />
+	{label}
 </button>
