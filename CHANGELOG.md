@@ -2,8 +2,12 @@
 
 ## September 2025
 
-- /[slug]/tags page
-- Improved CLI download with retry logic
+- Added tags timeline page for channels at `/[slug]/tags` with year, quarter, and month filtering
+- The CLI `r5 download` command now has retry logic and better errors
+- Improved auth flow, channel page responsive
+- Expanded theme customization with proper color scales and CSS variable controls
+- Added "gs" keyboard shortcut for quick access to settings
+- Fixed Safari browser compatibility issues affecting playback and navigation
 
 ## August 2025
 
