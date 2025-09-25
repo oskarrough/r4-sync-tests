@@ -14,10 +14,11 @@
 		index?: number
 		showImage?: boolean
 		showSlug?: boolean
+		canEdit?: boolean
 		children?: Snippet<[Track]>
 	}
 
-	let {track, index, showImage = true, showSlug = false, children}: Props = $props()
+	let {track, index, showImage = true, showSlug = false, canEdit = false, children}: Props = $props()
 
 	const permalink = $derived(`/${track.channel_slug}/tracks/${track.id}`)
 	const active = $derived(track.id === appState.playlist_track)
@@ -103,7 +104,7 @@
 		</button>
 		<menu popover="auto" id="menu-{track.id}" bind:this={menuElement}>
 			<a class="btn" href={permalink} role="menuitem">Details</a>
-			<button type="button" role="menuitem" onclick={editTrack}>Edit</button>
+			{#if canEdit}<button type="button" role="menuitem" onclick={editTrack}>Edit</button>{/if}
 			<button type="button" role="menuitem" onclick={() => addToRadio(track.url)}>Add track</button>
 			<!-- <button type="button" role="menuitem">Share</button> -->
 		</menu>

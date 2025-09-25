@@ -4,8 +4,8 @@
 
 	/** @typedef {import('$lib/types').Track} Track */
 
-	/** @type {{tracks?: Track[], ids?: string[], footer?: (props: {track: Track}) => any, grouped?: boolean}} */
-	const {tracks: tracksProp, ids, footer, grouped = false} = $props()
+	/** @type {{tracks?: Track[], ids?: string[], footer?: (props: {track: Track}) => any, grouped?: boolean, canEdit?: boolean}} */
+	const {tracks: tracksProp, ids, footer, grouped = false, canEdit = false} = $props()
 
 	/** @type {Track[]}*/
 	let tracks = $state([])
@@ -76,7 +76,7 @@
 							<ul class="list tracks">
 								{#each monthTracks as track, index (track.id)}
 									<li>
-										<TrackCard {track} {index} />
+										<TrackCard {track} {index} {canEdit} />
 										{@render footer?.({track})}
 									</li>
 								{/each}
@@ -90,7 +90,7 @@
 		<ul class="list tracks">
 			{#each tracks as track, index (track.id)}
 				<li>
-					<TrackCard {track} {index} />
+					<TrackCard {track} {index} {canEdit} />
 					{@render footer?.({track})}
 				</li>
 			{/each}
