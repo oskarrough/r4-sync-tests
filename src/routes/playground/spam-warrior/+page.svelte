@@ -258,7 +258,10 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 					<div class="channel-content">
 						<strong><a href="/{channel.slug}">{channel.name}</a></strong> (@{channel.slug})
 						{#if channel.source === 'v1'}
-							<span style="background: var(--color-blue); color: white; padding: 0.1rem 0.3rem; border-radius: 0.2rem; font-size: 0.7rem;">V1</span>
+							<span
+								style="background: var(--color-blue); color: white; padding: 0.1rem 0.3rem; border-radius: 0.2rem; font-size: 0.7rem;"
+								>V1</span
+							>
 						{/if}
 						<span class="track-count">{channel.track_count ?? 0} tracks</span>
 						<em>{Math.round(channel.spamAnalysis.confidence * 100)}% spam</em>

@@ -37,8 +37,9 @@ export function initializeKeyboardShortcuts() {
 					event.target instanceof HTMLTextAreaElement ||
 					event.target instanceof HTMLSelectElement ||
 					event.target.tagName === 'DATALIST'
-				)
+				) {
 					return
+				}
 				actionFn(event)
 			}
 		}

@@ -64,7 +64,8 @@ r4-password-update,
 r4-sign-in,
 r4-sign-out,
 r4-channel-create,
-r4-track-create {
+r4-track-create,
+r4-track-update {
 	form,
 	fieldset {
 		display: flex;

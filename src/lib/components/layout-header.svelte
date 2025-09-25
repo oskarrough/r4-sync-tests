@@ -3,6 +3,7 @@
 	import {appState} from '$lib/app-state.svelte'
 	import {watchBroadcasts} from '$lib/broadcast'
 	import AddTrackModal from '$lib/components/add-track-modal.svelte'
+	import EditTrackModal from '$lib/components/edit-track-modal.svelte'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import HeaderSearch from '$lib/components/header-search.svelte'
 	import Icon from '$lib/components/icon.svelte'
@@ -21,13 +22,20 @@
 	})
 
 	let broadcastCount = $state(0)
+	let editModalRef
 
 	const unsubscribe = watchBroadcasts((data) => {
 		broadcastCount = data.broadcasts.length
 	})
 
+	function handleEditTrackEvent(event) {
+		editModalRef?.openWithTrack(event.detail.track)
+	}
+
 	$effect(() => unsubscribe)
 </script>
+
+<svelte:window on:r5:openEditModal={handleEditTrackEvent} />
 
 <header>
 	<a href="/" class:active={page.route.id === '/'}>
@@ -42,6 +50,7 @@
 	<menu class="row right">
 		{#await preloading then}
 			<AddTrackModal />
+			<EditTrackModal bind:this={editModalRef} />
 			{#await userChannel then channel}
 				{#if channel}
 					<a href="/{channel.slug}">

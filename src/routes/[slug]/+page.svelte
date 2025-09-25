@@ -46,15 +46,13 @@
 {#if channel}
 	<article>
 		<header>
+			<ChannelHero {channel} />
 			<div>
-				<ChannelHero {channel} />
 				<menu>
 					<ButtonPlay {channel} class="primary" />
 					<ButtonFollow {channel} class="follow" />
 					<a href="/{channel.slug}/tags" class="btn">Tags</a>
 				</menu>
-			</div>
-			<div>
 				<h1>
 					{channel.name}
 

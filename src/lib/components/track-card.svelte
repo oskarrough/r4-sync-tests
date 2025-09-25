@@ -43,6 +43,11 @@
 		window.dispatchEvent(new CustomEvent('r5:openAddModal', {detail: {url}}))
 	}
 
+	const editTrack = () => {
+		// Trigger global edit modal via custom event
+		window.dispatchEvent(new CustomEvent('r5:openEditModal', {detail: {track}}))
+	}
+
 	let menuElement: HTMLElement
 
 	$effect(() => {
@@ -98,6 +103,7 @@
 		</button>
 		<menu popover="auto" id="menu-{track.id}" bind:this={menuElement}>
 			<a class="btn" href={permalink} role="menuitem">Details</a>
+			<button type="button" role="menuitem" onclick={editTrack}>Edit</button>
 			<button type="button" role="menuitem" onclick={() => addToRadio(track.url)}>Add track</button>
 			<!-- <button type="button" role="menuitem">Share</button> -->
 		</menu>
