@@ -28,7 +28,12 @@
 
 	/** @param {KeyboardEvent} event */
 	function handleKeyDown(event) {
-		if (event.target?.tagName === 'PGLITE-REPL' || event.target?.tagName === 'INPUT') return
+		if (
+			event.target?.tagName === 'PGLITE-REPL' ||
+			event.target?.tagName === 'INPUT' ||
+			event.target?.tagName === 'TEXTAREA'
+		)
+			return
 		if (event.key === 'c' && !event.metaKey && !event.ctrlKey) {
 			if (canAddTrack) {
 				showModal = true
