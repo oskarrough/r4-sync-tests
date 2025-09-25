@@ -22,7 +22,4 @@
 		flex-flow: column;
 	}
 
-	h1 + p {
-		margin: 1rem;
-	}
 </style>

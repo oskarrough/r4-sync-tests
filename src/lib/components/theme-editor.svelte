@@ -341,9 +341,6 @@
 		width: 10rem;
 	}
 
-	.indent {
-		margin-left: 1rem;
-	}
 
 	form {
 		display: flex;

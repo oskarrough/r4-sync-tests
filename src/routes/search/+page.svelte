@@ -120,9 +120,6 @@
 	menu {
 		margin: 0.5rem 0.5rem 2rem;
 		align-items: center;
-		small {
-			margin-right: 0.5rem;
-		}
 	}
 
 	menu,

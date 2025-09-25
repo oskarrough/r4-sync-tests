@@ -10,7 +10,7 @@
 	let commandHistory = $state([])
 	let historyIndex = $state(-1)
 	let executingCommand = $state(null)
-	let inputElement
+	let inputElement = $state()
 
 	// Create simple CLI instance
 	const cli = createBrowserCli((type, text, data) => {
