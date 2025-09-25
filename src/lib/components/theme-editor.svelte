@@ -341,7 +341,6 @@
 		width: 10rem;
 	}
 
-
 	form {
 		display: flex;
 		flex-flow: column;

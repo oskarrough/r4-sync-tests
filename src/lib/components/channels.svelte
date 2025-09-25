@@ -14,8 +14,8 @@
 
 	let limit = $state(30)
 	let perPage = $state(100)
-	let filter = $state('20+')
-	let shuffled = $state(true)
+	let filter = $derived(appState.channels_filter || '20+')
+	let shuffled = $derived(appState.channels_shuffled ?? true)
 
 	/** @type {'grid' | 'list' | 'map' | 'tuner' | 'infinite'}*/
 	let display = $derived(appState.channels_display || initialDisplay || 'grid')
@@ -71,6 +71,14 @@
 		goto(`?${query.toString()}`, {replaceState: true, keepFocus: true})
 	}
 
+	function setFilter(value) {
+		appState.channels_filter = value
+	}
+
+	function toggleShuffle() {
+		appState.channels_shuffled = !appState.channels_shuffled
+	}
+
 	function handleMapChange({latitude, longitude, zoom}) {
 		const query = new URL(page.url).searchParams
 		query.set('latitude', latitude)
@@ -94,7 +102,7 @@
 	<menu class="filtermenu">
 		<div class="filters">
 			<label title="Channel filter">
-				<select bind:value={filter}>
+				<select value={filter} onchange={(e) => setFilter(e.target.value)}>
 					<option value="all">All</option>
 					<option value="20+">20+ tracks</option>
 					<option value="100+">100+ tracks</option>
@@ -103,7 +111,7 @@
 					<option value="v2">v2</option>
 				</select>
 			</label>
-			<button title="Show random channels" class:active={shuffled} onclick={() => (shuffled = !shuffled)}>
+			<button title="Show random channels" class:active={appState.channels_shuffled} onclick={toggleShuffle}>
 				<Icon icon="shuffle" />
 			</button>
 		</div>

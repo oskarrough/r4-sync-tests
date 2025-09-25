@@ -74,6 +74,8 @@ export interface AppState {
 	custom_css_variables: Record<string, string>
 	counter: number
 	channels_display: string
+	channels_filter: string
+	channels_shuffled: boolean
 	/** the user's channels */
 	channels?: string[]
 	shuffle: boolean
