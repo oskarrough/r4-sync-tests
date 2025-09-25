@@ -98,7 +98,7 @@
 			border-radius: var(--border-radius);
 
 			&:hover {
-				background: var(--accent-7);
+				background: var(--accent-3);
 				color: light-dark(var(--gray-12), var(--gray-1));
 				border-color: var(--accent-1);
 			}

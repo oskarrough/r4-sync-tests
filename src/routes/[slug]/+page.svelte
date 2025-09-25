@@ -46,13 +46,15 @@
 {#if channel}
 	<article>
 		<header>
-			<ChannelHero {channel} />
 			<div>
+				<ChannelHero {channel} />
 				<menu>
 					<ButtonPlay {channel} class="primary" />
 					<ButtonFollow {channel} class="follow" />
 					<a href="/{channel.slug}/tags" class="btn">Tags</a>
 				</menu>
+			</div>
+			<div>
 				<h1>
 					{channel.name}
 
@@ -109,10 +111,6 @@
 
 		menu {
 			margin-top: 0.5rem;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			gap: 0.5rem;
 
 			@media (min-width: 520px) {
 				justify-content: flex-start;

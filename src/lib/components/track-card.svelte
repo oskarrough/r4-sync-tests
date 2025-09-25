@@ -55,8 +55,8 @@
 				if (button) {
 					const rect = button.getBoundingClientRect()
 					menu.style.position = 'fixed'
-					menu.style.top = `${rect.bottom + 4}px`
-					menu.style.left = `${rect.right - 160}px`
+					menu.style.top = `${rect.bottom - 10}px`
+					menu.style.left = `${rect.right - 150}px`
 				}
 			}
 		}
@@ -99,7 +99,7 @@
 		<menu popover="auto" id="menu-{track.id}" bind:this={menuElement}>
 			<a class="btn" href={permalink} role="menuitem">Details</a>
 			<button type="button" role="menuitem" onclick={() => addToRadio(track.url)}>Add track</button>
-			<button type="button" role="menuitem">Share</button>
+			<!-- <button type="button" role="menuitem">Share</button> -->
 		</menu>
 	</r4-actions>
 	{@render children?.({track})}
@@ -191,19 +191,14 @@
 
 	r4-actions {
 		position: absolute;
-		top: 0.5rem;
-		right: 0.5rem;
+		top: 0;
+		right: 0;
+		height: 100%;
 
-		button:first-child {
-			padding: 0.5rem;
-			background: transparent;
+		> button:first-child {
+			height: 100%;
+			box-shadow: none;
 			border: none;
-			transition: all 222ms ease-in-out;
-
-			&:hover {
-				background-color: var(--gray-3);
-				border-radius: 50%;
-			}
 		}
 
 		menu {
@@ -214,18 +209,20 @@
 			background-color: var(--gray-2);
 			border: 1px solid var(--gray-7);
 			border-radius: var(--border-radius);
-			box-shadow: var(--c-shadow-modal);
-			width: 160px;
-			padding: 3px;
+			box-shadow: var(--shadow-modal);
+			width: 140px;
+			/*padding: 3px;*/
+			gap: 0;
 			margin: 0;
 
 			&:popover-open {
 				display: flex;
 			}
 
-			button {
+			> * {
 				width: 100%;
 				text-align: left;
+				justify-content: flex-start;
 			}
 		}
 	}
