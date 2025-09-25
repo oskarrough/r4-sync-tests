@@ -75,6 +75,11 @@ button.active,
 	}
 }
 
+button.active:active,
+.btn.active:active {
+	background-color: var(--accent-2);
+}
+
 .IconBtn {
 	border: 0;
 	background: none;

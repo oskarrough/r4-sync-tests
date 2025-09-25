@@ -2,6 +2,7 @@
 	import {page} from '$app/state'
 	import {addToPlaylist, playTrack, setPlaylist} from '$lib/api'
 	import ChannelCard from '$lib/components/channel-card.svelte'
+	import SearchStatus from '$lib/components/search-status.svelte'
 	import TrackCard from '$lib/components/track-card.svelte'
 	import {trap} from '$lib/focus'
 	import {r5} from '$lib/r5'
@@ -63,12 +64,9 @@
 	<menu>
 		{#if searchQuery && !isLoading && tracks.length > 0}
 			<button type="button" onclick={playSearchResults}>Play all</button>
-			<button type="button" onclick={() => addToPlaylist(tracks.map((t) => t.id))}>Add to queue</button>
+			<button type="button" onclick={() => addToPlaylist(tracks.map((t) => t.id))}>Queue all</button>
 		{/if}
-		<small
-			>Found {channels.length} channels and {tracks.length} tracks for
-			<em>"{searchQuery}"</em></small
-		>
+		<SearchStatus {searchQuery} channelCount={channels.length} trackCount={tracks.length} />
 	</menu>
 
 	{#if searchQuery && !isLoading}
