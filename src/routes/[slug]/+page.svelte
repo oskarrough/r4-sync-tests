@@ -22,9 +22,6 @@
 	const isSignedIn = $derived(!!appState.user)
 	const canEdit = $derived(isSignedIn && appState.channels?.includes(channel?.id))
 
-	/** @type {string[]} */
-	let trackIds = $derived([])
-
 	onMount(async () => {
 		// Load tracks after page render
 		const loadTracks = !channel.tracks_synced_at

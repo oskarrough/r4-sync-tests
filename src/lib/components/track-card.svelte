@@ -1,9 +1,7 @@
 <script lang="ts">
 	import type {Snippet} from 'svelte'
-	import {goto} from '$app/navigation'
 	import {playTrack} from '$lib/api'
 	import {appState} from '$lib/app-state.svelte'
-	import {formatDate} from '$lib/dates'
 	import type {Track} from '$lib/types'
 	import {extractYouTubeId} from '$lib/utils.ts'
 	import Icon from './icon.svelte'

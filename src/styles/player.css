@@ -30,6 +30,11 @@ media-time-display {
 	user-select: none;
 }
 
+media-time-display,
+media-time-range {
+	--media-control-background: none;
+}
+
 .player {
 	h2 a,
 	h3 a {
@@ -130,11 +135,6 @@ media-time-display {
 		/* equal width */
 		flex: 1;
 	}
-}
-
-media-time-display,
-media-time-range {
-	--media-control-background: none;
 }
 
 .player.expanded {
