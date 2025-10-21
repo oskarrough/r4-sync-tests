@@ -1,5 +1,4 @@
 <script>
-	import {onMount} from 'svelte'
 	import ButtonFollow from '$lib/components/button-follow.svelte'
 	import ButtonPlay from '$lib/components/button-play.svelte'
 	import ChannelHero from '$lib/components/channel-hero.svelte'
@@ -12,7 +11,7 @@
 
 	let {data} = $props()
 
-	let channel = $state(data.channel)
+	let channel = $derived(data.channel)
 
 	/** @type {import('$lib/types').Track[]} */
 	let tracks = $state([])
@@ -22,22 +21,35 @@
 	const isSignedIn = $derived(!!appState.user)
 	const canEdit = $derived(isSignedIn && appState.channels?.includes(channel?.id))
 
-	onMount(async () => {
-		// Load tracks after page render
-		const loadTracks = !channel.tracks_synced_at
-			? r5.tracks.pull({slug: data.slug})
-			: r5.tracks.local({slug: data.slug, fast: true})
+	$effect(() => {
+		// Load tracks whenever the slug changes
+		const loadAndSetTracks = async () => {
+			const slug = data.slug // Capture slug for closure
 
-		tracks = await loadTracks
+			const loadTracks = !channel.tracks_synced_at
+				? r5.tracks.pull({slug})
+				: r5.tracks.local({slug})
 
-		// Update tracks if they are outdated.
-		if (channel.tracks_synced_at) {
-			const isOutdated = await r5.channels.outdated(data.slug)
-			if (isOutdated) {
-				console.log('[page.svelte] refreshing outdated tracks')
-				tracks = await r5.tracks.pull({slug: data.slug})
+			const loadedTracks = await loadTracks
+			tracks = loadedTracks
+
+			// Check for updates in background without blocking render
+			if (channel.tracks_synced_at) {
+				r5.channels.outdated(slug).then((isOutdated) => {
+					if (isOutdated) {
+						console.log(`refreshing outdated tracks for ${slug} in background`)
+						r5.tracks.pull({slug}).then((updatedTracks) => {
+							// Only update if still on the same channel
+							if (data.slug === slug) {
+								tracks = updatedTracks
+							}
+						})
+					}
+				})
 			}
 		}
+
+		loadAndSetTracks()
 	})
 </script>
 
