@@ -4,6 +4,7 @@
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
 	import {incrementalLiveQuery, liveQuery} from '$lib/live-query'
 	import {pg} from '$lib/r5/db'
+	import {relativeTime} from '$lib/dates'
 	import Modal from './modal.svelte'
 	import SearchInput from './search-input.svelte'
 	import TrackCard from './track-card.svelte'
@@ -69,7 +70,7 @@
 			`SELECT twm.*, h.started_at, h.ended_at, h.ms_played, h.reason_start, h.reason_end, h.skipped
 			 FROM play_history h
 			 JOIN tracks_with_meta twm ON h.track_id = twm.id
-			 ORDER BY h.started_at ASC`,
+			 ORDER BY h.started_at DESC`,
 			[],
 			(res) => {
 				playHistory = res.rows
@@ -136,7 +137,7 @@
 						<TrackCard track={entry} {index}>
 							<p class="history">
 								<small>
-									{new Date(entry.started_at).toLocaleTimeString()}
+									{relativeTime(entry.started_at)}
 									{#if entry.reason_start}• {entry.reason_start}{/if}
 									{#if entry.reason_end}→ {entry.reason_end}{/if}
 									{#if entry.ms_played}• {Math.round(entry.ms_played / 1000)}s{/if}

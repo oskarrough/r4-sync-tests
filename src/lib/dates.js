@@ -45,3 +45,27 @@ export function relativeDateDetailed(dateString) {
 	if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`
 	return `${Math.floor(diffDays / 365)} years ago`
 }
+
+/** Relative time for recent events, absolute date+time for older
+ * @param {string | Date} dateInput */
+export function relativeTime(dateInput) {
+	if (!dateInput) return ''
+	const date = new Date(dateInput)
+	const diffMs = Date.now() - date
+	const diffMins = Math.floor(diffMs / 60000)
+
+	// Recent: relative time
+	if (diffMins < 60) return `${Math.max(1, diffMins)}m ago`
+	if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`
+
+	// Older: date + time
+	const isThisYear = date.getFullYear() === new Date().getFullYear()
+	return date.toLocaleDateString('en-US', {
+		month: 'short',
+		day: 'numeric',
+		...(isThisYear ? {} : {year: 'numeric'}),
+		hour: '2-digit',
+		minute: '2-digit',
+		hour12: false
+	})
+}
