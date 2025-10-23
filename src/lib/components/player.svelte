@@ -1,6 +1,5 @@
 <script>
 	import 'media-chrome'
-	//import 'youtube-video-element'
 	import '$lib/youtube-video-custom-element.js'
 	import '$lib/soundcloud-player-custom-element.js'
 	import {togglePlayerExpanded, toggleQueuePanel} from '$lib/api'
@@ -62,9 +61,6 @@
 			return
 		}
 
-		// const ytplayer = yt || document.querySelector('youtube-video')
-		// const paused = ytplayer.paused
-
 		await setChannelFromTrack(tid)
 
 		// Check if a user-initiated play flag was set
@@ -73,16 +69,6 @@
 			globalThis.__userInitiatedPlay = false
 			log.log('Setting userHasPlayed=true for user-initiated track change')
 		}
-
-		// log.log('track changed', {
-		// 	track: track?.title,
-		// 	yt,
-		// 	paused,
-		// 	didPlay,
-		// 	autoplay,
-		// 	userHasPlayed,
-		// 	hidden: document.hidden
-		// })
 
 		// Auto-play if we were already playing when track changed
 		if (didPlay) {
@@ -131,17 +117,24 @@
 		next(track, activeQueue, 'track_completed')
 	}
 
-	// function applyInitialVolume() {
-	// 	yt.volume = appState.volume
-	// 	yt.muted = appState.volume === 0
-	// }
+	function applyInitialVolume() {
+		if (!mediaElement) return
+		mediaElement.volume = appState.volume
+		mediaElement.muted = appState.volume === 0
+	}
 
-	// function handleVolumeChange(e) {
-	// 	const {volume} = e.target
-	// 	if (appState.volume === volume) return
-	// 	appState.volume = volume
-	// 	log.log('volumeChange', volume)
-	// }
+	function handleVolumeChange(e) {
+		const {volume} = e.target
+		if (appState.volume === volume) return
+		appState.volume = volume
+		log.log('volumeChange', volume)
+	}
+
+	$effect(() => {
+		if (mediaElement) {
+			applyInitialVolume()
+		}
+	})
 </script>
 
 <div class={['player', appState.player_expanded ? 'expanded' : 'compact']}>
@@ -156,28 +149,31 @@
 	{/if}
 
 	<media-controller id="r5" data-clickable="true">
-		<youtube-video
-			slot={trackType === 'youtube' ? 'media' : undefined}
-			bind:this={youtubePlayer}
-			src={trackType === 'youtube' ? src : undefined}
-			autoplay={userHasPlayed || undefined}
-			hidden={trackType !== 'youtube'}
-			onplay={handlePlay}
-			onpause={handlePause}
-			onended={handleEndTrack}
-			onerror={handleError}
-		></youtube-video>
-		<soundcloud-player
-			slot={trackType === 'soundcloud' ? 'media' : undefined}
-			bind:this={soundcloudPlayer}
-			src={trackType === 'soundcloud' ? src : undefined}
-			autoplay={userHasPlayed || undefined}
-			hidden={trackType !== 'soundcloud'}
-			onplay={handlePlay}
-			onpause={handlePause}
-			onended={handleEndTrack}
-			onerror={handleError}
-		></soundcloud-player>
+		{#if trackType === 'youtube'}
+			<youtube-video
+				slot="media"
+				bind:this={youtubePlayer}
+				{src}
+				autoplay={userHasPlayed || undefined}
+				onplay={handlePlay}
+				onpause={handlePause}
+				onended={handleEndTrack}
+				onerror={handleError}
+				onvolumechange={handleVolumeChange}
+			></youtube-video>
+		{:else if trackType === 'soundcloud'}
+			<soundcloud-player
+				slot="media"
+				bind:this={soundcloudPlayer}
+				{src}
+				autoplay={userHasPlayed || undefined}
+				onplay={handlePlay}
+				onpause={handlePause}
+				onended={handleEndTrack}
+				onerror={handleError}
+				onvolumechange={handleVolumeChange}
+			></soundcloud-player>
+		{/if}
 		<media-loading-indicator slot="centered-chrome"></media-loading-indicator>
 	</media-controller>
 

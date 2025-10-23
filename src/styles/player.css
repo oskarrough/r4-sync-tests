@@ -1,6 +1,18 @@
 /* The player has two states: compact & expanded
  * each provides responsive layout from small to huge */
 
+youtube-video,
+soundcloud-player {
+	aspect-ratio: 16 / 9;
+	height: auto;
+	min-width: 200px;
+
+	&:not([slot='media']) {
+		display: none;
+		pointer-events: none;
+	}
+}
+
 media-controller,
 media-control-bar {
 	--media-background-color: transparent;
@@ -183,17 +195,6 @@ media-time-range {
 	media-controller:has(soundcloud-player) {
 		width: 100%;
 		background: black;
-	}
-
-	youtube-video,
-	soundcloud-player {
-		aspect-ratio: 16 / 9;
-		height: auto;
-		min-width: 200px;
-
-		&[hidden] {
-			display: none;
-		}
 	}
 
 	/* hidden in expanded mode, because we have .timebar */

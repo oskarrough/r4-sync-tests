@@ -18,8 +18,8 @@
 			url: 'https://soundcloud.com/user-612196404/test-pressing-w-jamie-tiller'
 		},
 		{
-			title: 'SoundCloud - Eleanor Rigby',
-			url: 'https://soundcloud.com/josefkenny/eleanor-rigby-pokemon-battle-theme'
+			title: 'SoundCloud - sw0rdes',
+			url: 'https://soundcloud.com/sw0rdes/im-sorry-i-drank-all-of-ur-wine'
 		}
 	]
 
@@ -159,32 +159,33 @@
 	<section class="player-section">
 		<h2>Player</h2>
 		<media-controller>
-			<youtube-video
-				slot={trackType === 'youtube' ? 'media' : undefined}
-				bind:this={youtubePlayer}
-				src={trackType === 'youtube' ? currentUrl : undefined}
-				autoplay={autoplay && userHasPlayed || undefined}
-				hidden={trackType !== 'youtube'}
-				onplay={handlePlay}
-				onpause={handlePause}
-				onended={handleEnded}
-				onerror={handleError}
-				ontimeupdate={handleTimeUpdate}
-				ondurationchange={handleDurationChange}
-			></youtube-video>
-			<soundcloud-player
-				slot={trackType === 'soundcloud' ? 'media' : undefined}
-				bind:this={soundcloudPlayer}
-				src={trackType === 'soundcloud' ? currentUrl : undefined}
-				autoplay={autoplay && userHasPlayed || undefined}
-				hidden={trackType !== 'soundcloud'}
-				onplay={handlePlay}
-				onpause={handlePause}
-				onended={handleEnded}
-				onerror={handleError}
-				ontimeupdate={handleTimeUpdate}
-				ondurationchange={handleDurationChange}
-			></soundcloud-player>
+			{#if trackType === 'youtube'}
+				<youtube-video
+					slot="media"
+					bind:this={youtubePlayer}
+					src={currentUrl}
+					autoplay={(autoplay && userHasPlayed) || undefined}
+					onplay={handlePlay}
+					onpause={handlePause}
+					onended={handleEnded}
+					onerror={handleError}
+					ontimeupdate={handleTimeUpdate}
+					ondurationchange={handleDurationChange}
+				></youtube-video>
+			{:else if trackType === 'soundcloud'}
+				<soundcloud-player
+					slot="media"
+					bind:this={soundcloudPlayer}
+					src={currentUrl}
+					autoplay={(autoplay && userHasPlayed) || undefined}
+					onplay={handlePlay}
+					onpause={handlePause}
+					onended={handleEnded}
+					onerror={handleError}
+					ontimeupdate={handleTimeUpdate}
+					ondurationchange={handleDurationChange}
+				></soundcloud-player>
+			{/if}
 			<media-loading-indicator slot="centered-chrome"></media-loading-indicator>
 
 			<media-control-bar>
@@ -199,83 +200,3 @@
 		</media-controller>
 	</section>
 </div>
-
-<style>
-	.playground {
-		padding: 1rem;
-		max-width: 1200px;
-		margin: 0 auto;
-	}
-
-	h1 {
-		margin-bottom: 2rem;
-	}
-
-	h2 {
-		font-size: 1.2rem;
-		margin-bottom: 1rem;
-	}
-
-	h3 {
-		font-size: 1rem;
-		margin-top: 1rem;
-		margin-bottom: 0.5rem;
-	}
-
-	.controls,
-	.player-info,
-	.player-section {
-		margin-bottom: 2rem;
-		padding: 1rem;
-		background: var(--background-color, #f5f5f5);
-		border-radius: 4px;
-	}
-
-	.controls ul {
-		list-style: none;
-		padding: 0;
-		margin-bottom: 1rem;
-	}
-
-	.controls li {
-		margin-bottom: 0.5rem;
-	}
-
-	.controls button {
-		width: 100%;
-		text-align: left;
-		padding: 0.5rem 1rem;
-	}
-
-	.controls button.active {
-		background: var(--primary-color, #007bff);
-		color: white;
-	}
-
-	.player-info dl {
-		display: grid;
-		grid-template-columns: auto 1fr;
-		gap: 0.5rem;
-	}
-
-	.player-info dt {
-		font-weight: bold;
-	}
-
-	.player-info dd {
-		margin: 0;
-	}
-
-	code {
-		font-size: 0.9em;
-		background: var(--background-color-alt, #e5e5e5);
-		padding: 0.2rem 0.4rem;
-		border-radius: 3px;
-		word-break: break-all;
-	}
-
-	media-controller {
-		width: 100%;
-		aspect-ratio: 16 / 9;
-	}
-</style>

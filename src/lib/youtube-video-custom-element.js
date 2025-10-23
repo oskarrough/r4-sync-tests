@@ -54,9 +54,18 @@ class YouTube2Element extends HTMLElement {
 		log.debug('initializePlayer')
 		const iframe = this.shadowRoot?.querySelector('iframe')
 
-		// When initializing without a src, the YT player doesn't fire the good events :( Ideally we don't have to precue any videos. But it did solve autoplay in some cases.
 		if (iframe && !iframe.src) {
-			iframe.src = this.getAttribute('src') || 'https://www.youtube.com/embed/dQw4w9WgXcQ?enablejsapi=1'
+			const src = this.getAttribute('src')
+			if (!src) {
+				log.debug('No src provided, skipping initialization')
+				return
+			}
+			const videoId = this.#extractVideoId(src)
+			if (!videoId) {
+				log.error('Invalid YouTube URL:', src)
+				return
+			}
+			iframe.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1`
 		}
 
 		try {
