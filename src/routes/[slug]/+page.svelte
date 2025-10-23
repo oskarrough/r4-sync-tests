@@ -96,7 +96,7 @@
 		<section>
 			{#if tracks.length > 0}
 				<!-- <CoverFlip tracks={tracks} /> -->
-				<Tracklist {tracks} grouped={1} />
+				<Tracklist {tracks} {canEdit} grouped={1} />
 			{:else}
 				<p style="margin-top:1rem; margin-left: 0.5rem;">Loading tracks…</p>
 			{/if}
