@@ -5,6 +5,7 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 
 ## Backlog
 
+- consider https://turso.tech/blog/introducing-turso-in-the-browser to replace pgsql (tough performance at times)
 - crud channels: create/edit/delete channel functionality
 - crud tracks: edit/delete track functionality (we have add)
 - implement password reset flow (supabase auth)
