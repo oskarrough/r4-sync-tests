@@ -6,21 +6,25 @@ import {shuffleArray} from '$lib/utils.ts'
 /** @typedef {import('$lib/types').AppState} AppState */
 /** @typedef {import('$lib/types').Track} Track */
 /** @typedef {import('$lib/types').Channel} Channel */
-/** @typedef {HTMLElement & {paused: boolean, play(): void, pause(): void} | null} YouTubePlayer */
+/** @typedef {HTMLElement & {paused: boolean, play(): void, pause(): void} | null} MediaPlayer */
 
-/** @param {YouTubePlayer} yt */
 const log = logger.ns('api/player').seal()
 
-export function play() {
-	const yt = document.querySelector('youtube-video')
-	if (!yt) {
-		log.warn('YouTube player not ready')
-		return Promise.reject(new Error('YouTube player not ready'))
+/** @param {MediaPlayer} [player] */
+export function play(player) {
+	// If no player provided, try to find one
+	if (!player) {
+		player = document.querySelector('youtube-video') || document.querySelector('soundcloud-player')
 	}
 
-	log.debug('play() check', yt, 'paused?', yt.paused)
+	if (!player) {
+		log.warn('Media player not ready')
+		return Promise.reject(new Error('Media player not ready'))
+	}
 
-	const promise = yt.play()
+	log.debug('play() check', player, 'paused?', player.paused)
+
+	const promise = player.play()
 	if (promise !== undefined) {
 		return promise
 			.then(() => {
@@ -28,31 +32,31 @@ export function play() {
 			})
 			.catch((error) => {
 				log.warn('play() was prevented:', error.message || error)
-				throw error // Re-throw so caller can handle
+				throw error
 			})
 	}
 	return Promise.resolve()
 }
 
-/** @param {YouTubePlayer} yt */
-export function pause(yt) {
-	if (!yt) {
-		log.warn('YouTube player not ready')
+/** @param {MediaPlayer} player */
+export function pause(player) {
+	if (!player) {
+		log.warn('Media player not ready')
 		return
 	}
-	yt.pause()
+	player.pause()
 }
 
-/** @param {YouTubePlayer} yt */
-export function togglePlay(yt) {
-	if (!yt) {
-		log.warn('YouTube player not ready')
+/** @param {MediaPlayer} player */
+export function togglePlay(player) {
+	if (!player) {
+		log.warn('Media player not ready')
 		return
 	}
-	if (yt.paused) {
-		play(yt)
+	if (player.paused) {
+		play(player)
 	} else {
-		pause(yt)
+		pause(player)
 	}
 }
 

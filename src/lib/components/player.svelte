@@ -13,20 +13,23 @@
 	import {logger} from '$lib/logger'
 	import {pg} from '$lib/r5/db'
 	import {r5} from '$lib/r5/index'
-	import {extractYouTubeId} from '$lib/utils.ts'
+	import {extractYouTubeId, detectMediaProvider} from '$lib/utils.ts'
 
 	/** @typedef {import('$lib/types').Track} Track */
 	/** @typedef {import('$lib/types').Channel} Channel */
 
 	const log = logger.ns('player').seal()
 
-	// The YouTube player element
-	let yt = $state()
+	// Both media player elements
+	let youtubePlayer = $state()
+	let soundcloudPlayer = $state()
 
 	/** @type {Track|undefined} */
 	let track = $state()
 
 	let src = $derived(track?.url)
+	let trackType = $derived(detectMediaProvider(src))
+	let mediaElement = $derived(trackType === 'youtube' ? youtubePlayer : soundcloudPlayer)
 
 	/** @type {Channel|undefined} */
 	let channel = $state()
@@ -114,6 +117,10 @@
 
 	/** @param {any} event */
 	function handleError(event) {
+		if (!event.target.error) {
+			log.warn('Error event with no error object')
+			return
+		}
 		const code = event.target.error.code
 		const msg = `youtube_error_${code}`
 		log.warn(msg)
@@ -150,15 +157,27 @@
 
 	<media-controller id="r5" data-clickable="true">
 		<youtube-video
-			slot="media"
-			bind:this={yt}
-			{src}
+			slot={trackType === 'youtube' ? 'media' : undefined}
+			bind:this={youtubePlayer}
+			src={trackType === 'youtube' ? src : undefined}
 			autoplay={userHasPlayed || undefined}
+			hidden={trackType !== 'youtube'}
 			onplay={handlePlay}
 			onpause={handlePause}
 			onended={handleEndTrack}
 			onerror={handleError}
 		></youtube-video>
+		<soundcloud-player
+			slot={trackType === 'soundcloud' ? 'media' : undefined}
+			bind:this={soundcloudPlayer}
+			src={trackType === 'soundcloud' ? src : undefined}
+			autoplay={userHasPlayed || undefined}
+			hidden={trackType !== 'soundcloud'}
+			onplay={handlePlay}
+			onpause={handlePause}
+			onended={handleEndTrack}
+			onerror={handleError}
+		></soundcloud-player>
 		<media-loading-indicator slot="centered-chrome"></media-loading-indicator>
 	</media-controller>
 
@@ -197,7 +216,7 @@
 {/snippet}
 
 {#snippet btnPlay()}
-	<button onclick={() => togglePlay(yt)} disabled={!canPlay} class="play">
+	<button onclick={() => togglePlay(mediaElement)} disabled={!canPlay} class="play">
 		<Icon icon={appState.is_playing ? 'pause' : 'play-fill'} />
 	</button>
 {/snippet}
