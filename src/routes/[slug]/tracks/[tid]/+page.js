@@ -25,7 +25,7 @@ export async function load({parent, params, depends}) {
 	if (!rows.length) {
 		await r5.pull(slug)
 		const results = await pg.query('SELECT * FROM tracks_with_meta WHERE id = $1 limit 1', [tid])
-		if (!results.rows) error(404, 'Track not found')
+		if (!results.rows.length) error(404, 'Track not found')
 		track = results.rows[0]
 	}
 

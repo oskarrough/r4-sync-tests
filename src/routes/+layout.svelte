@@ -131,11 +131,12 @@
 	}
 
 	.content {
-		display: grid;
+		/*display: grid;
 		grid-template-columns: 1fr;
 		height: 100%;
 		overflow: hidden;
-		position: relative;
+		position: relative;*/
+
 		> :global(aside) {
 			transform: translate3d(100%, 0, 0);
 			position: absolute;

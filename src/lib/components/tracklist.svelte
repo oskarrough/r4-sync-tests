@@ -12,19 +12,19 @@
 		canEdit?: boolean
 		}}
 	*/
-	const {tracks: tracksProp, ids, footer, grouped = false, canEdit = false} = $props()
+	const {tracks, ids, footer, grouped = false, canEdit = false} = $props()
 
 	/** @type {Track[]}*/
-	let tracks = $state([])
+	let internalTracks = $state([])
 
 	import {SvelteMap} from 'svelte/reactivity'
 
 	/** @type {SvelteMap<string, SvelteMap<string, Track[]>>} */
 	let groupedTracks = $derived.by(() => {
-		if (!grouped || !tracks.length) return new SvelteMap()
+		if (!grouped || !internalTracks.length) return new SvelteMap()
 
 		const groups = new SvelteMap()
-		tracks.forEach((track) => {
+		internalTracks.forEach((track) => {
 			const date = new Date(track.created_at)
 			const year = date.getFullYear().toString()
 			const month = date.toLocaleString('en', {month: 'long'})
@@ -44,13 +44,13 @@
 	})
 
 	$effect(() => {
-		if (tracksProp) {
-			tracks = tracksProp
+		if (tracks) {
+			internalTracks = tracks
 			return
 		}
 
 		if (!ids || ids.length === 0) {
-			tracks = []
+			internalTracks = []
 			return
 		}
 
@@ -65,13 +65,13 @@
 			[ids],
 			'id',
 			(res) => {
-				tracks = res.rows
+				internalTracks = res.rows
 			}
 		)
 	})
 </script>
 
-{#if tracks.length}
+{#if internalTracks.length}
 	{#if grouped}
 		<div class="timeline">
 			{#each groupedTracks as [year, months] (year)}
@@ -95,7 +95,7 @@
 		</div>
 	{:else}
 		<ul class="list tracks">
-			{#each tracks as track, index (track.id)}
+			{#each internalTracks as track, index (track.id)}
 				<li>
 					<TrackCard {track} {index} {canEdit} />
 					{@render footer?.({track})}

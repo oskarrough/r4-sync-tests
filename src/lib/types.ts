@@ -57,6 +57,7 @@ export type Track = {
 	channel_id?: string
 	channel_slug?: string
 	// when joined with track_meta table
+	ytid?: string
 	duration?: number
 	youtube_data?: object
 	musicbrainz_data?: object

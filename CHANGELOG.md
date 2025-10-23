@@ -2,6 +2,7 @@
 
 ## October 2025
 
+- SoundCloud tracks now play through a new media-chrome element
 - Play history now shows newest entries first with relative timestamps
 - Faster channel and track loading performance
 
