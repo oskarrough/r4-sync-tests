@@ -32,6 +32,13 @@ export function extractYouTubeId(url) {
 	return null
 }
 
+export function detectMediaProvider(url: string): 'youtube' | 'soundcloud' | null {
+	if (!url) return null
+	if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube'
+	if (url.includes('soundcloud.com')) return 'soundcloud'
+	return null
+}
+
 /** Takes an array and returns a shuffled version.Uses http://bost.ocks.org/mike/shuffle/ */
 export function shuffleArray<T>(arr: Array<T>) {
 	// Return a new array.

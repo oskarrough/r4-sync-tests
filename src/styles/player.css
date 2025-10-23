@@ -1,4 +1,4 @@
-/* The player has two states: compact & expanded 
+/* The player has two states: compact & expanded
  * each provides responsive layout from small to huge */
 
 media-controller,
@@ -120,7 +120,8 @@ media-time-range {
 		display: none;
 	}
 
-	youtube-video {
+	youtube-video,
+	soundcloud-player {
 		display: none;
 
 		position: fixed;
@@ -178,15 +179,21 @@ media-time-range {
 		}
 	}
 
-	media-controller:has(youtube-video) {
+	media-controller:has(youtube-video),
+	media-controller:has(soundcloud-player) {
 		width: 100%;
 		background: black;
 	}
 
-	youtube-video {
+	youtube-video,
+	soundcloud-player {
 		aspect-ratio: 16 / 9;
 		height: auto;
 		min-width: 200px;
+
+		&[hidden] {
+			display: none;
+		}
 	}
 
 	/* hidden in expanded mode, because we have .timebar */

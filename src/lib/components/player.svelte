@@ -2,6 +2,7 @@
 	import 'media-chrome'
 	//import 'youtube-video-element'
 	import '$lib/youtube-video-custom-element.js'
+	import '$lib/soundcloud-player-custom-element.js'
 	import {togglePlayerExpanded, toggleQueuePanel} from '$lib/api'
 	import {next, play, previous, togglePlay, toggleShuffle} from '$lib/api/player'
 	import {appState} from '$lib/app-state.svelte'
