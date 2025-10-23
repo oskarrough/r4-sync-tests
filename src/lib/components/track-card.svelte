@@ -119,7 +119,7 @@
 		display: flex;
 		flex-flow: row nowrap;
 		gap: 0 0.5rem;
-		padding: 0.5rem 0.5rem 0.5rem 0.5rem;
+		padding: 0.5rem 2rem 0.5rem 0.5rem;
 		line-height: 1.2;
 		text-decoration: none;
 		cursor: default;
