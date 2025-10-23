@@ -1,7 +1,7 @@
 <script>
 	import 'media-chrome'
-	//import 'youtube-video-element'
 	import '$lib/youtube-video-custom-element.js'
+	import '$lib/soundcloud-player-custom-element.js'
 	import {togglePlayerExpanded, toggleQueuePanel} from '$lib/api'
 	import {next, play, previous, togglePlay, toggleShuffle} from '$lib/api/player'
 	import {appState} from '$lib/app-state.svelte'
@@ -12,20 +12,23 @@
 	import {logger} from '$lib/logger'
 	import {pg} from '$lib/r5/db'
 	import {r5} from '$lib/r5/index'
-	import {extractYouTubeId} from '$lib/utils.ts'
+	import {extractYouTubeId, detectMediaProvider} from '$lib/utils.ts'
 
 	/** @typedef {import('$lib/types').Track} Track */
 	/** @typedef {import('$lib/types').Channel} Channel */
 
 	const log = logger.ns('player').seal()
 
-	// The YouTube player element
-	let yt = $state()
+	// Both media player elements
+	let youtubePlayer = $state()
+	let soundcloudPlayer = $state()
 
 	/** @type {Track|undefined} */
 	let track = $state()
 
 	let src = $derived(track?.url)
+	let trackType = $derived(detectMediaProvider(src))
+	let mediaElement = $derived(trackType === 'youtube' ? youtubePlayer : soundcloudPlayer)
 
 	/** @type {Channel|undefined} */
 	let channel = $state()
@@ -58,9 +61,6 @@
 			return
 		}
 
-		// const ytplayer = yt || document.querySelector('youtube-video')
-		// const paused = ytplayer.paused
-
 		await setChannelFromTrack(tid)
 
 		// Check if a user-initiated play flag was set
@@ -69,16 +69,6 @@
 			globalThis.__userInitiatedPlay = false
 			log.log('Setting userHasPlayed=true for user-initiated track change')
 		}
-
-		// log.log('track changed', {
-		// 	track: track?.title,
-		// 	yt,
-		// 	paused,
-		// 	didPlay,
-		// 	autoplay,
-		// 	userHasPlayed,
-		// 	hidden: document.hidden
-		// })
 
 		// Auto-play if we were already playing when track changed
 		if (didPlay) {
@@ -113,6 +103,10 @@
 
 	/** @param {any} event */
 	function handleError(event) {
+		if (!event.target.error) {
+			log.warn('Error event with no error object')
+			return
+		}
 		const code = event.target.error.code
 		const msg = `youtube_error_${code}`
 		log.warn(msg)
@@ -123,17 +117,24 @@
 		next(track, activeQueue, 'track_completed')
 	}
 
-	// function applyInitialVolume() {
-	// 	yt.volume = appState.volume
-	// 	yt.muted = appState.volume === 0
-	// }
+	function applyInitialVolume() {
+		if (!mediaElement) return
+		mediaElement.volume = appState.volume
+		mediaElement.muted = appState.volume === 0
+	}
 
-	// function handleVolumeChange(e) {
-	// 	const {volume} = e.target
-	// 	if (appState.volume === volume) return
-	// 	appState.volume = volume
-	// 	log.log('volumeChange', volume)
-	// }
+	function handleVolumeChange(e) {
+		const {volume} = e.target
+		if (appState.volume === volume) return
+		appState.volume = volume
+		log.log('volumeChange', volume)
+	}
+
+	$effect(() => {
+		if (mediaElement) {
+			applyInitialVolume()
+		}
+	})
 </script>
 
 <div class={['player', appState.player_expanded ? 'expanded' : 'compact']}>
@@ -148,16 +149,31 @@
 	{/if}
 
 	<media-controller id="r5" data-clickable="true">
-		<youtube-video
-			slot="media"
-			bind:this={yt}
-			{src}
-			autoplay={userHasPlayed || undefined}
-			onplay={handlePlay}
-			onpause={handlePause}
-			onended={handleEndTrack}
-			onerror={handleError}
-		></youtube-video>
+		{#if trackType === 'youtube'}
+			<youtube-video
+				slot="media"
+				bind:this={youtubePlayer}
+				{src}
+				autoplay={userHasPlayed || undefined}
+				onplay={handlePlay}
+				onpause={handlePause}
+				onended={handleEndTrack}
+				onerror={handleError}
+				onvolumechange={handleVolumeChange}
+			></youtube-video>
+		{:else if trackType === 'soundcloud'}
+			<soundcloud-player
+				slot="media"
+				bind:this={soundcloudPlayer}
+				{src}
+				autoplay={userHasPlayed || undefined}
+				onplay={handlePlay}
+				onpause={handlePause}
+				onended={handleEndTrack}
+				onerror={handleError}
+				onvolumechange={handleVolumeChange}
+			></soundcloud-player>
+		{/if}
 		<media-loading-indicator slot="centered-chrome"></media-loading-indicator>
 	</media-controller>
 
@@ -196,7 +212,7 @@
 {/snippet}
 
 {#snippet btnPlay()}
-	<button onclick={() => togglePlay(yt)} disabled={!canPlay} class="play">
+	<button onclick={() => togglePlay(mediaElement)} disabled={!canPlay} class="play">
 		<Icon icon={appState.is_playing ? 'pause' : 'play-fill'} />
 	</button>
 {/snippet}

@@ -1,5 +1,10 @@
 # Changelog
 
+## October 2025
+
+- Play history now shows newest entries first with relative timestamps
+- Faster channel and track loading performance
+
 ## September 2025
 
 - Added tags timeline page for channels at `/[slug]/tags` with year, quarter, and month filtering

@@ -1,10 +1,10 @@
-# Todos
-
 List of possible improvements to the architecture, idea, cli and web application.
-Verify and evaluate todos before taking them on. They might be outdated or just not good ideas. Ask user for their preference.
+Verify and evaluate todos before taking them on. They might be outdated or just not good ideas.
 
-## Backlog
-
+- replace pglite/electric with tanstack db
+  https://tanstack.com/db/latest/docs/installation
+  install @tanstack/svelte-db
+- consider https://turso.tech/blog/introducing-turso-in-the-browser to replace pgsql (tough performance at times)
 - crud channels: create/edit/delete channel functionality
 - crud tracks: edit/delete track functionality (we have add)
 - implement password reset flow (supabase auth)
@@ -29,9 +29,9 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 - enhance logger: expose store.logs in devtools ui
 - create standardized loading/error boundaries for async operations in ui
 - find a way to share `track_meta` data between users. push it remote, how? security?
-- We're using the media-chrome project for the player. It supports audio, video and different third-party "media elements" like YouTube, Spotify and others. But there's no Soundcloud, which some R4 radios use. If we wanna keep Soundcloud, we have to make a player for it. https://www.media-chrome.org/docs/en/media-element#compatible-media-elements
+- Player improvements: (1) Add disconnectedCallback cleanup to custom elements when removed from DOM, (2) Improve error handling for API load failures, (3) Test state persistence across provider switches, (4) Consider performance monitoring for initialization times, (5) Audit HTMLMediaElement interface completeness for full media-chrome compatibility
 - cli: Better progress reporting with download speeds, concurrent status
 - cli: allow sql queries
 - cli download error handling: retry logic, download state tracking, failure persistence
 - cli download file scanning: old CLI scans `<folder>/<slug>/tracks/*.m4a`, new CLI has no file ops
-- improve broadcast feature 
+- improve broadcast feature

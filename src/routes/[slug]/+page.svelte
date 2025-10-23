@@ -26,9 +26,7 @@
 		const loadAndSetTracks = async () => {
 			const slug = data.slug // Capture slug for closure
 
-			const loadTracks = !channel.tracks_synced_at
-				? r5.tracks.pull({slug})
-				: r5.tracks.local({slug})
+			const loadTracks = !channel.tracks_synced_at ? r5.tracks.pull({slug}) : r5.tracks.local({slug})
 
 			const loadedTracks = await loadTracks
 			tracks = loadedTracks
