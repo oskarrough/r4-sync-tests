@@ -54,6 +54,20 @@ class SoundCloudPlayerElement extends HTMLElement {
 		}
 	}
 
+	disconnectedCallback() {
+		// Unbind all widget events to prevent memory leaks
+		if (this.api) {
+			log.debug('disconnectedCallback: unbinding widget events')
+			this.api.unbind(globalThis.SC.Widget.Events.READY)
+			this.api.unbind(globalThis.SC.Widget.Events.PLAY)
+			this.api.unbind(globalThis.SC.Widget.Events.PAUSE)
+			this.api.unbind(globalThis.SC.Widget.Events.FINISH)
+			this.api.unbind(globalThis.SC.Widget.Events.PLAY_PROGRESS)
+			this.api.unbind(globalThis.SC.Widget.Events.SEEK)
+			this.api.unbind(globalThis.SC.Widget.Events.ERROR)
+		}
+	}
+
 	async #initializePlayer() {
 		log.debug('initializePlayer')
 		const iframe = this.shadowRoot?.querySelector('iframe')

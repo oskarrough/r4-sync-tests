@@ -50,6 +50,15 @@ class YouTube2Element extends HTMLElement {
 		}
 	}
 
+	disconnectedCallback() {
+		// Destroy player to clean up listeners and prevent memory leaks
+		if (this.api) {
+			log.debug('disconnectedCallback: destroying player')
+			this.api.destroy()
+			this.api = null
+		}
+	}
+
 	async #initializePlayer() {
 		log.debug('initializePlayer')
 		const iframe = this.shadowRoot?.querySelector('iframe')
