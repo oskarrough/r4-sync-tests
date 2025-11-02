@@ -311,3 +311,81 @@ export async function isFollowing(followerId, channelId) {
 	`
 	return rows.length > 0
 }
+
+/**
+ * @param {string} trackId
+ * @param {object} updates
+ * @param {string} [updates.title]
+ * @param {string} [updates.description]
+ * @param {string} [updates.url]
+ */
+export async function updateTrack(trackId, updates) {
+	log.log('update_track', {trackId, updates})
+
+	// Update locally first
+	await pg.sql`
+		UPDATE tracks
+		SET
+			title = COALESCE(${updates.title}, title),
+			description = COALESCE(${updates.description}, description),
+			url = COALESCE(${updates.url}, url)
+		WHERE id = ${trackId}
+	`
+
+	// Update remotely if authenticated
+	if (appState.channels?.length) {
+		try {
+			await r4.tracks.updateTrack(trackId, updates)
+			log.log('track_updated_remotely', {trackId})
+		} catch (error) {
+			log.error('remote_update_failed', {trackId, error})
+		}
+	}
+
+	// Dispatch event for UI updates
+	document.dispatchEvent(
+		new CustomEvent('r5:trackUpdated', {
+			detail: {trackId}
+		})
+	)
+}
+
+/**
+ * @param {string} trackId
+ */
+export async function deleteTrack(trackId) {
+	log.log('delete_track', {trackId})
+
+	// Verify ownership before deleting
+	const track = (await pg.sql`SELECT channel_id FROM tracks WHERE id = ${trackId}`).rows[0]
+	if (!track) {
+		log.warn('track_not_found', {trackId})
+		return
+	}
+
+	const isOwner = appState.channels?.includes(track.channel_id)
+	if (appState.channels?.length && !isOwner) {
+		log.error('delete_unauthorized', {trackId, channelId: track.channel_id})
+		throw new Error('Cannot delete track from channel you do not own')
+	}
+
+	// Delete locally
+	await pg.sql`DELETE FROM tracks WHERE id = ${trackId}`
+
+	// Delete remotely if authenticated
+	if (appState.channels?.length) {
+		try {
+			await r4.tracks.deleteTrack(trackId)
+			log.log('track_deleted_remotely', {trackId})
+		} catch (error) {
+			log.error('remote_delete_failed', {trackId, error})
+		}
+	}
+
+	// Dispatch event for UI updates
+	document.dispatchEvent(
+		new CustomEvent('r5:trackDeleted', {
+			detail: {trackId}
+		})
+	)
+}
