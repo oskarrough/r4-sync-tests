@@ -56,7 +56,7 @@ export async function createPg(persist = browser) {
 	if (!pg) {
 		// Store the initialization promise to prevent concurrent calls
 		pgInitPromise = (async () => {
-			const dataDir = browser ? (persist ? 'idb://radio4000test2' : 'memory://') : './cli-db'
+			const dataDir = browser ? (persist ? 'idb://radio4000test2' : 'memory://') : './r4-pglite-db'
 
 			if (browser && useWorker) {
 				log.debug('creating PGLite worker')

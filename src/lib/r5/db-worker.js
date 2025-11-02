@@ -6,7 +6,7 @@ import {worker} from '@electric-sql/pglite/worker'
 worker({
 	async init(options) {
 		const browser = typeof window !== 'undefined'
-		const dataDir = options.dataDir || (browser ? 'idb://radio4000test2' : './cli-db')
+		const dataDir = options.dataDir || (browser ? 'idb://radio4000test2' : './r4-pglite-db')
 
 		return new PGlite({
 			dataDir: dataDir,
