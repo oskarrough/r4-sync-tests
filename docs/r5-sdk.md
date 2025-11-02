@@ -5,16 +5,8 @@ This sdk/api wraps v1 (firebase), r4 (supabase) with r5 (local) into one, unifie
 - $lib/db -> Local Postgres db
 - $lib/r4 -> Remote Postgres via Supabase (v2)
 - `static/channels-v1-modified.json` -> Local v1 Firebase export (legacy channels)
-- `src/lib/cli.ts` -> CLI
 
 Most methods follow the pattern `r5.<resource>[.<source>]([<params>])`.
-
-```
-channels [local|r4|pull|v1] [slug]     - read channels
-tracks local [slug], r4|pull <slug>|v1 - read tracks
-search <query> [--channels|--tracks]    - search channels & tracks
-db [reset|migrate|export]               - database operations
-```
 
 ## examples
 

@@ -55,7 +55,7 @@
 			<a href="/" class="btn">Start exploring</a>
 		</p>
 		<p>
-			<a href="/cli">CLI</a> •
+			<a href="/repl">Repl</a> •
 			<a href="https://github.com/radio4000/r4-sync-tests" rel="noopener noreferrer">Source code</a>
 		</p>
 	</footer>

@@ -135,7 +135,7 @@ export async function getPg() {
 }
 
 /**
- * Set pg instance manually (for tests/CLI)
+ * Set pg instance manually (for tests)
  * @param {import('@electric-sql/pglite/live').PGliteWithLive} instance
  */
 export function setPg(instance) {

@@ -1,5 +1,10 @@
 # Changelog
 
+## November 2025
+
+- Removed the CLI + browser terminal UI
+- Changed /cli route to /repl
+
 ## October 2025
 
 - SoundCloud tracks now play through a new media-chrome element
