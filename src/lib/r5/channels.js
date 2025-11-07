@@ -62,19 +62,29 @@ async function pullAll({limit = LIMIT} = {}) {
  * a) all channels (if no id || slug),
  * b) a single channel from local, or r4, falling back to v1 */
 export async function pull({id = '', slug = '', limit = LIMIT} = {}) {
+	log.log('pull_start', {id, slug})
+
 	if (id && !slug) {
+		log.log('pull_resolving_id_to_slug', {id})
 		slug = await channelIdToSlug(id)
+		log.log('pull_resolved_slug', {id, slug})
 	}
 
-	if (!slug) return await pullAll({limit})
+	if (!slug) {
+		log.log('pull_all_channels')
+		return await pullAll({limit})
+	}
 
 	// Prefer local
+	log.log('pull_checking_local', {slug})
 	const localChannels = await local({slug})
 	if (localChannels.length) {
+		log.log('pull_found_local', {slug})
 		return localChannels
 	}
 
 	// Second prio is r4
+	log.log('pull_not_local_trying_remote_r4', {slug})
 	try {
 		const channels = await r4({slug})
 		if (channels.length) {
@@ -86,6 +96,7 @@ export async function pull({id = '', slug = '', limit = LIMIT} = {}) {
 	}
 
 	// Last is v1
+	log.log('pull_trying_v1', {slug})
 	const v1Channels = await v1({slug})
 	if (v1Channels.length) {
 		await insert(v1Channels)

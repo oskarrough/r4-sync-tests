@@ -17,28 +17,40 @@ const log = logger.ns('api').seal()
  */
 
 export async function checkUser() {
+	log.log('checkUser_start')
 	try {
+		log.log('checkUser_calling_remote_readUser')
 		const user = await r4.users.readUser()
+		log.log('checkUser_remote_readUser_done', {user: user?.email})
+
 		if (!user) {
 			appState.channels = []
 			appState.broadcasting_channel_id = undefined
+			log.log('checkUser_no_user')
 			return null
 		}
 
+		log.log('checkUser_calling_remote_readUserChannels')
 		const channels = await r4.channels.readUserChannels()
+		log.log('checkUser_remote_readUserChannels_done', {count: channels.length, slugs: channels.map(c => c.slug)})
+
 		const wasSignedOut = !appState.channels?.length
 
 		for (const c of channels) {
+			log.log('checkUser_pulling_channel', {slug: c.slug})
 			await r5.channels.pull({slug: c.slug})
+			log.log('checkUser_pulled_channel', {slug: c.slug})
 		}
 
 		appState.channels = channels.map((/** @type {any} */ c) => c.id)
 
 		// Sync followers when user signs in (not on every check)
 		if (wasSignedOut && appState.channels.length) {
+			log.log('checkUser_syncing_followers')
 			syncFollowers(appState.channels[0]).catch((err) => log.error('sync_followers_on_signin_error', err))
 		}
 
+		log.log('checkUser_done')
 		return user
 	} catch (err) {
 		log.warn('check_user_error', err)

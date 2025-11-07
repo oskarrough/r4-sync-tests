@@ -11,13 +11,18 @@
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
 	import ThemeToggle from '$lib/components/theme-toggle.svelte'
 	import {r5} from '$lib/r5'
+	import {logger} from '$lib/logger'
 
+	const log = logger.ns('layout-header').seal()
 	const {preloading} = $props()
 
 	const userChannel = $derived.by(async () => {
 		const id = appState.channels?.[0]
+		log.log('userChannel_derived_start', {id})
 		if (!id) return null
+		log.log('userChannel_calling_pull', {id})
 		const channels = await r5.channels.pull({id, limit: 1})
+		log.log('userChannel_pull_done', {id, found: !!channels[0]})
 		return channels[0] || null
 	})
 

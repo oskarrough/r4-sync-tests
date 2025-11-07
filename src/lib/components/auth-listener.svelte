@@ -15,7 +15,7 @@
 	})
 
 	async function handleAuthChange(event, session) {
-		log.log(event, `user = ${session?.user?.email}`)
+		log.log('handleAuthChange', {event, user: session?.user?.email})
 
 		const user = session?.user
 		const previousUserId = appState.user?.id
@@ -31,9 +31,12 @@
 
 		const isNewSession = event === 'INITIAL_SESSION' && user.id !== previousUserId
 		const isNewSignIn = event === 'SIGNED_IN' && user.id !== previousUserId
-		log.log('auth_state', {isNewSession, isNewSignIn})
+		log.log('auth_state', {event, isNewSession, isNewSignIn, userId: user.id, previousUserId})
 		if (isNewSession || isNewSignIn) {
+			log.log('auth_listener_calling_checkUser', {event})
 			await checkUser()
+		} else {
+			log.log('auth_listener_skipping_checkUser', {event, reason: 'not_new_session'})
 		}
 	}
 </script>
