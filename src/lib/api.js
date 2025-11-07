@@ -19,6 +19,7 @@ const log = logger.ns('api').seal()
 export async function checkUser() {
 	try {
 		const user = await r4.users.readUser()
+
 		if (!user) {
 			appState.channels = []
 			appState.broadcasting_channel_id = undefined

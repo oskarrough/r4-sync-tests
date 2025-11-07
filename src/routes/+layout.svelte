@@ -25,7 +25,7 @@
 	let chatPanelVisible = $state(false)
 
 	onMount(async () => {
-		await checkUser()
+		// checkUser() is now called by auth-listener on INITIAL_SESSION to avoid duplicate calls
 		applyCustomCssVariables(appState.custom_css_variables)
 		// Ensure channels_display has a value before persisting
 		if (!appState.channels_display) {

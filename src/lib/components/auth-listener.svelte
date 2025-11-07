@@ -15,15 +15,12 @@
 	})
 
 	async function handleAuthChange(event, session) {
-		log.log(event, `user = ${session?.user?.email}`)
-
 		const user = session?.user
 		const previousUserId = appState.user?.id
 		appState.user = user
 
 		if (!user) {
 			if (appState.channels?.length) {
-				log.log('cleaning_up_channels')
 				appState.channels = []
 			}
 			return
@@ -31,7 +28,7 @@
 
 		const isNewSession = event === 'INITIAL_SESSION' && user.id !== previousUserId
 		const isNewSignIn = event === 'SIGNED_IN' && user.id !== previousUserId
-		log.log('auth_state', {isNewSession, isNewSignIn})
+
 		if (isNewSession || isNewSignIn) {
 			await checkUser()
 		}
