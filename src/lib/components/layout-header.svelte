@@ -18,13 +18,10 @@
 
 	const userChannel = $derived.by(async () => {
 		const id = appState.channels?.[0]
-		log.log('userChannel_derived_start', {id})
 		if (!id) return null
-		log.log('userChannel_querying_local_by_id', {id})
 		// Query directly by ID to avoid expensive ID→slug resolution
 		const pg = await r5.db.getPg()
 		const result = await pg.sql`select * from channels where id = ${id}`
-		log.log('userChannel_query_done', {id, found: !!result.rows[0]})
 		return result.rows[0] || null
 	})
 
