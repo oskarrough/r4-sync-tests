@@ -32,10 +32,12 @@ async function preload() {
 		await r5.db.migrate()
 		pg = await r5.db.getPg()
 		await initAppState()
-		await validateListeningState()
 		await autoPull()
 		// @ts-expect-error debugging
 		window.r5 = {r5, r4, pg}
+
+		// Validate listening state in background after UI loads
+		validateListeningState().catch((err) => log.error('validate_listening_state_error', err))
 	} catch (err) {
 		log.error('preloading_error', err)
 	} finally {
