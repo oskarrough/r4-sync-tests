@@ -22,10 +22,12 @@
 	const canEdit = $derived(isSignedIn && appState.channels?.includes(channel?.id))
 
 	$effect(() => {
-		// Load tracks whenever the slug changes
-		const loadAndSetTracks = async () => {
-			const slug = data.slug // Capture slug for closure
+		// Explicitly track channel.id to ensure effect re-runs on navigation
+		const slug = channel.slug
+		const channelId = channel.id
 
+		// Load tracks whenever the channel changes
+		const loadAndSetTracks = async () => {
 			const loadTracks = !channel.tracks_synced_at ? r5.tracks.pull({slug}) : r5.tracks.local({slug})
 
 			const loadedTracks = await loadTracks
@@ -38,7 +40,7 @@
 						console.log(`refreshing outdated tracks for ${slug} in background`)
 						r5.tracks.pull({slug}).then((updatedTracks) => {
 							// Only update if still on the same channel
-							if (data.slug === slug) {
+							if (channel.id === channelId) {
 								tracks = updatedTracks
 							}
 						})
