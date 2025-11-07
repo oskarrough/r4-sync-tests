@@ -12,7 +12,6 @@
 	import '@radio4000/components'
 	import {onMount} from 'svelte'
 	import {goto} from '$app/navigation'
-	import {checkUser} from '$lib/api'
 	import {applyCustomCssVariables} from '$lib/apply-css-variables'
 	import {logger} from '$lib/logger'
 

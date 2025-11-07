@@ -11,9 +11,7 @@
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
 	import ThemeToggle from '$lib/components/theme-toggle.svelte'
 	import {r5} from '$lib/r5'
-	import {logger} from '$lib/logger'
 
-	const log = logger.ns('layout-header').seal()
 	const {preloading} = $props()
 
 	const userChannel = $derived.by(async () => {

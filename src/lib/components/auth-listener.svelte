@@ -2,9 +2,7 @@
 	import {sdk} from '@radio4000/sdk'
 	import {checkUser} from '$lib/api'
 	import {appState} from '$lib/app-state.svelte'
-	import {logger} from '$lib/logger'
 
-	const log = logger.ns('auth').seal()
 	let unsubscribe = null
 
 	$effect(() => {
