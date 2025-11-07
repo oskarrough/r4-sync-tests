@@ -1,7 +1,7 @@
 List of possible improvements to the architecture, idea, cli and web application.
 Verify and evaluate todos before taking them on. They might be outdated or just not good ideas.
 
-- ✅ improve initial loading performance: Fixed authenticated user reload from ~540ms to ~153ms. Issues found: (1) duplicate checkUser() calls wasting 524ms on remote API calls, (2) header querying channel by ID required expensive 176ms ID→slug resolution. Solutions: removed duplicate checkUser() from layout onMount (auth-listener handles it), changed header to query channels table directly by ID. Avatar now appears immediately after preload completes (~430ms total on cached reload). First-time autoPull still takes ~8s but acceptable tradeoff for syncing 1600+ channels.
+- ✅ improve initial loading performance
 - replace pglite/electric with tanstack db (pr#40)
 - consider https://turso.tech/blog/introducing-turso-in-the-browser to replace pgsql (tough performance at times)
 - crud channels: create/edit/delete channel functionality
