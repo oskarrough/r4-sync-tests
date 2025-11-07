@@ -1,9 +1,8 @@
 List of possible improvements to the architecture, idea, cli and web application.
 Verify and evaluate todos before taking them on. They might be outdated or just not good ideas.
 
-- replace pglite/electric with tanstack db
-  https://tanstack.com/db/latest/docs/installation
-  install @tanstack/svelte-db
+- improve initial loading performance: it takes ~5 seconds before my channel's avatar is visible in the layout-header and the page is ready to accept clicks there. and when i load my channel, it always seems to fetch it remotely instead of reading local db and rendering first, then updating in bg
+- replace pglite/electric with tanstack db (pr#40)
 - consider https://turso.tech/blog/introducing-turso-in-the-browser to replace pgsql (tough performance at times)
 - crud channels: create/edit/delete channel functionality
 - crud tracks: edit/delete track functionality (we have add)
