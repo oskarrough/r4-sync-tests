@@ -14,7 +14,7 @@
 		"test": "vitest run"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.3.1",
+		"@biomejs/biome": "2.3.4",
 		"@sveltejs/adapter-auto": "^7.0.0",
 		"@sveltejs/adapter-cloudflare": "^7.2.4",
 		"@sveltejs/kit": "^2.48.4",
