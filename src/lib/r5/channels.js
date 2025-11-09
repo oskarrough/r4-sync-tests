@@ -43,8 +43,8 @@ export async function v1({slug = '', limit = LIMIT} = {}) {
 	try {
 		const items = await readv1()
 		const filtered = slug ? items.filter((item) => item.slug === slug) : items
-		const channels = filtered.slice(0, limit).filter((item) => item.track_count && item.track_count > 3)
-		return channels.map(parseFirebaseChannel)
+		// r4's data is already fully parsed, no need to call v1.parseChannel
+		return filtered.slice(0, limit).filter((item) => item.track_count && item.track_count > 3)
 	} catch (err) {
 		log.error(err)
 		throw err
@@ -193,7 +193,7 @@ export async function outdated(slug) {
 
 async function readv1() {
 	const browser = typeof window !== 'undefined'
-	const filename = 'channels-v1-modified.json'
+	const filename = 'channels_v1.json'
 
 	if (browser) {
 		const res = await fetch(`/${filename}`)
@@ -205,21 +205,6 @@ async function readv1() {
 		const filePath = path.join(process.cwd(), 'static', filename)
 		const content = fs.readFileSync(filePath, 'utf8')
 		return JSON.parse(content)
-	}
-}
-
-function parseFirebaseChannel(item) {
-	return {
-		id: crypto.randomUUID(),
-		firebase_id: item.firebase_id,
-		slug: item.slug,
-		name: item.name,
-		description: item.description || '',
-		image: item.image,
-		track_count: item.track_count || 0,
-		source: 'v1',
-		created_at: new Date(item.created_at).toISOString(),
-		updated_at: new Date(item.updated_at || item.created_at).toISOString()
 	}
 }
 
@@ -235,7 +220,8 @@ async function pullV1Channels({limit = 1000} = {}) {
 			item.track_count > 3
 	)
 
-	const channels = filteredItems.map(parseFirebaseChannel)
+	// r4's data is already fully parsed, no parsing needed
+	const channels = filteredItems
 	try {
 		await insert(channels)
 	} catch (err) {

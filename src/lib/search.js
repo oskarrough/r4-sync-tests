@@ -111,14 +111,14 @@ export async function searchAll(searchQuery) {
 		const {channelSlugs, trackQuery} = parseMentionQuery(searchQuery)
 
 		// Fetch all mentioned channels
-		const channelPromises = channelSlugs.map(slug => r5.channels.local({slug}))
+		const channelPromises = channelSlugs.map((slug) => r5.channels.local({slug}))
 		const channelResults = await Promise.all(channelPromises)
 		const channels = channelResults.flat()
 
 		// Search tracks across all mentioned channels
 		let tracks = []
 		if (trackQuery) {
-			const trackPromises = channelSlugs.map(slug => searchTracks(trackQuery, slug))
+			const trackPromises = channelSlugs.map((slug) => searchTracks(trackQuery, slug))
 			const trackResults = await Promise.all(trackPromises)
 			tracks = trackResults.flat()
 		}

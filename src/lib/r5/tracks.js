@@ -1,7 +1,6 @@
 import {raw, sql} from '@electric-sql/pglite/template'
 import {logger} from '../logger.js'
 import {r4 as r4Api} from '../r4.ts'
-import {ENTITY_REGEX} from '../utils.ts'
 import * as channels from './channels.js'
 import {getPg} from './db.js'
 
@@ -53,20 +52,19 @@ export async function v1(params) {
 		params = {
 			firebase: channel.firebase_id,
 			channelId: channel.id,
+			channelSlug: channel.slug,
 			limit: params.limit
 		}
 	}
 
-	const url = `https://radio4000.firebaseio.com/tracks.json?orderBy="channel"&startAt="${params.firebase}"&endAt="${params.firebase}"`
-	const res = await fetch(url)
-	if (!res.ok) throw new Error(`Failed to fetch tracks: ${res.status}`)
-	const data = await res.json()
-	if (!data) return []
+	// Use new SDK methods to fetch and parse
+	const {data: rawTracks, error} = await r4Api.sdk.channels.readFirebaseTracks({
+		firebaseId: params.firebase
+	})
+	if (error) throw new Error(`Failed to fetch tracks: ${error.message}`)
+	if (!rawTracks) return []
 
-	const tracks = Object.keys(data)
-		.map((id) => ({...data[id], id}))
-		.sort((a, b) => a.created - b.created)
-		.map((t) => parseFirebaseTrack(t, params.channelId))
+	const tracks = rawTracks.map((t) => r4Api.sdk.tracks.parseFirebaseTrack(t, params.channelId, params.channelSlug))
 
 	return params.limit ? tracks.slice(0, params.limit) : tracks
 }
@@ -95,8 +93,9 @@ export async function pull({id, slug = '', limit = LIMIT} = {}) {
 	if (channel.source === 'v1') {
 		const v1Tracks = await v1({
 			firebase: channel.firebase_id,
-			slug,
-			channelId: channel.id
+			channelId: channel.id,
+			channelSlug: slug,
+			limit
 		})
 		await insert(slug, v1Tracks)
 	} else {
@@ -197,35 +196,3 @@ export async function insert(slug, tracks) {
 }
 
 // Helper functions for v1 support
-
-function parseFirebaseTrack(track, channelId) {
-	const description = track.body || ''
-
-	// Extract tags and mentions using the same regex as link-entities.svelte
-	const tags = []
-	const mentions = []
-
-	description.replace(ENTITY_REGEX, (match, _prefix, entity) => {
-		if (entity.startsWith('#')) {
-			tags.push(entity.toLowerCase())
-		} else if (entity.startsWith('@')) {
-			mentions.push(entity.slice(1).toLowerCase())
-		}
-		return match
-	})
-
-	return {
-		id: crypto.randomUUID(),
-		firebase_id: track.id,
-		channel_id: channelId,
-		url: track.url,
-		title: track.title,
-		description: track.body || '',
-		discogs_url: track.discogsUrl || '',
-		source: 'v1',
-		tags: tags.length > 0 ? tags : null,
-		mentions: mentions.length > 0 ? mentions : null,
-		created_at: new Date(track.created).toISOString(),
-		updated_at: new Date(track.updated || track.created).toISOString()
-	}
-}
