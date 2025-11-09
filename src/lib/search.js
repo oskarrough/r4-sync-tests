@@ -2,6 +2,11 @@ import {r5} from '$lib/r5'
 import {pg} from '$lib/r5/db'
 
 /**
+ * The @radio4000/sdk provides search for channels and tracks v2.
+ * This module provides search via channels and tracks inside PGLite.
+ */
+
+/**
  * Search channels using fuzzy matching with pg_trgm
  * @param {string} query - search query
  * @returns {Promise<Array>} - channel results with similarity scores
@@ -41,8 +46,8 @@ export async function searchTracks(query, channelSlug) {
 		const {rows} = await pg.query(
 			`
 			SELECT *
-			FROM tracks_with_meta 
-			WHERE channel_slug = $1 
+			FROM tracks_with_meta
+			WHERE channel_slug = $1
 			AND (LOWER(title) LIKE $2 OR LOWER(description) LIKE $2)
 			ORDER BY title
 			`,
@@ -54,7 +59,7 @@ export async function searchTracks(query, channelSlug) {
 	const {rows} = await pg.query(
 		`
 		SELECT *
-		FROM tracks_with_meta 
+		FROM tracks_with_meta
 		WHERE LOWER(title) LIKE $1 OR LOWER(description) LIKE $1
 		ORDER BY title
 		`,
@@ -65,23 +70,32 @@ export async function searchTracks(query, channelSlug) {
 }
 
 /**
- * Parse mention search query like "@oskar dance"
- * @param {string} searchQuery - the full search query starting with @
- * @returns {{channelSlug: string, trackQuery: string}}
+ * Parse mention search query like "@oskar dance" or "@ko002 @oskar house"
+ * @param {string} searchQuery - the full search query with @mentions
+ * @returns {{channelSlugs: string[], trackQuery: string}}
  */
 export function parseMentionQuery(searchQuery) {
-	const mentionContent = searchQuery.slice(1).trim()
-	const spaceIndex = mentionContent.indexOf(' ')
+	const parts = searchQuery.trim().split(/\s+/)
+	const channelSlugs = []
+	let trackQueryParts = []
 
-	const channelSlug = spaceIndex > -1 ? mentionContent.slice(0, spaceIndex) : mentionContent
-	const trackQuery = spaceIndex > -1 ? mentionContent.slice(spaceIndex + 1).trim() : ''
+	for (const part of parts) {
+		if (part.startsWith('@')) {
+			channelSlugs.push(part.slice(1))
+		} else {
+			trackQueryParts.push(part)
+		}
+	}
 
-	return {channelSlug, trackQuery}
+	return {
+		channelSlugs,
+		trackQuery: trackQueryParts.join(' ')
+	}
 }
 
 /**
  * Search local channels and tracks
- * @param {string} searchQuery - search query (may start with @slug)
+ * @param {string} searchQuery - search query (may start with @slug or @slug1 @slug2)
  * @returns {Promise<{channels: Array, tracks: Array}>}
  */
 export async function searchAll(searchQuery) {
@@ -89,18 +103,35 @@ export async function searchAll(searchQuery) {
 		return {channels: [], tracks: []}
 	}
 
-	// "@channel-slug query" syntax. For example:
-	// "@good-time-radio 80s" returns that specific channel including tracks matching the second part
-	const isMention = searchQuery.startsWith('@')
+	// "@channel-slug query" or "@slug1 @slug2 query" syntax
+	// "@good-time-radio 80s" returns that channel + tracks matching "80s"
+	// "@ko002 @oskar house" returns both channels + tracks matching "house" in either
+	const isMention = searchQuery.includes('@')
 	if (isMention) {
-		const {channelSlug, trackQuery} = parseMentionQuery(searchQuery)
+		const {channelSlugs, trackQuery} = parseMentionQuery(searchQuery)
 
-		const channels = await r5.channels.local({slug: channelSlug})
-		const tracks = trackQuery ? await searchTracks(trackQuery, channelSlug) : []
+		// Fetch all mentioned channels
+		const channelPromises = channelSlugs.map(slug => r5.channels.local({slug}))
+		const channelResults = await Promise.all(channelPromises)
+		const channels = channelResults.flat()
+
+		// Search tracks across all mentioned channels
+		let tracks = []
+		if (trackQuery) {
+			const trackPromises = channelSlugs.map(slug => searchTracks(trackQuery, slug))
+			const trackResults = await Promise.all(trackPromises)
+			tracks = trackResults.flat()
+		}
 
 		return {channels, tracks}
 	}
 
 	const [channels, tracks] = await Promise.all([searchChannels(searchQuery), searchTracks(searchQuery)])
 	return {channels, tracks}
+}
+
+export default {
+	all: searchAll,
+	channels: searchChannels,
+	tracks: searchTracks
 }
