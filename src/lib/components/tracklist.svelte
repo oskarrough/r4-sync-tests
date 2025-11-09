@@ -111,12 +111,12 @@
 		contain: content;
 		content-visibility: auto;
 		 */
-		contain-intrinsic-height: auto 3rem;
+		/* contain-intrinsic-height: auto 3rem; */
 	}
 
 	section {
-		contain: layout style;
-		content-visibility: auto;
+		/* contain: layout style; */
+		/* content-visibility: auto; */
 	}
 
 	.month {

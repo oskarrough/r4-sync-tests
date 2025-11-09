@@ -122,7 +122,7 @@
 
 <style>
 	.layout {
-		--aside-width: min(60ch, 100%);
+		--aside-width: 50vmin;
 
 		display: grid;
 		grid-template-rows: auto 1fr auto;
@@ -136,24 +136,27 @@
 		overflow: hidden;
 		position: relative;*/
 
+		display: flex;
+
 		> :global(aside) {
+			/* position: absolute; */
+			/* right: 0; */
+			/* top: 0; */
+			/* bottom: 0; */
+			width: 0;
 			transform: translate3d(100%, 0, 0);
-			position: absolute;
-			right: 0;
-			top: 0;
-			bottom: 0;
-			width: var(--aside-width);
-			transition: transform 100ms ease-in;
+			transition: transform 1000ms ease-out;
 		}
 	}
 
 	.asideVisible .content {
-		grid-template-columns: 1fr var(--aside-width);
 		> :global(aside) {
 			display: flex;
 			transform: translate3d(0, 0, 0);
-			transition-duration: 200ms;
-			transition-timing-function: ease-out;
+			transition-duration: 100ms;
+			transition-timing-function: ease-in;
+			width: 100%;
+			max-width: var(--aside-width);
 		}
 	}
 

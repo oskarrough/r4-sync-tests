@@ -212,7 +212,7 @@
 
 	article {
 		position: relative;
-		container-type: inline-size;
+		/* container-type: inline-size; */
 	}
 
 	r4-actions {
