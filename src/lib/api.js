@@ -314,6 +314,7 @@ export async function isFollowing(followerId, channelId) {
 }
 
 /**
+ * Updates a local track, then remote
  * @param {string} trackId
  * @param {object} updates
  * @param {string} [updates.title]
