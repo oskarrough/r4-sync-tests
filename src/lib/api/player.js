@@ -127,7 +127,7 @@ export function toggleVideo() {
 }
 
 export function eject() {
-	appState.playlist_track = null
+	appState.playlist_track = undefined
 	appState.playlist_tracks = []
 	appState.playlist_tracks_shuffled = []
 	appState.show_video_player = false
