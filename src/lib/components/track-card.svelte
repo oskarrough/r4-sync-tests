@@ -102,7 +102,7 @@
 			{/if}
 		</div>
 		<time>
-			<span class="mobile"><Icon icon="options-horizontal" size={16} /></span>
+			<span class="mobile">&rarr;</span>
 			<!--<small>{formatDate(new Date(track.created_at))}</small>-->
 			{#if showSlug}<small>@{track.channel_slug}</small>{/if}
 		</time>
