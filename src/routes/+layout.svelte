@@ -175,8 +175,8 @@
 	}
 
 	r4-loading {
-		margin-top: 1rem;
 		display: flex;
 		flex-flow: column;
+		text-align: center;
 	}
 </style>
