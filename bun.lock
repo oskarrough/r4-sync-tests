@@ -8,7 +8,7 @@
         "@electric-sql/pglite-repl": "^0.2.32",
         "@humanspeak/svelte-virtual-list": "^0.3.5",
         "@radio4000/components": "^0.2.16",
-        "@radio4000/sdk": "^0.5.0",
+        "@radio4000/sdk": "^0.6.0",
         "@sveltejs/adapter-static": "^3.0.10",
         "@types/yargs": "^17.0.34",
         "adze": "^2.2.5",
@@ -282,7 +282,7 @@
 
     "@radio4000/components": ["@radio4000/components@0.2.16", "", { "dependencies": { "@hcaptcha/vanilla-hcaptcha": "^1.1.0-alpha2", "@radio4000/sdk": "^0.4.11", "fuzzysort": "^3.0.2", "lit": "^3.2.0", "lodash.debounce": "^4.0.8", "lodash.isequal": "^4.5.0", "media-url-parser": "^0.2.4", "ol": "^9.2.4", "page": "^1.11.6", "radio4000-player": "^0.7.2" } }, "sha512-DxoqTzbIQXN0PFECnZmb8+rZv27mmOQjJdFe7AUyuQHDCA9KdtPMgEznbxLRLirGDWMDD5LBROtx0m0bjUjTGw=="],
 
-    "@radio4000/sdk": ["@radio4000/sdk@0.5.0", "", { "dependencies": { "@supabase/supabase-js": "^2.80.0", "media-url-parser": "^0.2.4" } }, "sha512-KkaVCV6zvQ8zmuhVjOpHW/LB49s+SqE6Ltdn0hLw++9PpR1O+auSTGq9zxju8IpL1OJVy9dO8Psxm4ACUKKuXg=="],
+    "@radio4000/sdk": ["@radio4000/sdk@0.6.0", "", { "dependencies": { "@supabase/supabase-js": "^2.80.0", "media-url-parser": "^0.2.4" } }, "sha512-pn4u8Q5NaT6Q2a10jkm32evCiRtr0K3Mtys578TLH+xp8igca1buk2qUmi/JmDMOC3TLTzz+Eu+xg5Test2T0A=="],
 
     "@rollup/rollup-android-arm-eabi": ["@rollup/rollup-android-arm-eabi@4.52.2", "", { "os": "android", "cpu": "arm" }, "sha512-o3pcKzJgSGt4d74lSZ+OCnHwkKBeAbFDmbEm5gg70eA8VkyCuC/zV9TwBnmw6VjDlRdF4Pshfb+WE9E6XY1PoQ=="],
 
