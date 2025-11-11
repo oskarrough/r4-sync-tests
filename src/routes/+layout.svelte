@@ -15,7 +15,7 @@
 	import {applyCustomCssVariables} from '$lib/apply-css-variables'
 	import {logger} from '$lib/logger'
 	import * as m from '$lib/paraglide/messages'
-	import {getLocale} from '$lib/paraglide/runtime'
+	import {getLocale, setLocale, locales} from '$lib/paraglide/runtime'
 
 	const log = logger.ns('layout').seal()
 
@@ -24,17 +24,41 @@
 
 	let skipPersist = $state(true)
 	let chatPanelVisible = $state(false)
+	const rtlLocales = new Set(['ar'])
 
-	onMount(async () => {
+	function inferNavigatorLocale() {
+		if (typeof navigator === 'undefined') return undefined
+		const preferred = navigator.languages?.length ? navigator.languages : [navigator.language]
+		for (const entry of preferred) {
+			if (!entry) continue
+			const normalized = entry.toLowerCase()
+			const exact = locales.find((loc) => loc.toLowerCase() === normalized)
+			if (exact) return exact
+			const short = normalized.split('-')[0]
+			const shortMatch = locales.find((loc) => loc.split('-')[0].toLowerCase() === short)
+			if (shortMatch) return shortMatch
+		}
+		return undefined
+	}
+
+onMount(async () => {
+		try {
+			await data.preloading
+		} catch (err) {
+			log.warn('preloading_failed_before_mount', err)
+		}
 		// checkUser() is now called by auth-listener on INITIAL_SESSION to avoid duplicate calls
 		applyCustomCssVariables(appState.custom_css_variables)
 		// Ensure channels_display has a value before persisting
 		if (!appState.channels_display) {
 			appState.channels_display = 'grid'
 		}
-	if (!appState.language) {
-		appState.language = getLocale()
-	}
+		const storedLocale = appState.language
+		const currentLocale = storedLocale || inferNavigatorLocale() || getLocale()
+		await setLocale(currentLocale, {reload: false})
+		if (!storedLocale) {
+			appState.language = currentLocale
+		}
 		skipPersist = false
 	})
 
@@ -42,7 +66,6 @@
 	const prefersLight = $derived(window.matchMedia('(prefers-color-scheme: light)').matches)
 	const theme = $derived(appState.theme ?? (prefersLight ? 'light' : 'dark'))
 	const uiLocale = $derived(appState.language ?? getLocale())
-	const rtlLocales = new Set(['ar'])
 
 $effect(() => {
 	if (theme === 'dark') {
