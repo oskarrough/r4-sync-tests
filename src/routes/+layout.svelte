@@ -24,7 +24,7 @@
 
 	let skipPersist = $state(true)
 	let chatPanelVisible = $state(false)
-	const rtlLocales = new Set(['ar'])
+	const rtlLocales = new Set(['ar', 'ur'])
 
 	function inferNavigatorLocale() {
 		if (typeof navigator === 'undefined') return undefined
