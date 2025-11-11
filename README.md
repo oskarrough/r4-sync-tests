@@ -18,6 +18,20 @@ bun run dev
 - Translations live in `messages/<languageTag>.json`. English (`en`) is the canonical source; copy it to bootstrap a new locale.
 - The list of supported locales is defined once in `project.inlang/settings.json` (`languageTags`). Update that array when adding a language (e.g. add `"dk"`), create `messages/dk.json` by copying `messages/en.json`, translate the values, then recompile Paraglide:
 
+### Example: adding Spanish (`es`)
+
+```bash
+# 1. copy the baseline strings
+cp messages/en.json messages/es.json
+
+# 2. add "es" to languageTags in project.inlang/settings.json
+
+# 3. recompile Paraglide outputs
+bunx @inlang/paraglide-js compile --project ./project.inlang --outdir ./src/lib/paraglide
+```
+
+Restart `bun run dev` and you should see “es” in the language switcher immediately; keep editing `messages/es.json` with actual translations afterward.
+
 ```bash
 bunx @inlang/paraglide-js compile --project ./project.inlang --outdir ./src/lib/paraglide
 ```
