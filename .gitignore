@@ -21,3 +21,7 @@ Thumbs.db
 !.env.test
 .dev.vars
 tmp/
+
+# inlang generated artifacts
+project.inlang/cache/
+project.inlang/project_id

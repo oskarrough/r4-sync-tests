@@ -3,6 +3,7 @@
 	import Icon from '$lib/components/icon.svelte'
 	import {formatDate} from '$lib/dates'
 	import {pg} from '$lib/r5/db'
+	import * as m from '$lib/paraglide/messages'
 
 	const historyPromise = $derived.by(async () => {
 		const result = await pg.sql`SELECT * FROM play_history ORDER BY started_at DESC`
@@ -27,29 +28,29 @@
 </script>
 
 <svelte:head>
-	<title>Play history - R5</title>
+	<title>{m.page_title_history()}</title>
 </svelte:head>
 
 <article class="SmallContainer">
 	<menu>
 		<a class="btn" href="/stats" class:active={page.route.id === '/stats'}>
-			<Icon icon="chart-scatter" size={20} /> Stats
+			<Icon icon="chart-scatter" size={20} /> {m.nav_stats()}
 		</a>
 		<a class="btn" href="/history" class:active={page.route.id === '/history'}>
-			<Icon icon="history" size={20} /> History
+			<Icon icon="history" size={20} /> {m.nav_history()}
 		</a>
 	</menu>
 
 	<header>
-		<h1>Playback history</h1>
-		<p>Note, this data is all local. Only you see it.</p>
+		<h1>{m.history_title()}</h1>
+		<p>{m.history_local_note()}</p>
 	</header>
 
 	{#await Promise.all([historyPromise, tracksLookup])}
-		<p>loading...</p>
+		<p>{m.loading_generic()}</p>
 	{:then [history, tracks]}
 		{#if history.length === 0}
-			<p>no play history found</p>
+			<p>{m.history_empty()}</p>
 		{:else}
 			<ul class="list">
 				{#each history as play (play.id)}
@@ -60,7 +61,7 @@
 			</ul>
 		{/if}
 	{:catch error}
-		<p>error loading history: {error.message}</p>
+		<p>{m.history_error()} {error.message}</p>
 	{/await}
 </article>
 
@@ -83,11 +84,12 @@
 			<time>
 				{formatDate(new Date(play.started_at))}
 				{new Date(play.started_at).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
-				{#if play.ms_played}(played {Math.round(play.ms_played / 1000)}s)
+				{#if play.ms_played}
+					{m.history_played_duration({seconds: Math.round(play.ms_played / 1000)})}
 				{/if}
 			</time>
-			{#if play.shuffle}(shuffled){/if}
-			{#if play.skipped}(skipped){/if}
+			{#if play.shuffle}{m.history_flag_shuffled()}{/if}
+			{#if play.skipped}{m.history_flag_skipped()}{/if}
 		</div>
 	</article>
 {/snippet}

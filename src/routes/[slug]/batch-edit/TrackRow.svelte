@@ -1,5 +1,6 @@
 <script>
 	import InlineEditCell from './InlineEditCell.svelte'
+	import * as m from '$lib/paraglide/messages'
 
 	let {track, isSelected, selectedTracks, onSelect, data, edits, onEdit} = $props()
 
@@ -18,7 +19,14 @@
 	</div>
 
 	<div class="col-link">
-		<a href="/{data.slug}/tracks/{track.id}" target="_blank" rel="noopener noreferrer" title="Open track page">↗</a>
+		<a
+			href="/{data.slug}/tracks/{track.id}"
+			target="_blank"
+			rel="noopener noreferrer"
+			title={m.batch_edit_track_link_title()}
+		>
+			↗
+		</a>
 	</div>
 
 	<div class="col-url">
@@ -38,9 +46,9 @@
 	<div class="col-mentions">{track.mentions || ''}</div>
 
 	<div class="col-meta">
-		{#if track.has_youtube_meta}<span class="meta-indicator yt">Y</span>{/if}
-		{#if track.has_musicbrainz_meta}<span class="meta-indicator mb">M</span>{/if}
-		{#if track.has_discogs_meta}<span class="meta-indicator dc">D</span>{/if}
+		{#if track.has_youtube_meta}<span class="meta-indicator yt">{m.batch_edit_meta_youtube()}</span>{/if}
+		{#if track.has_musicbrainz_meta}<span class="meta-indicator mb">{m.batch_edit_meta_musicbrainz()}</span>{/if}
+		{#if track.has_discogs_meta}<span class="meta-indicator dc">{m.batch_edit_meta_discogs()}</span>{/if}
 	</div>
 
 	<div class="col-date">{new Date(track.created_at).toLocaleDateString()}</div>

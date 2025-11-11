@@ -1,5 +1,6 @@
 <script>
 	import {pg} from '$lib/r5/db'
+	import * as m from '$lib/paraglide/messages'
 
 	let {track} = $props()
 	let relatedTracks = $state([])
@@ -18,7 +19,7 @@
 </script>
 
 {#if relatedTracks.length > 0}
-	<p>Other tracks using the same YouTube video:</p>
+	<p>{m.track_related_heading()}</p>
 	<dl>
 		{#each relatedTracks as related (related.id)}
 			<dt>
@@ -27,12 +28,12 @@
 				</a>
 			</dt>
 			<dd>
-				by <a href="/{related.channel_slug}">@{related.channel_slug}</a>
+				{m.track_related_by()} <a href="/{related.channel_slug}">@{related.channel_slug}</a>
 			</dd>
 		{/each}
 	</dl>
 {:else}
-	<p>No other tracks use this YouTube video.</p>
+	<p>{m.track_related_empty()}</p>
 {/if}
 
 <style>

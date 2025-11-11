@@ -1,5 +1,6 @@
 <script lang="ts">
 	import {trap} from '$lib/focus'
+	import * as m from '$lib/paraglide/messages'
 
 	let container: HTMLElement | null = $state(null)
 
@@ -17,11 +18,11 @@
 </script>
 
 <svelte:head>
-	<title>Command Terminal - R5</title>
+	<title>{m.page_title_command_terminal()}</title>
 </svelte:head>
 
 <div bind:this={container} use:trap>
-	<input type="search" placeholder="Search..." />
+	<input type="search" placeholder={m.search_placeholder()} />
 
 	<ul class="list">
 		{#each mockResults as result (result.id)}
@@ -35,7 +36,7 @@
 				>
 					<strong>{result.title}</strong>
 					{#if result.type === 'track'}
-						<small>from {result.channel}</small>
+						<small>{m.playground_cmd_from_channel({channel: result.channel})}</small>
 					{:else}
 						<small>@{result.slug}</small>
 					{/if}

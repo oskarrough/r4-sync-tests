@@ -6,6 +6,7 @@
 	import {toggleQueuePanel, toggleTheme} from '$lib/api'
 	import SearchInput from '$lib/components/search-input.svelte'
 	import {getPg, pg} from '$lib/r5/db'
+	import * as m from '$lib/paraglide/messages'
 
 	let debounceTimer = $state()
 	let allChannels = $state([])
@@ -26,13 +27,18 @@
 			.slice(0, 5)
 	})
 
-	const commands = $derived.by(() => {
-		return [
-			{id: 'settings', title: 'Go to Settings', type: 'link', target: '/settings'},
-			{id: 'toggle-theme', title: 'Toggle theme', type: 'command', action: toggleTheme},
-			{id: 'toggle-queue', title: 'Toggle queue panel', type: 'command', action: toggleQueuePanel}
-		]
-	})
+	const commands = $derived.by(() => [
+		{id: 'settings', type: 'link', target: '/settings'},
+		{id: 'toggle-theme', type: 'command', action: toggleTheme},
+		{id: 'toggle-queue', type: 'command', action: toggleQueuePanel}
+	])
+
+	function getCommandTitle(id) {
+		if (id === 'settings') return m.command_go_settings()
+		if (id === 'toggle-theme') return m.command_toggle_theme()
+		if (id === 'toggle-queue') return m.command_toggle_queue()
+		return id
+	}
 
 	onMount(() => {
 		getPg().then(() => queryChannels())
@@ -79,14 +85,14 @@
 <form onsubmit={handleSubmit}>
 	<SearchInput
 		value={searchQuery}
-		placeholder="Search radios & tracks"
+		placeholder={m.header_search_placeholder()}
 		oninput={(e) => debouncedSearch(e.target.value)}
 		onkeydown={handleKeydown}
 		DISABLEDlist="command-suggestions"
 	/>
 	<datalist id="command-suggestions">
 		{#each commands as command (command.id)}
-			<option value="/{command.id}">/{command.title}</option>
+			<option value="/{command.id}">/{getCommandTitle(command.id)}</option>
 		{/each}
 		{#each filteredChannels as channel (channel.id)}
 			<option value="@{channel.slug}">@{channel.slug} - {channel.name}</option>

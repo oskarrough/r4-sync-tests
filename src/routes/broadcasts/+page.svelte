@@ -5,6 +5,7 @@
 	import ChannelCard from '$lib/components/channel-card.svelte'
 	import EnsureTrack from '$lib/components/ensure-track.svelte'
 	import {timeAgo} from '$lib/utils'
+	import * as m from '$lib/paraglide/messages'
 
 	const broadcastState = $state({
 		broadcasts: [],
@@ -25,15 +26,15 @@
 </script>
 
 <svelte:head>
-	<title>Live Broadcasts - R5</title>
+	<title>{m.page_title_broadcasts()}</title>
 </svelte:head>
 
 <header>
-	<h1>Live Broadcasts</h1>
-	<p>Work in progress. Here yoy can listen to broadcasts from other radios. Listen to what they're listening to.</p>
+	<h1>{m.broadcasts_title()}</h1>
+	<p>{m.broadcasts_wip()}</p>
 
 	{#if loadingError}
-		<p>Error! {loadingError}</p>
+		<p>{m.broadcasts_error()} {loadingError}</p>
 	{/if}
 
 	<menu>
@@ -48,7 +49,7 @@
 			<div class="live-dot"></div>
 			<ChannelCard channel={broadcast.channels}>
 				<p>
-					<span class="live">Live</span> Broadcasting since {timeAgo(broadcast.track_played_at)}
+					<span class="live">{m.broadcasts_live()}</span> {m.broadcasts_since()} {timeAgo(broadcast.track_played_at)}
 					<em>
 						<EnsureTrack tid={broadcast.track_id}></EnsureTrack>
 					</em>
@@ -65,12 +66,12 @@
 						}
 					}}
 				>
-					{joined ? 'Leave broadcast' : 'Join broadcast'}
+					{joined ? m.broadcasts_leave() : m.broadcasts_join()}
 				</button>
 			</ChannelCard>
 		</div>
 	{:else}
-		<p>No live broadcasts right now</p>
+		<p>{m.broadcasts_none()}</p>
 	{/each}
 </section>
 

@@ -14,6 +14,8 @@
 	import {goto} from '$app/navigation'
 	import {applyCustomCssVariables} from '$lib/apply-css-variables'
 	import {logger} from '$lib/logger'
+	import * as m from '$lib/paraglide/messages'
+	import {getLocale} from '$lib/paraglide/runtime'
 
 	const log = logger.ns('layout').seal()
 
@@ -30,22 +32,32 @@
 		if (!appState.channels_display) {
 			appState.channels_display = 'grid'
 		}
+	if (!appState.language) {
+		appState.language = getLocale()
+	}
 		skipPersist = false
 	})
 
 	// Theme application
 	const prefersLight = $derived(window.matchMedia('(prefers-color-scheme: light)').matches)
 	const theme = $derived(appState.theme ?? (prefersLight ? 'light' : 'dark'))
+	const uiLocale = $derived(appState.language ?? getLocale())
+
+$effect(() => {
+	if (theme === 'dark') {
+		document.documentElement.classList.remove('light')
+		document.documentElement.classList.add('dark')
+	} else {
+		document.documentElement.classList.remove('dark')
+		document.documentElement.classList.add('light')
+	}
+})
 
 	$effect(() => {
-		if (theme === 'dark') {
-			document.documentElement.classList.remove('light')
-			document.documentElement.classList.add('dark')
-		} else {
-			document.documentElement.classList.remove('dark')
-			document.documentElement.classList.add('light')
-		}
+		if (typeof document === 'undefined') return
+		document.documentElement.lang = uiLocale
 	})
+
 
 	$effect(() => {
 		applyCustomCssVariables(appState.custom_css_variables)
@@ -78,46 +90,39 @@
 </script>
 
 <svelte:boundary>
-	{#await data.preloading then}
+	{#await data.preloading}
+		<div class="loader">
+			<p>{m.app_loading()}</p>
+			<r4-loading></r4-loading>
+		</div>
+	{:then}
 		<AuthListener />
 		<KeyboardShortcuts />
+
+		{#key uiLocale}
+			<div class={['layout', {asideVisible: appState.queue_panel_visible}]} data-locale={uiLocale}>
+				<LayoutHeader preloading={data.preloading} />
+
+				<div class="content">
+					<main class="scroll">
+						{@render children()}
+					</main>
+
+					<QueuePanel />
+
+					{#if chatPanelVisible}
+						<DraggablePanel title={m.chat_panel_title()}>
+							<LiveChat />
+						</DraggablePanel>
+					{/if}
+				</div>
+
+				<LayoutFooter />
+			</div>
+		{/key}
+	{:catch}
+		<p>{m.loading_generic()}</p>
 	{/await}
-
-	<div class={['layout', {asideVisible: appState.queue_panel_visible}]}>
-		{#await data.preloading then}
-			<LayoutHeader preloading={data.preloading} />
-		{/await}
-
-		<div class="content">
-			<main class="scroll">
-				{#await data.preloading}
-					<div class="loader">
-						<p>Preparing R5&hellip;</p>
-						<r4-loading></r4-loading>
-					</div>
-				{:then}
-					{@render children()}
-				{/await}
-			</main>
-
-			{#await data.preloading then}
-				<QueuePanel />
-			{/await}
-
-			{#if chatPanelVisible}
-				<DraggablePanel title="R4 Chat">
-					<LiveChat />
-				</DraggablePanel>
-			{/if}
-		</div>
-
-		{#await data.preloading then}
-			<LayoutFooter />
-		{/await}
-	</div>
-	{#snippet pending()}
-		<p>loading...</p>
-	{/snippet}
 </svelte:boundary>
 
 <style>

@@ -1,6 +1,7 @@
 <script>
 	import {goto} from '$app/navigation'
 	import {appState} from '$lib/app-state.svelte'
+	import * as m from '$lib/paraglide/messages'
 
 	let {data} = $props()
 
@@ -36,23 +37,23 @@
 </script>
 
 <svelte:head>
-	<title>Edit {channel?.name} - R5</title>
+	<title>{m.channel_edit_page_title({name: channel?.name || m.channel_page_fallback()})}</title>
 </svelte:head>
 
 {#if canEdit}
 	<h2>
-		Edit channel
+		{m.channel_edit_title()}
 		{#if channel}
 			<a href={`/${channel.slug}`}>{channel.name}</a>
 		{/if}
 	</h2>
 
 	{#if error}
-		<p class="error">Error: {error}</p>
+		<p class="error">{m.common_error()}: {error}</p>
 	{/if}
 
 	{#if success}
-		<p class="success">Channel updated successfully! Redirecting...</p>
+		<p class="success">{m.channel_updated_success()}</p>
 	{:else}
 		<r4-channel-update
 			channel_id={channel.id}
@@ -64,5 +65,5 @@
 		></r4-channel-update>
 	{/if}
 {:else}
-	<p><a href="/auth">Sign in to edit this channel</a></p>
+	<p><a href="/auth">{m.auth_sign_in_to_edit()}</a></p>
 {/if}

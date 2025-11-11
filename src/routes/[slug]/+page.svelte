@@ -8,6 +8,7 @@
 	import {relativeDate, relativeDateSolar} from '$lib/dates'
 	import {r5} from '$lib/r5'
 	import {appState} from '$lib/app-state.svelte'
+	import * as m from '$lib/paraglide/messages'
 
 	let {data} = $props()
 
@@ -55,7 +56,7 @@
 </script>
 
 <svelte:head>
-	<title>{channel?.name || 'Channel'} - R5</title>
+	<title>{m.channel_page_title({name: channel?.name || m.channel_page_fallback()})}</title>
 </svelte:head>
 
 {#if channel}
@@ -64,11 +65,11 @@
 			<ChannelHero {channel} />
 			<div>
 				<menu>
-					<ButtonPlay {channel} label="Play" />
+					<ButtonPlay {channel} label={m.button_play_label()} />
 					<ButtonFollow {channel} />
-					<a href="/{channel.slug}/tags" class="btn">Tags</a>
+					<a href="/{channel.slug}/tags" class="btn">{m.channel_tags_link()}</a>
 					{#if canEdit}
-						<a href="/{channel.slug}/edit" class="btn">Edit</a>
+						<a href="/{channel.slug}/edit" class="btn">{m.common_edit()}</a>
 					{/if}
 				</menu>
 				<h1>
@@ -88,9 +89,11 @@
 				{/if}
 				<p>
 					<small>
-						Broadcasting since {relativeDateSolar(channel.created_at)}. Updated {relativeDate(
-							latestTrackDate || channel.updated_at
-						)}. {channel.track_count} tracks
+						{m.channel_stats_summary({
+							since: relativeDateSolar(channel.created_at),
+							updated: relativeDate(latestTrackDate || channel.updated_at),
+							count: channel.track_count ?? 0
+						})}
 					</small>
 				</p>
 			</div>
@@ -101,13 +104,13 @@
 				<!-- <CoverFlip tracks={tracks} /> -->
 				<Tracklist {tracks} {canEdit} grouped={1} />
 			{:else}
-				<p style="margin-top:1rem; margin-left: 0.5rem;">Loading tracks…</p>
+				<p style="margin-top:1rem; margin-left: 0.5rem;">{m.channel_loading_tracks()}</p>
 			{/if}
 		</section>
 	</article>
 {:else}
 	<article class="SmallContainer">
-		<p>Channel not found</p>
+		<p>{m.channel_not_found()}</p>
 	</article>
 {/if}
 

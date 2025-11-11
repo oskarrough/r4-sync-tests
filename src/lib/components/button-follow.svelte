@@ -2,6 +2,7 @@
 	import {followChannel, isFollowing as isFollowingChannel, unfollowChannel} from '$lib/api'
 	import {appState} from '$lib/app-state.svelte'
 	import Icon from '$lib/components/icon.svelte'
+	import * as m from '$lib/paraglide/messages'
 
 	/** @type {{channel: import('$lib/types').Channel, label?: string, class?: string}} */
 	let {channel, label, ...rest} = $props()
@@ -31,8 +32,8 @@
 
 <button
 	onclick={toggleFollow}
-	title={isFollowing ? 'Unfollow' : 'Follow'}
-	aria-label={isFollowing ? 'Unfollow' : 'Follow'}
+	title={isFollowing ? m.button_unfollow() : m.button_follow()}
+	aria-label={isFollowing ? m.button_unfollow() : m.button_follow()}
 	{...rest}
 >
 	<Icon icon={isFollowing ? 'favorite-fill' : 'favorite'} size={20} />

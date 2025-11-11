@@ -6,6 +6,7 @@
 	import {extractYouTubeId} from '$lib/utils.ts'
 	import Icon from './icon.svelte'
 	import LinkEntities from './link-entities.svelte'
+	import * as m from '$lib/paraglide/messages'
 
 	interface Props {
 		track: Track
@@ -97,7 +98,7 @@
 					<small>
 						<LinkEntities slug={track.channel_slug} text={track.description} />
 					</small>
-					{#if track.duration}<small>{track.duration}s</small>{/if}
+					{#if track.duration}<small>{m.track_duration_seconds({seconds: track.duration})}</small>{/if}
 				</p>
 			{/if}
 		</div>
@@ -114,16 +115,16 @@
 		<menu popover="auto" id="menu-{track.id}" bind:this={menuElement}>
 			{#if showDeleteConfirm}
 				<div class="delete-confirm">
-					<p>Delete "{track.title}"?</p>
-					<button type="button" class="danger" role="menuitem" onclick={handleDelete}>Confirm</button>
-					<button type="button" role="menuitem" onclick={() => (showDeleteConfirm = false)}>Cancel</button>
+					<p>{m.track_delete_confirm({title: track.title})}</p>
+					<button type="button" class="danger" role="menuitem" onclick={handleDelete}>{m.common_confirm()}</button>
+					<button type="button" role="menuitem" onclick={() => (showDeleteConfirm = false)}>{m.common_cancel()}</button>
 				</div>
 			{:else}
-				<a class="btn" href={permalink} role="menuitem">Details</a>
-				{#if canEdit}<button type="button" role="menuitem" onclick={editTrack}>Edit</button>{/if}
-				<button type="button" role="menuitem" onclick={() => addToRadio(track.url)}>Add track</button>
+				<a class="btn" href={permalink} role="menuitem">{m.common_details()}</a>
+				{#if canEdit}<button type="button" role="menuitem" onclick={editTrack}>{m.common_edit()}</button>{/if}
+				<button type="button" role="menuitem" onclick={() => addToRadio(track.url)}>{m.common_add()}</button>
 				{#if canEdit}<button type="button" class="danger" role="menuitem" onclick={() => (showDeleteConfirm = true)}
-						>Delete</button
+						>{m.common_delete()}</button
 					>{/if}
 			{/if}
 		</menu>

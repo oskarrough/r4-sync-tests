@@ -1,5 +1,6 @@
 <script>
 	import {r5} from '$lib/r5'
+	import * as m from '$lib/paraglide/messages'
 
 	const {tid} = $props()
 
@@ -25,7 +26,7 @@
 {#if track}
 	{track.title}
 {:else}
-	MISSING TRACK
+	{m.track_missing_label()}
 {/if}
 
 <!-- {#await promise}

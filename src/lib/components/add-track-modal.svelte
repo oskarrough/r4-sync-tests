@@ -4,6 +4,7 @@
 	import Icon from '$lib/components/icon.svelte'
 	import Modal from '$lib/components/modal.svelte'
 	import {tooltip} from './tooltip-attachment'
+	import * as m from '$lib/paraglide/messages'
 
 	let showModal = $state(false)
 	let recentTracks = $state([])
@@ -72,20 +73,20 @@
 
 <svelte:window onkeydown={handleKeyDown} on:r5:openAddModal={handleGlobalModalEvent} />
 
-<button onclick={handleAddTrackClick} {@attach tooltip({content: 'Add track'})}>
+<button onclick={handleAddTrackClick} {@attach tooltip({content: m.track_add_title()})}>
 	<Icon icon="add" size={20}></Icon>
 </button>
 
 <Modal bind:showModal>
 	{#snippet header()}
-		<h2>Add track</h2>
+		<h2>{m.track_add_title()}</h2>
 	{/snippet}
 
 	<r4-track-create channel_id={channelId} url={prefilledUrl} onsubmit={submit}></r4-track-create>
 
 	{#if recentTracks.length > 0}
 		<div class="recent-tracks">
-			<h3>Recently saved:</h3>
+			<h3>{m.track_recently_saved()}</h3>
 			{#each recentTracks as track (track.id || track.url)}
 				<div>{track.title || track.url}</div>
 			{/each}

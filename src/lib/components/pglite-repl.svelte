@@ -5,6 +5,7 @@
 	 */
 
 	import {pg} from '$lib/r5/db'
+	import * as m from '$lib/paraglide/messages'
 
 	let el = $state()
 	let enabled = $state(false)
@@ -18,14 +19,14 @@
 </script>
 
 <header>
-	<h2>PGLite repl</h2>
+	<h2>{m.pglite_heading()}</h2>
 	{#if !enabled}
-		<button onclick={enable}>Enter REPL</button>
+		<button onclick={enable}>{m.pglite_button_enable()}</button>
 	{/if}
 </header>
 
 {#if enabled}
-	<p>Try querying channels, tracks or app_state using SQL.</p>
+	<p>{m.pglite_description()}</p>
 	<pglite-repl bind:this={el}></pglite-repl>
 {/if}
 

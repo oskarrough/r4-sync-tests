@@ -2,6 +2,7 @@
 	import {appState} from '$lib/app-state.svelte'
 	import {trimWithEllipsis} from '$lib/utils.ts'
 	import ChannelHero from './channel-hero.svelte'
+	import * as m from '$lib/paraglide/messages'
 
 	/** @type {{channel: import('$lib/types').Channel}}*/
 	let {channel, children} = $props()
@@ -24,7 +25,7 @@
 			<h3>
 				{channel.name}
 				{#if broadcasting}
-					<span>LIVE</span>
+					<span>{m.status_live_short()}</span>
 				{/if}
 			</h3>
 			<p class="desc">

@@ -1,9 +1,11 @@
 <script>
+	import * as m from '$lib/paraglide/messages'
+
 	let {readonly, canEdit, edits, appliedEdits = [], tracksMap, onCommit, onDiscard, onUndo, onDelete} = $props()
 
 	function getTrackTitle(trackId) {
 		const track = tracksMap.get(trackId)
-		return track?.title || `Track ${trackId}`
+		return track?.title || m.batch_edit_track_placeholder({id: trackId})
 	}
 
 	let error = $state('')
@@ -18,7 +20,7 @@
 		try {
 			await onCommit()
 		} catch (err) {
-			error = err.message || 'Failed to commit edits'
+			error = err.message || m.batch_edit_error_commit()
 		} finally {
 			isCommitting = false
 		}
@@ -29,19 +31,23 @@
 		try {
 			await onDiscard()
 		} catch (err) {
-			error = err.message || 'Failed to discard edits'
+			error = err.message || m.batch_edit_error_discard()
 		}
 	}
 </script>
 
 <aside>
 	<header>
-		<h3>Preview {edits.length} {edits.length === 1 ? 'edit' : 'edits'}</h3>
+		<h3>
+			{edits.length === 1
+				? m.batch_edit_preview_heading_one({count: edits.length})
+				: m.batch_edit_preview_heading_other({count: edits.length})}
+		</h3>
 		{#if canEdit}
 			<menu>
-				<button type="button" onclick={handleDiscard}>Discard</button>
+				<button type="button" onclick={handleDiscard}>{m.batch_edit_discard_button()}</button>
 				<button type="button" onclick={handleCommit} disabled={isCommitting}>
-					{isCommitting ? 'Committing...' : 'Commit'}
+					{isCommitting ? m.batch_edit_committing() : m.batch_edit_commit_button()}
 				</button>
 			</menu>
 		{/if}
@@ -49,9 +55,9 @@
 
 	<div class="warn">
 		{#if readonly}
-			<p>v1 radios must be migrated to v2 before they can be updated</p>
+			<p>{m.batch_edit_warning_v1()}</p>
 		{:else}
-			<p>You are not authorized to edit this channel</p>
+			<p>{m.batch_edit_warning_no_access()}</p>
 		{/if}
 	</div>
 
@@ -62,7 +68,7 @@
 	<main class="scroll">
 		{#if edits.length > 0}
 			<section>
-				<h3>Pending edits</h3>
+				<h3>{m.batch_edit_pending_heading()}</h3>
 				<ol class="list">
 					{#each edits as edit (edit.track_id + edit.field)}
 						<li>
@@ -70,11 +76,11 @@
 								{getTrackTitle(edit.track_id)}
 								<code>{edit.field}</code>
 								{#if canEdit}
-									<button onclick={() => onDelete(edit.track_id, edit.field)}>Delete</button>
+									<button onclick={() => onDelete(edit.track_id, edit.field)}>{m.batch_edit_delete()}</button>
 								{/if}
 							</div>
 							<div class="diff-body">
-								<div class="diff-line removed">- {edit.old_value || '(empty)'}</div>
+								<div class="diff-line removed">- {edit.old_value || m.batch_edit_empty_value()}</div>
 								<div class="diff-line added">+ {edit.new_value}</div>
 							</div>
 						</li>
@@ -86,7 +92,7 @@
 		{#if appliedEdits.length > 0}
 			<section>
 				<details>
-					<summary>Applied edits ({appliedEdits.length}) - can undo</summary>
+					<summary>{m.batch_edit_applied_summary({count: appliedEdits.length})}</summary>
 					<ol class="list">
 						{#each appliedEdits as edit (edit.track_id + edit.field)}
 							<li>
@@ -94,13 +100,13 @@
 									{getTrackTitle(edit.track_id)}
 									<code>{edit.field}</code>
 									{#if canEdit}
-										<button class="undo-btn" onclick={() => onUndo(edit.track_id, edit.field)} title="Undo this edit">
-											↶ Undo
+										<button class="undo-btn" onclick={() => onUndo(edit.track_id, edit.field)} title={m.batch_edit_undo_title()}>
+											{m.batch_edit_undo_button()}
 										</button>
 									{/if}
 								</div>
 								<div class="diff-body">
-									<div class="diff-line removed">- {edit.old_value || '(empty)'}</div>
+									<div class="diff-line removed">- {edit.old_value || m.batch_edit_empty_value()}</div>
 									<div class="diff-line added">+ {edit.new_value}</div>
 								</div>
 							</li>

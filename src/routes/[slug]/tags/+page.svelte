@@ -1,6 +1,7 @@
 <script>
 	import InputRange from '$lib/components/input-range.svelte'
 	import {getChannelDateRange, local} from '$lib/r5/tags'
+	import * as m from '$lib/paraglide/messages'
 
 	const {data} = $props()
 	const {channel} = data
@@ -121,26 +122,28 @@
 	// Initialize
 	loadPeriods()
 
-	let currentPeriodLabel = $derived(currentPeriod === 0 ? 'All time' : periods[currentPeriod - 1]?.label || 'All time')
+let currentPeriodLabel = $derived(
+	currentPeriod === 0 ? m.tags_all_time() : periods[currentPeriod - 1]?.label || m.tags_all_time()
+)
 </script>
 
 <main>
 	<header class="row">
-		<h1>{channel.name} tags</h1>
+		<h1>{m.tags_heading({name: channel.name})}</h1>
 		<menu>
-			<label title="Tag filter">
+			<label title={m.tags_filter_label()}>
 				<select bind:value={filter} onchange={onFilterChange}>
-					<option value="all">All tags</option>
-					<option value="single-use">One-time tags</option>
-					<option value="frequent">Frequent (5+)</option>
-					<option value="rare">Rare (1-4)</option>
+					<option value="all">{m.tags_filter_all()}</option>
+					<option value="single-use">{m.tags_filter_single()}</option>
+					<option value="frequent">{m.tags_filter_frequent()}</option>
+					<option value="rare">{m.tags_filter_rare()}</option>
 				</select>
 			</label>
-			<label title="Time period">
+			<label title={m.tags_period_label()}>
 				<select bind:value={timePeriod} onchange={onTimePeriodChange}>
-					<option value="year">Years</option>
-					<option value="quarter">Quarters</option>
-					<option value="month">Months</option>
+					<option value="year">{m.tags_period_years()}</option>
+					<option value="quarter">{m.tags_period_quarters()}</option>
+					<option value="month">{m.tags_period_months()}</option>
 				</select>
 			</label>
 		</menu>
@@ -160,10 +163,10 @@
 						: Math.max(1, Math.ceil(periods.length / 25))}
 				bind:value={currentPeriod}
 				oninput={onPeriodChange}
-				title="Scrub through time periods"
+				title={m.tags_scrub_title()}
 			/>
 			<div class="scrubber-labels">
-				<span>All time</span>
+				<span>{m.tags_all_time()}</span>
 				{#if periods.length < 20}
 					{#each periods as period, i (period.label)}
 						<span class:active={currentPeriod === i + 1}>{period.label}</span>
@@ -192,16 +195,16 @@
 		</ol>
 		<footer>
 			<p>
-				Showing {filteredTags.length} tags
+				{m.tags_showing({count: filteredTags.length})}
 				{#await currentPeriodLabel then label}
-					{#if label !== 'All time'}
-						<span class="period-context">for {label}</span>
+					{#if label !== m.tags_all_time()}
+						<span class="period-context">{m.tags_period_context({label})}</span>
 					{/if}
 				{/await}
 			</p>
 		</footer>
 	{:else}
-		<p>No tags found for this filter.</p>
+		<p>{m.tags_empty()}</p>
 	{/if}
 </main>
 

@@ -1,4 +1,6 @@
 <script>
+	import * as m from '$lib/paraglide/messages'
+
 	let {data, track} = $props()
 	let showRaw = $state(false)
 
@@ -17,14 +19,14 @@
 
 {#if data}
 	<button onclick={() => (showRaw = !showRaw)}>
-		{showRaw ? 'formatted view' : 'raw json'}
+		{showRaw ? m.track_meta_toggle_formatted() : m.track_meta_toggle_raw()}
 	</button>
 	{#if showRaw}
 		<pre><code>{JSON.stringify(data, null, 2)}</code></pre>
 	{:else}
 		<dl class="meta">
 			{#if artistCredit?.artist?.name}
-				<dt>artist</dt>
+				<dt>{m.track_meta_artist()}</dt>
 				<dd>
 					<a
 						href="/search?search={encodeURIComponent(
@@ -37,22 +39,22 @@
 			{/if}
 
 			{#if recording?.title}
-				<dt>recording</dt>
+				<dt>{m.track_meta_recording()}</dt>
 				<dd>{recording.title}</dd>
 			{/if}
 
 			{#if recording?.length}
-				<dt>length</dt>
+				<dt>{m.track_meta_length()}</dt>
 				<dd>{formatLength(recording.length)}</dd>
 			{/if}
 
 			{#if recording?.['first-release-date']}
-				<dt>first release</dt>
+				<dt>{m.track_meta_first_release()}</dt>
 				<dd>{recording['first-release-date']}</dd>
 			{/if}
 
 			{#if firstRelease}
-				<dt>appears on</dt>
+				<dt>{m.track_meta_appears_on()}</dt>
 				<dd>
 					{firstRelease.title}
 					{#if firstRelease.date}
@@ -65,20 +67,20 @@
 			{/if}
 
 			{#if recording?.releases?.length > 1}
-				<dt>other releases</dt>
-				<dd>{recording.releases.length - 1} more</dd>
+				<dt>{m.track_meta_other_releases()}</dt>
+				<dd>{m.track_meta_other_releases_count({count: recording.releases.length - 1})}</dd>
 			{/if}
 
 			{#if recording?.id}
-				<dt>musicbrainz</dt>
+				<dt>{m.track_meta_musicbrainz()}</dt>
 				<dd>
 					<a href="https://musicbrainz.org/recording/{recording.id}" target="_blank" rel="noopener noreferrer">
-						view on musicbrainz →
+						{m.track_meta_view_musicbrainz()}
 					</a>
 				</dd>
 			{/if}
 		</dl>
 	{/if}
 {:else}
-	<p>No MusicBrainz data available</p>
+	<p>{m.track_meta_no_musicbrainz()}</p>
 {/if}

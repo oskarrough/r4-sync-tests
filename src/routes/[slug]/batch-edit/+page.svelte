@@ -4,6 +4,7 @@
 	import {r5} from '$lib/r5'
 	import EditsPanel from './EditsPanel.svelte'
 	import TrackRow from './TrackRow.svelte'
+	import * as m from '$lib/paraglide/messages'
 
 	let {data} = $props()
 
@@ -95,32 +96,30 @@
 </script>
 
 <svelte:head>
-	<title>Batch Edit - {channel?.name || 'Channel'}</title>
+	<title>{m.batch_edit_page_title({name: channel?.name || m.channel_page_fallback()})}</title>
 </svelte:head>
 
 <header>
 	<nav>
-		<a href="/{data.slug}">@{channel?.name}</a> / batch edit
+		<a href="/{data.slug}">@{channel?.name}</a> {m.batch_edit_nav_suffix()}
 		{#if hasEdits}
-			<span>{edits.length} edits</span>
+			<span>{m.batch_edit_edit_count({count: edits.length})}</span>
 		{/if}
 		<p>
-			<strong
-				>IMPORTANT: This is local-only. No remote data is overwritten. It is safe to play. you can edit any radio.</strong
-			>
+			<strong>{m.batch_edit_warning()}</strong>
 		</p>
 	</nav>
 	<menu>
 		<select bind:value={filter}>
-			<option value="all">All tracks</option>
-			<option value="missing-description">Empty description</option>
-			<option value="single-tag">1 tag</option>
-			<option value="no-tags">No tags</option>
-			<option value="no-meta">No metadata</option>
-			<option value="has-meta">Has metadata</option>
-			<option value="has-t-param">has &t= param</option>
+			<option value="all">{m.batch_edit_filter_all()}</option>
+			<option value="missing-description">{m.batch_edit_filter_missing_description()}</option>
+			<option value="single-tag">{m.batch_edit_filter_single_tag()}</option>
+			<option value="no-tags">{m.batch_edit_filter_no_tags()}</option>
+			<option value="no-meta">{m.batch_edit_filter_no_meta()}</option>
+			<option value="has-meta">{m.batch_edit_filter_has_meta()}</option>
+			<option value="has-t-param">{m.batch_edit_filter_has_t_param()}</option>
 		</select>
-		<button onclick={() => r5.tracks.pull({slug: data.slug})}>Pull tracks</button>
+		<button onclick={() => r5.tracks.pull({slug: data.slug})}>{m.batch_edit_pull_tracks()}</button>
 		<!--
 		<button onclick={handlePullMeta} disabled={updatingMeta}>
 			{updatingMeta ? '⏳ Pulling...' : '⏱️ Pull metadata (YouTube + MusicBrainz)'}
@@ -133,29 +132,29 @@
 	<main class="tracks-container">
 		<section class="tracks">
 			{#if filteredTracks.length === 0}
-				<p>no tracks found</p>
+				<p>{m.batch_edit_no_tracks()}</p>
 			{:else}
 				<div class="tracks-list">
 					<div class="tracks-header">
 						<div class="col-checkbox">
 							<menu class="selection">
 								{#if hasSelection}
-									<span>{selectedCount} selected</span>
-									<button onclick={clearSelection}>Clear</button>
+									<span>{m.batch_edit_selected_count({count: selectedCount})}</span>
+									<button onclick={clearSelection}>{m.common_clear()}</button>
 								{:else}
-									<button onclick={selectAll}>All ({filteredTracks.length})</button>
+									<button onclick={selectAll}>{m.batch_edit_select_all({count: filteredTracks.length})}</button>
 								{/if}
 							</menu>
 						</div>
 						<div class="col-link"></div>
-						<div class="col-url">url</div>
-						<div class="col-title">title</div>
-						<div class="col-description">description</div>
-						<div class="col-discogs">discogs</div>
-						<div class="col-tags">tags</div>
-						<div class="col-mentions">mentions</div>
-						<div class="col-meta">meta</div>
-						<div class="col-date">created</div>
+						<div class="col-url">{m.batch_edit_column_url()}</div>
+						<div class="col-title">{m.batch_edit_column_title()}</div>
+						<div class="col-description">{m.batch_edit_column_description()}</div>
+						<div class="col-discogs">{m.batch_edit_column_discogs()}</div>
+						<div class="col-tags">{m.batch_edit_column_tags()}</div>
+						<div class="col-mentions">{m.batch_edit_column_mentions()}</div>
+						<div class="col-meta">{m.batch_edit_column_meta()}</div>
+						<div class="col-date">{m.batch_edit_column_created()}</div>
 					</div>
 					<ol class="list scroll">
 						{#each filteredTracks as track (track.id)}

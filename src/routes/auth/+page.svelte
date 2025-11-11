@@ -5,6 +5,7 @@
 	import ChannelCard from '$lib/components/channel-card.svelte'
 	import IconR4 from '$lib/icon-r4.svelte'
 	import {pg} from '$lib/r5/db.js'
+	import * as m from '$lib/paraglide/messages'
 
 	const redirect = page.url.searchParams.get('redirect')
 	const redirectParam = redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''
@@ -17,7 +18,7 @@
 </script>
 
 <svelte:head>
-	<title>Auth - R5</title>
+	<title>{m.auth_page_title()}</title>
 </svelte:head>
 
 <article class="SmallContainer">
@@ -26,11 +27,11 @@
 	</figure>
 
 	{#if appState.user}
-		<p>You are signed in with {appState.user.email}.</p>
-		<p><button type="button" onclick={() => sdk.auth.signOut()}>Logout</button></p>
+		<p>{m.auth_signed_in_as({email: appState.user.email})}</p>
+		<p><button type="button" onclick={() => sdk.auth.signOut()}>{m.auth_log_out()}</button></p>
 
 		{#await userChannels}
-			<p>Loading your channels...</p>
+			<p>{m.auth_loading_channels()}</p>
 		{:then channels}
 			{#if channels.length > 0}
 				<div class="channels-grid">
@@ -40,22 +41,22 @@
 				</div>
 			{:else}
 				<br />
-				<p>Let's <a href="/create-channel">create your radio channel</a>.</p>
+				<p><a href="/create-channel">{m.auth_create_radio_cta()}</a></p>
 			{/if}
 		{:catch error}
-			<p>Error loading channels: {error.message}</p>
+			<p>{m.auth_error_loading_channels({message: error.message})}</p>
 			<br />
-			<p>Let's <a href="/create-channel">create your radio channel</a>.</p>
+			<p><a href="/create-channel">{m.auth_create_radio_cta()}</a></p>
 		{/await}
 	{:else}
 		<menu class="options">
 			<a href="/auth/create-account{redirectParam}">
-				<h3>Create account</h3>
-				<p>I'm new to Radio4000</p>
+				<h3>{m.auth_card_create_title()}</h3>
+				<p>{m.auth_card_create_description()}</p>
 			</a>
 			<a href="/auth/login{redirectParam}">
-				<h3>Sign in</h3>
-				<p>I already have a channel</p>
+				<h3>{m.auth_card_login_title()}</h3>
+				<p>{m.auth_card_login_description()}</p>
 			</a>
 		</menu>
 	{/if}

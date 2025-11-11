@@ -2,6 +2,7 @@ import devtoolsJson from 'vite-plugin-devtools-json'
 import {sveltekit} from '@sveltejs/kit/vite'
 import {defineConfig} from 'vite'
 import {execSync} from 'child_process'
+import {paraglideVitePlugin} from '@inlang/paraglide-js'
 
 // Get git info at build time
 function getGitInfo() {
@@ -18,7 +19,14 @@ function getGitInfo() {
 }
 
 export default defineConfig({
-	plugins: [sveltekit(), devtoolsJson()],
+	plugins: [
+		sveltekit(),
+		paraglideVitePlugin({
+			project: './project.inlang',
+			outdir: './src/lib/paraglide'
+		}),
+		devtoolsJson()
+	],
 	optimizeDeps: {
 		// https://pglite.dev/docs/bundler-support#vite
 		exclude: ['@electric-sql/pglite']

@@ -13,6 +13,17 @@ bun install
 bun run dev
 ```
 
+## Localization
+
+- Translations live in `messages/<languageTag>.json`. English (`en`) is the canonical source; copy it to bootstrap a new locale.
+- The list of supported locales is defined once in `project.inlang/settings.json` (`languageTags`). Update that array when adding a language (e.g. add `"dk"`), create `messages/dk.json` by copying `messages/en.json`, translate the values, then recompile Paraglide:
+
+```bash
+bunx @inlang/paraglide-js compile --project ./project.inlang --outdir ./src/lib/paraglide
+```
+
+Also see [infk](https://fink.inlang.com) from [inlang](https://inlang.com) for interface to edit the language strings.
+
 ## Deploying
 
 The `main` branch deploys to https://pg.radio4000.com for now.

@@ -1,5 +1,6 @@
 <script>
 	import {relativeDate} from '$lib/dates.js'
+	import * as m from '$lib/paraglide/messages'
 
 	let {data} = $props()
 	let showRaw = $state(false)
@@ -14,29 +15,29 @@
 
 {#if data}
 	<button onclick={() => (showRaw = !showRaw)}>
-		{showRaw ? 'formatted view' : 'raw json'}
+		{showRaw ? m.track_meta_toggle_formatted() : m.track_meta_toggle_raw()}
 	</button>
 	{#if showRaw}
 		<pre><code>{JSON.stringify(data, null, 2)}</code></pre>
 	{:else}
 		<dl class="meta">
 			{#if data.title}
-				<dt>title</dt>
+				<dt>{m.track_meta_title()}</dt>
 				<dd>{data.title}</dd>
 			{/if}
 
 			{#if data.channel_slug}
-				<dt>channel</dt>
+				<dt>{m.track_meta_channel()}</dt>
 				<dd><a href="/{data.channel_slug}">@{data.channel_slug}</a></dd>
 			{/if}
 
 			{#if data.duration}
-				<dt>duration</dt>
+				<dt>{m.track_meta_duration()}</dt>
 				<dd>{formatDuration(data.duration)}</dd>
 			{/if}
 
 			{#if data.tags && data.tags.length > 0}
-				<dt>tags</dt>
+				<dt>{m.track_meta_tags()}</dt>
 				<dd class="tags">
 					{#each data.tags as tag (tag)}
 						<span>#{tag}</span>
@@ -45,40 +46,40 @@
 			{/if}
 
 			{#if data.description}
-				<dt>description</dt>
+				<dt>{m.track_meta_description()}</dt>
 				<dd>{data.description}</dd>
 			{/if}
 
 			{#if data.url}
-				<dt>source</dt>
-				<dd><a href={data.url} target="_blank" rel="noopener noreferrer">youtube</a></dd>
+				<dt>{m.track_meta_source()}</dt>
+				<dd><a href={data.url} target="_blank" rel="noopener noreferrer">{m.track_meta_youtube()}</a></dd>
 			{/if}
 
 			{#if data.discogs_url}
-				<dt>discogs</dt>
+				<dt>{m.track_meta_discogs()}</dt>
 				<dd>
-					<a href={data.discogs_url} target="_blank" rel="noopener noreferrer">view release</a>
+					<a href={data.discogs_url} target="_blank" rel="noopener noreferrer">{m.track_meta_view_release()}</a>
 				</dd>
 			{/if}
 
-			<dt>metadata</dt>
+			<dt>{m.track_meta_metadata()}</dt>
 			<dd>
-				{#if data.has_youtube_meta}✓ youtube{/if}
-				{#if data.has_musicbrainz_meta}✓ musicbrainz{/if}
-				{#if data.has_discogs_meta}✓ discogs{/if}
+				{#if data.has_youtube_meta}{m.track_meta_flag_youtube()}{/if}
+				{#if data.has_musicbrainz_meta}{m.track_meta_flag_musicbrainz()}{/if}
+				{#if data.has_discogs_meta}{m.track_meta_flag_discogs()}{/if}
 			</dd>
 
 			{#if data.created_at}
-				<dt>added</dt>
+				<dt>{m.track_meta_added()}</dt>
 				<dd>{relativeDate(data.created_at)}</dd>
 			{/if}
 
 			{#if data.updated_at && data.updated_at !== data.created_at}
-				<dt>updated</dt>
+				<dt>{m.track_meta_updated()}</dt>
 				<dd>{relativeDate(data.updated_at)}</dd>
 			{/if}
 		</dl>
 	{/if}
 {:else}
-	<p>No track data available</p>
+	<p>{m.track_meta_no_data()}</p>
 {/if}

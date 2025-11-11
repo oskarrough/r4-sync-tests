@@ -1,6 +1,7 @@
 <script>
 	import {sdk} from '@radio4000/sdk'
 	import {onMount} from 'svelte'
+	import * as m from '$lib/paraglide/messages'
 
 	let message = $state('')
 	let messages = $state([])
@@ -69,13 +70,18 @@
 			</div>
 		{/each}
 		{#if messages.length === 0}
-			<p class="empty">Ephemeral chat</p>
+			<p class="empty">{m.chat_empty_state()}</p>
 		{/if}
 	</div>
 
 	<form onsubmit={sendMessage}>
-		<input bind:value={message} onkeydown={handleKeydown} placeholder="Type a message..." maxlength="280" />
-		<button type="submit" disabled={!message.trim()}>Send</button>
+		<input
+			bind:value={message}
+			onkeydown={handleKeydown}
+			placeholder={m.chat_input_placeholder()}
+			maxlength="280"
+		/>
+		<button type="submit" disabled={!message.trim()}>{m.chat_send_button()}</button>
 	</form>
 </section>
 

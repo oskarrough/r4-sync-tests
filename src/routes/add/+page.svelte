@@ -4,6 +4,7 @@
 	import {appState} from '$lib/app-state.svelte'
 	import {r5} from '$lib/r5'
 	import {pg} from '$lib/r5/db'
+	import * as m from '$lib/paraglide/messages'
 
 	const url = $derived(page?.url?.searchParams?.get('url'))
 	const channelId = $derived(appState.channels?.length > 0 ? appState.channels[0] : undefined)
@@ -31,20 +32,20 @@
 </script>
 
 <svelte:head>
-	<title>Add Track - R5</title>
+	<title>{m.page_title_add_track()}</title>
 </svelte:head>
 
 {#if canAddTrack}
 	<h2>
-		Add track
+		{m.track_add_title()}
 		{#await channel then channelData}
 			{#if channelData}
-				to <a href={`/${channelData.slug}`}>{channelData.name}</a>
+				<a href={`/${channelData.slug}`}>{m.track_add_destination({channel: channelData.name})}</a>
 			{/if}
 		{/await}
 	</h2>
 
 	<r4-track-create channel_id={channelId} {url} onsubmit={handleSubmit}></r4-track-create>
 {:else}
-	<p><a href="/auth">Sign in to add tracks</a></p>
+	<p><a href="/auth">{m.auth_sign_in_to_add()}</a></p>
 {/if}

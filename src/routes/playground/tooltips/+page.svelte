@@ -1,44 +1,55 @@
 <script>
 	import ToolTip from '$lib/components/tool-tip.svelte'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
+	import * as m from '$lib/paraglide/messages'
 </script>
 
-<h1>Tooltips</h1>
+<h1>{m.playground_tooltips_title()}</h1>
 
-<p>Tooltips are by default shown on hover and focus.</p>
-<p>Tooltips can be positioned top, right, bottom, or left.</p>
-<p>Tooltips can be added in two ways:</p>
+<p>{m.playground_tooltips_intro()}</p>
+<p>{m.playground_tooltips_positions()}</p>
+<p>{m.playground_tooltips_methods()}</p>
 
 <section>
-	<h3>Inline component</h3>
-	<button id="save-btn" type="button">Save</button>
-	<ToolTip targetId="save-btn" content="Save your changes to local storage" />
+	<h3>{m.playground_tooltips_inline()}</h3>
+	<button id="save-btn" type="button">{m.playground_tooltips_save()}</button>
+	<ToolTip targetId="save-btn" content={m.playground_tooltips_save_hint()} />
 
-	<p>Tooltips support four positions: top, bottom, left, and right.</p>
-	<button id="top-btn" type="button">Top</button>
-	<button id="right-btn" type="button">Right</button>
-	<button id="bottom-btn" type="button">Bottom</button>
-	<button id="left-btn" type="button">Left</button>
+	<p>{m.playground_tooltips_positions_desc()}</p>
+	<button id="top-btn" type="button">{m.playground_tooltips_top()}</button>
+	<button id="right-btn" type="button">{m.playground_tooltips_right()}</button>
+	<button id="bottom-btn" type="button">{m.playground_tooltips_bottom()}</button>
+	<button id="left-btn" type="button">{m.playground_tooltips_left()}</button>
 
-	<ToolTip targetId="top-btn" content="Tooltip positioned above" position="top" />
-	<ToolTip targetId="right-btn" content="Tooltip positioned to the right" position="right" />
-	<ToolTip targetId="bottom-btn" content="Tooltip positioned below" position="bottom" />
-	<ToolTip targetId="left-btn" content="Tooltip positioned to the left" position="left" />
+	<ToolTip targetId="top-btn" content={m.playground_tooltips_positioned_above()} position="top" />
+	<ToolTip targetId="right-btn" content={m.playground_tooltips_positioned_right()} position="right" />
+	<ToolTip targetId="bottom-btn" content={m.playground_tooltips_positioned_below()} position="bottom" />
+	<ToolTip targetId="left-btn" content={m.playground_tooltips_positioned_left()} position="left" />
 </section>
 
 <section>
-	<h3>Using svelte attachments</h3>
-	<button {@attach tooltip({content: 'via attachment', position: 'bottom'})}> Hover me </button>
+	<h3>{m.playground_tooltips_attachments()}</h3>
+	<button {@attach tooltip({content: m.playground_tooltips_via_attachment(), position: 'bottom'})}>
+		{m.playground_tooltips_hover()}
+	</button>
 	<button
 		{@attach tooltip({
-			content: 'I can contain <strong>HTML</strong> yea!',
+			content: m.playground_tooltips_html_content(),
 			position: 'bottom'
 		})}
 	>
-		HTML tooltips
+		{m.playground_tooltips_html()}
 	</button>
-	<button {@attach tooltip({content: 'Positioned above', position: 'top'})}> Top </button>
-	<button {@attach tooltip({content: 'Positioned below', position: 'bottom'})}> Bottom </button>
-	<button {@attach tooltip({content: 'Positioned left', position: 'left'})}> Left </button>
-	<button {@attach tooltip({content: 'Positioned right', position: 'right'})}> Right </button>
+	<button {@attach tooltip({content: m.playground_tooltips_positioned_above(), position: 'top'})}>
+		{m.playground_tooltips_top()}
+	</button>
+	<button {@attach tooltip({content: m.playground_tooltips_positioned_below(), position: 'bottom'})}>
+		{m.playground_tooltips_bottom()}
+	</button>
+	<button {@attach tooltip({content: m.playground_tooltips_positioned_left(), position: 'left'})}>
+		{m.playground_tooltips_left()}
+	</button>
+	<button {@attach tooltip({content: m.playground_tooltips_positioned_right(), position: 'right'})}>
+		{m.playground_tooltips_right()}
+	</button>
 </section>

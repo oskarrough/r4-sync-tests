@@ -2,6 +2,7 @@
 	import {goto} from '$app/navigation'
 	import {page} from '$app/state'
 	import Icon from '$lib/components/icon'
+	import * as m from '$lib/paraglide/messages'
 
 	let {search = '', order = 'created', dir = 'desc', onSearchChange} = $props()
 
@@ -38,7 +39,7 @@
 
 <form onsubmit={handleSubmit}>
 	<Icon icon="search" />
-	<input type="search" placeholder="Search tracks..." bind:value={searchValue} onblur={handleSearchBlur} />
+	<input type="search" placeholder={m.search_tracks_placeholder()} bind:value={searchValue} onblur={handleSearchBlur} />
 	<!--<button type="button" onclick={clearSearch}>Search</button>-->
 
 	<!--<label>

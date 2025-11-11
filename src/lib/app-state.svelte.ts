@@ -33,7 +33,9 @@ export const defaultAppState: AppState = {
 	theme: undefined,
 	hide_track_artwork: false,
 
-	user: undefined
+	user: undefined,
+
+	language: undefined
 }
 
 export const appState: AppState = $state({...defaultAppState})

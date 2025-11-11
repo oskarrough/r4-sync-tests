@@ -9,6 +9,7 @@
 	import SearchInput from './search-input.svelte'
 	import TrackCard from './track-card.svelte'
 	import Tracklist from './tracklist.svelte'
+	import * as m from '$lib/paraglide/messages'
 
 	let view = $state('queue') // 'queue' or 'history'
 	let showClearHistoryModal = $state(false)
@@ -92,20 +93,20 @@
 <aside>
 	<header>
 		<menu>
-			<button onclick={() => (view = 'queue')} class:active={view === 'queue'}>Queue ({queueTracks.length})</button>
+			<button onclick={() => (view = 'queue')} class:active={view === 'queue'}>{m.button_queue()} ({queueTracks.length})</button>
 			<button onclick={() => (view = 'history')} class:active={view === 'history'}
-				>History ({playHistory.length})</button
+				>{m.nav_history()} ({playHistory.length})</button
 			>
 		</menu>
 	</header>
 
-	<div class="search-container">
-		<SearchInput bind:value={searchQuery} placeholder="Search {view}..." />
+		<div class="search-container">
+			<SearchInput bind:value={searchQuery} placeholder={m.search_placeholder()} />
 		{#if view === 'queue' && trackIds.length > 0}
-			<button onclick={clearQueue} {@attach tooltip({content: 'Clear queued tracks'})}>Clear</button>
+			<button onclick={clearQueue} {@attach tooltip({content: m.queue_no_tracks()})}>{m.common_clear()}</button>
 		{:else if view === 'history' && playHistory.length > 0}
-			<button onclick={() => (showClearHistoryModal = true)} {@attach tooltip({content: 'Clear playlist history'})}
-				>Clear</button
+			<button onclick={() => (showClearHistoryModal = true)} {@attach tooltip({content: m.queue_no_history()})}
+				>{m.common_clear()}</button
 			>
 		{/if}
 	</div>
@@ -116,18 +117,18 @@
 				<Tracklist tracks={filteredQueueTracks} />
 			{:else if trackIds.length > 0 && searchQuery}
 				<div class="empty-state">
-					<p>No tracks found</p>
-					<p><small>Try a different search term</small></p>
+					<p>{m.queue_empty()}</p>
+					<p><small>{m.search_no_results()} "{searchQuery}"</small></p>
 				</div>
 			{:else if trackIds.length === 0}
 				<div class="empty-state">
-					<p>No tracks in queue</p>
-					<p><small>Select a channel to start playing</small></p>
+					<p>{m.queue_no_tracks()}</p>
+					<p><small>{m.queue_select_channel()}</small></p>
 				</div>
 			{:else}
 				<div class="empty-state">
-					<p>No tracks found</p>
-					<p><small>Try a different search term</small></p>
+					<p>{m.queue_empty()}</p>
+					<p><small>{m.search_no_results()} "{searchQuery}"</small></p>
 				</div>
 			{/if}
 		{:else if filteredPlayHistory.length > 0}
@@ -140,7 +141,9 @@
 									{relativeTime(entry.started_at)}
 									{#if entry.reason_start}• {entry.reason_start}{/if}
 									{#if entry.reason_end}→ {entry.reason_end}{/if}
-									{#if entry.ms_played}• {Math.round(entry.ms_played / 1000)}s{/if}
+									{#if entry.ms_played}
+										• {m.queue_seconds_suffix({seconds: Math.round(entry.ms_played / 1000)})}
+									{/if}
 								</small>
 							</p>
 						</TrackCard>
@@ -149,13 +152,13 @@
 			</ul>
 		{:else if playHistory.length > 0 && searchQuery}
 			<div class="empty-state">
-				<p>No history found</p>
-				<p><small>Try a different search term</small></p>
+				<p>{m.queue_no_history()}</p>
+				<p><small>{m.search_no_results()} "{searchQuery}"</small></p>
 			</div>
 		{:else}
 			<div class="empty-state">
-				<p>No play history</p>
-				<p><small>Start playing tracks to see history</small></p>
+				<p>{m.queue_no_play_history()}</p>
+				<p><small>{m.queue_history_hint()}</small></p>
 			</div>
 		{/if}
 	</main>
@@ -163,12 +166,12 @@
 
 <Modal bind:showModal={showClearHistoryModal}>
 	{#snippet header()}
-		<h2>Clear listening history</h2>
+		<h2>{m.queue_clear_history_title()}</h2>
 	{/snippet}
-	<p>Are you sure you want to clear your listening history? This cannot be undone.</p>
+	<p>{m.queue_clear_history_confirm()}</p>
 	<menu>
-		<button type="button" onclick={() => (showClearHistoryModal = false)}>Cancel</button>
-		<button type="button" onclick={clearHistory} class="danger">Clear history</button>
+		<button type="button" onclick={() => (showClearHistoryModal = false)}>{m.common_cancel()}</button>
+		<button type="button" onclick={clearHistory} class="danger">{m.queue_clear_history_button()}</button>
 	</menu>
 </Modal>
 

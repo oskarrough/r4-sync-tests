@@ -4,6 +4,7 @@
 	import {pull as insertMusicBrainzMeta} from '$lib/metadata/musicbrainz'
 	import {pullSingle as insertYouTubeMeta} from '$lib/metadata/youtube'
 	import {extractYouTubeId} from '$lib/utils.ts'
+	import * as m from '$lib/paraglide/messages'
 
 	const log = logger.ns('track-meta').seal()
 
@@ -73,9 +74,9 @@
 </script>
 
 {#if loading}
-	<p>Loading meta data from YouTube, MusicBrainz, and Discogs...</p>
+	<p>{m.track_meta_loading()}</p>
 {:else if error}
-	<p>Error: {error}</p>
+	<p>{m.track_meta_error({message: error})}</p>
 {/if}
 
 {#if result && showResult}
