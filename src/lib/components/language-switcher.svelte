@@ -1,18 +1,20 @@
 <script>
-import {getLocale, setLocale, locales} from '$lib/paraglide/runtime'
-import {appState} from '$lib/app-state.svelte'
+	import {getLocale, setLocale, locales} from '$lib/paraglide/runtime'
+	import {appState} from '$lib/app-state.svelte'
 	import * as m from '$lib/paraglide/messages'
 
-let selectedLocale = $state(appState.language ?? getLocale())
-
-console.info('[i18n] LanguageSwitcher mounted with locale', selectedLocale)
+	let selectedLocale = $state(appState.language ?? getLocale())
+	const languageNames =
+				typeof Intl !== 'undefined' && Intl.DisplayNames
+				? new Intl.DisplayNames(['en'], {type: 'language', languageDisplay: 'standard'})
+				: null
 
 	// Update the selected locale when appState.language changes
-$effect(() => {
-	if (appState.language && appState.language !== selectedLocale) {
-		selectedLocale = appState.language
-	}
-})
+	$effect(() => {
+		if (appState.language && appState.language !== selectedLocale) {
+			selectedLocale = appState.language
+		}
+	})
 
 	async function handleChange(event) {
 		const locale = event.currentTarget.value
@@ -36,10 +38,7 @@ $effect(() => {
 	<select bind:value={selectedLocale} on:change={handleChange} on:input={handleChange}>
 		{#each locales as locale}
 			<option value={locale}>
-				{locale === 'en' ? m.settings_language_option_en() : 
-				 locale === 'de' ? m.settings_language_option_de() : 
-				 locale === 'fr' ? m.settings_language_option_fr() : 
-				 locale}
+				{languageNames?.of(locale) ? `${languageNames.of(locale)} (${locale})` : locale}
 			</option>
 		{/each}
 	</select>
