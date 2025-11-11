@@ -32,6 +32,8 @@ bunx @inlang/paraglide-js compile --project ./project.inlang --outdir ./src/lib/
 
 Restart `bun run dev` and you should see “es” in the language switcher immediately; keep editing `messages/es.json` with actual translations afterward.
 
+- RTL locales (e.g. `ar`) are automatically rendered right-to-left. Set the locale via the language switcher or `appState.language` and the `<html>` element will toggle `dir="rtl"` for those tags.
+
 ```bash
 bunx @inlang/paraglide-js compile --project ./project.inlang --outdir ./src/lib/paraglide
 ```

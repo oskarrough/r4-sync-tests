@@ -42,6 +42,7 @@
 	const prefersLight = $derived(window.matchMedia('(prefers-color-scheme: light)').matches)
 	const theme = $derived(appState.theme ?? (prefersLight ? 'light' : 'dark'))
 	const uiLocale = $derived(appState.language ?? getLocale())
+	const rtlLocales = new Set(['ar'])
 
 $effect(() => {
 	if (theme === 'dark') {
@@ -56,6 +57,7 @@ $effect(() => {
 	$effect(() => {
 		if (typeof document === 'undefined') return
 		document.documentElement.lang = uiLocale
+		document.documentElement.dir = rtlLocales.has(uiLocale) ? 'rtl' : 'ltr'
 	})
 
 
