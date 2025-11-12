@@ -20,16 +20,12 @@
 		const locale = event.currentTarget.value
 		if (!locale || locale === selectedLocale) return
 
-		console.log('[i18n] switching locale', {from: selectedLocale, to: locale})
-
 		// Set the locale using Paraglide without reloading
 		await setLocale(locale, {reload: false})
 
 		// Update app state
 		appState.language = locale
 		selectedLocale = locale
-
-		console.log('[i18n] locale switch completed')
 	}
 </script>
 
@@ -38,6 +34,7 @@
 	<select bind:value={selectedLocale} on:change={handleChange} on:input={handleChange}>
 		{#each locales as locale}
 			<option value={locale}>
+				{locale === selectedLocale ? '🌐' : ''}
 				{languageNames?.of(locale) ? `${languageNames.of(locale)} (${locale})` : locale}
 			</option>
 		{/each}
