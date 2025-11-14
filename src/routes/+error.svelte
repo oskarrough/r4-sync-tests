@@ -1,18 +1,21 @@
 <script>
 	import {page} from '$app/state'
+	import * as m from '$lib/paraglide/messages'
 </script>
 
 <article>
-	<p>An error happened:</p>
-	<h1>{page.status}: {page.error?.message || 'Unknown error'}</h1>
+	<p>{m.error_happened()}</p>
+	<h1>{page.status}: {page.error?.message || m.error_unknown()}</h1>
 
 	<hr />
 	<p class="row row--vcenter">
-		To repair, please first try to ❶ <a href="/" class="btn">Reload the app</a>
+		{m.error_repair_try()} ❶ <a href="/" class="btn">{m.error_reload_app()}</a>
 	</p>
 
 	<br />
-	<p class="row row--vcenter">If that didn't work &rarr; ② <a href="/recovery" class="btn">Reset the app</a></p>
+	<p class="row row--vcenter">
+		{m.error_if_not_work()} &rarr; ② <a href="/recovery" class="btn">{m.error_reset_app()}</a>
+	</p>
 </article>
 
 <style>

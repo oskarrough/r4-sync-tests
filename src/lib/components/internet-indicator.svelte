@@ -1,5 +1,6 @@
 <script>
 	import Icon from '$lib/components/icon.svelte'
+	import * as m from '$lib/paraglide/messages'
 
 	let online = $state(navigator.onLine)
 
@@ -16,10 +17,10 @@
 <div data-online={online}>
 	{#if online}
 		<Icon icon="wifi" />
-		<p>Online</p>
+		<p>{m.status_online()}</p>
 	{:else}
 		<Icon icon="wifi-off" />
-		<p>Offline</p>
+		<p>{m.status_offline()}</p>
 	{/if}
 </div>
 

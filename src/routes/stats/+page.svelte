@@ -4,6 +4,8 @@
 	import Icon from '$lib/components/icon.svelte'
 	import {pg} from '$lib/r5/db'
 	import {extractHashtags} from '$lib/utils.ts'
+	import * as m from '$lib/paraglide/messages'
+	import {getLocale} from '$lib/paraglide/runtime'
 
 	let stats = $state({
 		totalPlays: 0,
@@ -262,66 +264,81 @@
 </script>
 
 <svelte:head>
-	<title>R5 / Stats</title>
+	<title>{m.page_title_stats()}</title>
 </svelte:head>
 
 <article class="SmallContainer">
 	<menu>
 		<a class="btn" href="/stats" class:active={page.route.id === '/stats'}>
-			<Icon icon="chart-scatter" size={20} /> Stats
+			<Icon icon="chart-scatter" size={20} />
+			{m.nav_stats()}
 		</a>
 		<a class="btn" href="/history" class:active={page.route.id === '/history'}>
-			<Icon icon="history" size={20} /> History
+			<Icon icon="history" size={20} />
+			{m.nav_history()}
 		</a>
 	</menu>
 
 	<header>
-		<h1>Statistics</h1>
-		<p>Statistics from your local data and play history.</p>
+		<h1>{m.stats_heading()}</h1>
+		<p>{m.stats_intro()}</p>
 	</header>
 
 	{#if !ready}
 		<section>
 			<header>
-				<h2>activity preparing, i am</h2>
+				<h2>{m.stats_loading_heading()}</h2>
 			</header>
 		</section>
 	{:else}
 		<section>
 			<header>
-				<h2>activity</h2>
+				<h2>{m.stats_activity_heading()}</h2>
 			</header>
 
 			<p>
-				<strong>{stats.uniqueChannels.toLocaleString()}</strong> radios •
-				<strong>{stats.uniqueTracks.toLocaleString()}</strong> tracks •
-				<strong>{stats.totalPlays.toLocaleString()}</strong> plays
+				{m.stats_counts_summary({
+					channels: stats.uniqueChannels.toLocaleString(),
+					tracks: stats.uniqueTracks.toLocaleString(),
+					plays: stats.totalPlays.toLocaleString()
+				})}
 			</p>
 
 			<p>
-				{Math.floor(stats.totalListeningTime / 60)}h {stats.totalListeningTime % 60}m total •
-				{stats.skipRate}% skipped
+				{m.stats_time_summary({
+					hours: Math.floor(stats.totalListeningTime / 60),
+					minutes: stats.totalListeningTime % 60,
+					skipRate: stats.skipRate
+				})}
 			</p>
 
 			{#if stats.daysSinceFirstPlay > 0}
 				<p>
-					listening for {stats.daysSinceFirstPlay} days • active on {stats.streakDays} of them
+					{m.stats_listening_duration({
+						days: stats.daysSinceFirstPlay,
+						activeDays: stats.streakDays
+					})}
 				</p>
 			{/if}
 
 			{#if stats.mostActiveHour !== null}
-				<p>most active around {stats.mostActiveHour}:00</p>
+				<p>{m.stats_most_active({hour: stats.mostActiveHour})}</p>
 			{/if}
 
 			{#if stats.userInitiatedRate > 0}
-				<p>{stats.userInitiatedRate}% user-initiated • {100 - stats.userInitiatedRate}% automatic</p>
+				<p>
+					{m.stats_user_share({
+						userRate: stats.userInitiatedRate,
+						autoRate: 100 - stats.userInitiatedRate
+					})}
+				</p>
 			{/if}
 		</section>
 
 		{#if stats.mostReplayedTrack.length > 0}
 			<section>
 				<header>
-					<h2>on repeat</h2>
+					<h2>{m.stats_on_repeat_heading()}</h2>
 				</header>
 				<ol>
 					{#each stats.mostReplayedTrack as track (track.track_id)}
@@ -331,7 +348,7 @@
 							<a href={`/${track.channel_slug}/${track.track_id}`}>
 								<em>{track.title}</em>
 							</a>
-							• {track.play_count} plays
+							• {m.stats_play_count({count: track.play_count})}
 						</li>
 					{/each}
 				</ol>
@@ -341,7 +358,7 @@
 		{#if stats.recentlyPlayed.length > 0}
 			<section>
 				<header>
-					<h2>recently played</h2>
+					<h2>{m.stats_recent_heading()}</h2>
 				</header>
 				<ol>
 					{#each stats.recentlyPlayed as track (track.id)}
@@ -354,7 +371,7 @@
 						</li>
 					{/each}
 				</ol>
-				<p style="text-align:right"><a href="/history">full play history &rarr;</a></p>
+				<p style="text-align:right"><a href="/history">{m.stats_history_link()}</a></p>
 			</section>
 		{/if}
 
@@ -363,7 +380,7 @@
 				<div class="reasons">
 					<div>
 						<header>
-							<h2>play reasons</h2>
+							<h2>{m.stats_play_reasons_heading()}</h2>
 						</header>
 						{#each stats.startReasons.slice(0, 5) as { reason, count } (reason)}
 							<div class="reason-line">
@@ -374,7 +391,7 @@
 					</div>
 					<div>
 						<header>
-							<h2>stop reasons</h2>
+							<h2>{m.stats_stop_reasons_heading()}</h2>
 						</header>
 						{#each stats.endReasons.slice(0, 5) as { reason, count } (reason)}
 							<div class="reason-line">
@@ -389,17 +406,23 @@
 
 		<section>
 			<header>
-				<h2>database</h2>
+				<h2>{m.stats_database_heading()}</h2>
 			</header>
 			<p>
-				{stats.totalChannelsInDb.toLocaleString()} radios •
-				{stats.totalTracksInDb.toLocaleString()} tracks
-				<small>&larr; local tracks</small>
+				{m.stats_database_summary({
+					channels: stats.totalChannelsInDb.toLocaleString(),
+					tracks: stats.totalTracksInDb.toLocaleString()
+				})}
+				<small>{m.stats_database_local_hint()}</small>
 			</p>
 			<p>
-				~{stats.avgTracksPerChannel} tracks per channel
+				{m.stats_database_tracks_per_channel({average: stats.avgTracksPerChannel})}
 			</p>
-			<p>{(stats.totalTracksInDb - stats.tracksWithoutMeta).toLocaleString()} tracks analyzed metadata</p>
+			<p>
+				{m.stats_database_metadata_summary({
+					count: (stats.totalTracksInDb - stats.tracksWithoutMeta).toLocaleString()
+				})}
+			</p>
 		</section>
 
 		{#if stats.channelTimeline.length > 1}
@@ -407,18 +430,24 @@
 			<section>
 				<div class="timeline">
 					{#each stats.channelTimeline as month, i (i)}
+						{@const dateLabel = new Intl.DateTimeFormat(getLocale() ?? 'en', {
+							month: 'short',
+							year: 'numeric'
+						}).format(new Date(month.month))}
 						<div
 							class="bar"
 							style="height: {(month.count / max) * 100}%"
-							title="{new Date(month.month).toLocaleDateString('en-US', {
-								month: 'short',
-								year: 'numeric'
-							})}: {month.count} channels"
+							title={m.stats_timeline_tooltip({
+								date: dateLabel,
+								count: month.count
+							})}
 						></div>
 					{/each}
 				</div>
 				<header>
-					<h2 style="text-align:right">{stats.totalChannelsInDb.toLocaleString()} Radio4000 channels over time</h2>
+					<h2 style="text-align:right">
+						{m.stats_timeline_heading({count: stats.totalChannelsInDb.toLocaleString()})}
+					</h2>
 				</header>
 			</section>
 			<br />

@@ -1,14 +1,15 @@
 <script>
 	import PgliteRepl from '$lib/components/pglite-repl.svelte'
+	import * as m from '$lib/paraglide/messages'
 </script>
 
 <svelte:head>
-	<title>CLI - R5</title>
+	<title>{m.page_title_cli()}</title>
 </svelte:head>
 
 <article class="sdk">
 	<header>
-		<h1>r5.exe</h1>
+		<h1>{m.cli_heading()}</h1>
 	</header>
 	<section class="repl">
 		<PgliteRepl />

@@ -1,5 +1,6 @@
 <script>
 	import Icon from '$lib/components/icon.svelte'
+	import * as m from '$lib/paraglide/messages'
 
 	let {showModal = $bindable(), header, children} = $props()
 
@@ -25,7 +26,7 @@
 		<header>
 			{@render header?.()}
 			<!-- svelte-ignore a11y_autofocus -->
-			<button autofocus onclick={() => dialog.close()} title="Close modal">
+			<button autofocus onclick={() => dialog.close()} title={m.modal_close_label()} aria-label={m.modal_close_label()}>
 				<Icon icon="close" size={20} />
 			</button>
 		</header>

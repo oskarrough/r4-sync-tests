@@ -1,8 +1,9 @@
 <script>
+	import * as m from '$lib/paraglide/messages'
 </script>
 
 <svelte:head>
-	<title>About Radio4000</title>
+	<title>{m.about_title()}</title>
 </svelte:head>
 
 <article class="SmallContainer">
@@ -10,53 +11,51 @@
 		<figure>
 			<img
 				src="https://upload.wikimedia.org/wikipedia/commons/3/30/The_Burning_of_the_Library_at_Alexandria_in_391_AD.jpg"
-				alt="The Burning of the Library at Alexandria in 391 AD by Ambrose Dudley"
+				alt={m.about_figcaption_alt()}
 				width="400"
 			/>
-			<figcaption>The Burning of the Library at Alexandria in 391 AD — Ambrose Dudley</figcaption>
+			<figcaption>{m.about_figcaption_text()}</figcaption>
 		</figure>
-		<h1>Radio4000</h1>
-		<p>lotsa rhythms but algorithm aint one of them</p>
+		<h1>{m.about_title()}</h1>
+		<p>{m.about_tagline()}</p>
 	</header>
 
 	<section>
-		<h2>It's your radio and music log</h2>
+		<h2>{m.about_your_radio()}</h2>
 		<p>
-			Essentially a glorified playlist. Add tracks via YouTube (and Soundcloud?)<br />
-			Search and filter with @mentions and #hashtags.<br />
-			Browse hundreds of channels made by people with different tastes.
+			{m.about_glorified_playlist()}<br />
+			{m.about_search_filter()}<br />
+			{m.about_browse()}
 		</p>
-		<p>Data is stored locally in your browser. Export, download, tag, filter.</p>
+		<p>{m.about_data_local()}</p>
 	</section>
 
 	<section>
-		<p>Get your own URL to share. Listen to other people's radios without signing up for anything.</p>
+		<p>{m.about_get_url()}</p>
 		<ul>
-			<li>Download tracks via CLI</li>
-			<li>Query listening patterns with SQL</li>
-			<li>Export everything anytime</li>
-			<li>Full API access to build whatever you need</li>
-			<li>Reuse our components in your own projects</li>
+			<li>{m.about_download_cli()}</li>
+			<li>{m.about_query_sql()}</li>
+			<li>{m.about_export()}</li>
+			<li>{m.about_api()}</li>
+			<li>{m.about_reuse_components()}</li>
 		</ul>
 	</section>
 
 	<section>
-		<h2>Technical details</h2>
+		<h2>{m.about_technical()}</h2>
 		<p>
-			This is an experimental client for Radio4000. Just like <a href="https://radio4000.com">radio4000.com</a>, this
-			web app pulls its data from the same Radio4000 PostgreSQL database. But it pulls it into <em>another</em> PostgreSQL
-			database. One sitting locally, directly in your browser.
+			{m.about_experimental()}
 		</p>
 	</section>
 
 	<footer>
 		<p>
-			<a href="/create-channel" class="btn primary">Create your radio</a>
-			<a href="/" class="btn">Start exploring</a>
+			<a href="/create-channel" class="btn primary">{m.channel_create_title()}</a>
+			<a href="/" class="btn">{m.about_start_exploring()}</a>
 		</p>
 		<p>
-			<a href="/repl">Repl</a> •
-			<a href="https://github.com/radio4000/r4-sync-tests" rel="noopener noreferrer">Source code</a>
+			<a href="/repl">{m.about_repl_link()}</a> •
+			<a href="https://github.com/radio4000/r4-sync-tests" rel="noopener noreferrer">{m.about_source_code()}</a>
 		</p>
 	</footer>
 </article>

@@ -5,6 +5,7 @@
 	import {r5} from '$lib/r5'
 	import {pg} from '$lib/r5/db'
 	import {analyzeChannel, analyzeChannels, clearChannelSpam, getChannelTracks} from './spam-detector.js'
+	import * as m from '$lib/paraglide/messages'
 
 	/** @type {Array<import('$lib/types').Channel & {spamAnalysis: {confidence: number, reasons: string[], isSpam: boolean}}>} */
 	let allChannels = $state([])
@@ -30,6 +31,12 @@
 	const undecidedChannels = $derived(filteredChannels.filter((ch) => ch.spam == null))
 	const deleteChannels = $derived(filteredChannels.filter((ch) => ch.spam === true))
 	const keepChannels = $derived(filteredChannels.filter((ch) => ch.spam === false))
+
+	const filterLabels = {
+		highConfidenceSpam: () => m.spam_filter_high(),
+		needsReview: () => m.spam_filter_needs(),
+		all: () => m.spam_filter_all()
+	}
 
 	const sqlCommands = $derived(
 		deleteChannels.map(
@@ -77,7 +84,7 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 	function copyAllSQL() {
 		const allSQL = sqlCommands.join('\n\n')
 		navigator.clipboard.writeText(allSQL)
-		alert('SQL commands copied to clipboard!')
+		alert(m.spam_alert_sql_copied())
 	}
 
 	/** @param {typeof channels[0]} channel */
@@ -87,7 +94,7 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 	}
 
 	async function clearAllSelections() {
-		if (!confirm('Clear all spam/keep decisions? This will reset all channels to undecided.')) {
+		if (!confirm(m.spam_confirm_clear())) {
 			return
 		}
 
@@ -102,10 +109,10 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 			// Force reactivity
 			allChannels = [...allChannels]
 
-			alert('All selections cleared!')
+			alert(m.spam_alert_cleared())
 		} catch (error) {
 			console.error('Failed to clear selections:', error)
-			alert('Failed to clear selections')
+			alert(m.spam_alert_clear_failed())
 		}
 	}
 
@@ -121,23 +128,25 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 		const channelsWithoutTracks = channelsNeedingTracks
 
 		if (channelsWithoutTracks.length === 0) {
-			alert('No channels without tracks found in current filter')
+			alert(m.spam_alert_no_channels())
 			return
 		}
 
-		if (
-			!confirm(`Pull tracks for all ${channelsWithoutTracks.length} channels without tracks? This might take a while.`)
-		) {
+		if (!confirm(m.spam_confirm_fetch({count: channelsWithoutTracks.length}))) {
 			return
 		}
 
 		batchFetching = true
-		batchProgress = `Fetching tracks for ${channelsWithoutTracks.length} channels...`
+		batchProgress = `⚙️ ${m.spam_progress_fetching({count: channelsWithoutTracks.length})}`
 
 		try {
 			for (let i = 0; i < channelsWithoutTracks.length; i++) {
 				const channel = channelsWithoutTracks[i]
-				batchProgress = `Fetching ${i + 1}/${channelsWithoutTracks.length}: ${channel.name}`
+				batchProgress = `⚙️ ${m.spam_progress_item({
+					current: i + 1,
+					total: channelsWithoutTracks.length,
+					name: channel.name
+				})}`
 
 				try {
 					await r5.tracks.pull({slug: channel.slug})
@@ -173,58 +182,71 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 
 			// Force reactivity
 			allChannels = [...allChannels]
-			batchProgress = `✅ Completed batch fetch for ${channelsWithoutTracks.length} channels`
+			batchProgress = `✅ ${m.spam_progress_done({count: channelsWithoutTracks.length})}`
 
 			setTimeout(() => {
 				batchProgress = ''
 			}, 3000)
 		} catch (error) {
 			console.error('Batch fetch error:', error)
-			batchProgress = `❌ Batch fetch failed: ${error instanceof Error ? error.message : String(error)}`
+			batchProgress = `❌ ${m.spam_progress_failed({
+				message: error instanceof Error ? error.message : String(error)
+			})}`
 		} finally {
 			batchFetching = false
 		}
 	}
+
+	const filterDescription = $derived(
+		filterMode === 'highConfidenceSpam'
+			? filterLabels.highConfidenceSpam()
+			: filterMode === 'needsReview'
+				? filterLabels.needsReview()
+				: filterLabels.all()
+	)
 </script>
 
 <svelte:head>
-	<title>Spam Channel Review - R5 Admin</title>
+	<title>{m.page_title_spam_warrior()}</title>
 </svelte:head>
 
 <main>
 	<header>
-		<h1>Spam Warrior</h1>
-		<p>
-			Review {filterMode === 'highConfidenceSpam'
-				? 'high confidence spam channels'
-				: filterMode === 'needsReview'
-					? 'channels that need manual review'
-					: 'all local channels'} and generate SQL commands for deletion.
-		</p>
+		<h1>{m.spam_heading()}</h1>
+		<p>{m.spam_description({filter: filterDescription})}</p>
 	</header>
 
 	{#if loading}
-		<p>Loading...</p>
+		<p>{m.spam_loading()}</p>
 	{:else}
 		<p>
-			{undecidedChannels.length} pending • {deleteChannels.length} delete • {keepChannels.length} keep
-			<em>({filteredChannels.length} filtered / {allChannels.length} total channels)</em>
+			{m.spam_summary({
+				pending: undecidedChannels.length,
+				toDelete: deleteChannels.length,
+				toKeep: keepChannels.length
+			})}
+			<em>
+				{m.spam_summary_details({
+					filtered: filteredChannels.length,
+					total: allChannels.length
+				})}
+			</em>
 		</p>
 
 		<menu class="controls">
 			<label>
 				<input type="radio" bind:group={filterMode} value="highConfidenceSpam" />
-				High confidence spam (algorithm + &lt;5 tracks)
+				{m.spam_radio_high()}
 			</label>
 			<label>
 				<input type="radio" bind:group={filterMode} value="needsReview" />
-				Needs review (everything else)
+				{m.spam_radio_needs()}
 			</label>
 		</menu>
 
 		<div class="batch-controls">
 			<button onclick={batchFetchTracks} disabled={batchFetching}>
-				{batchFetching ? 'Fetching...' : 'Pull tracks for all channels'}
+				{batchFetching ? m.spam_button_fetching() : m.spam_button_fetch_all()}
 			</button>
 			{#if batchProgress}
 				<span>{batchProgress}</span>
@@ -232,23 +254,23 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 		</div>
 
 		<menu>
-			<button onclick={clearAllSelections} style="background: var(--color-orange)"> Clear All Selections </button>
+			<button onclick={clearAllSelections} style="background: var(--color-orange)">
+				{m.spam_button_clear()}
+			</button>
 		</menu>
 
 		{#if sqlCommands.length > 0}
 			<section>
 				<h2>
-					Generated SQL commands ({sqlCommands.length})
-					<button onclick={copyAllSQL}>Copy All SQL</button>
+					{m.spam_section_sql({count: sqlCommands.length})}
+					<button onclick={copyAllSQL}>{m.spam_button_copy_sql()}</button>
 				</h2>
 				<textarea readonly class="sql-output">{sqlCommands.join('\n\n')}</textarea>
 			</section>
 		{/if}
 
 		<section class="channels">
-			<h2>
-				Channels for Review ({undecidedChannels.length})
-			</h2>
+			<h2>{m.spam_channels_heading({count: undecidedChannels.length})}</h2>
 
 			{#each undecidedChannels as channel (channel.id)}
 				<div class="channel">
@@ -260,18 +282,18 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 						{#if channel.source === 'v1'}
 							<span
 								style="background: var(--color-blue); color: white; padding: 0.1rem 0.3rem; border-radius: 0.2rem; font-size: 0.7rem;"
-								>V1</span
+								>{m.spam_label_v1()}</span
 							>
 						{/if}
-						<span class="track-count">{channel.track_count ?? 0} tracks</span>
-						<em>{Math.round(channel.spamAnalysis.confidence * 100)}% spam</em>
+						<span class="track-count">{m.spam_track_count({count: channel.track_count ?? 0})}</span>
+						<em>{m.spam_spam_percent({percent: Math.round(channel.spamAnalysis.confidence * 100)})}</em>
 						{#if channel.description && channel.description.trim()}
 							<div class="description">
 								{channel.description.length > 400 ? channel.description.slice(0, 400) + '...' : channel.description}
 							</div>
 						{:else}
 							<div class="description no-description">
-								<em>No description</em>
+								<em>{m.spam_no_description()}</em>
 							</div>
 						{/if}
 						{#if channel.spamAnalysis.reasons.length > 0}
@@ -282,8 +304,8 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 							{#await getChannelTracks(channel.id)}
 								{#if (channel.track_count ?? 0) > 0}
 									<details open>
-										<summary>Sample tracks ({channel.track_count})</summary>
-										<p class="loading-tracks">Loading tracks...</p>
+										<summary>{m.spam_sample_tracks({count: channel.track_count})}</summary>
+										<p class="loading-tracks">{m.spam_loading_tracks()}</p>
 									</details>
 								{:else}
 									<button
@@ -296,19 +318,19 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 												}
 											})}
 									>
-										Check for tracks
+										{m.spam_check_tracks()}
 									</button>
 								{/if}
 							{:then tracks}
 								{#if tracks.length > 0}
 									<details open>
-										<summary>Sample tracks ({tracks.length})</summary>
+										<summary>{m.spam_sample_tracks({count: tracks.length})}</summary>
 										<Tracklist {tracks} />
 									</details>
 								{:else if (channel.track_count ?? 0) > 0}
 									<p class="no-tracks">
-										Track count: {channel.track_count} but no local tracks found.
-										<button onclick={() => r5.tracks.pull({slug: channel.slug})}>Pull tracks</button>
+										{m.spam_no_tracks_message({count: channel.track_count})}
+										<button onclick={() => r5.tracks.pull({slug: channel.slug})}>{m.spam_button_pull_tracks()}</button>
 									</p>
 								{:else}
 									<button
@@ -321,33 +343,33 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 												}
 											})}
 									>
-										Check for tracks
+										{m.spam_check_tracks()}
 									</button>
 								{/if}
 							{:catch error}
-								<p class="error-tracks">Error loading tracks: {error.message}</p>
+								<p class="error-tracks">{m.spam_error_tracks({message: error.message})}</p>
 							{/await}
 						</div>
 					</div>
 					<div class="channel-actions">
-						<button onclick={() => markToKeep(channel)}>Keep</button>
-						<button class="danger" onclick={() => markForDeletion(channel)}>Delete</button>
+						<button onclick={() => markToKeep(channel)}>{m.spam_button_keep()}</button>
+						<button class="danger" onclick={() => markForDeletion(channel)}>{m.spam_button_delete()}</button>
 					</div>
 				</div>
 			{/each}
 
 			{#if undecidedChannels.length === 0}
-				<p>No more channels to review!</p>
+				<p>{m.spam_empty_state()}</p>
 			{/if}
 		</section>
 
 		{#if deleteChannels.length > 0}
 			<details>
-				<summary>Marked for Deletion ({deleteChannels.length})</summary>
+				<summary>{m.spam_marked_delete({count: deleteChannels.length})}</summary>
 				{#each deleteChannels as channel (channel.id)}
 					<div class="decided">
 						{channel.name} ({channel.slug})
-						<button onclick={() => undoDecision(channel)}>undo</button>
+						<button onclick={() => undoDecision(channel)}>{m.spam_button_undo()}</button>
 					</div>
 				{/each}
 			</details>
@@ -355,11 +377,11 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 
 		{#if keepChannels.length > 0}
 			<details>
-				<summary>Marked to Keep ({keepChannels.length})</summary>
+				<summary>{m.spam_marked_keep({count: keepChannels.length})}</summary>
 				{#each keepChannels as channel (channel.id)}
 					<div class="decided">
 						{channel.name} ({channel.slug})
-						<button onclick={() => undoDecision(channel)}>undo</button>
+						<button onclick={() => undoDecision(channel)}>{m.spam_button_undo()}</button>
 					</div>
 				{/each}
 			</details>

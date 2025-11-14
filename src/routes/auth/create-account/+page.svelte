@@ -1,9 +1,10 @@
 <script>
-	import {page} from '$app/state'
+	// import {page} from '$app/state'
+	import * as m from '$lib/paraglide/messages'
 
 	let didSubmit = $state(false)
-	const redirect = page.url.searchParams.get('redirect')
-	const redirectParam = redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''
+	// const redirect = page.url.searchParams.get('redirect')
+	// const redirectParam = redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''
 
 	function onSubmit(event) {
 		console.log(event, event.detail)
@@ -12,24 +13,24 @@
 </script>
 
 <svelte:head>
-	<title>Create account - R5</title>
+	<title>{m.auth_create_page_title()}</title>
 </svelte:head>
 
 <article class="MiniContainer">
 	{#if !didSubmit}
-		<h1>Create Radio4000 account</h1>
+		<h1>{m.auth_create_account_title()}</h1>
 		<r4-sign-up onsubmit={onSubmit}></r4-sign-up>
 		<footer>
-			<p>Already have an account? <a href="/auth/login{redirectParam}">Sign in &rarr;</a></p>
+			<p>{m.auth_already_have_account()}</p>
 			<p>
 				<small>
-					Having trouble? <a href="https://matrix.to/#/#radio4000:matrix.org" target="_blank">Chat with us</a>
+					{m.auth_having_trouble()}
 				</small>
 			</p>
 		</footer>
 	{:else}
-		<h1>Welcome, almost done!</h1>
-		<p>Please check your e-mail.<br /><br />Click the link in the mail to activate your account.</p>
+		<h1>{m.auth_welcome_almost_done()}</h1>
+		<p>{m.auth_check_email()}<br /><br />{m.auth_click_link()}</p>
 	{/if}
 </article>
 

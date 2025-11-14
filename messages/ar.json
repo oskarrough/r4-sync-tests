@@ -1,0 +1,543 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"about_api": "بناءً على واجهة برمجة التطبيقات Radio4000 لأتمتة المزامنة أو الفهرسة أو التشغيل.",
+	"about_browse": "تصفح محطات الراديو المجتمعية الأخرى لاكتشاف ما يقومون بإعداده.",
+	"about_data_local": "يتم حفظ كل تغيير محلياً أولاً؛ أنت القرار متى تزامن أو صدّر.",
+	"about_download_cli": "حمّل أداة CLI لمزامنة راديوك بدون اتصال وإنشاء سكريبتات للتعديلات الجماعية.",
+	"about_experimental": "R5 هو برنامج تجريبي — قد تتغير الميزات بسرعة وأحياناً تتعطل.",
+	"about_export": "صدّر المسارات والبيانات الوصفية والتاريخ عندما تحتاج إلى نسخة احتياطية.",
+	"about_get_url": "كل قناة، مسار، ومجموعة لديها رابط دائم قابل للمشاركة.",
+	"about_glorified_playlist": "فكر في R5 كمنشئ قوائم تشغيل مُترَفّع للاستماع الطويل والعميق.",
+	"about_query_sql": "استعلام قاعدة بيانات PostgreSQL المدمجة مباشرة باستخدام SQL.",
+	"about_reuse_components": "أعد استخدام مكتبة @radio4000/components داخل مشاريع Svelte الخاصة بك.",
+	"about_repl_link": "Repl",
+	"about_search_filter": "صفِّ، علّم، وابحث أرشيفك فوراً.",
+	"about_source_code": "اطّلع على الشيفرة المصدرية على GitHub",
+	"about_start_exploring": "ابدأ في استكشاف الراديوهات",
+	"about_tagline": "Radio4000 هو مستكشف موسيقى محلي-الأولوية يركز على القنوات، ليس على الخوارزميات.",
+	"about_technical": "ملاحظات فنية",
+	"about_title": "حول R5",
+	"about_your_radio": "راديوك، مبني في المتصفح",
+	"about_figcaption_text": "حرق مكتبة الإسكندرية في عام 391 م — أمبروز دادلي",
+	"about_figcaption_alt": "حرق مكتبة الإسكندرية في عام 391 م بواسطة أمبروز دادلي",
+	"auth_card_create_description": "أنا جديد في Radio4000",
+	"auth_card_create_title": "إنشاء حساب",
+	"auth_card_login_description": "لدي قناة بالفعل",
+	"auth_card_login_title": "تسجيل الدخول",
+	"app_loading": "جاري تجهيز R5…",
+	"app_name": "R5",
+	"auth_loading_channels": "جاري تحميل قنواتك…",
+	"auth_create_radio_cta": "لننشئ قناة الراديو الخاصة بك.",
+	"auth_error_loading_channels": "خطأ في تحميل القنوات: {message}",
+	"auth_page_title": "المصادقة - R5",
+	"auth_login_page_title": "تسجيل الدخول - R5",
+	"auth_create_page_title": "إنشاء حساب - R5",
+	"auth_reset_page_title": "هل نسيت كلمة المرور",
+	"auth_reset_heading": "هل نسيت كلمة المرور؟",
+	"auth_reset_prompt_email": "أدخل عنوان بريدك الإلكتروني في Radio4000",
+	"auth_reset_instruction": "سنرسل إليك تعليمات لإعادة تعيين كلمة المرور الخاصة بك",
+	"auth_reset_help_intro": "هل تواجه مشاكل؟",
+	"auth_reset_help_link": "تحدث معنا",
+	"auth_already_have_account": "هل لديك حساب بالفعل؟ سجل الدخول بدلاً من ذلك.",
+	"auth_check_email": "تحقق من بريدك الإلكتروني للحصول على رابط التأكيد.",
+	"auth_click_link": "انقر الرابط في البريد لإنهاء إنشاء حسابك.",
+	"auth_create_account_title": "إنشاء حساب Radio4000",
+	"auth_create_or_signin": "أنشئ حساباً أو سجّل الدخول",
+	"auth_forgot_password": "هل نسيت كلمة المرور؟",
+	"auth_having_trouble": "هل تواجه مشاكل؟ تواصل معنا على Matrix أو hello@radio4000.com.",
+	"auth_log_out": "تسجيل الخروج",
+	"auth_login_title": "سجل الدخول إلى Radio4000",
+	"auth_new_to_r4": "جديد في Radio4000؟ أنشئ حساباً في دقيقة.",
+	"auth_sign_in_to_add": "سجل الدخول لإضافة مسارات.",
+	"auth_sign_in_to_create": "سجل الدخول لإنشاء قناتك.",
+	"auth_sign_in_to_edit": "سجل الدخول لتعديل هذه القناة.",
+	"auth_signed_in_as": "تم تسجيل الدخول كـ {email}",
+	"auth_welcome_almost_done": "مرحباً! أنت قريب من الاكتمال.",
+	"broadcasts_error": "لم نتمكن من تحميل البثوث.",
+	"broadcasts_join": "استمع معنا",
+	"broadcasts_leave": "غادر البث",
+	"broadcasts_live": "مباشر الآن",
+	"broadcasts_none": "لا أحد يقوم بالبث حالياً.",
+	"broadcasts_since": "منذ",
+	"broadcasts_title": "البثوث",
+	"broadcasts_wip": "البثوث تُزامن ما يعزفه الديجي في شبه وقت حقيقي.",
+	"button_follow": "متابعة",
+	"button_queue": "قائمة",
+	"button_unfollow": "إلغاء المتابعة",
+	"channel_create_prompt": "أنشئ قناة لبدء حفظ المسارات.",
+	"channel_create_title": "إنشاء قناة",
+	"channel_edit_title": "تحرير القناة",
+	"channel_name_changeable": "يمكنك إعادة تسميتها أو حذفها لاحقاً.",
+	"channel_updated_success": "تم تحديث القناة.",
+	"channel_you_have": "أنت بالفعل تدير",
+	"common_add": "إضافة",
+	"common_cancel": "إلغاء",
+	"common_confirm": "تأكيد",
+	"common_delete": "حذف",
+	"common_details": "تفاصيل",
+	"common_edit": "تحرير",
+	"common_error": "خطأ",
+	"common_save": "حفظ",
+	"common_clear": "مسح",
+	"common_loading": "جارٍ التحميل…",
+	"empty_placeholder": "لا شيء هنا",
+	"error_happened": "حدث خطأ ما.",
+	"error_if_not_work": "إذا لم ينجح ذلك بعد",
+	"error_reload_app": "أعد تحميل التطبيق",
+	"error_repair_try": "جرب هذا أولاً",
+	"error_reset_app": "إعادة تعيين التطبيق",
+	"error_unknown": "خطأ غير متوقع",
+	"following_empty": "أنت لا تتابع أية محطات بعد.",
+	"following_synced": "المتابعة متزامنة مع حسابك في Radio4000.",
+	"following_tip_signin": "سجّل الدخول لمزامنة الراديوهات المتابعة عبر الأجهزة.",
+	"following_title": "المتابعة ({count})",
+	"following_v1_local": "قناة قديمة تخزن محلياً فقط.",
+	"history_empty": "لا توجد بعد تاريخ استماع.",
+	"history_error": "لم يمكن تحميل تاريخ الاستماع.",
+	"history_local_note": "التاريخ يبقى على هذا الجهاز حتى تصدّره.",
+	"history_title": "تاريخ الاستماع",
+	"home_pull_from_r4": "سحب الراديوهات من R4",
+	"home_pulling_radios": "جاري سحب الراديوهات…",
+	"home_title": "R5",
+	"icon_r4_title": "R4",
+	"loading": "جارٍ التحميل…",
+	"loading_generic": "جارٍ التحميل…",
+	"nav_about": "حول",
+	"nav_broadcasts": "البثوث",
+	"nav_chat": "الدردشة",
+	"nav_cli": "CLI",
+	"nav_following": "المتابعة",
+	"nav_history": "التاريخ",
+	"nav_settings": "الإعدادات",
+	"nav_stats": "الإحصائيات",
+	"page_title_add_track": "إضافة مسار – R5",
+	"page_title_cli": "CLI – R5",
+	"page_title_command_terminal": "طرفية الأوامر – R5",
+	"page_title_following": "المتابعة – R5",
+	"page_title_keyboard": "اختصارات لوحة المفاتيح – R5",
+	"page_title_media_chrome": "مسرح Media Chrome – R5",
+	"page_title_playground": "ساحة اللعب – R5",
+	"page_title_spam_warrior": "مراجعة قنوات السبام – R5 Admin",
+	"page_title_stats": "R5 / الإحصائيات",
+	"playground_heading": "ساحة اللعب",
+	"playground_toggle_queue": "تبديل لوحة قائمة الانتظار",
+	"playground_queue_visible": "queue_panel_visible: {value}",
+	"playground_volume": "الحجم: {value}",
+	"playground_throw_error": "رمي خطأ غير متوقع",
+	"playground_counter": "{count} × 2 = {double}",
+	"playground_cmd_from_channel": "من {channel}",
+	"spam_heading": "Bمحارب السبام",
+	"spam_description": "راجع {filter} و أنشئ أوامر SQL للحذف.",
+	"spam_filter_high": "قنوات سبام ذات ثقة عالية",
+	"spam_filter_needs": "قنوات تحتاج مراجعة يدوية",
+	"spam_filter_all": "جميع القنوات المحلية",
+	"spam_loading": "جارٍ التحميل…",
+	"spam_summary": "{pending} معلّقة • {toDelete} حذف • {toKeep} احتفظ",
+	"spam_summary_details": "({filtered} تمت تصفيتها / {total} إجمالي القنوات)",
+	"spam_radio_high": "سبام بثقة عالية (خوارزمية + <5 مسارات)",
+	"spam_radio_needs": "تحتاج للمراجعة (كل الباقي)",
+	"spam_button_fetch_all": "سحب المسارات لجميع القنوات",
+	"spam_button_fetching": "جاري السحب…",
+	"spam_button_pull_tracks": "سحب المسارات",
+	"spam_button_clear": "مسح كل الاختيارات",
+	"spam_section_sql": "أوامر SQL المولّدة ({count})",
+	"spam_button_copy_sql": "نسخ كل SQL",
+	"spam_channels_heading": "قنوات للمراجعة ({count})",
+	"spam_label_v1": "V1",
+	"spam_track_count": "{count} مسارات",
+	"spam_spam_percent": "{percent}% سبام",
+	"spam_no_description": "لا يوجد وصف",
+	"spam_sample_tracks": "عينات مسارات ({count})",
+	"spam_loading_tracks": "جاري تحميل المسارات…",
+	"spam_check_tracks": "تحقق من المسارات",
+	"spam_no_tracks_message": "عدد المسارات: {count} لكن لا توجد مسارات محلية.",
+	"spam_error_tracks": "خطأ في تحميل المسارات: {message}",
+	"spam_button_keep": "احتفظ",
+	"spam_button_delete": "حذف",
+	"spam_empty_state": "لا توجد قنوات للمراجعة بعد!",
+	"spam_marked_delete": "تم وضع علامة للحذف ({count})",
+	"spam_marked_keep": "تم وضع علامة للاحتفاظ ({count})",
+	"spam_button_undo": "تراجع",
+	"spam_alert_sql_copied": "تم نسخ أوامر SQL إلى الحافظة!",
+	"spam_confirm_clear": "مسح كل قرارات السبام/الاحتفاظ؟ هذا سيعيد جميع القنوات إلى غير محددة.",
+	"spam_alert_cleared": "تم مسح جميع الاختيارات!",
+	"spam_alert_clear_failed": "فشل في مسح الاختيارات",
+	"spam_alert_no_channels": "لم تُعثر على قنوات بدون مسارات في الفلتر الحالي",
+	"spam_confirm_fetch": "سحب المسارات من {count} قنوات بلا مسارات؟ قد يستغرق وقتاً.",
+	"spam_progress_fetching": "جاري سحب المسارات من {count} قنوات…",
+	"spam_progress_item": "جاري سحب {current}/{total}: {name}",
+	"spam_progress_done": "اكتملت دفعة السحب لـ {count} قنوات",
+	"spam_progress_failed": "فشل دفعة السحب: {message}",
+	"media_chrome_heading": "مسرح Media Chrome",
+	"media_chrome_test_urls": "روابط اختبار",
+	"media_chrome_manual_controls": "الضوابط اليدوية",
+	"media_chrome_toggle_js": "تبديل تشغيل/إيقاف عبر JS",
+	"media_chrome_seek_start": "الانتقال للبداية",
+	"media_chrome_seek_30": "الانتقال لـ 30ث",
+	"media_chrome_volume_50": "حجم 50%",
+	"media_chrome_volume_100": "حجم 100%",
+	"media_chrome_mute": "كتم",
+	"media_chrome_unmute": "إزالة الكتم",
+	"media_chrome_autoplay": "تشغيل تلقائي",
+	"media_chrome_current_state": "الحالة الحالية",
+	"media_chrome_label_url": "الرابط:",
+	"media_chrome_label_provider": "المزود:",
+	"media_chrome_label_user_played": "المستخدم قام بالتشغيل:",
+	"media_chrome_label_autoplay": "تشغيل تلقائي:",
+	"media_chrome_label_paused": "موقوف:",
+	"media_chrome_label_current_time": "الوقت الحالي:",
+	"media_chrome_label_duration": "المدة:",
+	"media_chrome_label_volume": "الحجم:",
+	"media_chrome_player_heading": "المُشغّل",
+	"tooltips_heading": "تلميحات",
+	"tooltips_intro_default": "تُعرض التلميحات تلقائياً عند التمرير والتّركيز.",
+	"tooltips_intro_positions": "يمكن وضع التلميحات أعلى أو يمين أو أسفل أو يسار.",
+	"tooltips_intro_methods": "يمكن إضافة التلميحات بطريقتين:",
+	"tooltips_inline_heading": "مكوّن داخلي",
+	"tooltips_button_save": "حفظ",
+	"tooltips_save_tip": "احفظ تغييراتك في التخزين المحلي",
+	"tooltips_positions_note": "التلميحات تدعم أربع مواضع: أعلى، أسفل، يسار، يمين.",
+	"tooltips_button_top": "أعلى",
+	"tooltips_button_right": "يمين",
+	"tooltips_button_bottom": "أسفل",
+	"tooltips_button_left": "يسار",
+	"tooltips_tip_top": "تلميح موضوع أعلاه",
+	"tooltips_tip_right": "تلميح موضوع يميناً",
+	"tooltips_tip_bottom": "تلميح موضوع أسفلاً",
+	"tooltips_tip_left": "تلميح موضوع يساراً",
+	"tooltips_attachment_heading": "استخدام مرفقات Svelte",
+	"tooltips_attachment_hover": "مرّر فوقي",
+	"tooltips_attachment_label": "تلميحات HTML",
+	"tooltips_attachment_content": "يمكنني احتواء <strong>HTML</strong> نعم!",
+	"tooltips_tip_via_attachment": "عبر مرفق",
+	"cli_heading": "r5.exe",
+	"queue_empty": "لا توجد مسارات تطابق هذا الفلتر.",
+	"queue_no_history": "لا توجد مدخلات تاريخ مطابقة.",
+	"queue_no_play_history": "لا توجد بعد تاريخ استماع.",
+	"queue_no_tracks": "القائمة فارغة. اختر قناة لبدء التشغيل.",
+	"search_tip_intro": "نصيحة:",
+	"search_tip_header": "استخدم مدخل البحث في الرأس",
+	"search_tip_channel": "لبحث القنوات",
+	"search_tip_channel_query": "لبحث المسارات ضمن قناة",
+	"search_tip_commands": "للأوامر",
+	"recovery_go_home": "العودة إلى الصفحة الرئيسية",
+	"recovery_note": "هذا يمسح البيانات المحلية فقط. القوائم البعيدة تظل كما هي.",
+	"recovery_reload_app": "إعادة تحميل R5",
+	"recovery_reset_button": "إعادة تعيين قاعدة البيانات المحلية",
+	"recovery_reset_db": "إعادة تعيين قاعدة البيانات المحلية",
+	"recovery_reset_point_1": "يحذف القنوات، المسارات، والبيانات الوصفية المؤقتة",
+	"recovery_reset_point_2": "يبقي حسابك البعيد Radio4000 سليماً",
+	"recovery_reset_point_3": "قد يستغرق الأمر لحظة لإعادة المزامنة",
+	"recovery_reset_success": "تم إعادة تعيين قاعدة البيانات. يمكنك إعادة التحميل الآن.",
+	"recovery_reset_will": "إعادة التعيين ستقوم بـ:",
+	"recovery_resetting": "جاري إعادة تعيين قاعدة البيانات المحلية…",
+	"recovery_sorry": "عذراً، حدثت مشكلة. يمكنك محاولة إصلاح سريع أدناه.",
+	"recovery_title": "أدوات الاسترداد",
+	"stats_heading": "إحصائيات",
+	"stats_intro": "إحصائيات من بياناتك المحلية وتاريخ التشغيل.",
+	"stats_loading_heading": "جاري تحضير النشاط، أنا",
+	"stats_activity_heading": "نشاط",
+	"stats_counts_summary": "{channels} راديوهات • {tracks} مسارات • {plays} تشغيلات",
+	"stats_time_summary": "{hours}س {minutes}د الإجمالي • {skipRate}% تم تخطيها",
+	"stats_listening_duration": "استماع لمدة {days} أيام • النشط في {activeDays} منها",
+	"stats_most_active": "أكثر نشاطاً حوالي الساعة {hour}:00",
+	"stats_user_share": "{userRate}% بدأه المستخدم • {autoRate}% تلقائي",
+	"stats_on_repeat_heading": "قيد التكرار",
+	"stats_recent_heading": "تم تشغيلها مؤخراً",
+	"stats_history_link": "السجل الكامل →",
+	"stats_play_count": "{count} تشغيلات",
+	"stats_play_reasons_heading": "أسباب التشغيل",
+	"stats_stop_reasons_heading": "أسباب التوقف",
+	"stats_database_heading": "قواعد البيانات",
+	"stats_database_summary": "{channels} راديوهات • {tracks} مسارات",
+	"stats_database_tracks_per_channel": "~{average} مسارات لكل قناة",
+	"stats_database_metadata_summary": "{count} مسارات تم تحليل بياناتها الوصفية",
+	"stats_database_local_hint": "← المسارات المحلية",
+	"stats_timeline_tooltip": "{date}: {count} قنوات",
+	"stats_timeline_heading": "{count} قنوات Radio4000 عبر الزمن",
+	"search_channel_one": "{count} قناة",
+	"search_channel_other": "{count} قنوات",
+	"search_no_results": "لا توجد نتائج لـ",
+	"search_placeholder": "بحث…",
+	"search_play_all": "تشغيل الكل",
+	"search_queue_all": "إضافة الكل إلى القائمة",
+	"search_tip_slug": "نصيحة: استخدم @slug للبحث داخل قناة.",
+	"search_title": "بحث في الراديوهات والمسارات",
+	"search_track_one": "{count} مسار",
+	"search_track_other": "{count} مسارات",
+	"settings_appearance": "المظهر",
+	"settings_appearance_nav": "خصص كيف يبدو ويشعر R5.",
+	"settings_appearance_title": "إعدادات المظهر",
+	"settings_keyboard": "اختصارات لوحة المفاتيح",
+	"tooltip_v1_channel": "هذه القناة v1 محفوظة محلياً ولا يمكن مزامنتها مع R4",
+	"settings_language_label": "اللغة",
+	"settings_recovery": "أدوات الاسترداد",
+	"settings_title": "الإعدادات",
+	"track_add_title": "إضافة مسار",
+	"track_add_destination": "إلى {channel}",
+	"track_delete_confirm": "حذف {title}? هذا سيزيله من راديوك.",
+	"track_edit_title": "تحرير المسار",
+	"track_recently_saved": "المسارات المحفوظة حديثاً",
+	"broadcast_stop_button": "إيقاف البث",
+	"broadcast_start_button": "بدء البث",
+	"broadcast_login_prompt": "سجّل الدخول لبدء البث",
+	"broadcast_requires_track": "تحتاج لتشغيل مسار لبدء البث. شغّل شيئاً.",
+	"status_live_short": "مباشر",
+	"channels_filter_label": "فلتر القنوات",
+	"channels_filter_option_all": "الكل",
+	"channels_filter_option_20": "20+ مسارات",
+	"channels_filter_option_100": "100+ مسارات",
+	"channels_filter_option_1000": "1000+ مسارات",
+	"channels_filter_option_artwork": "يحتوي على غلاف",
+	"channels_filter_option_v1": "v1",
+	"channels_filter_option_v2": "v2",
+	"channels_shuffle_tooltip": "عرض قنوات عشوائية",
+	"channels_view_label_grid": "شبكة",
+	"channels_view_label_list": "قائمة",
+	"channels_view_label_map": "خريطة",
+	"channels_view_label_tuner": "موجّه",
+	"channels_view_label_infinite": "لا نهائي",
+	"channels_view_mode": "عرض كـ {mode}",
+	"channels_summary": "عرض {visible} من {total} قنوات.",
+	"channels_load_more": "تحميل {count} المزيد",
+	"track_missing_label": "مسار مفقود",
+	"command_go_settings": "اذهب إلى الإعدادات",
+	"command_toggle_theme": "تبديل الموضوع",
+	"command_toggle_queue": "تبديل لوحة القائمة",
+	"header_search_placeholder": "بحث في الراديوهات والمسارات",
+	"status_online": "متصل",
+	"status_offline": "غير متصل",
+	"shortcuts_heading": "اختصارات لوحة المفاتيح",
+	"shortcuts_edit": "تعديل الاختصارات",
+	"shortcuts_done": "تم",
+	"shortcuts_key_label": "مفتاح",
+	"shortcuts_key_placeholder": "مثلاً k, $mod+k, Escape",
+	"shortcuts_add": "+ أضف اختصار",
+	"shortcuts_reset": "إعادة الضبط إلى الافتراضي",
+	"shortcuts_reference_intro": "مرجع المفاتيح: استخدم",
+	"shortcuts_reference_link": "بناء tinykeys",
+	"shortcuts_reference_examples": "أمثلة:",
+	"shortcuts_unset": "غير مضبوط",
+	"shortcuts_action_togglePlayerExpanded": "تبديل توسيع المشغّل",
+	"shortcuts_action_openSearch": "افتح البحث",
+	"shortcuts_action_togglePlayPause": "تبديل تشغيل/إيقاف",
+	"shortcuts_action_toggleQueuePanel": "تبديل لوحة القائمة",
+	"shortcuts_action_toggleTheme": "تبديل الموضوع",
+	"shortcuts_action_toggleShuffle": "تبديل التوزيع العشوائي",
+	"chat_empty_state": "دردشة مؤقتة",
+	"chat_input_placeholder": "اكتب رسالة…",
+	"chat_send_button": "أرسل",
+	"modal_close_label": "إغلاق النافذة",
+	"pglite_heading": "PGLite repl",
+	"pglite_button_enable": "ادخل REPL",
+	"pglite_description": "جرّب استعلام القنوات، المسارات أو app_state باستخدام SQL.",
+	"player_empty_prompt": "ابحث عن موسيقى رائعة",
+	"player_live_indicator": "🔴 مباشر",
+	"queue_select_channel": "اختر قناة لبدء التشغيل",
+	"queue_history_hint": "ابدأ تشغيل مسارات لرؤية التاريخ",
+	"queue_clear_history_title": "مسح تاريخ الاستماع",
+	"queue_clear_history_confirm": "هل أنت متأكد من أنك تريد مسح تاريخ استماعك؟ لا يمكن التراجع عن هذا.",
+	"queue_clear_history_button": "مسح التاريخ",
+	"queue_seconds_suffix": "{seconds}ث",
+	"search_tracks_placeholder": "ابحث في المسارات…",
+	"spectrum_unit_label": "R4Hz",
+	"spectrum_button_stop": "إيقاف",
+	"spectrum_button_scan": "مسح",
+	"spectrum_button_seek": "ابحث",
+	"spectrum_button_auto": "تلقائي",
+	"spectrum_signal_strength": "{percent}% إشارة",
+	"spectrum_static_text": "~ ثابت ~",
+	"test_counter_prefix": "R",
+	"theme_heading": "المظهر",
+	"theme_layout_heading": "التخطيط",
+	"theme_scale_label": "مقياس",
+	"theme_scale_hint": "غيّر واجهة الاستخدام حسب مقاييسك",
+	"theme_corners_label": "زوايا مدوّرة",
+	"theme_corners_hint": "مدوّرة، مدوّرة، هيا ندور",
+	"theme_artwork_label": "أغلفة مدوّرة",
+	"theme_artwork_hint": "دوّر الزوايا على أغلفة المسارات",
+	"theme_hide_artwork_label": "إخفاء أغلفة المسارات",
+	"theme_hide_artwork_hint": "تبديل مصغّرات المسارات في القوائم والمشغّل",
+	"theme_create_heading": "اصنع موضوعك الخاص",
+	"theme_color_accent_light_label": "لهجة (فاتحة)",
+	"theme_color_accent_dark_label": "لهجة (داكنة)",
+	"theme_color_accent_desc": "ينشئ accent-1 حتى accent-12",
+	"theme_color_gray_label": "درجات الرمادي",
+	"theme_color_gray_desc": "ينشئ gray-1 حتى gray-12",
+	"theme_override_button_bg_label_light": "خلفية الزر (فاتحة)",
+	"theme_override_button_bg_label_dark": "خلفية الزر (داكنة)",
+	"theme_override_button_color_label_light": "نص الزر (فاتحة)",
+	"theme_override_button_color_label_dark": "نص الزر (داكنة)",
+	"theme_override_button_bg_desc": "تجاوز خلفية الزر",
+	"theme_override_button_text_desc": "تجاوز لون نص الزر",
+	"theme_input_placeholder_hex": "مثل #ff6b6b",
+	"theme_input_placeholder_inherit": "inherit",
+	"theme_reset_button": "إعادة ضبط التخطيط والموضوع إلى الافتراضي",
+	"theme_share_heading": "مشاركة الموضوع",
+	"theme_copy_button": "نسخ الموضوع",
+	"theme_import_placeholder": "ألْصق سلسلة الموضوع للاستيراد",
+	"theme_apply_button": "تطبيق الموضوع",
+	"theme_typography_heading": "الطّباعة",
+	"theme_sample_text": "نص تجريبي. يكتب الرجل كما لو كان تحت تأثير البخور والنوايا الحسنة بشكل دائم. كل جملة تطفو بثقة مدهونة وغامضة، كأنه تلقى تحميلاً شخصياً من الكون ويشارك كلمة المرور مع باقي ­الموتى. «أولادكم ليسوا أولادكم» — حسناً، شكراً يا خليل.",
+	"theme_form_heading": "نموذج",
+	"theme_form_name_label": "اسمك",
+	"theme_form_age_label": "عُمرك",
+	"common_submit": "إرسال",
+	"track_duration_seconds": "{seconds}ث",
+	"track_meta_toggle_formatted": "عرض مهيّأ",
+	"track_meta_toggle_raw": "json خام",
+	"track_meta_release": "إصدار",
+	"track_meta_year": "سنة",
+	"track_meta_label": "العلامة",
+	"track_meta_format": "تنسيق",
+	"track_meta_genres": "أنواع",
+	"track_meta_styles": "أساليب",
+	"track_meta_country": "بلد",
+	"track_meta_cover": "غلاف",
+	"track_meta_cover_alt": "غلاف الألبوم",
+	"track_meta_discogs": "discogs",
+	"track_meta_view_discogs": "عرض على discogs →",
+	"track_meta_no_discogs": "لا تتوفر بيانات Discogs",
+	"track_meta_artist": "فنّان",
+	"track_meta_recording": "تسجيل",
+	"track_meta_length": "طول",
+	"track_meta_first_release": "أول إصدار",
+	"track_meta_appears_on": "يظهر على",
+	"track_meta_other_releases": "إصدارات أخرى",
+	"track_meta_other_releases_count": "{count} أكثر",
+	"track_meta_musicbrainz": "musicbrainz",
+	"track_meta_view_musicbrainz": "عرض على musicbrainz →",
+	"track_meta_no_musicbrainz": "لا تتوفر بيانات MusicBrainz",
+	"track_meta_title": "العنوان",
+	"track_meta_channel": "القناة",
+	"track_meta_duration": "المدة",
+	"track_meta_tags": "وسوم",
+	"track_meta_description": "الوصف",
+	"track_meta_source": "المصدر",
+	"track_meta_youtube": "يوتيوب",
+	"track_meta_view_release": "عرض الإصدار",
+	"track_meta_metadata": "البيانات الوصفية",
+	"track_meta_flag_youtube": "✓ يوتيوب",
+	"track_meta_flag_musicbrainz": "✓ musicbrainz",
+	"track_meta_flag_discogs": "✓ discogs",
+	"track_meta_added": "أُضيف",
+	"track_meta_updated": "تم التحديث",
+	"track_meta_no_data": "لا تتوفر بيانات للمسار",
+	"track_meta_published": "نشر",
+	"track_meta_thumbnail": "صورة مصغّرة",
+	"track_meta_thumbnail_alt": "صورة مصغّرة للفيديو",
+	"track_meta_no_youtube": "لا تتوفر بيانات YouTube",
+	"track_meta_loading": "جاري تحميل البيانات الوصفية من YouTube و MusicBrainz و Discogs…",
+	"track_meta_error": "خطأ: {message}",
+	"track_related_heading": "مسارات أخرى تستخدم نفس فيديو YouTube:",
+	"track_related_by": "بواسطة",
+	"track_related_empty": "لا توجد مسارات أخرى تستخدم هذا الفيديو YouTube.",
+	"chat_panel_title": "R4 Chat",
+	"button_play_label": "تشغيل",
+	"channel_tags_link": "وسوم",
+	"channel_stats_summary": "يُبَث منذ {since}. تم التحديث {updated}. {count} مسارات",
+	"channel_loading_tracks": "جاري تحميل المسارات…",
+	"channel_not_found": "القناة غير موجودة",
+	"channel_page_title": "{name} - R5",
+	"channel_page_fallback": "قناة",
+	"common_all": "الكل",
+	"batch_edit_page_title": "تعديل جماعي – {name}",
+	"batch_edit_nav_suffix": "/ تعديل جماعي",
+	"batch_edit_edit_count": "{count} تعديلات",
+	"batch_edit_warning": "مهم: هذا محلي فقط. لا يتم الكتابة فوق أي بيانات عن بُعد. اللعب آمن. يمكنك تعديل أي راديو.",
+	"batch_edit_filter_all": "كل المسارات",
+	"batch_edit_filter_missing_description": "وصف فارغ",
+	"batch_edit_filter_single_tag": "وسم واحد",
+	"batch_edit_filter_no_tags": "بدون وسوم",
+	"batch_edit_filter_no_meta": "بدون بيانات وصفية",
+	"batch_edit_filter_has_meta": "بها بيانات وصفية",
+	"batch_edit_filter_has_t_param": "لديها معامل &t=",
+	"batch_edit_pull_tracks": "سحب مسارات",
+	"batch_edit_no_tracks": "لم يتم العثور على مسارات",
+	"batch_edit_selected_count": "{count} محددة",
+	"batch_edit_select_all": "الكل ({count})",
+	"batch_edit_column_url": "الرابط",
+	"batch_edit_column_title": "العنوان",
+	"batch_edit_column_description": "الوصف",
+	"batch_edit_column_discogs": "discogs",
+	"batch_edit_column_tags": "وسوم",
+	"batch_edit_column_mentions": "إشارات",
+	"batch_edit_column_meta": "ميتا",
+	"batch_edit_column_created": "إنشأ",
+	"batch_edit_preview_heading_one": "معاينة {count} تعديل",
+	"batch_edit_preview_heading_other": "معاينة {count} تعديلات",
+	"batch_edit_discard_button": "تجاهل",
+	"batch_edit_commit_button": "تنفيذ",
+	"batch_edit_committing": "جاري التنفيذ…",
+	"batch_edit_warning_v1": "يجب ترحيل راديوهات v1 إلى v2 قبل أن يمكن تحديثها",
+	"batch_edit_warning_no_access": "أنت غير مخوّل لتعديل هذه القناة",
+	"batch_edit_error_commit": "فشل في تنفيذ التعديلات",
+	"batch_edit_error_discard": "فشل في تجاهل التعديلات",
+	"batch_edit_pending_heading": "تعديلات معلقة",
+	"batch_edit_delete": "حذف",
+	"batch_edit_empty_value": "(فارغ)",
+	"batch_edit_applied_summary": "التعديلات المُنفَّذة ({count}) – يمكن التراجع عنها",
+	"batch_edit_undo_button": "↶ تراجع",
+	"batch_edit_undo_title": "تراجع عن هذا التعديل",
+	"batch_edit_track_placeholder": "مسار {id}",
+	"batch_edit_track_link_title": "افتح صفحة المسار",
+	"batch_edit_meta_youtube": "Y",
+	"batch_edit_meta_musicbrainz": "M",
+	"batch_edit_meta_discogs": "D",
+	"channel_edit_page_title": "تحرير {name} – R5",
+	"tags_heading": "وسوم {name}",
+	"tags_filter_label": "فلتر الوسوم",
+	"tags_filter_all": "كل الوسوم",
+	"tags_filter_single": "وسوم مرة واحدة",
+	"tags_filter_frequent": "متكررة (5+)",
+	"tags_filter_rare": "نادرة (1-4)",
+	"tags_period_label": "الفترة الزمنية",
+	"tags_period_years": "سنوات",
+	"tags_period_quarters": "أرباع السنة",
+	"tags_period_months": "أشهر",
+	"tags_scrub_title": "تصفح عبر الفترات الزمنية",
+	"tags_all_time": "لكل الأوقات",
+	"tags_showing": "عرض {count} وسم",
+	"tags_period_context": "لـ {label}",
+	"tags_empty": "لم يُعثر على وسوم لهذا الفلتر.",
+	"track_urls_page_title": "روابط المسارات – {name} – R5",
+	"tracks_no_results": "لم يتم العثور على مسارات.",
+	"tracks_no_ytid": "لا يوجد معرف YouTube لـ {url}",
+	"track_detail_page_title": "{track} من {channel} – R5",
+	"track_detail_nav_r5": "ر5",
+	"track_detail_nav_youtube": "youtube",
+	"track_detail_nav_musicbrainz": "musicbrainz",
+	"track_detail_nav_discogs": "discogs",
+	"track_detail_nav_related": "ذات صلة",
+	"channel_update_page_title": "تحديث {name} – R5",
+	"channel_update_heading": "تحديث {name}",
+	"channel_update_permission": "يمكنك تحديث قنواتك الخاصة فقط",
+	"page_title_broadcasts": "بثوث – R5",
+	"page_title_history": "تاريخ الاستماع – R5",
+	"history_played_duration": "(تم التشغيل {seconds}ث)",
+	"history_flag_shuffled": "(تم الخلط)",
+	"history_flag_skipped": "(تم التخطي)",
+	"search_tip_code_channel": "@channel",
+	"search_tip_code_channel_query": "@channel query",
+	"playground_tooltips_title": "تلميحات",
+	"playground_tooltips_intro": "تُعرض التلميحات تلقائياً عند التمرير والتركيز.",
+	"playground_tooltips_positions": "يمكن وضع التلميحات أعلى، يمين، أسفل أو يسار.",
+	"playground_tooltips_methods": "يمكن إضافة التلميحات بطريقتين:",
+	"playground_tooltips_inline": "مكوّن داخلي",
+	"playground_tooltips_save": "حفظ",
+	"playground_tooltips_positions_desc": "التلميحات تدعم أربع مواضع: أعلى، أسفل، يسار، يمين.",
+	"playground_tooltips_top": "أعلى",
+	"playground_tooltips_right": "يمين",
+	"playground_tooltips_bottom": "أسفل",
+	"playground_tooltips_left": "يسار",
+	"playground_tooltips_attachments": "استخدام مرفقات Svelte",
+	"playground_tooltips_hover": "مرّر فوقي",
+	"playground_tooltips_html": "تلميحات HTML",
+	"playground_tooltips_via_attachment": "عبر مرفق",
+	"playground_tooltips_html_content": "يمكنني احتواء <strong>HTML</strong> نعم!",
+	"playground_tooltips_positioned_above": "موضوع أعلاه",
+	"playground_tooltips_positioned_below": "موضوع أدناه",
+	"playground_tooltips_positioned_left": "موضوع إلى اليسار",
+	"playground_tooltips_positioned_right": "موضوع إلى اليمين",
+	"playground_tooltips_save_hint": "احفظ تغييراتك في التخزين المحلي"
+}

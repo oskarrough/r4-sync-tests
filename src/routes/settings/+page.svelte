@@ -1,6 +1,8 @@
 <script>
 	import {sdk} from '@radio4000/sdk'
 	import {appState} from '$lib/app-state.svelte'
+	import * as m from '$lib/paraglide/messages'
+	import LanguageSwitcher from '$lib/components/language-switcher.svelte'
 
 	const sha = $derived(__GIT_INFO__.sha)
 
@@ -10,31 +12,35 @@
 </script>
 
 <svelte:head>
-	<title>Settings & About - R5</title>
+	<title>{m.settings_title()}</title>
 </svelte:head>
 
 <article class="SmallContainer">
 	{#if appState.user}
-		<p class="row row--vcenter">Signed in as {appState.user.email} <button onclick={() => logout()}>Log out</button></p>
+		<p class="row row--vcenter">
+			{m.auth_signed_in_as({email: appState.user.email})} <button onclick={() => logout()}>{m.auth_log_out()}</button>
+		</p>
 	{/if}
 
 	<menu vertical>
 		{#if !appState.user}
-			<a href="/auth">Create account or sign in</a>
+			<a href="/auth">{m.auth_create_or_signin()}</a>
 		{/if}
-		<a href="/settings/appearance">Appearance</a>
-		<a href="/settings/keyboard">Keyboard shortcuts</a>
+		<a href="/settings/appearance">{m.settings_appearance()}</a>
+		<a href="/settings/keyboard">{m.settings_keyboard()}</a>
 	</menu>
 
 	<menu vertical>
-		<a href="/recovery">Recovery</a>
-		<a href="/about">About</a>
-		<a href="https://matrix.to/#/#radio4000:matrix.org" rel="noreferrer">Chat &rarr;</a>
+		<a href="/recovery">{m.settings_recovery()}</a>
+		<a href="/about">{m.nav_about()}</a>
+		<a href="https://matrix.to/#/#radio4000:matrix.org" rel="noreferrer">{m.nav_chat()} &rarr;</a>
 		{#if sha}
 			<a href="https://github.com/radio4000/r4-sync-tests/commit/{sha}" target="_blank" rel="noreferrer">{sha} &rarr;</a
 			>
 		{/if}
 	</menu>
+
+	<LanguageSwitcher />
 </article>
 
 <style>

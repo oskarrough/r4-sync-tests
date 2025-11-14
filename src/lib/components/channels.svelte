@@ -9,6 +9,7 @@
 	import InfiniteGrid from './infinite-grid.svelte'
 	import MapComponent from './map.svelte'
 	import SpectrumScanner from './spectrum-scanner.svelte'
+	import * as m from '$lib/paraglide/messages'
 
 	const {channels = [], slug: initialSlug, display: initialDisplay, longitude, latitude, zoom} = $props()
 
@@ -87,11 +88,19 @@
 		query.set('zoom', zoom)
 		goto(`?${query.toString()}`, {replaceState: true, keepFocus: true})
 	}
+
+	const viewLabelMap = {
+		grid: () => m.channels_view_label_grid(),
+		list: () => m.channels_view_label_list(),
+		map: () => m.channels_view_label_map(),
+		tuner: () => m.channels_view_label_tuner(),
+		infinite: () => m.channels_view_label_infinite()
+	}
 </script>
 
 {#snippet displayBtn(prop, icon)}
 	<button
-		{@attach tooltip({content: `View as ${prop}`})}
+		{@attach tooltip({content: m.channels_view_mode({mode: viewLabelMap[prop]()})})}
 		class:active={display === prop}
 		onclick={() => setDisplay(prop)}
 	>
@@ -102,18 +111,18 @@
 <div class={`layout layout--${display}`}>
 	<menu class="filtermenu">
 		<div class="filters">
-			<label title="Channel filter">
+			<label title={m.channels_filter_label()}>
 				<select value={filter} onchange={(e) => setFilter(e.target.value)}>
-					<option value="all">All</option>
-					<option value="20+">20+ tracks</option>
-					<option value="100+">100+ tracks</option>
-					<option value="1000+">1000+ tracks</option>
-					<option value="artwork">Has artwork</option>
-					<option value="v1">v1</option>
-					<option value="v2">v2</option>
+					<option value="all">{m.channels_filter_option_all()}</option>
+					<option value="20+">{m.channels_filter_option_20()}</option>
+					<option value="100+">{m.channels_filter_option_100()}</option>
+					<option value="1000+">{m.channels_filter_option_1000()}</option>
+					<option value="artwork">{m.channels_filter_option_artwork()}</option>
+					<option value="v1">{m.channels_filter_option_v1()}</option>
+					<option value="v2">{m.channels_filter_option_v2()}</option>
 				</select>
 			</label>
-			<button title="Show random channels" class:active={appState.channels_shuffled} onclick={toggleShuffle}>
+			<button title={m.channels_shuffle_tooltip()} class:active={appState.channels_shuffled} onclick={toggleShuffle}>
 				<Icon icon="shuffle" />
 			</button>
 		</div>
@@ -152,9 +161,12 @@
 		<footer>
 			{#if realChannels.displayed?.length > 0}
 				<p>
-					Showing {realChannels.displayed.length} of {realChannels.filtered.length} channels.
+					{m.channels_summary({
+						visible: realChannels.displayed.length,
+						total: realChannels.filtered.length
+					})}
 					{#if realChannels.displayed.length < realChannels.filtered.length}
-						<button onclick={() => (limit = limit + perPage)}>Load {perPage} more</button>
+						<button onclick={() => (limit = limit + perPage)}>{m.channels_load_more({count: perPage})}</button>
 					{/if}
 				</p>
 			{/if}

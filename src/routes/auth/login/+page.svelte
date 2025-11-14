@@ -1,6 +1,7 @@
 <script>
 	import {goto} from '$app/navigation'
 	import {page} from '$app/state'
+	import * as m from '$lib/paraglide/messages'
 
 	function onSubmit(event) {
 		const error = event.detail.error
@@ -16,19 +17,19 @@
 </script>
 
 <svelte:head>
-	<title>Sign in - R5</title>
+	<title>{m.auth_login_page_title()}</title>
 </svelte:head>
 
 <article class="MiniContainer">
-	<h1>Log in to Radio4000</h1>
+	<h1>{m.auth_login_title()}</h1>
 	<r4-sign-in onsubmit={onSubmit}></r4-sign-in>
 
 	<footer>
-		<p>New to R4? <a href="/auth/create-account">Create account &rarr;</a></p>
-		<p><a href="/auth/reset-password">Forgot your password?</a></p>
+		<p>{m.auth_new_to_r4()}</p>
+		<p><a href="/auth/reset-password">{m.auth_forgot_password()}</a></p>
 		<p>
 			<small>
-				Having trouble? <a href="https://matrix.to/#/#radio4000:matrix.org" target="_blank">Chat with us</a>
+				{m.auth_having_trouble()}
 			</small>
 		</p>
 	</footer>

@@ -33,7 +33,9 @@ export const defaultAppState: AppState = {
 	theme: undefined,
 	hide_track_artwork: false,
 
-	user: undefined
+	user: undefined,
+
+	language: undefined
 }
 
 export const appState: AppState = $state({...defaultAppState})
@@ -44,6 +46,7 @@ let initialized = false
 export async function initAppState() {
 	if (initialized) return
 	try {
+		await pg.exec('ALTER TABLE IF EXISTS app_state ADD COLUMN IF NOT EXISTS language text')
 		const result = await pg.query('SELECT * FROM app_state WHERE id = 1')
 		log.log('init', result.rows[0])
 		if (result.rows[0]) {
@@ -80,7 +83,7 @@ export async function persistAppState() {
 			id, queue_panel_visible, theme, volume, counter, is_playing, shuffle,
 			show_video_player, channels_display, channels_filter, channels_shuffled, playlist_track, broadcasting_channel_id,
 			listening_to_channel_id, playlist_tracks, playlist_tracks_shuffled, channels,
-			player_expanded, shortcuts, custom_css_variables, hide_track_artwork
+			player_expanded, shortcuts, custom_css_variables, hide_track_artwork, language
 		)
 		VALUES (
 			${appState.id},
@@ -103,7 +106,8 @@ export async function persistAppState() {
 			${appState.player_expanded || false},
 			'${JSON.stringify(appState.shortcuts)}',
 			'${JSON.stringify(appState.custom_css_variables)}',
-			${appState.hide_track_artwork || false}
+			${appState.hide_track_artwork || false},
+			${appState.language ? `'${appState.language}'` : 'NULL'}
 		)
 		ON CONFLICT (id) DO UPDATE SET
 			queue_panel_visible = EXCLUDED.queue_panel_visible,
@@ -125,7 +129,8 @@ export async function persistAppState() {
 			player_expanded = EXCLUDED.player_expanded,
 			shortcuts = EXCLUDED.shortcuts,
 			custom_css_variables = EXCLUDED.custom_css_variables,
-			hide_track_artwork = EXCLUDED.hide_track_artwork
+			hide_track_artwork = EXCLUDED.hide_track_artwork,
+			language = EXCLUDED.language
 	`)
 }
 

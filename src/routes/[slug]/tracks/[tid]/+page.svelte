@@ -8,6 +8,7 @@
 	import TrackMetaR5 from '$lib/components/track-meta-r5.svelte'
 	import TrackMetaYoutube from '$lib/components/track-meta-youtube.svelte'
 	import TrackRelated from '$lib/components/track-related.svelte'
+	import * as m from '$lib/paraglide/messages'
 
 	// import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	// import ButtonPlay from '$lib/components/button-play.svelte'
@@ -26,18 +27,23 @@
 </script>
 
 <svelte:head>
-	<title>{track?.title || 'Track'} by {channel?.name || 'Channel'} - R5</title>
+	<title>
+		{m.track_detail_page_title({
+			track: track?.title || m.track_meta_title(),
+			channel: channel?.name || m.channel_page_fallback()
+		})}
+	</title>
 </svelte:head>
 
 <article>
 	<header>
 		<p><a href="/{channel.slug}">@{channel.slug}</a> / {track.title}</p>
 		<menu class="tree">
-			<a href="?tab=r5" class:active={activeTab === 'r5' || !activeTab}>r5</a>
-			<a href="?tab=youtube" class:active={activeTab === 'youtube'}>youtube</a>
-			<a href="?tab=musicbrainz" class:active={activeTab === 'musicbrainz'}>musicbrainz</a>
-			<a href="?tab=discogs" class:active={activeTab === 'discogs'}>discogs</a>
-			<a href="?tab=related" class:active={activeTab === 'related'}>related</a>
+			<a href="?tab=r5" class:active={activeTab === 'r5' || !activeTab}>{m.track_detail_nav_r5()}</a>
+			<a href="?tab=youtube" class:active={activeTab === 'youtube'}>{m.track_detail_nav_youtube()}</a>
+			<a href="?tab=musicbrainz" class:active={activeTab === 'musicbrainz'}>{m.track_detail_nav_musicbrainz()}</a>
+			<a href="?tab=discogs" class:active={activeTab === 'discogs'}>{m.track_detail_nav_discogs()}</a>
+			<a href="?tab=related" class:active={activeTab === 'related'}>{m.track_detail_nav_related()}</a>
 		</menu>
 		<!-- <ChannelCard {channel} /> -->
 		<!-- <ButtonPlay {channel} /> -->

@@ -88,6 +88,7 @@ export interface AppState {
 	shortcuts: Record<string, string>
 	hide_track_artwork: boolean
 	user?: User
+	language?: string
 }
 
 interface User {

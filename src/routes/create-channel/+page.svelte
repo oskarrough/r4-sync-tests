@@ -2,6 +2,7 @@
 	import {goto} from '$app/navigation'
 	import {appState} from '$lib/app-state.svelte'
 	import {r5} from '$lib/r5'
+	import * as m from '$lib/paraglide/messages'
 
 	let userChannelSlug = $state(null)
 
@@ -26,12 +27,12 @@
 
 <article class="MiniContainer">
 	{#if !appState.user}
-		<p><a href="/auth?redirect=/create-channel">Sign in</a> to create a channel</p>
+		<p><a href="/auth?redirect=/create-channel">{m.auth_create_or_signin()}</a> {m.auth_sign_in_to_create()}</p>
 	{:else if appState.channels.length > 0}
-		<p>You have a channel: <a href="/{userChannelSlug}">{userChannelSlug}</a></p>
+		<p>{m.channel_you_have()} <a href="/{userChannelSlug}">{userChannelSlug}</a></p>
 	{:else}
 		<header>
-			<p>What do you want to name your Radio4000 channel? <small>(can be changed anytime)</small></p>
+			<p>{m.channel_create_prompt()} <small>{m.channel_name_changeable()}</small></p>
 		</header>
 		<br />
 		<r4-channel-create onsubmit={handleSubmit}></r4-channel-create>

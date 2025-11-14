@@ -14,6 +14,8 @@
 	import {goto} from '$app/navigation'
 	import {applyCustomCssVariables} from '$lib/apply-css-variables'
 	import {logger} from '$lib/logger'
+	import * as m from '$lib/paraglide/messages'
+	import {getLocale, setLocale, locales} from '$lib/paraglide/runtime'
 
 	const log = logger.ns('layout').seal()
 
@@ -22,13 +24,40 @@
 
 	let skipPersist = $state(true)
 	let chatPanelVisible = $state(false)
+	const rtlLocales = new Set(['ar', 'ur'])
+
+	function inferNavigatorLocale() {
+		if (typeof navigator === 'undefined') return undefined
+		const preferred = navigator.languages?.length ? navigator.languages : [navigator.language]
+		for (const entry of preferred) {
+			if (!entry) continue
+			const normalized = entry.toLowerCase()
+			const exact = locales.find((loc) => loc.toLowerCase() === normalized)
+			if (exact) return exact
+			const short = normalized.split('-')[0]
+			const shortMatch = locales.find((loc) => loc.split('-')[0].toLowerCase() === short)
+			if (shortMatch) return shortMatch
+		}
+		return undefined
+	}
 
 	onMount(async () => {
+		try {
+			await data.preloading
+		} catch (err) {
+			log.warn('preloading_failed_before_mount', err)
+		}
 		// checkUser() is now called by auth-listener on INITIAL_SESSION to avoid duplicate calls
 		applyCustomCssVariables(appState.custom_css_variables)
 		// Ensure channels_display has a value before persisting
 		if (!appState.channels_display) {
 			appState.channels_display = 'grid'
+		}
+		const storedLocale = appState.language
+		const currentLocale = storedLocale || inferNavigatorLocale() || getLocale()
+		await setLocale(currentLocale, {reload: false})
+		if (!storedLocale) {
+			appState.language = currentLocale
 		}
 		skipPersist = false
 	})
@@ -36,6 +65,7 @@
 	// Theme application
 	const prefersLight = $derived(window.matchMedia('(prefers-color-scheme: light)').matches)
 	const theme = $derived(appState.theme ?? (prefersLight ? 'light' : 'dark'))
+	const uiLocale = $derived(appState.language ?? getLocale())
 
 	$effect(() => {
 		if (theme === 'dark') {
@@ -45,6 +75,12 @@
 			document.documentElement.classList.remove('dark')
 			document.documentElement.classList.add('light')
 		}
+	})
+
+	$effect(() => {
+		if (typeof document === 'undefined') return
+		document.documentElement.lang = uiLocale
+		document.documentElement.dir = rtlLocales.has(uiLocale) ? 'rtl' : 'ltr'
 	})
 
 	$effect(() => {
@@ -78,46 +114,39 @@
 </script>
 
 <svelte:boundary>
-	{#await data.preloading then}
+	{#await data.preloading}
+		<div class="loader">
+			<p>{m.app_loading()}</p>
+			<r4-loading></r4-loading>
+		</div>
+	{:then}
 		<AuthListener />
 		<KeyboardShortcuts />
+
+		{#key uiLocale}
+			<div class={['layout', {asideVisible: appState.queue_panel_visible}]} data-locale={uiLocale}>
+				<LayoutHeader preloading={data.preloading} />
+
+				<div class="content">
+					<main class="scroll">
+						{@render children()}
+					</main>
+
+					<QueuePanel />
+
+					{#if chatPanelVisible}
+						<DraggablePanel title={m.chat_panel_title()}>
+							<LiveChat />
+						</DraggablePanel>
+					{/if}
+				</div>
+
+				<LayoutFooter />
+			</div>
+		{/key}
+	{:catch}
+		<p>{m.loading_generic()}</p>
 	{/await}
-
-	<div class={['layout', {asideVisible: appState.queue_panel_visible}]}>
-		{#await data.preloading then}
-			<LayoutHeader preloading={data.preloading} />
-		{/await}
-
-		<div class="content">
-			<main class="scroll">
-				{#await data.preloading}
-					<div class="loader">
-						<p>Preparing R5&hellip;</p>
-						<r4-loading></r4-loading>
-					</div>
-				{:then}
-					{@render children()}
-				{/await}
-			</main>
-
-			{#await data.preloading then}
-				<QueuePanel />
-			{/await}
-
-			{#if chatPanelVisible}
-				<DraggablePanel title="R4 Chat">
-					<LiveChat />
-				</DraggablePanel>
-			{/if}
-		</div>
-
-		{#await data.preloading then}
-			<LayoutFooter />
-		{/await}
-	</div>
-	{#snippet pending()}
-		<p>loading...</p>
-	{/snippet}
 </svelte:boundary>
 
 <style>

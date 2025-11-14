@@ -11,6 +11,7 @@
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
 	import ThemeToggle from '$lib/components/theme-toggle.svelte'
 	import {r5} from '$lib/r5'
+	import * as m from '$lib/paraglide/messages'
 
 	const {preloading} = $props()
 
@@ -24,7 +25,7 @@
 	})
 
 	let broadcastCount = $state(0)
-	let editModalRef
+	let editModalRef = $state()
 
 	const unsubscribe = watchBroadcasts((data) => {
 		broadcastCount = data.broadcasts.length
@@ -42,7 +43,7 @@
 <header>
 	<a href="/" class:active={page.route.id === '/'}>
 		{#await preloading}
-			R0
+			{m.app_name()}
 		{:then}
 			<TestCounter />
 		{/await}
@@ -65,7 +66,7 @@
 				href="/broadcasts"
 				class="btn"
 				class:active={page.route.id === '/broadcasts'}
-				{@attach tooltip({content: 'Broadcasts'})}
+				{@attach tooltip({content: m.nav_broadcasts()})}
 			>
 				<Icon icon="signal" size={20} />
 				{#if broadcastCount > 0}
@@ -76,15 +77,20 @@
 				href="/following"
 				class="btn"
 				class:active={page.route.id === '/following'}
-				{@attach tooltip({content: 'Following'})}
+				{@attach tooltip({content: m.nav_following()})}
 			>
 				<Icon icon="favorite" size={20} />
 			</a>
-			<a href="/stats" class="btn" class:active={page.route.id === '/stats'} {@attach tooltip({content: 'Stats'})}>
+			<a
+				href="/stats"
+				class="btn"
+				class:active={page.route.id === '/stats'}
+				{@attach tooltip({content: m.nav_stats()})}
+			>
 				<Icon icon="chart-scatter" size={20} />
 			</a>
 			<!-- <button onclick={toggleChatPanel}>Chat</button> -->
-			<a href="/cli" class="btn" class:active={page.route.id === '/cli'} {@attach tooltip({content: 'CLI'})}>
+			<a href="/cli" class="btn" class:active={page.route.id === '/cli'} {@attach tooltip({content: m.nav_cli()})}>
 				<Icon icon="terminal" size={20} />
 			</a>
 		{/await}
@@ -93,7 +99,7 @@
 			href="/settings"
 			class="btn"
 			class:active={page.route.id === '/settings'}
-			{@attach tooltip({content: 'Settings'})}
+			{@attach tooltip({content: m.nav_settings()})}
 		>
 			<Icon icon="settings" size={20} />
 		</a>

@@ -13,6 +13,7 @@
 	import {pg} from '$lib/r5/db'
 	import {r5} from '$lib/r5/index'
 	import {extractYouTubeId, detectMediaProvider} from '$lib/utils.ts'
+	import * as m from '$lib/paraglide/messages'
 
 	/** @typedef {import('$lib/types').Track} Track */
 	/** @typedef {import('$lib/types').Channel} Channel */
@@ -141,7 +142,7 @@
 	{@render channelHeader()}
 
 	{#if !channel}
-		<p style="margin-left: 0.5rem">Find some sweet music</p>
+		<p style="margin-left: 0.5rem">{m.player_empty_prompt()}</p>
 	{/if}
 
 	{#if channel}
@@ -240,7 +241,7 @@
 	<button
 		onclick={toggleQueuePanel}
 		class:active={appState.queue_panel_visible}
-		{@attach tooltip({content: 'Toggle queue panel'})}
+		{@attach tooltip({content: m.button_queue()})}
 	>
 		<Icon icon="sidebar-fill-right" size={20} />
 	</button>
@@ -274,7 +275,7 @@
 		<div class="text">
 			<h3>
 				{#if isListeningToBroadcast}
-					<span class="broadcast-indicator">🔴 LIVE</span>
+					<span class="broadcast-indicator">{m.player_live_indicator()}</span>
 				{/if}
 				<a href={`/${channel.slug}/tracks/${track.id}`}>{track.title}</a>
 			</h3>

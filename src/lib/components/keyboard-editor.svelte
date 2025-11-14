@@ -2,6 +2,7 @@
 	import {appState} from '$lib/app-state.svelte'
 	import Icon from '$lib/components/icon.svelte'
 	import {DEFAULT_KEY_BINDINGS, initializeKeyboardShortcuts} from '$lib/keyboard'
+	import * as m from '$lib/paraglide/messages'
 
 	const uid = $props.id()
 
@@ -20,10 +21,18 @@
 		'toggleShuffle'
 	]
 
-	const availableActions = shortcutActions.map((name) => ({
-		name,
-		label: name.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())
-	}))
+	const actionLabelMap = {
+		togglePlayerExpanded: () => m.shortcuts_action_togglePlayerExpanded(),
+		openSearch: () => m.shortcuts_action_openSearch(),
+		togglePlayPause: () => m.shortcuts_action_togglePlayPause(),
+		toggleQueuePanel: () => m.shortcuts_action_toggleQueuePanel(),
+		toggleTheme: () => m.shortcuts_action_toggleTheme(),
+		toggleShuffle: () => m.shortcuts_action_toggleShuffle()
+	}
+
+	function getActionLabel(name) {
+		return actionLabelMap[name]?.() ?? name
+	}
 
 	function handleDone() {
 		editing = false
@@ -61,15 +70,17 @@
 	function resetToDefaults() {
 		appState.shortcuts = structuredClone(DEFAULT_KEY_BINDINGS)
 	}
+
+	const shortcutExamples = ['k', '$mod+k', 'Escape', 'ArrowUp']
 </script>
 
 <section>
 	<header>
-		<h2>Keyboard shortcuts</h2>
+		<h2>{m.shortcuts_heading()}</h2>
 		{#if !editing}
-			<button onclick={() => (editing = true)}>Edit shortcuts</button>
+			<button onclick={() => (editing = true)}>{m.shortcuts_edit()}</button>
 		{:else}
-			<button onclick={handleDone}>Done</button>
+			<button onclick={handleDone}>{m.shortcuts_done()}</button>
 		{/if}
 	</header>
 
@@ -77,8 +88,8 @@
 		<dl>
 			{#each Object.entries(keyBindings) as [key, action] (key)}
 				<div>
-					<dt><kbd>{key || 'unset'}</kbd></dt>
-					<dd>{action.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}</dd>
+					<dt><kbd>{key || m.shortcuts_unset()}</kbd></dt>
+					<dd>{getActionLabel(action)}</dd>
 				</div>
 			{/each}
 		</dl>
@@ -86,11 +97,11 @@
 		<form onsubmit={handleDone}>
 			{#each Object.entries(keyBindings) as [key, action] (key)}
 				<div>
-					<label for={`${uid}-key`}>Key</label>
+					<label for={`${uid}-key`}>{m.shortcuts_key_label()}</label>
 					<input
 						type="text"
 						value={key}
-						placeholder="e.g. k, $mod+k, Escape"
+						placeholder={m.shortcuts_key_placeholder()}
 						onchange={(e) => updateKeyBindingKey(key, /** @type {HTMLInputElement} */ (e.target).value)}
 						id={`${uid}-key`}
 					/>
@@ -100,8 +111,8 @@
 						onchange={(e) => updateKeyBindingAction(key, /** @type {HTMLSelectElement} */ (e.target).value)}
 						id={`${uid}-action`}
 					>
-						{#each availableActions as { name, label } (name)}
-							<option value={name}>{label}</option>
+						{#each shortcutActions as name (name)}
+							<option value={name}>{getActionLabel(name)}</option>
 						{/each}
 					</select>
 					<button type="button" onclick={() => removeKeyBinding(key)}>
@@ -110,17 +121,22 @@
 				</div>
 			{/each}
 
-			<button type="button" onclick={addKeyBinding}>+ Add shortcut</button>
+			<button type="button" onclick={addKeyBinding}>{m.shortcuts_add()}</button>
 
 			<footer>
-				<button type="button" onclick={resetToDefaults}>Reset to defaults</button>
+				<button type="button" onclick={resetToDefaults}>{m.shortcuts_reset()}</button>
 			</footer>
 		</form>
 
 		<p>
-			Key reference, use <a href="https://jamiebuilds.github.io/tinykeys/" target="_blank" rel="noopener noreferrer"
-				>tinykeys syntax</a
-			>. Examples: <code>k</code>, <code>$mod+k</code>, <code>Escape</code>, <code>ArrowUp</code>
+			{m.shortcuts_reference_intro()}
+			<a href="https://jamiebuilds.github.io/tinykeys/" target="_blank" rel="noopener noreferrer">
+				{m.shortcuts_reference_link()}
+			</a>. {m.shortcuts_reference_examples()}
+			{#each shortcutExamples as example, index (example)}
+				<code>{example}</code>{#if index < shortcutExamples.length - 1},
+				{/if}
+			{/each}
 		</p>
 	{/if}
 </section>

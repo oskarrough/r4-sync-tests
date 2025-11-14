@@ -4,6 +4,7 @@
 	import InputColor from '$lib/components/input-color.svelte'
 	import InputRange from '$lib/components/input-range.svelte'
 	import ThemeToggle from '$lib/components/theme-toggle.svelte'
+	import * as m from '$lib/paraglide/messages'
 
 	const uid = $props.id()
 
@@ -12,29 +13,29 @@
 	const baseColors = [
 		{
 			name: '--accent-light',
-			label: 'accent (light)',
-			description: 'generates accent-1 through accent-12',
+			label: () => m.theme_color_accent_light_label(),
+			description: () => m.theme_color_accent_desc(),
 			default: 'oklch(0.5 0.25 290)',
 			theme: 'light'
 		},
 		{
 			name: '--accent-dark',
-			label: 'accent (dark)',
-			description: 'generates accent-1 through accent-12',
+			label: () => m.theme_color_accent_dark_label(),
+			description: () => m.theme_color_accent_desc(),
 			default: 'lch(86 48 124)',
 			theme: 'dark'
 		},
 		{
 			name: '--gray-light',
-			label: 'gray tones',
-			description: 'generates gray-1 through gray-12',
+			label: () => m.theme_color_gray_label(),
+			description: () => m.theme_color_gray_desc(),
 			default: 'oklch(0.67 0.01 0)',
 			theme: 'light'
 		},
 		{
 			name: '--gray-dark',
-			label: 'gray tones',
-			description: 'generates gray-1 through gray-12',
+			label: () => m.theme_color_gray_label(),
+			description: () => m.theme_color_gray_desc(),
 			default: 'oklch(0.67 0.01 0)',
 			theme: 'dark'
 		}
@@ -43,29 +44,29 @@
 	const overrides = [
 		{
 			name: '--button-bg-light',
-			label: 'button bg (light)',
-			description: 'override button background',
+			label: () => m.theme_override_button_bg_label_light(),
+			description: () => m.theme_override_button_bg_desc(),
 			default: '#fff',
 			theme: 'light'
 		},
 		{
 			name: '--button-bg-dark',
-			label: 'button bg (dark)',
-			description: 'override button background',
+			label: () => m.theme_override_button_bg_label_dark(),
+			description: () => m.theme_override_button_bg_desc(),
 			default: '#000',
 			theme: 'dark'
 		},
 		{
 			name: '--button-color-light',
-			label: 'button text (light)',
-			description: 'override button text color',
+			label: () => m.theme_override_button_color_label_light(),
+			description: () => m.theme_override_button_text_desc(),
 			default: '#000',
 			theme: 'light'
 		},
 		{
 			name: '--button-color-dark',
-			label: 'button text (dark)',
-			description: 'override button text color',
+			label: () => m.theme_override_button_color_label_dark(),
+			description: () => m.theme_override_button_text_desc(),
 			default: '#fff',
 			theme: 'dark'
 		}
@@ -155,15 +156,15 @@
 
 <div class="SmallContainer">
 	<section>
-		<h1>Appearance</h1>
+		<h1>{m.theme_heading()}</h1>
 		<ThemeToggle />
 	</section>
 
 	<section>
-		<h2>Layout</h2>
+		<h2>{m.theme_layout_heading()}</h2>
 		<form>
 			<div>
-				<label for={`${uid}--scaling`}>scale</label>
+				<label for={`${uid}--scaling`}>{m.theme_scale_label()}</label>
 				<InputRange
 					value={customVariables['--scaling'] || 1}
 					min={0.9}
@@ -175,11 +176,11 @@
 					}}
 				/>
 				<span>{customVariables['--scaling'] || '1'}</span>
-				<small>scale the interface to your measure</small>
+				<small>{m.theme_scale_hint()}</small>
 			</div>
 
 			<div>
-				<label for={`${uid}--border-radius`}>rounded corners</label>
+				<label for={`${uid}--border-radius`}>{m.theme_corners_label()}</label>
 				<input
 					type="checkbox"
 					checked={customVariables['--border-radius'] ? customVariables['--border-radius'] !== '0' : true}
@@ -187,11 +188,11 @@
 					id={`${uid}--border-radius`}
 				/>
 				<span></span>
-				<small>Round, round, around we go</small>
+				<small>{m.theme_corners_hint()}</small>
 			</div>
 
 			<div>
-				<label for={`${uid}--media-radius`}>rounded artwork</label>
+				<label for={`${uid}--media-radius`}>{m.theme_artwork_label()}</label>
 				<input
 					type="checkbox"
 					checked={customVariables['--media-radius'] ? customVariables['--media-radius'] !== '0' : true}
@@ -199,25 +200,25 @@
 					id={`${uid}--media-radius`}
 				/>
 				<span></span>
-				<small>Round corners on track artwork</small>
+				<small>{m.theme_artwork_hint()}</small>
 			</div>
 
 			<div>
-				<label for={`${uid}-hide-artwork`}>hide track artwork</label>
+				<label for={`${uid}-hide-artwork`}>{m.theme_hide_artwork_label()}</label>
 				<input type="checkbox" bind:checked={appState.hide_track_artwork} id={`${uid}-hide-artwork`} />
 				<span></span>
-				<small>Toggle track thumbnails in track lists and player</small>
+				<small>{m.theme_hide_artwork_hint()}</small>
 			</div>
 		</form>
 	</section>
 
 	<section>
-		<h2>Create your own theme</h2>
+		<h2>{m.theme_create_heading()}</h2>
 		{#each baseColors as variable, i (variable.name + i)}
 			<div class:inactive={!isActiveVariable(variable)}>
-				<label hidden for={`${uid}-${variable.name}`}>{variable.label}</label>
+				<label hidden for={`${uid}-${variable.name}`}>{variable.label()}</label>
 				<InputColor
-					label={variable.label}
+					label={variable.label()}
 					value={getCurrentValue(variable)}
 					onchange={(e) => updateVariable(variable.name, e.target.value)}
 				/>
@@ -225,18 +226,18 @@
 					hidden
 					type="text"
 					value={getCurrentValue(variable)}
-					placeholder="e.g. #ff6b6b"
+					placeholder={m.theme_input_placeholder_hex()}
 					onchange={(e) => updateVariable(variable.name, e.target.value)}
 				/>
-				<small>{variable.description}</small>
+				<small>{variable.description()}</small>
 			</div>
 		{/each}
 
 		{#each overrides as variable (variable.name)}
 			<div class:inactive={!isActiveVariable(variable)}>
-				<label hidden for={`${uid}-${variable.name}`}>{variable.label}</label>
+				<label hidden for={`${uid}-${variable.name}`}>{variable.label()}</label>
 				<InputColor
-					label={variable.label}
+					label={variable.label()}
 					value={getCurrentValue(variable)}
 					onchange={(e) => updateVariable(variable.name, e.target.value)}
 					disabled={!getCurrentValue(variable)}
@@ -245,25 +246,25 @@
 					hidden
 					type="text"
 					value={getCurrentValue(variable)}
-					placeholder="inherit"
+					placeholder={m.theme_input_placeholder_inherit()}
 					onchange={(e) => updateVariable(variable.name, e.target.value)}
 				/>
-				<small>{variable.description}</small>
+				<small>{variable.description()}</small>
 			</div>
 		{/each}
 
-		<button style="margin-top: 0.5rem" onclick={resetToDefaults}>Reset layout and theme to defaults</button>
+		<button style="margin-top: 0.5rem" onclick={resetToDefaults}>{m.theme_reset_button()}</button>
 	</section>
 
 	<section>
-		<h2>Share theme</h2>
+		<h2>{m.theme_share_heading()}</h2>
 		<div class="row">
 			<input type="text" readonly value={exportString} class="export-input" />
-			<button onclick={copyTheme}>Copy theme</button>
+			<button onclick={copyTheme}>{m.theme_copy_button()}</button>
 		</div>
 		<div class="row">
-			<input type="text" bind:value={importText} placeholder="Paste theme string to import" class="import-input" />
-			<button onclick={importTheme} type="button" disabled={!importText.trim()}>Apply theme</button>
+			<input type="text" bind:value={importText} placeholder={m.theme_import_placeholder()} class="import-input" />
+			<button onclick={importTheme} type="button" disabled={!importText.trim()}>{m.theme_apply_button()}</button>
 		</div>
 	</section>
 </div>
@@ -290,40 +291,35 @@
 <br />
 
 <section class="SmallContainer">
-	<h2>Typo(graphy)</h2>
+	<h2>{m.theme_typography_heading()}</h2>
 	<div class="variable-grid">
 		{#each fontSizes as sizeVar (sizeVar)}
 			<article style="--size: var({sizeVar})">
 				<h3>{sizeVar}</h3>
-				<p>
-					Sample text. The man writes like he's permanently high on incense and good intentions. Every sentence floats
-					along with this oiled mystical confidence, as if he's personally received a download from the cosmos and is
-					graciously sharing the password with the rest of us mortals. "Your children are not your children"—well,
-					thanks Khalil.
-				</p>
+				<p>{m.theme_sample_text()}</p>
 			</article>
 		{/each}
 	</div>
 </section>
 
 <section class="SmallContainer">
-	<h2>A form</h2>
+	<h2>{m.theme_form_heading()}</h2>
 	<form>
 		<div>
 			<label
-				>Your name
+				>{m.theme_form_name_label()}
 				<input type="text" />
 			</label>
 		</div>
 		<div>
 			<label
-				>Your age
+				>{m.theme_form_age_label()}
 				<input type="number" />
 			</label>
 		</div>
 		<div>
-			<button type="button">Cancel</button>
-			<button type="submit">Submit</button>
+			<button type="button">{m.common_cancel()}</button>
+			<button type="submit">{m.common_submit()}</button>
 		</div>
 	</form>
 </section>

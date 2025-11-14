@@ -2,6 +2,7 @@
 	import {updateTrack} from '$lib/api'
 	import Modal from '$lib/components/modal.svelte'
 	import {logger} from '$lib/logger'
+	import * as m from '$lib/paraglide/messages'
 
 	const log = logger.ns('edit_track_modal').seal()
 
@@ -64,7 +65,7 @@
 
 <Modal bind:showModal>
 	{#snippet header()}
-		<h2>Edit track</h2>
+		<h2>{m.track_edit_title()}</h2>
 	{/snippet}
 
 	{#key currentTrack?.id}
@@ -78,7 +79,7 @@
 		></r4-track-update>
 	{/key}
 	<menu class="actions">
-		<button type="button" onclick={() => (showModal = false)}> Cancel </button>
+		<button type="button" onclick={() => (showModal = false)}>{m.common_cancel()}</button>
 	</menu>
 </Modal>
 

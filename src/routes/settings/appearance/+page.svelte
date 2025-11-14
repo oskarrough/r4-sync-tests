@@ -1,14 +1,15 @@
 <script>
 	import ThemeEditor from '$lib/components/theme-editor.svelte'
+	import * as m from '$lib/paraglide/messages'
 </script>
 
 <svelte:head>
-	<title>Appearance/theme settings</title>
+	<title>{m.settings_appearance_title()}</title>
 </svelte:head>
 
 <article class="SmallContainer">
 	<header>
-		<p><a href="/settings">Settings</a> / Appearance</p>
+		<p>{m.settings_appearance_nav()}</p>
 	</header>
 </article>
 

@@ -2,6 +2,7 @@
 	import {page} from '$app/state'
 	import {r5} from '$lib/r5'
 	import {delay} from '$lib/utils.ts'
+	import * as m from '$lib/paraglide/messages'
 
 	let isResetting = $state(false)
 	let resetSuccess = $state(false)
@@ -25,8 +26,8 @@
 </script>
 
 <main>
-	<h1>Database recovery</h1>
-	<p>You're here like here (sorry) because there was an error.</p>
+	<h1>{m.recovery_title()}</h1>
+	<p>{m.recovery_sorry()}</p>
 	<br />
 	{#if errorMessage}
 		<p><em>{decodeURIComponent(errorMessage)}</em></p>
@@ -35,26 +36,26 @@
 
 	<section>
 		{#if resetSuccess}
-			<h3>Reset successful!</h3>
-			<p><a href="/" data-sveltekit-reload>Go back to home</a></p>
+			<h3>{m.recovery_reset_success()}</h3>
+			<p><a href="/" data-sveltekit-reload>{m.recovery_go_home()}</a></p>
 		{:else if isResetting}
-			<p>Resetting database...</p>
+			<p>{m.recovery_resetting()}</p>
 		{:else}
 			<p class="row row--vcenter">
-				First try to ❶ <a href="/" class="btn">Reload the app</a>
+				{m.error_repair_try()} ❶ <a href="/" class="btn">{m.recovery_reload_app()}</a>
 			</p>
 			<br />
-			<p>If that didn't work &rarr; ② Reset the database:</p>
-			<button onclick={resetDatabase} disabled={isResetting} class="danger"> Reset my local database </button>
+			<p>{m.error_if_not_work()} &rarr; ② {m.recovery_reset_db()}</p>
+			<button onclick={resetDatabase} disabled={isResetting} class="danger">{m.recovery_reset_button()}</button>
 			<br />
 			<br />
-			<p>Resetting the database will:</p>
+			<p>{m.recovery_reset_will()}</p>
 			<ul>
-				<li>Delete all <em>local</em> data (channels, tracks, settings)</li>
-				<li>Recreate a fresh database</li>
-				<li>Allow you to start with fresh data from Radio4000</li>
+				<li>{m.recovery_reset_point_1()}</li>
+				<li>{m.recovery_reset_point_2()}</li>
+				<li>{m.recovery_reset_point_3()}</li>
 			</ul>
-			<p>Resetting will NOT delete any radios or tracks</p>
+			<p>{m.recovery_note()}</p>
 		{/if}
 	</section>
 </main>

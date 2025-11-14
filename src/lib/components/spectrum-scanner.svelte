@@ -3,6 +3,7 @@
 	import {playChannel} from '$lib/api'
 	import ChannelCard from './channel-card.svelte'
 	import InputRange from './input-range.svelte'
+	import * as m from '$lib/paraglide/messages'
 
 	const {channels = [], min = 88.0, max = 108.0} = $props()
 
@@ -154,15 +155,15 @@
 	<header>
 		<h2>
 			<span class="freq">{frequency.toFixed(1)}</span>
-			<span class="unit">R4Hz</span>
+			<span class="unit">{m.spectrum_unit_label()}</span>
 		</h2>
 
 		<menu>
 			<button onclick={toggleScanning} class:active={isScanning}>
-				{isScanning ? 'Stop' : 'Scan'}
+				{isScanning ? m.spectrum_button_stop() : m.spectrum_button_scan()}
 			</button>
-			<button onclick={() => (frequency = Math.random() * (max - min) + min)}> Seek </button>
-			<button onclick={() => (autoplay = !autoplay)} class:active={autoplay}> Auto </button>
+			<button onclick={() => (frequency = Math.random() * (max - min) + min)}>{m.spectrum_button_seek()}</button>
+			<button onclick={() => (autoplay = !autoplay)} class:active={autoplay}>{m.spectrum_button_auto()}</button>
 		</menu>
 
 		<div class="signal-meter">
@@ -190,13 +191,13 @@
 	{#if selectedChannel}
 		<div class="station" style="opacity: {selectedChannel.reception}">
 			<div class="reception">
-				{Math.round(selectedChannel.reception * 100)}% signal
+				{m.spectrum_signal_strength({percent: Math.round(selectedChannel.reception * 100)})}
 			</div>
 			<ChannelCard channel={selectedChannel} />
 		</div>
 	{:else}
 		<div class="static-display">
-			<div class="static-text">~ static ~</div>
+			<div class="static-text">{m.spectrum_static_text()}</div>
 		</div>
 	{/if}
 </div>

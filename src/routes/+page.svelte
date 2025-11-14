@@ -7,6 +7,7 @@
 	import Icon from '$lib/components/icon.svelte'
 	import {r5} from '$lib/r5'
 	import {getPg} from '$lib/r5/db.js'
+	import * as m from '$lib/paraglide/messages'
 
 	// const {data} = $props()
 
@@ -46,14 +47,14 @@
 </script>
 
 <svelte:head>
-	<title>R5</title>
+	<title>{m.home_title()}</title>
 </svelte:head>
 
 {#if channelCount < 100}
 	<menu>
 		<button onclick={pullRadios} disabled={syncing}>
 			<Icon icon="cloud-download-alt">
-				{syncing ? 'Pulling radios...' : 'Pull radios from radio4000.com'}
+				{syncing ? m.home_pulling_radios() : m.home_pull_from_r4()}
 			</Icon>
 		</button>
 	</menu>

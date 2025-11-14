@@ -4,16 +4,17 @@
 	import CoverFlip from '$lib/components/cover-flip.svelte'
 	import {r5} from '$lib/r5'
 	import {extractYouTubeId} from '$lib/utils.ts'
+	import * as m from '$lib/paraglide/messages'
 
 	let tracks = $derived(r5.tracks.local({slug: page.params.slug, limit: 100}))
 </script>
 
 <div class="page">
 	{#await tracks}
-		<p>Loading...</p>
+		<p>{m.common_loading()}</p>
 	{:then tracks}
 		{#if tracks.length === 0}
-			<p>No tracks found.</p>
+			<p>{m.tracks_no_results()}</p>
 		{:else}
 			<CoverFlip items={tracks} scrollItemsPerNotch={1}>
 				{#snippet item({item, active})}
@@ -22,7 +23,7 @@
 						{#if ytid}
 							<img src={`https://i.ytimg.com/vi/${ytid}/mqdefault.jpg`} alt={item.title} />
 						{:else}
-							no ytid for {item.url}
+							{m.tracks_no_ytid({url: item.url})}
 						{/if}
 					</button>
 				{/snippet}

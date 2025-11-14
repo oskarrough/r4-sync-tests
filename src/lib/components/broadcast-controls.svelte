@@ -2,6 +2,7 @@
 	import {appState} from '$lib/app-state.svelte'
 	import {startBroadcast, stopBroadcast} from '$lib/broadcast'
 	import Icon from '$lib/components/icon.svelte'
+	import * as m from '$lib/paraglide/messages'
 
 	const userChannelId = $derived(appState?.channels?.[0])
 
@@ -14,7 +15,7 @@
 
 	async function start() {
 		if (!appState.playlist_track) {
-			alert('You need to be playing a track to start broadcasting. Play something.')
+			alert(m.broadcast_requires_track())
 		} else {
 			/** @type {HTMLElement & {paused: boolean, play(): void} | null} */
 			const player = document.querySelector('youtube-video')
@@ -30,14 +31,16 @@
 
 {#if userChannelId}
 	{#if appState.broadcasting_channel_id}
-		<button onclick={() => stopBroadcasting()}> Stop broadcasting </button>
+		<button onclick={() => stopBroadcasting()}>{m.broadcast_stop_button()}</button>
 	{:else}
 		<button onclick={start}>
-			<Icon icon="signal" size={20} strokeWidth={1.7}></Icon> Start broadcasting
+			<Icon icon="signal" size={20} strokeWidth={1.7}></Icon>
+			{m.broadcast_start_button()}
 		</button>
 	{/if}
 {:else}
 	<a class="btn" href="/auth">
-		<Icon icon="signal" size={20} strokeWidth={1.7}></Icon> Login to start broadcasting
+		<Icon icon="signal" size={20} strokeWidth={1.7}></Icon>
+		{m.broadcast_login_prompt()}
 	</a>
 {/if}

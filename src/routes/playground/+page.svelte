@@ -3,6 +3,7 @@
 	import {toggleQueuePanel} from '$lib/api'
 	import {appState} from '$lib/app-state.svelte'
 	import InputRange from '$lib/components/input-range.svelte'
+	import * as m from '$lib/paraglide/messages'
 
 	let count = $state()
 	const double = $derived(count * 2)
@@ -21,19 +22,19 @@
 </script>
 
 <svelte:head>
-	<title>Playground - R5</title>
+	<title>{m.page_title_playground()}</title>
 </svelte:head>
 
-<h1>playground</h1>
+<h1>{m.playground_heading()}</h1>
 
 <section>
-	<button onclick={toggleQueuePanel}> 🔄 Toggle Queue Panel </button>
-	<p>queue_panel_visible: {appState.queue_panel_visible}</p>
+	<button onclick={toggleQueuePanel}>🔄 {m.playground_toggle_queue()}</button>
+	<p>{m.playground_queue_visible({value: appState.queue_panel_visible})}</p>
 	<InputRange bind:value={appState.volume} min={0} max={1} step={0.1} />
-	<p>volume: {appState.volume}</p>
+	<p>{m.playground_volume({value: appState.volume})}</p>
 </section>
 
 <hr />
 
-<button onclick={add}>throw an unexpected error</button>
-<p>{count} x 2 = {double}</p>
+<button onclick={add}>{m.playground_throw_error()}</button>
+<p>{m.playground_counter({count, double})}</p>

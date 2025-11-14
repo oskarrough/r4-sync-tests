@@ -6,6 +6,7 @@
 	import TrackCard from '$lib/components/track-card.svelte'
 	import {trap} from '$lib/focus'
 	import {r5} from '$lib/r5'
+	import * as m from '$lib/paraglide/messages'
 
 	/** @type {import('$lib/types.ts').Channel[]} */
 	let channels = $state([])
@@ -57,27 +58,31 @@
 </script>
 
 <svelte:head>
-	<title>Search - R5</title>
+	<title>{m.search_title()}</title>
 </svelte:head>
 
 <article use:trap>
 	<menu>
 		{#if searchQuery && !isLoading && tracks.length > 0}
-			<button type="button" onclick={playSearchResults}>Play all</button>
-			<button type="button" onclick={() => addToPlaylist(tracks.map((t) => t.id))}>Queue all</button>
+			<button type="button" onclick={playSearchResults}>{m.search_play_all()}</button>
+			<button type="button" onclick={() => addToPlaylist(tracks.map((t) => t.id))}>{m.search_queue_all()}</button>
 		{/if}
 		<SearchStatus {searchQuery} channelCount={channels.length} trackCount={tracks.length} />
 	</menu>
 
 	{#if searchQuery && !isLoading}
 		{#if channels.length === 0 && tracks.length === 0}
-			<p>No results found for "{searchQuery}"</p>
-			<p>Tip: use @slug to find tracks in a channel</p>
+			<p>{m.search_no_results()} "{searchQuery}"</p>
+			<p>{m.search_tip_slug()}</p>
 		{/if}
 
 		{#if channels.length > 0}
 			<section>
-				<h2 style="margin-left:0.5rem">{channels.length} Channels</h2>
+				<h2 style="margin-left:0.5rem">
+					{channels.length === 1
+						? m.search_channel_one({count: channels.length})
+						: m.search_channel_other({count: channels.length})}
+				</h2>
 				<ul class="grid">
 					{#each channels as channel (channel.id)}
 						<li>
@@ -90,7 +95,11 @@
 
 		{#if tracks.length > 0}
 			<section>
-				<h2>Tracks ({tracks.length})</h2>
+				<h2>
+					{tracks.length === 1
+						? m.search_track_one({count: tracks.length})
+						: m.search_track_other({count: tracks.length})}
+				</h2>
 				<ul class="list">
 					{#each tracks as track, index (track.id)}
 						<li>
@@ -102,11 +111,15 @@
 		{/if}
 	{:else if !searchQuery}
 		<p>
-			TIP:
-			<br /> Use the search input in the header
-			<br /> <code>@channel</code> to search channels
-			<br /> <code>@channel query</code> to search tracks within a channel
-			<br /><code>/</code> for commands
+			{m.search_tip_intro()}
+			<br />
+			{m.search_tip_header()}
+			<br /> <code>{m.search_tip_code_channel()}</code>
+			{m.search_tip_channel()}
+			<br /> <code>{m.search_tip_code_channel_query()}</code>
+			{m.search_tip_channel_query()}
+			<br /> <code>/</code>
+			{m.search_tip_commands()}
 		</p>
 	{/if}
 </article>
