@@ -27,7 +27,8 @@
 	<footer>
 		<p>
 			<small>
-				{m.auth_reset_help_intro()} <a href="https://matrix.to/#/#radio4000:matrix.org" target="_blank">{m.auth_reset_help_link()}</a>
+				{m.auth_reset_help_intro()}
+				<a href="https://matrix.to/#/#radio4000:matrix.org" target="_blank">{m.auth_reset_help_link()}</a>
 			</small>
 		</p>
 	</footer>

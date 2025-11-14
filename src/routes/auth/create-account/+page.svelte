@@ -1,10 +1,10 @@
 <script>
-	import {page} from '$app/state'
+	// import {page} from '$app/state'
 	import * as m from '$lib/paraglide/messages'
 
 	let didSubmit = $state(false)
-	const redirect = page.url.searchParams.get('redirect')
-	const redirectParam = redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''
+	// const redirect = page.url.searchParams.get('redirect')
+	// const redirectParam = redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''
 
 	function onSubmit(event) {
 		console.log(event, event.detail)

@@ -122,9 +122,9 @@
 	// Initialize
 	loadPeriods()
 
-let currentPeriodLabel = $derived(
-	currentPeriod === 0 ? m.tags_all_time() : periods[currentPeriod - 1]?.label || m.tags_all_time()
-)
+	let currentPeriodLabel = $derived(
+		currentPeriod === 0 ? m.tags_all_time() : periods[currentPeriod - 1]?.label || m.tags_all_time()
+	)
 </script>
 
 <main>

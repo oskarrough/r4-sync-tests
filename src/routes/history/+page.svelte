@@ -34,10 +34,12 @@
 <article class="SmallContainer">
 	<menu>
 		<a class="btn" href="/stats" class:active={page.route.id === '/stats'}>
-			<Icon icon="chart-scatter" size={20} /> {m.nav_stats()}
+			<Icon icon="chart-scatter" size={20} />
+			{m.nav_stats()}
 		</a>
 		<a class="btn" href="/history" class:active={page.route.id === '/history'}>
-			<Icon icon="history" size={20} /> {m.nav_history()}
+			<Icon icon="history" size={20} />
+			{m.nav_history()}
 		</a>
 	</menu>
 

@@ -81,11 +81,11 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 		await pg.sql`UPDATE channels SET spam = false WHERE id = ${channel.id}`
 	}
 
-function copyAllSQL() {
-	const allSQL = sqlCommands.join('\n\n')
-	navigator.clipboard.writeText(allSQL)
-	alert(m.spam_alert_sql_copied())
-}
+	function copyAllSQL() {
+		const allSQL = sqlCommands.join('\n\n')
+		navigator.clipboard.writeText(allSQL)
+		alert(m.spam_alert_sql_copied())
+	}
 
 	/** @param {typeof channels[0]} channel */
 	async function undoDecision(channel) {
@@ -93,10 +93,10 @@ function copyAllSQL() {
 		await clearChannelSpam(channel.id)
 	}
 
-async function clearAllSelections() {
-	if (!confirm(m.spam_confirm_clear())) {
-		return
-	}
+	async function clearAllSelections() {
+		if (!confirm(m.spam_confirm_clear())) {
+			return
+		}
 
 		try {
 			await pg.sql`UPDATE channels SET spam = NULL WHERE spam IS NOT NULL`
@@ -109,12 +109,12 @@ async function clearAllSelections() {
 			// Force reactivity
 			allChannels = [...allChannels]
 
-		alert(m.spam_alert_cleared())
-	} catch (error) {
-		console.error('Failed to clear selections:', error)
-		alert(m.spam_alert_clear_failed())
+			alert(m.spam_alert_cleared())
+		} catch (error) {
+			console.error('Failed to clear selections:', error)
+			alert(m.spam_alert_clear_failed())
+		}
 	}
-}
 
 	async function batchFetchTracks() {
 		// Check which channels actually have local tracks
@@ -127,19 +127,17 @@ async function clearAllSelections() {
 		}
 		const channelsWithoutTracks = channelsNeedingTracks
 
-	if (channelsWithoutTracks.length === 0) {
-		alert(m.spam_alert_no_channels())
-		return
-	}
+		if (channelsWithoutTracks.length === 0) {
+			alert(m.spam_alert_no_channels())
+			return
+		}
 
-	if (
-		!confirm(m.spam_confirm_fetch({count: channelsWithoutTracks.length}))
-	) {
-		return
-	}
+		if (!confirm(m.spam_confirm_fetch({count: channelsWithoutTracks.length}))) {
+			return
+		}
 
-	batchFetching = true
-	batchProgress = `⚙️ ${m.spam_progress_fetching({count: channelsWithoutTracks.length})}`
+		batchFetching = true
+		batchProgress = `⚙️ ${m.spam_progress_fetching({count: channelsWithoutTracks.length})}`
 
 		try {
 			for (let i = 0; i < channelsWithoutTracks.length; i++) {
@@ -198,6 +196,14 @@ async function clearAllSelections() {
 			batchFetching = false
 		}
 	}
+
+	const filterDescription = $derived(
+		filterMode === 'highConfidenceSpam'
+			? filterLabels.highConfidenceSpam()
+			: filterMode === 'needsReview'
+				? filterLabels.needsReview()
+				: filterLabels.all()
+	)
 </script>
 
 <svelte:head>
@@ -207,12 +213,6 @@ async function clearAllSelections() {
 <main>
 	<header>
 		<h1>{m.spam_heading()}</h1>
-		{@const filterDescription =
-			filterMode === 'highConfidenceSpam'
-				? filterLabels.highConfidenceSpam()
-				: filterMode === 'needsReview'
-					? filterLabels.needsReview()
-					: filterLabels.all()}
 		<p>{m.spam_description({filter: filterDescription})}</p>
 	</header>
 

@@ -75,12 +75,7 @@
 	</div>
 
 	<form onsubmit={sendMessage}>
-		<input
-			bind:value={message}
-			onkeydown={handleKeydown}
-			placeholder={m.chat_input_placeholder()}
-			maxlength="280"
-		/>
+		<input bind:value={message} onkeydown={handleKeydown} placeholder={m.chat_input_placeholder()} maxlength="280" />
 		<button type="submit" disabled={!message.trim()}>{m.chat_send_button()}</button>
 	</form>
 </section>

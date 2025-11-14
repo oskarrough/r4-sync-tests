@@ -31,9 +31,7 @@
 			{#each followings as following (following.id)}
 				<ChannelCard channel={following}>
 					{#if following.source === 'v1'}
-						<small {@attach tooltip({content: m.tooltip_v1_channel()})}
-							>{m.following_v1_local()}</small
-						>
+						<small {@attach tooltip({content: m.tooltip_v1_channel()})}>{m.following_v1_local()}</small>
 					{/if}
 				</ChannelCard>
 			{/each}

@@ -13,7 +13,9 @@
 	</p>
 
 	<br />
-	<p class="row row--vcenter">{m.error_if_not_work()} &rarr; ② <a href="/recovery" class="btn">{m.error_reset_app()}</a></p>
+	<p class="row row--vcenter">
+		{m.error_if_not_work()} &rarr; ② <a href="/recovery" class="btn">{m.error_reset_app()}</a>
+	</p>
 </article>
 
 <style>

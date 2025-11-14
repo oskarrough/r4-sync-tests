@@ -81,7 +81,12 @@
 			>
 				<Icon icon="favorite" size={20} />
 			</a>
-			<a href="/stats" class="btn" class:active={page.route.id === '/stats'} {@attach tooltip({content: m.nav_stats()})}>
+			<a
+				href="/stats"
+				class="btn"
+				class:active={page.route.id === '/stats'}
+				{@attach tooltip({content: m.nav_stats()})}
+			>
 				<Icon icon="chart-scatter" size={20} />
 			</a>
 			<!-- <button onclick={toggleChatPanel}>Chat</button> -->

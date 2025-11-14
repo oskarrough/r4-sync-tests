@@ -85,28 +85,28 @@
 	</header>
 
 	{#if !editing}
-			<dl>
-				{#each Object.entries(keyBindings) as [key, action] (key)}
-					<div>
-						<dt><kbd>{key || m.shortcuts_unset()}</kbd></dt>
-						<dd>{getActionLabel(action)}</dd>
-					</div>
-				{/each}
-			</dl>
+		<dl>
+			{#each Object.entries(keyBindings) as [key, action] (key)}
+				<div>
+					<dt><kbd>{key || m.shortcuts_unset()}</kbd></dt>
+					<dd>{getActionLabel(action)}</dd>
+				</div>
+			{/each}
+		</dl>
 	{:else}
 		<form onsubmit={handleDone}>
-				{#each Object.entries(keyBindings) as [key, action] (key)}
-					<div>
-						<label for={`${uid}-key`}>{m.shortcuts_key_label()}</label>
-						<input
-							type="text"
-							value={key}
-							placeholder={m.shortcuts_key_placeholder()}
-							onchange={(e) => updateKeyBindingKey(key, /** @type {HTMLInputElement} */ (e.target).value)}
-							id={`${uid}-key`}
-						/>
-						<label for={`${uid}-action`}>&rarr;</label>
-						<select
+			{#each Object.entries(keyBindings) as [key, action] (key)}
+				<div>
+					<label for={`${uid}-key`}>{m.shortcuts_key_label()}</label>
+					<input
+						type="text"
+						value={key}
+						placeholder={m.shortcuts_key_placeholder()}
+						onchange={(e) => updateKeyBindingKey(key, /** @type {HTMLInputElement} */ (e.target).value)}
+						id={`${uid}-key`}
+					/>
+					<label for={`${uid}-action`}>&rarr;</label>
+					<select
 						value={action}
 						onchange={(e) => updateKeyBindingAction(key, /** @type {HTMLSelectElement} */ (e.target).value)}
 						id={`${uid}-action`}
@@ -134,7 +134,8 @@
 				{m.shortcuts_reference_link()}
 			</a>. {m.shortcuts_reference_examples()}
 			{#each shortcutExamples as example, index (example)}
-				<code>{example}</code>{#if index < shortcutExamples.length - 1}, {/if}
+				<code>{example}</code>{#if index < shortcutExamples.length - 1},
+				{/if}
 			{/each}
 		</p>
 	{/if}

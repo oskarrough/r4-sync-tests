@@ -5,9 +5,9 @@
 
 	let selectedLocale = $state(appState.language ?? getLocale())
 	const languageNames =
-				typeof Intl !== 'undefined' && Intl.DisplayNames
-				? new Intl.DisplayNames(['en'], {type: 'language', languageDisplay: 'standard'})
-				: null
+		typeof Intl !== 'undefined' && Intl.DisplayNames
+			? new Intl.DisplayNames(['en'], {type: 'language', languageDisplay: 'standard'})
+			: null
 
 	// Update the selected locale when appState.language changes
 	$effect(() => {
@@ -32,7 +32,7 @@
 <label class="language-select">
 	<span>{m.settings_language_label()}</span>
 	<select bind:value={selectedLocale} on:change={handleChange} on:input={handleChange}>
-		{#each locales as locale}
+		{#each locales as locale (locale)}
 			<option value={locale}>
 				{locale === selectedLocale ? '🌐' : ''}
 				{languageNames?.of(locale) ? `${languageNames.of(locale)} (${locale})` : locale}

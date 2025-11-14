@@ -263,12 +263,7 @@
 			<button onclick={copyTheme}>{m.theme_copy_button()}</button>
 		</div>
 		<div class="row">
-			<input
-				type="text"
-				bind:value={importText}
-				placeholder={m.theme_import_placeholder()}
-				class="import-input"
-			/>
+			<input type="text" bind:value={importText} placeholder={m.theme_import_placeholder()} class="import-input" />
 			<button onclick={importTheme} type="button" disabled={!importText.trim()}>{m.theme_apply_button()}</button>
 		</div>
 	</section>

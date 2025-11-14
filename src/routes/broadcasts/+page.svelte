@@ -49,7 +49,9 @@
 			<div class="live-dot"></div>
 			<ChannelCard channel={broadcast.channels}>
 				<p>
-					<span class="live">{m.broadcasts_live()}</span> {m.broadcasts_since()} {timeAgo(broadcast.track_played_at)}
+					<span class="live">{m.broadcasts_live()}</span>
+					{m.broadcasts_since()}
+					{timeAgo(broadcast.track_played_at)}
 					<em>
 						<EnsureTrack tid={broadcast.track_id}></EnsureTrack>
 					</em>

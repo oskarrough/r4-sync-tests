@@ -103,7 +103,6 @@
 	async function setMuted(val) {
 		if (mediaElement) mediaElement.muted = val
 	}
-
 </script>
 
 <svelte:head>

@@ -41,7 +41,7 @@
 		return undefined
 	}
 
-onMount(async () => {
+	onMount(async () => {
 		try {
 			await data.preloading
 		} catch (err) {
@@ -67,22 +67,21 @@ onMount(async () => {
 	const theme = $derived(appState.theme ?? (prefersLight ? 'light' : 'dark'))
 	const uiLocale = $derived(appState.language ?? getLocale())
 
-$effect(() => {
-	if (theme === 'dark') {
-		document.documentElement.classList.remove('light')
-		document.documentElement.classList.add('dark')
-	} else {
-		document.documentElement.classList.remove('dark')
-		document.documentElement.classList.add('light')
-	}
-})
+	$effect(() => {
+		if (theme === 'dark') {
+			document.documentElement.classList.remove('light')
+			document.documentElement.classList.add('dark')
+		} else {
+			document.documentElement.classList.remove('dark')
+			document.documentElement.classList.add('light')
+		}
+	})
 
 	$effect(() => {
 		if (typeof document === 'undefined') return
 		document.documentElement.lang = uiLocale
 		document.documentElement.dir = rtlLocales.has(uiLocale) ? 'rtl' : 'ltr'
 	})
-
 
 	$effect(() => {
 		applyCustomCssVariables(appState.custom_css_variables)

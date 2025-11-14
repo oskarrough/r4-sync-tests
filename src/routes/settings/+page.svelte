@@ -17,7 +17,9 @@
 
 <article class="SmallContainer">
 	{#if appState.user}
-		<p class="row row--vcenter">{m.auth_signed_in_as({email: appState.user.email})} <button onclick={() => logout()}>{m.auth_log_out()}</button></p>
+		<p class="row row--vcenter">
+			{m.auth_signed_in_as({email: appState.user.email})} <button onclick={() => logout()}>{m.auth_log_out()}</button>
+		</p>
 	{/if}
 
 	<menu vertical>

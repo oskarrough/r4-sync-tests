@@ -78,7 +78,11 @@
 
 		{#if channels.length > 0}
 			<section>
-				<h2 style="margin-left:0.5rem">{channels.length === 1 ? m.search_channel_one({count: channels.length}) : m.search_channel_other({count: channels.length})}</h2>
+				<h2 style="margin-left:0.5rem">
+					{channels.length === 1
+						? m.search_channel_one({count: channels.length})
+						: m.search_channel_other({count: channels.length})}
+				</h2>
 				<ul class="grid">
 					{#each channels as channel (channel.id)}
 						<li>
@@ -91,7 +95,11 @@
 
 		{#if tracks.length > 0}
 			<section>
-				<h2>{tracks.length === 1 ? m.search_track_one({count: tracks.length}) : m.search_track_other({count: tracks.length})}</h2>
+				<h2>
+					{tracks.length === 1
+						? m.search_track_one({count: tracks.length})
+						: m.search_track_other({count: tracks.length})}
+				</h2>
 				<ul class="list">
 					{#each tracks as track, index (track.id)}
 						<li>
@@ -104,10 +112,14 @@
 	{:else if !searchQuery}
 		<p>
 			{m.search_tip_intro()}
-			<br /> {m.search_tip_header()}
-			<br /> <code>{m.search_tip_code_channel()}</code> {m.search_tip_channel()}
-			<br /> <code>{m.search_tip_code_channel_query()}</code> {m.search_tip_channel_query()}
-			<br /> <code>/</code> {m.search_tip_commands()}
+			<br />
+			{m.search_tip_header()}
+			<br /> <code>{m.search_tip_code_channel()}</code>
+			{m.search_tip_channel()}
+			<br /> <code>{m.search_tip_code_channel_query()}</code>
+			{m.search_tip_channel_query()}
+			<br /> <code>/</code>
+			{m.search_tip_commands()}
 		</p>
 	{/if}
 </article>

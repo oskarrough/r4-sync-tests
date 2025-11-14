@@ -93,15 +93,17 @@
 <aside>
 	<header>
 		<menu>
-			<button onclick={() => (view = 'queue')} class:active={view === 'queue'}>{m.button_queue()} ({queueTracks.length})</button>
+			<button onclick={() => (view = 'queue')} class:active={view === 'queue'}
+				>{m.button_queue()} ({queueTracks.length})</button
+			>
 			<button onclick={() => (view = 'history')} class:active={view === 'history'}
 				>{m.nav_history()} ({playHistory.length})</button
 			>
 		</menu>
 	</header>
 
-		<div class="search-container">
-			<SearchInput bind:value={searchQuery} placeholder={m.search_placeholder()} />
+	<div class="search-container">
+		<SearchInput bind:value={searchQuery} placeholder={m.search_placeholder()} />
 		{#if view === 'queue' && trackIds.length > 0}
 			<button onclick={clearQueue} {@attach tooltip({content: m.queue_no_tracks()})}>{m.common_clear()}</button>
 		{:else if view === 'history' && playHistory.length > 0}

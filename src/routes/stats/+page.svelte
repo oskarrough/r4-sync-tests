@@ -5,6 +5,7 @@
 	import {pg} from '$lib/r5/db'
 	import {extractHashtags} from '$lib/utils.ts'
 	import * as m from '$lib/paraglide/messages'
+	import {getLocale} from '$lib/paraglide/runtime'
 
 	let stats = $state({
 		totalPlays: 0,
@@ -269,10 +270,12 @@
 <article class="SmallContainer">
 	<menu>
 		<a class="btn" href="/stats" class:active={page.route.id === '/stats'}>
-			<Icon icon="chart-scatter" size={20} /> {m.nav_stats()}
+			<Icon icon="chart-scatter" size={20} />
+			{m.nav_stats()}
 		</a>
 		<a class="btn" href="/history" class:active={page.route.id === '/history'}>
-			<Icon icon="history" size={20} /> {m.nav_history()}
+			<Icon icon="history" size={20} />
+			{m.nav_history()}
 		</a>
 	</menu>
 
@@ -293,23 +296,29 @@
 				<h2>{m.stats_activity_heading()}</h2>
 			</header>
 
-			<p>{m.stats_counts_summary({
-				channels: stats.uniqueChannels.toLocaleString(),
-				tracks: stats.uniqueTracks.toLocaleString(),
-				plays: stats.totalPlays.toLocaleString()
-			})}</p>
+			<p>
+				{m.stats_counts_summary({
+					channels: stats.uniqueChannels.toLocaleString(),
+					tracks: stats.uniqueTracks.toLocaleString(),
+					plays: stats.totalPlays.toLocaleString()
+				})}
+			</p>
 
-			<p>{m.stats_time_summary({
-				hours: Math.floor(stats.totalListeningTime / 60),
-				minutes: stats.totalListeningTime % 60,
-				skipRate: stats.skipRate
-			})}</p>
+			<p>
+				{m.stats_time_summary({
+					hours: Math.floor(stats.totalListeningTime / 60),
+					minutes: stats.totalListeningTime % 60,
+					skipRate: stats.skipRate
+				})}
+			</p>
 
 			{#if stats.daysSinceFirstPlay > 0}
-				<p>{m.stats_listening_duration({
-					days: stats.daysSinceFirstPlay,
-					activeDays: stats.streakDays
-				})}</p>
+				<p>
+					{m.stats_listening_duration({
+						days: stats.daysSinceFirstPlay,
+						activeDays: stats.streakDays
+					})}
+				</p>
 			{/if}
 
 			{#if stats.mostActiveHour !== null}
@@ -317,10 +326,12 @@
 			{/if}
 
 			{#if stats.userInitiatedRate > 0}
-				<p>{m.stats_user_share({
-					userRate: stats.userInitiatedRate,
-					autoRate: 100 - stats.userInitiatedRate
-				})}</p>
+				<p>
+					{m.stats_user_share({
+						userRate: stats.userInitiatedRate,
+						autoRate: 100 - stats.userInitiatedRate
+					})}
+				</p>
 			{/if}
 		</section>
 
@@ -419,7 +430,7 @@
 			<section>
 				<div class="timeline">
 					{#each stats.channelTimeline as month, i (i)}
-						{@const dateLabel = new Intl.DateTimeFormat(uiLocale ?? 'en', {
+						{@const dateLabel = new Intl.DateTimeFormat(getLocale() ?? 'en', {
 							month: 'short',
 							year: 'numeric'
 						}).format(new Date(month.month))}

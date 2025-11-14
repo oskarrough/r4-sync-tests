@@ -100,7 +100,11 @@
 									{getTrackTitle(edit.track_id)}
 									<code>{edit.field}</code>
 									{#if canEdit}
-										<button class="undo-btn" onclick={() => onUndo(edit.track_id, edit.field)} title={m.batch_edit_undo_title()}>
+										<button
+											class="undo-btn"
+											onclick={() => onUndo(edit.track_id, edit.field)}
+											title={m.batch_edit_undo_title()}
+										>
 											{m.batch_edit_undo_button()}
 										</button>
 									{/if}

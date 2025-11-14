@@ -101,7 +101,8 @@
 
 <header>
 	<nav>
-		<a href="/{data.slug}">@{channel?.name}</a> {m.batch_edit_nav_suffix()}
+		<a href="/{data.slug}">@{channel?.name}</a>
+		{m.batch_edit_nav_suffix()}
 		{#if hasEdits}
 			<span>{m.batch_edit_edit_count({count: edits.length})}</span>
 		{/if}
