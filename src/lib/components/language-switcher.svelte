@@ -22,16 +22,16 @@
 
 		// Set the locale using Paraglide without reloading
 		await setLocale(locale, {reload: false})
-
-		// Update app state
-		appState.language = locale
 		selectedLocale = locale
+
+		// Persist in app state
+		appState.language = locale
 	}
 </script>
 
 <label class="language-select">
 	<span>{m.settings_language_label()}</span>
-	<select bind:value={selectedLocale} on:change={handleChange} on:input={handleChange}>
+	<select bind:value={selectedLocale} onchange={handleChange} oninput={handleChange}>
 		{#each locales as locale (locale)}
 			<option value={locale}>
 				{locale === selectedLocale ? '🌐' : ''}
