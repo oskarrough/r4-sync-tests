@@ -48,7 +48,7 @@ export async function initAppState() {
 	try {
 		await pg.exec('ALTER TABLE IF EXISTS app_state ADD COLUMN IF NOT EXISTS language text')
 		const result = await pg.query('SELECT * FROM app_state WHERE id = 1')
-		log.log('init', result.rows[0])
+		log.debug('init', result.rows[0])
 		if (result.rows[0]) {
 			// Overwrite is_playing to always be false
 			result.rows[0].is_playing = false
