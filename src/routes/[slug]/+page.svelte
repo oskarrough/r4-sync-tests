@@ -1,4 +1,5 @@
 <script>
+	import {onMount} from 'svelte'
 	import {afterNavigate} from '$app/navigation'
 	import ButtonFollow from '$lib/components/button-follow.svelte'
 	import ButtonPlay from '$lib/components/button-play.svelte'
@@ -11,107 +12,97 @@
 	import {appState} from '$lib/app-state.svelte'
 	import * as m from '$lib/paraglide/messages'
 
-	let {data} = $props()
-
-	let channel = $derived(data.channel)
+	let {data, params} = $props()
 
 	/** @type {import('$lib/types').Track[]} */
 	let tracks = $state([])
-
+	let channel = $derived(data.channel)
+	let slug = $derived(params.slug)
 	let latestTrackDate = $derived(tracks[0]?.created_at)
+	let isSignedIn = $derived(!!appState.user)
+	let canEdit = $derived(isSignedIn && appState.channels?.includes(channel?.id))
 
-	const isSignedIn = $derived(!!appState.user)
-	const canEdit = $derived(isSignedIn && appState.channels?.includes(channel?.id))
+	onMount(() => {
+		setTracks()
+	})
 
-	// Use afterNavigate to handle track loading after each navigation
-	// This ensures clean state and proper reactivity for slug changes
-	afterNavigate(async () => {
-		console.log('[afterNavigate]', data.channel?.name)
-		const currentChannel = data.channel
-		if (!currentChannel) return
+	afterNavigate(() => {
+		// setTracks()
+	})
 
-		const slug = currentChannel.slug
-		const channelId = currentChannel.id
-
-		// Load tracks for the current channel
-		const loadTracks = !currentChannel.tracks_synced_at ? r5.tracks.pull({slug}) : r5.tracks.local({slug})
-		tracks = await loadTracks
-		console.log('[afterNavigate] loaded', tracks.length, 'tracks')
-
-		// Check for updates in background without blocking render
-		if (currentChannel.tracks_synced_at) {
-			r5.channels.outdated(slug).then((isOutdated) => {
+	function setTracks() {
+		if (channel.tracks_synced_at) {
+			r5.tracks.local({slug}).then((trax) => {
+				tracks = trax
+			})
+			// Check for updates in background without blocking render
+			r5.channels.outdated(channel.slug).then((isOutdated) => {
 				if (isOutdated) {
-					r5.tracks.pull({slug}).then((updatedTracks) => {
-						// Only update if still on the same channel
-						if (data.channel?.id === channelId) {
-							tracks = updatedTracks
-						}
+					r5.tracks.pull({slug: channel.slug}).then((updatedTracks) => {
+						tracks = updatedTracks
 					})
 				}
 			})
+		} else {
+			r5.tracks.pull({slug}).then((trax) => {
+				tracks = trax
+			})
 		}
-	})
+	}
 </script>
 
 <svelte:head>
 	<title>{m.channel_page_title({name: channel?.name || m.channel_page_fallback()})}</title>
 </svelte:head>
 
-{#if channel}
-	<article>
-		<header>
-			<ChannelHero {channel} />
-			<div>
-				<menu>
-					<ButtonPlay {channel} label={m.button_play_label()} />
-					<ButtonFollow {channel} />
-					<a href="/{channel.slug}/tags" class="btn">{m.channel_tags_link()}</a>
-					{#if canEdit}
-						<a href="/{channel.slug}/edit" class="btn">{m.common_edit()}</a>
-					{/if}
-				</menu>
-				<h1>
-					{channel.name}
-
-					{#if channel.longitude && channel.latitude}
-						<a
-							href={`/?display=map&slug=${channel.slug}&longitude=${channel.longitude}&latitude=${channel.latitude}&zoom=15`}
-						>
-							<Icon icon="map" />
-						</a>
-					{/if}
-				</h1>
-				<p><LinkEntities slug={channel.slug} text={channel.description} /></p>
-				{#if channel.url}
-					<p><a href={channel.url} target="_blank" rel="noopener">{channel.url}</a></p>
+<article>
+	<header>
+		<ChannelHero {channel} />
+		<div>
+			<menu>
+				<ButtonPlay {channel} label={m.button_play_label()} />
+				<ButtonFollow {channel} />
+				<a href="/{channel.slug}/tags" class="btn">{m.channel_tags_link()}</a>
+				{#if canEdit}
+					<a href="/{channel.slug}/edit" class="btn">{m.common_edit()}</a>
 				{/if}
-				<p>
-					<small>
-						{m.channel_stats_summary({
-							since: relativeDateSolar(channel.created_at),
-							updated: relativeDate(latestTrackDate || channel.updated_at),
-							count: channel.track_count ?? 0
-						})}
-					</small>
-				</p>
-			</div>
-		</header>
+			</menu>
+			<h1>
+				{channel.name}
 
-		<section>
-			{#if tracks.length > 0}
-				<!-- <CoverFlip tracks={tracks} /> -->
-				<Tracklist {tracks} {canEdit} grouped={1} />
-			{:else}
-				<p style="margin-top:1rem; margin-left: 0.5rem;">{m.channel_loading_tracks()}</p>
+				{#if channel.longitude && channel.latitude}
+					<a
+						href={`/?display=map&slug=${channel.slug}&longitude=${channel.longitude}&latitude=${channel.latitude}&zoom=15`}
+					>
+						<Icon icon="map" />
+					</a>
+				{/if}
+			</h1>
+			<p><LinkEntities slug={channel.slug} text={channel.description} /></p>
+			{#if channel.url}
+				<p><a href={channel.url} target="_blank" rel="noopener">{channel.url}</a></p>
 			{/if}
-		</section>
-	</article>
-{:else}
-	<article class="SmallContainer">
-		<p>{m.channel_not_found()}</p>
-	</article>
-{/if}
+			<p>
+				<small>
+					{m.channel_stats_summary({
+						since: relativeDateSolar(channel.created_at),
+						updated: relativeDate(latestTrackDate || channel.updated_at),
+						count: channel.track_count ?? 0
+					})}
+				</small>
+			</p>
+		</div>
+	</header>
+
+	<section>
+		{#if tracks.length > 0}
+			<!-- <CoverFlip tracks={tracks} /> -->
+			<Tracklist {tracks} {canEdit} grouped={true} />
+		{:else}
+			<p style="margin-top:1rem; margin-left: 0.5rem;">{m.channel_loading_tracks()}</p>
+		{/if}
+	</section>
+</article>
 
 <style>
 	article {

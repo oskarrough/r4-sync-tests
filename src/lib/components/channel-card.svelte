@@ -19,7 +19,7 @@
 
 <article ondblclick={doubleclick}>
 	{#if broadcasting}<div class="live-dot"></div>{/if}
-	<a href={`/${channel.slug}`}>
+	<a href={`/${channel.slug}`} data-sveltekit-preload-data="false">
 		<ChannelHero {channel} />
 		<div>
 			<h3>

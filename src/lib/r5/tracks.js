@@ -45,25 +45,11 @@ export async function r4({slug = '', limit = LIMIT} = {}) {
 
 /** Get tracks from v1 (firebase) */
 export async function v1(params) {
-	// Handle CLI calls with slug parameter
-	if (params.slug && !params.firebase) {
-		const channel = (await channels.v1({slug: params.slug}))[0]
-		if (!channel) return []
-		params = {
-			firebase: channel.firebase_id,
-			channelId: channel.id,
-			channelSlug: channel.slug,
-			limit: params.limit
-		}
-	}
-
-	// Use new SDK methods to fetch and parse
 	const {data: rawTracks, error} = await r4Api.sdk.firebase.readTracks({channelId: params.firebase})
-	if (error) throw new Error(`Failed to fetch tracks: ${error.message}`)
+	if (error) throw new Error(`Failed to fetch v1 tracks: ${error.message}`)
 	if (!rawTracks) return []
-
 	const tracks = rawTracks.map((t) => r4Api.sdk.firebase.parseTrack(t, params.channelId, params.channelSlug))
-
+	console.log('r4 v1 parsed tracks', tracks, {params})
 	return params.limit ? tracks.slice(0, params.limit) : tracks
 }
 
