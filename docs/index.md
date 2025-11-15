@@ -25,14 +25,16 @@ data/sync
 
 - [local-database](local-database.md) - pglite setup, migrations, and query patterns
 - [r5 sdk](r5-sdk.md) - unified api for local/remote data access
-- [r5 cli](cli.md) - wraps the r5 sdk in a CLI and adds a `download` command
 - [v1 data](v1-data.md) - how we deal with firebase v1 data
 
 features
 
 - [metadata](metadata.md) - track enrichment via youtube, musicbrainz, discogs etc
 - [player](player.md) - audio playback engine and controls
+- [play-history](play-history.md) - track play history and statistics
 - [search feature](search-feature.md) - full-text fuzzy search across channels and tracks
 - [broadcast feature](broadcast-feature.md) - live streaming and auto-update behavior
 - [followers](followers.md) - logic around following channels
-- [keyboard](keyboard) - keyboard shortcuts
+- [keyboard](keyboard.md) - keyboard shortcuts
+- [localization](localization.md) - internationalization and multi-language support
+- [styles](styles.md) - css architecture and design system
