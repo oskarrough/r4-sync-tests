@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.3.4/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.3.5/schema.json",
 	"vcs": {
 		"enabled": false,
 		"clientKind": "git",
@@ -10,28 +10,20 @@
 	},
 	"formatter": {
 		"enabled": true,
-		"indentStyle": "tab",
 		"lineWidth": 120
 	},
-	"assist": {"actions": {"source": {"organizeImports": "on"}}},
+	"assist": { "actions": { "source": { "organizeImports": "on" } } },
 	"linter": {
 		"enabled": true,
 		"rules": {
 			"recommended": true
-			// "style": {
-			// 	"useConst": "off",
-			// 	"noParameterAssign": "error",
-			// 	"useAsConstAssertion": "error",
-			// 	"useDefaultParameterLast": "error",
-			// 	"useEnumInitializers": "error",
-			// 	"useSelfClosingElements": "error",
-			// 	"useSingleVarDeclarator": "error",
-			// 	"noUnusedTemplateLiteral": "error",
-			// 	"useNumberNamespace": "error",
-			// 	"noInferrableTypes": "error",
-			// 	"noUselessElse": "error"
-			// }
 		}
+	},
+	"html": {
+		"experimentalFullSupportEnabled": true
+		// "formatter": {
+		// 	"indentScriptAndStyle": true
+		// }
 	},
 	"css": {
 		"formatter": {
@@ -48,22 +40,22 @@
 			"semicolons": "asNeeded",
 			"trailingCommas": "none"
 		}
-	},
-	"overrides": [
-		{
-			"includes": ["**/*.svelte", "**/*.astro", "**/*.vue"],
-			"linter": {
-				"rules": {
-					"style": {
-						"useConst": "off",
-						"useImportType": "off"
-					},
-					"correctness": {
-						"noUnusedVariables": "off",
-						"noUnusedImports": "off"
-					}
-				}
-			}
-		}
-	]
+	}
+	// "overrides": [
+	// 	{
+	// 		"includes": ["**/*.svelte", "**/*.astro", "**/*.vue"],
+	// 		"linter": {
+	// 			"rules": {
+	// 				"style": {
+	// 					"useConst": "off",
+	// 					"useImportType": "off"
+	// 				},
+	// 				"correctness": {
+	// 					"noUnusedVariables": "off",
+	// 					"noUnusedImports": "off"
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// ]
 }
