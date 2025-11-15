@@ -58,13 +58,11 @@ export async function v1(params) {
 	}
 
 	// Use new SDK methods to fetch and parse
-	const {data: rawTracks, error} = await r4Api.sdk.channels.readFirebaseTracks({
-		firebaseId: params.firebase
-	})
+	const {data: rawTracks, error} = await r4Api.sdk.firebase.readTracks({channelId: params.firebase})
 	if (error) throw new Error(`Failed to fetch tracks: ${error.message}`)
 	if (!rawTracks) return []
 
-	const tracks = rawTracks.map((t) => r4Api.sdk.tracks.parseFirebaseTrack(t, params.channelId, params.channelSlug))
+	const tracks = rawTracks.map((t) => r4Api.sdk.firebase.parseTrack(t, params.channelId, params.channelSlug))
 
 	return params.limit ? tracks.slice(0, params.limit) : tracks
 }
