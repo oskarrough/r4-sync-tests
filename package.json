@@ -27,10 +27,10 @@
 		"globals": "^16.5.0",
 		"prettier": "^3.6.2",
 		"prettier-plugin-svelte": "^3.4.0",
-		"svelte": "^5.43.5",
-		"svelte-check": "^4.3.3",
+		"svelte": "^5.43.6",
+		"svelte-check": "^4.3.4",
 		"typescript": "^5.9.3",
-		"typescript-eslint": "^8.46.3",
+		"typescript-eslint": "^8.46.4",
 		"vite": "^7.2.2",
 		"vite-plugin-devtools-json": "^1.0.0",
 		"vitest": "^4.0.9",
@@ -58,6 +58,6 @@
 		"p-limit": "^7.2.0",
 		"svelte-awesome-color-picker": "^4.1.0",
 		"tinykeys": "^3.0.0",
-		"youtube-video-element": "^1.6.2"
+		"youtube-video-element": "^1.8.0"
 	}
 }
