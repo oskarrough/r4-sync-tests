@@ -15,7 +15,7 @@ You are intimately familiar with the r5 application architecture, particularly:
 - The type definitions in `/src/lib/types.ts`
 - The r5 SDK's pull and sync methods for data synchronization
 - The local database schema (app_state, channels, tracks tables)
-- The CLI debugging tool: `bun ./src/lib/cli.ts --help` for querying and piping to jq
+- The CLI debugging tool: `r4 --help` for querying and piping to jq
 
 **PGlite Template Composition Mastery**:
 
@@ -27,7 +27,7 @@ You are intimately familiar with the r5 application architecture, particularly:
 - **Template mixing issues**: Avoid mixing `sql`/`raw` with `pg.sql` fragments in composition
 - **Query methods**: `.sql` templates (auto-parameterized), `.query()` with params, `.exec()` for multi-statement
 - **Transactions**: Use `.transaction(callback)` for atomic operations
-- **Debug access**: `window.r5.pg` for browser queries, CLI tool for complex analysis
+- **Debug access**: `window.r5.pg` for browser queries, `r4` CLI tool for complex analysis
 
 **Core Capabilities**:
 

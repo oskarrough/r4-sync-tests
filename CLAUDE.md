@@ -102,7 +102,7 @@ When searching for text or files, prefer using `rg` or `rg --files` respectively
 
 ## CLI
 
-See @docs/cli.md. The project has a CLI tool for database operations, run it with: `bun src/lib/cli.ts --help`. It is very useful for you to verify data orchestration works. Can also be piped, used with jq etc. The CLI does not share db with the web app.
+You can use the `r4` cli (separate project) to inspect data, pipe with jq etc. Explore the help commands as needed.
 
 ## Task-based agent approach
 

@@ -1,6 +1,6 @@
 The local database is a (pglite) PostgreSQL database in the browser via WASM.
 
-Use the `src/lib/r5` or the CLI to interact with it.
+Use the `src/lib/r5` to interact with it.
 
 ## When creating new tables
 
