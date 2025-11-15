@@ -1,4 +1,5 @@
 <script>
+	import {afterNavigate} from '$app/navigation'
 	import ButtonFollow from '$lib/components/button-follow.svelte'
 	import ButtonPlay from '$lib/components/button-play.svelte'
 	import ChannelHero from '$lib/components/channel-hero.svelte'
@@ -22,36 +23,34 @@
 	const isSignedIn = $derived(!!appState.user)
 	const canEdit = $derived(isSignedIn && appState.channels?.includes(channel?.id))
 
-	$effect(() => {
-		if (!channel) return
+	// Use afterNavigate to handle track loading after each navigation
+	// This ensures clean state and proper reactivity for slug changes
+	afterNavigate(async () => {
+		console.log('[afterNavigate]', data.channel?.name)
+		const currentChannel = data.channel
+		if (!currentChannel) return
 
-		const slug = channel.slug
-		const channelId = channel.id
+		const slug = currentChannel.slug
+		const channelId = currentChannel.id
 
-		// Load tracks whenever the channel changes
-		const loadAndSetTracks = async () => {
-			const loadTracks = !channel.tracks_synced_at ? r5.tracks.pull({slug}) : r5.tracks.local({slug})
+		// Load tracks for the current channel
+		const loadTracks = !currentChannel.tracks_synced_at ? r5.tracks.pull({slug}) : r5.tracks.local({slug})
+		tracks = await loadTracks
+		console.log('[afterNavigate] loaded', tracks.length, 'tracks')
 
-			const loadedTracks = await loadTracks
-			tracks = loadedTracks
-
-			// Check for updates in background without blocking render
-			if (channel.tracks_synced_at) {
-				r5.channels.outdated(slug).then((isOutdated) => {
-					if (isOutdated) {
-						console.log(`refreshing outdated tracks for ${slug} in background`)
-						r5.tracks.pull({slug}).then((updatedTracks) => {
-							// Only update if still on the same channel
-							if (channel.id === channelId) {
-								tracks = updatedTracks
-							}
-						})
-					}
-				})
-			}
+		// Check for updates in background without blocking render
+		if (currentChannel.tracks_synced_at) {
+			r5.channels.outdated(slug).then((isOutdated) => {
+				if (isOutdated) {
+					r5.tracks.pull({slug}).then((updatedTracks) => {
+						// Only update if still on the same channel
+						if (data.channel?.id === channelId) {
+							tracks = updatedTracks
+						}
+					})
+				}
+			})
 		}
-
-		loadAndSetTracks()
 	})
 </script>
 
