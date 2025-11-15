@@ -55,7 +55,7 @@
 		border: 1px solid var(--gray-7);
 		border-radius: var(--border-radius);
 
-		position: sticky;
+		position: absolute;
 		left: 0.2rem;
 		right: 0.2rem;
 		bottom: 0.2rem;
