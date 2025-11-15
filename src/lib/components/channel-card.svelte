@@ -1,8 +1,8 @@
 <script>
 	import {appState} from '$lib/app-state.svelte'
+	import * as m from '$lib/paraglide/messages'
 	import {trimWithEllipsis} from '$lib/utils.ts'
 	import ChannelHero from './channel-hero.svelte'
-	import * as m from '$lib/paraglide/messages'
 
 	/** @type {{channel: import('$lib/types').Channel}}*/
 	let {channel, children} = $props()

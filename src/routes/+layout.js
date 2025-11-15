@@ -26,7 +26,7 @@ async function preload() {
 		log.warn('preloading_failed_no_browser')
 		return
 	}
-	log.log('preloading')
+	log.debug('preloading')
 	try {
 		// await delay(60000)
 		await r5.db.migrate()
@@ -42,7 +42,7 @@ async function preload() {
 		log.error('preloading_error', err)
 	} finally {
 		// preloading = false
-		log.log('preloading_done')
+		log.debug('preloading_done')
 	}
 }
 

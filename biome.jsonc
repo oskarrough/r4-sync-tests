@@ -51,8 +51,8 @@
 						// "useImportType": "off"
 					},
 					"correctness": {
-						// "noUnusedVariables": "off",
-						// "noUnusedImports": "off"
+						"noUnusedVariables": "off", // disabled because biome doesn't support svelte properly
+						"noUnusedImports": "off" // disabled because biome doesn't support svelte properly
 					}
 				}
 			}

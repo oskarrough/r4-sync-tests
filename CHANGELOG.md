@@ -2,6 +2,7 @@
 
 ## November 2025
 
+- Multilanguage! Enjoy reading "play" in all the languages
 - Significantly improved startup loading performance for authenticated users (72% faster, from ~540ms to ~153ms to avatar visible)
 - Removed the CLI + browser terminal UI
 - Changed /cli route to /repl

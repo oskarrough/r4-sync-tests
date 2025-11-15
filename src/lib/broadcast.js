@@ -139,7 +139,7 @@ export function watchBroadcasts(onChange) {
 			}
 		})
 		.subscribe((status) => {
-			log.log('broadcasts_subscription_status', {status})
+			log.debug('broadcasts_subscription_status', {status})
 		})
 
 	return () => {
