@@ -90,9 +90,6 @@
 				<Icon icon="chart-scatter" size={20} />
 			</a>
 			<!-- <button onclick={toggleChatPanel}>Chat</button> -->
-			<a href="/cli" class="btn" class:active={page.route.id === '/cli'} {@attach tooltip({content: m.nav_cli()})}>
-				<Icon icon="terminal" size={20} />
-			</a>
 		{/await}
 		<ThemeToggle showLabel={false} />
 		<a

@@ -32,6 +32,7 @@
 
 	<menu vertical>
 		<a href="/recovery">{m.settings_recovery()}</a>
+		<a href="/repl">Developer repl</a>
 		<a href="/about">{m.nav_about()}</a>
 		<a href="https://matrix.to/#/#radio4000:matrix.org" rel="noreferrer">{m.nav_chat()} &rarr;</a>
 		{#if sha}
