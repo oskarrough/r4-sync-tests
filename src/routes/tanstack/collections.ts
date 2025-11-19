@@ -8,7 +8,6 @@ const queryClient = new QueryClient()
 // Create a collection for tracks with on-demand loading. The idea is to have all tracks for all channels in a single collection and you filter them by slug.
 export const tracksCollection = createCollection(
 	queryCollectionOptions({
-		// queryKey: ['tracks'],
 		// Dynamic query key based on filters
 		queryKey: (opts) => {
 			const parsed = parseLoadSubsetOptions(opts)
@@ -40,5 +39,33 @@ export const tracksCollection = createCollection(
 		// onInsert,
 		// onUpdate,
 		// onDelete
+	})
+)
+
+// Progressive channels collection: loads query subset immediately, then syncs full dataset in background
+export const channelsCollection = createCollection(
+	queryCollectionOptions({
+		queryKey: ['channels'],
+		// syncMode: 'progressive',
+		syncMode: 'on-demand',
+		staleTime: 5 * 60 * 1000, // 5 minutes
+		queryFn: async (ctx) => {
+			const {filters, sorts, limit} = parseLoadSubsetOptions(ctx.meta.loadSubsetOptions)
+			console.log('Fetching channels', filters, sorts, limit)
+
+			const slug = filters.find((f) => f.field.includes('slug') && f.operator === 'eq')?.value
+			if (slug) {
+				const {data, error} = await sdk.channels.readChannel(slug)
+				if (error) throw error
+				return data
+			}
+
+			// Otherwise, fetch all channels for background sync
+			const {data, error} = await sdk.channels.readChannels()
+			if (error) throw error
+			return data || []
+		},
+		queryClient,
+		getKey: (item) => item.id
 	})
 )
