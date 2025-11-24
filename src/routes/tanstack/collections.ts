@@ -11,7 +11,7 @@ export const tracksCollection = createCollection(
 		// Dynamic query key based on filters
 		queryKey: (opts) => {
 			const parsed = parseLoadSubsetOptions(opts)
-			const cacheKey = ['products']
+			const cacheKey = ['tracks']
 
 			parsed.filters.forEach((f) => {
 				cacheKey.push(`${f.field.join('.')}-${f.operator}-${f.value}`)
