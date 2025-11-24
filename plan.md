@@ -1,15 +1,13 @@
 List of possible improvements to the architecture, idea, cli and web application.
 Verify and evaluate todos before taking them on. They might be outdated or just not good ideas.
 
-- ✅ improve initial loading performance
+- explore replacing pglitew ith tanstack db (branch #tanstackdb)
 - explore replacing pglite with automerge v3
-- expore replace pglite/electric with tanstack db (pr#40)
 - consider https://turso.tech/blog/introducing-turso-in-the-browser to replace pgsql (tough performance at times)
 - crud channels: create/edit/delete channel functionality
 - crud tracks: edit/delete track functionality (we have add)
 - implement password reset flow (supabase auth)
 - share buttons/embeds (evaluate if needed)
-- soundcloud player support (media-chrome compatible element)
 - local file player for mp3/m4a uploads
 - refactor batch-edit feature (exists but needs work)
 - add validation layer at sync boundaries (remote->local) using lib like zod 4
@@ -21,17 +19,10 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 - move sync/followers into lib/r5 namespace. think hard about the the pullFollowers logic. Maybe get rid of `syncFollowers`, we use "pull" naming in other places. Is it because it doesn't overwrite local, but merge into local? seems hard. hmm
 - consider integrating "bandsintown" as a third-party API similar to musicbrainz, youtube meta - rich data connections
 - Test we can export browser pglite and import and verify that - solid foundation for experimentation
-- implement "queue" to the r5 api - marginal UX improvement
 - V1 compatibility: v1 channels can't be followed/broadcasted because remote supabase doesn't know about their foreign keys. V1 channels have firebase_id but don't exist in remote postgres, causing FK constraint failures. Solution ideas: use string-based IDs instead of proper foreign keys, or create placeholder records in remote for v1 channels.
-- implement event sourcing pattern: events table {type, payload, timestamp} for state changes, enables undo/replay
 - implement backup/restore: export/import full pglite database as json or sql dump
 - rethink the methods and naming in lib/api vs lib/player/api
 - enhance logger: expose store.logs in devtools ui
 - create standardized loading/error boundaries for async operations in ui
 - find a way to share `track_meta` data between users. push it remote, how? security?
-- Player improvements: (1) Add disconnectedCallback cleanup to custom elements when removed from DOM, (2) Improve error handling for API load failures, (3) Test state persistence across provider switches, (4) Consider performance monitoring for initialization times, (5) Audit HTMLMediaElement interface completeness for full media-chrome compatibility
-- cli: Better progress reporting with download speeds, concurrent status
-- cli: allow sql queries
-- cli download error handling: retry logic, download state tracking, failure persistence
-- cli download file scanning: old CLI scans `<folder>/<slug>/tracks/*.m4a`, new CLI has no file ops
 - improve broadcast feature
