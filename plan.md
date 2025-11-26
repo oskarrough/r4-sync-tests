@@ -1,7 +1,13 @@
 List of possible improvements to the architecture, idea, cli and web application.
 Verify and evaluate todos before taking them on. They might be outdated or just not good ideas.
 
-- explore replacing pglitew ith tanstack db (branch #tanstackdb)
+- explore replacing pglite with tanstack db (branch #tanstackdb)
+  - [x] basic read queries (channels, tracks by slug)
+  - [x] mutation handlers for tracks (onInsert, onUpdate, onDelete)
+  - [x] query cache behavior verified (staleTime, dynamic keys)
+  - [ ] localStorage persistence - BLOCKER: localStorageCollectionOptions is local-only (no queryFn/remote sync). TanStack DB expects sync engines (ElectricSQL/PowerSync) not manual localStorage. Options: 1) add sync engine, 2) persist QueryClient cache, 3) stay with PGlite
+  - [ ] app_state equivalent (single-row preferences collection) - can use localStorageCollectionOptions for this
+  - [ ] test offline → online sync cycle
 - explore replacing pglite with automerge v3
 - consider https://turso.tech/blog/introducing-turso-in-the-browser to replace pgsql (tough performance at times)
 - crud channels: create/edit/delete channel functionality

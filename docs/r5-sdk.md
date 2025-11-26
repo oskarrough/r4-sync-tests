@@ -1,30 +1,43 @@
 # r5 sdk
 
-This sdk/api wraps v1 (firebase), r4 (supabase) with r5 (local) into one, unified API. The idea is that you only need to use this to interact with data from all sources:
+Unified API for local (PGlite), remote (Supabase/r4), and legacy (Firebase/v1) data.
 
-- $lib/db -> Local Postgres db
-- $lib/r4 -> Remote Postgres via Supabase (v2)
-- `static/channels-v1-modified.json` -> Local v1 Firebase export (legacy channels)
+Pattern: `r5.<resource>.<source>({params})`
 
-Most methods follow the pattern `r5.<resource>[.<source>]([<params>])`.
+## Source methods
 
-## examples
+| Method | Behavior |
+|--------|----------|
+| `local({slug?, limit?})` | Query local PGlite |
+| `r4({slug?, limit?})` | Fetch from Supabase (no insert) |
+| `v1({slug?, limit?})` | Fetch from Firebase legacy |
+| `pull({id?, slug?, limit?})` | Waterfall: local → r4 → v1, inserts, returns local |
+
+## Examples
 
 ```js
 import {r5} from '$lib/r5'
-await r5.channels.local({limit: 50})
-await r5.tracks.local({slug: 'ko002', limit: 100})
-await r5.channels.r4({limit: 50}) // fetch without inserting
-await r5.channels.v1({slug: 'ko002'}) // fetch v1/firebase channels
-await r5.tracks.v1({channel: 'ko002', firebase: 'id', limit: 100})
-await r5.channels.pull({slug: 'optional-slug', limit: 50}) // fetch all/single, insert, return
-await r5.channels.pull({id: 'channel-uuid'}) // pull channel by ID, resolves to slug automatically
-await r5.tracks.pull({slug: 'required-slug', limit: 50}) // pulls tracks for a single channel (requires slug), insert, return
-await r5.tracks.pull({id: 'track-uuid'}) // pull tracks by track ID, resolves channel slug automatically
 
-// Search
-await r5.search.all('ambient') // search channels and tracks
-await r5.search.channels('ko002') // search channels only
-await r5.search.tracks('#jazz') // search tracks only
-await r5.search.all('@detecteve acid') // search 'acid' in detecteve's tracks
+// Channels
+await r5.channels.local({limit: 50})
+await r5.channels.r4({slug: 'ko002'})
+await r5.channels.pull({slug: 'ko002'})  // smart fetch + insert
+await r5.channels.pull({id: 'uuid'})     // resolves ID to slug
+
+// Tracks (requires slug or id)
+await r5.tracks.local({slug: 'ko002', limit: 100})
+await r5.tracks.pull({slug: 'ko002'})
+await r5.tracks.pull({id: 'track-uuid'}) // resolves to channel slug
+
+// Pull channel + tracks together
+await r5.pull('ko002')
+
+// Tags (local only, derived from track descriptions)
+await r5.tags.local({slug: 'ko002', limit: 20})
+
+// Search (local PGlite with pg_trgm)
+await r5.search.all('ambient')           // channels + tracks
+await r5.search.channels('ko002')
+await r5.search.tracks('jazz')
+await r5.search.all('@detecteve acid')   // scoped to channel
 ```

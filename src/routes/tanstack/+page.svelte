@@ -2,61 +2,105 @@
 	import {useLiveQuery, eq} from '@tanstack/svelte-db'
 	import {channelsCollection, tracksCollection} from './collections'
 
-	const testQuery = useLiveQuery((q) =>
-		q
-			.from({tracks: tracksCollection})
-			.where(({tracks}) => eq(tracks.slug, 'ko002'))
-			.orderBy(({tracks}) => tracks.created_at)
-			.limit(3)
-	)
+	const slug = 'oskar'
+	let status = $state('')
 
-	const testQuery2 = useLiveQuery((q) =>
+	const tracksQuery = useLiveQuery((q) =>
 		q
 			.from({tracks: tracksCollection})
-			.where(({tracks}) => eq(tracks.slug, 'oskar'))
+			.where(({tracks}) => eq(tracks.slug, slug))
 			.orderBy(({tracks}) => tracks.created_at)
-			.limit(3)
+			.limit(5)
 	)
 
 	const channelsQuery = useLiveQuery((q) =>
 		q
 			.from({channels: channelsCollection})
-			// .where(({channels}) => eq(channels.slug, 'oskar'))
+			.where(({channels}) => eq(channels.slug, slug))
 			.orderBy(({channels}) => channels.created_at)
-			.limit(4)
+			.limit(1)
 	)
+
+	const channelId = $derived(channelsQuery.data?.[0]?.id)
+
+	async function handleInsert(e: SubmitEvent) {
+		e.preventDefault()
+		const form = e.target as HTMLFormElement
+		const formData = new FormData(form)
+		const track = {
+			id: crypto.randomUUID(),
+			url: formData.get('url') as string,
+			title: formData.get('title') as string
+		}
+		if (!channelId) {
+			status = 'Error: No channel loaded'
+			return
+		}
+		status = 'Inserting...'
+		const tx = tracksCollection.insert(track, {metadata: {channel_id: channelId}})
+		try {
+			await tx.isPersisted.promise
+			status = 'Inserted!'
+			form.reset()
+		} catch (err) {
+			status = `Insert failed: ${err.message}`
+		}
+	}
+
+	async function handleUpdate(trackId: string, currentTitle: string) {
+		const newTitle = prompt('New title:', currentTitle)
+		if (!newTitle || newTitle === currentTitle) return
+		status = 'Updating...'
+		const tx = tracksCollection.update(trackId, (draft) => {
+			draft.title = newTitle
+		})
+		try {
+			await tx.isPersisted.promise
+			status = 'Updated!'
+		} catch (err) {
+			status = `Update failed: ${err.message}`
+		}
+	}
+
+	async function handleDelete(trackId: string, title: string) {
+		if (!confirm(`Delete "${title}"?`)) return
+		status = 'Deleting...'
+		const tx = tracksCollection.delete(trackId)
+		try {
+			await tx.isPersisted.promise
+			status = 'Deleted!'
+		} catch (err) {
+			status = `Delete failed: ${err.message}`
+		}
+	}
 </script>
 
-<p>Testing on-demand sync with two channels.</p>
+<p>TanStack DB mutations test for <code>{slug}</code>.</p>
 
-{#snippet queryTemplate(q)}
-	{#if q.isLoading}
-		<p>Loading...</p>
-	{:else if q.isError}
-		<p style="color: red;">Error: {q.error.message}</p>
-	{:else if q.isReady}
-		<p>Success</p>
-		<ul>
-			{#each q.data as track (track.id)}
-				<li>{track.title}</li>
-			{/each}
-		</ul>
-	{/if}
-{/snippet}
+{#if status}<p><strong>{status}</strong></p>{/if}
 
 <section>
-	{@render queryTemplate(testQuery)}
-	{@render queryTemplate(testQuery2)}
+	<h3>Insert</h3>
+	<form onsubmit={handleInsert}>
+		<input name="url" value="https://www.youtube.com/watch?v=GGmGMEVbTAY" required />
+		<input name="title" placeholder="Title" required />
+		<button type="submit" disabled={!channelId}>Add track</button>
+	</form>
 
-	{#if channelsQuery.isLoading}
+	<h3>Tracks</h3>
+	{#if tracksQuery.isLoading}
 		<p>Loading...</p>
-	{:else if channelsQuery.isError}
-	<p style="color: red;">Error: {channelsQuery.error.message}</p>
-	{:else if channelsQuery.isReady}
-		<p>Success</p>
+	{:else if tracksQuery.isError}
+		<p style="color: red;">Error: {tracksQuery.error.message}</p>
+	{:else if tracksQuery.isReady}
 		<ul>
-			{#each channelsQuery.data as channel (channel.id)}
-				<li>{channel.name}</li>
+			{#each tracksQuery.data as track (track.id)}
+				<li>
+					<code>{track.id.slice(0, 8)}</code>
+					{track.title}
+					<button onclick={() => handleUpdate(track.id, track.title)}>edit</button>
+					<button onclick={() => handleDelete(track.id, track.title)}>delete</button>
+				</li>
 			{/each}
 		</ul>
 	{/if}

@@ -24,40 +24,77 @@ export const tracksCollection = createCollection(
 			return cacheKey
 		},
 		syncMode: 'on-demand',
-		// staleTime: 5 * 60 * 1000, // 5 minutes
+		queryClient,
+		getKey: (item) => item.id,
+		staleTime: 1 * 60 * 1000, // 1 minutes
+
 		queryFn: async (ctx) => {
 			const {filters, limit} = parseLoadSubsetOptions(ctx.meta?.loadSubsetOptions)
 			const slug = filters.find((f) => f.field.includes('slug') && f.operator === 'eq')?.value
+			console.log('tracks.queryFn', {slug, limit})
+			if (!slug) return []
 			const {data, error} = await sdk.channels.readChannelTracks(slug, limit)
 			if (error) throw error
-			return data
+			return data || []
 		},
-		queryClient,
-		getKey: (item) => item.id
 
-		// @todo once above works
-		// onInsert,
-		// onUpdate,
-		// onDelete
+		onInsert: async ({transaction}) => {
+			await Promise.all(
+				transaction.mutations.map(async (m) => {
+					console.log(m)
+					const channelId = m.metadata?.channel_id
+					if (!channelId) throw new Error('channel_id required in metadata')
+					const {error} = await sdk.tracks.createTrack(channelId, m.modified)
+					if (error) throw new Error(error.message || JSON.stringify(error))
+				})
+			)
+		},
+
+		onUpdate: async ({transaction}) => {
+			await Promise.all(
+				transaction.mutations.map(async (m) => {
+					const {error} = await sdk.tracks.updateTrack(m.key, m.changes)
+					if (error) throw new Error(error.message || JSON.stringify(error))
+				})
+			)
+		},
+
+		onDelete: async ({transaction}) => {
+			await Promise.all(
+				transaction.mutations.map(async (m) => {
+					const {error} = await sdk.tracks.deleteTrack(m.key)
+					if (error) throw new Error(error.message || JSON.stringify(error))
+				})
+			)
+		}
 	})
 )
 
 // Progressive channels collection: loads query subset immediately, then syncs full dataset in background
 export const channelsCollection = createCollection(
 	queryCollectionOptions({
-		queryKey: ['channels'],
-		// syncMode: 'progressive',
+		queryKey: (opts) => {
+			const parsed = parseLoadSubsetOptions(opts)
+			const cacheKey = ['channels']
+			parsed.filters.forEach((f) => {
+				cacheKey.push(`${f.field.join('.')}-${f.operator}-${f.value}`)
+			})
+			if (parsed.limit) {
+				cacheKey.push(`limit-${parsed.limit}`)
+			}
+			return cacheKey
+		},
 		syncMode: 'on-demand',
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		queryFn: async (ctx) => {
-			const {filters, sorts, limit} = parseLoadSubsetOptions(ctx.meta.loadSubsetOptions)
-			console.log('Fetching channels', filters, sorts, limit)
+			const {filters, sorts, limit} = parseLoadSubsetOptions(ctx.meta?.loadSubsetOptions)
+			console.log('channels.queryFn', {filters, sorts, limit})
 
 			const slug = filters.find((f) => f.field.includes('slug') && f.operator === 'eq')?.value
 			if (slug) {
 				const {data, error} = await sdk.channels.readChannel(slug)
 				if (error) throw error
-				return data
+				return data ? [data] : []
 			}
 
 			// Otherwise, fetch all channels for background sync
