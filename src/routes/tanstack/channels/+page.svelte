@@ -15,7 +15,10 @@
 
 	// All channels query (no filter)
 	const allChannelsQuery = useLiveQuery((q) =>
-		q.from({channels: channelsCollection}).orderBy(({channels}) => channels.created_at).limit(10)
+		q
+			.from({channels: channelsCollection})
+			.orderBy(({channels}) => channels.created_at)
+			.limit(10)
 	)
 
 	const channel = $derived(channelQuery.data?.[0])

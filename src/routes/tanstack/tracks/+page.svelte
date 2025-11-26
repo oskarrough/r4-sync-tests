@@ -1,6 +1,6 @@
 <script lang="ts">
 	import {useLiveQuery, eq} from '@tanstack/svelte-db'
-	import {channelsCollection, tracksCollection} from '../collections'
+	import {channelsCollection, tracksCollection, offlineExecutor, createTrackActions} from '../collections'
 
 	const slug = 'oskar'
 	let status = $state('')
@@ -13,7 +13,7 @@
 			.limit(5)
 	)
 
-	// Need channel ID for inserts
+	// Need channel ID for mutations
 	const channelsQuery = useLiveQuery((q) =>
 		q
 			.from({channels: channelsCollection})
@@ -23,23 +23,23 @@
 	)
 	const channelId = $derived(channelsQuery.data?.[0]?.id)
 
+	// Create actions when we have a channel ID
+	const trackActions = $derived(channelId ? createTrackActions(offlineExecutor, channelId) : null)
+
 	async function handleInsert(e: SubmitEvent) {
 		e.preventDefault()
-		const form = e.target as HTMLFormElement
-		const formData = new FormData(form)
-		const track = {
-			id: crypto.randomUUID(),
-			url: formData.get('url') as string,
-			title: formData.get('title') as string,
-		}
-		if (!channelId) {
+		if (!trackActions) {
 			status = 'Error: No channel loaded'
 			return
 		}
+		const form = e.target as HTMLFormElement
+		const formData = new FormData(form)
+		const url = formData.get('url') as string
+		const title = formData.get('title') as string
+
 		status = 'Inserting...'
-		const tx = tracksCollection.insert(track, {metadata: {channel_id: channelId}})
 		try {
-			await tx.isPersisted.promise
+			await trackActions.addTrack({url, title})
 			status = 'Inserted!'
 			form.reset()
 		} catch (err) {
@@ -48,14 +48,12 @@
 	}
 
 	async function handleUpdate(trackId: string, currentTitle: string) {
+		if (!trackActions) return
 		const newTitle = prompt('New title:', currentTitle)
 		if (!newTitle || newTitle === currentTitle) return
 		status = 'Updating...'
-		const tx = tracksCollection.update(trackId, (draft) => {
-			draft.title = newTitle
-		})
 		try {
-			await tx.isPersisted.promise
+			await trackActions.updateTrack({id: trackId, changes: {title: newTitle}})
 			status = 'Updated!'
 		} catch (err) {
 			status = `Update failed: ${err.message}`
@@ -63,11 +61,11 @@
 	}
 
 	async function handleDelete(trackId: string, title: string) {
+		if (!trackActions) return
 		if (!confirm(`Delete "${title}"?`)) return
 		status = 'Deleting...'
-		const tx = tracksCollection.delete(trackId)
 		try {
-			await tx.isPersisted.promise
+			await trackActions.deleteTrack(trackId)
 			status = 'Deleted!'
 		} catch (err) {
 			status = `Delete failed: ${err.message}`
@@ -77,6 +75,7 @@
 
 <h2>Tracks Collection Test</h2>
 <p>Testing <code>tracksCollection</code> for <code>{slug}</code></p>
+<p>Executor mode: <code>{offlineExecutor.mode}</code></p>
 
 {#if status}<p><strong>{status}</strong></p>{/if}
 
@@ -85,7 +84,7 @@
 	<form onsubmit={handleInsert}>
 		<input name="url" value="https://www.youtube.com/watch?v=GGmGMEVbTAY" required />
 		<input name="title" placeholder="Title" required />
-		<button type="submit" disabled={!channelId}>Add track</button>
+		<button type="submit" disabled={!trackActions}>Add track</button>
 	</form>
 
 	<h3>Tracks ({tracksQuery.data?.length ?? 0})</h3>

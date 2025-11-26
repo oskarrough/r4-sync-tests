@@ -8,4 +8,7 @@
 	<li><a href="/tanstack/tracks">Tracks Collection</a></li>
 </ul>
 
-<p>Open DevTools console to see query logs. Check IndexedDB for persistence (<code>keyval-store</code> → <code>r5-tanstack-query</code>).</p>
+<p>
+	Open DevTools console to see query logs. Check IndexedDB for persistence (<code>keyval-store</code> →
+	<code>r5-tanstack-query</code>).
+</p>
