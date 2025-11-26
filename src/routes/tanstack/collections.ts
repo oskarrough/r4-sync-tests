@@ -1,9 +1,48 @@
 import {createCollection} from '@tanstack/svelte-db'
 import {queryCollectionOptions, parseLoadSubsetOptions} from '@tanstack/query-db-collection'
 import {QueryClient} from '@tanstack/svelte-query'
+import {persistQueryClient} from '@tanstack/query-persist-client-core'
+import {get, set, del} from 'idb-keyval'
 import {sdk} from '@radio4000/sdk'
+import type {PersistedClient, Persister} from '@tanstack/query-persist-client-core'
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+	defaultOptions: {
+		queries: {
+			gcTime: 1000 * 60 * 60 * 24, // 24 hours
+		},
+	},
+})
+
+// Cycle-safe JSON serialization
+function safeStringify(obj: unknown): string {
+	const seen = new WeakSet()
+	return JSON.stringify(obj, (_key, value) => {
+		if (typeof value === 'object' && value !== null) {
+			if (seen.has(value)) return undefined
+			seen.add(value)
+		}
+		if (typeof value === 'function') return undefined
+		return value
+	})
+}
+
+// IDB persister for offline cache
+const idbPersister: Persister = {
+	persistClient: async (client: PersistedClient) => {
+		await set('r5-tanstack-query', safeStringify(client))
+	},
+	restoreClient: async () => {
+		const data = await get<string>('r5-tanstack-query')
+		return data ? JSON.parse(data) : undefined
+	},
+	removeClient: async () => {
+		await del('r5-tanstack-query')
+	},
+}
+
+// Restore cache from IDB and subscribe to changes
+persistQueryClient({queryClient, persister: idbPersister})
 
 // Create a collection for tracks with on-demand loading. The idea is to have all tracks for all channels in a single collection and you filter them by slug.
 export const tracksCollection = createCollection(
