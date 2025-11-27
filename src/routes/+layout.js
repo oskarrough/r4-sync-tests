@@ -1,5 +1,5 @@
 import {browser} from '$app/environment'
-import {initAppState, validateListeningState} from '$lib/app-state.svelte'
+import {validateListeningState} from '$lib/broadcast.js'
 import {logger} from '$lib/logger'
 import {r4} from '$lib/r4'
 import {r5} from '$lib/r5'
@@ -31,7 +31,6 @@ async function preload() {
 		// await delay(60000)
 		await r5.db.migrate()
 		pg = await r5.db.getPg()
-		await initAppState()
 		await autoPull()
 		// @ts-expect-error debugging
 		window.r5 = {r5, r4, pg}

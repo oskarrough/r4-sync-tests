@@ -1,7 +1,7 @@
 <script>
 	import '../styles/style.css'
 	import 'leaflet/dist/leaflet.css'
-	import {appState, persistAppState} from '$lib/app-state.svelte'
+	import {appState} from '$lib/app-state.svelte'
 	import AuthListener from '$lib/components/auth-listener.svelte'
 	import DraggablePanel from '$lib/components/draggable-panel.svelte'
 	import KeyboardShortcuts from '$lib/components/keyboard-shortcuts.svelte'
@@ -22,7 +22,6 @@
 	/** @type {import('./$types').LayoutProps} */
 	const {data, children} = $props()
 
-	let skipPersist = $state(true)
 	let chatPanelVisible = $state(false)
 	const rtlLocales = new Set(['ar', 'ur'])
 
@@ -59,7 +58,6 @@
 		if (!storedLocale) {
 			appState.language = currentLocale
 		}
-		skipPersist = false
 	})
 
 	// Theme application
@@ -87,18 +85,6 @@
 		applyCustomCssVariables(appState.custom_css_variables)
 	})
 
-	$effect(() => {
-		if (skipPersist) return
-		// Take a snapshot to track all property changes
-		$state.snapshot(appState)
-		persistAppState()
-			.then(() => {
-				log.debug('persisted app_state', $state.snapshot(appState))
-			})
-			.catch((err) => {
-				goto(`/recovery?err=${err.message}`)
-			})
-	})
 
 	// "Close" the database on page unload. I have not noticed any difference, but seems like a good thing to do.
 	$effect(() => {

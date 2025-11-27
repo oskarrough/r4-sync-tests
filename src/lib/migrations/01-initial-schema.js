@@ -39,7 +39,9 @@ CREATE INDEX IF NOT EXISTS idx_tracks_channel_id ON tracks(channel_id);
 CREATE TABLE IF NOT EXISTS app_state (
 	id INTEGER PRIMARY KEY,
 	theme TEXT,
+	channel JSONB DEFAULT '{}'::jsonb,
 	counter INTEGER DEFAULT 0,
+	language TEXT,
 	channels_display TEXT,
 	is_playing BOOLEAN DEFAULT false,
 	volume REAL DEFAULT 0.5,

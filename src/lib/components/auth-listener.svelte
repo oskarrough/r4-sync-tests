@@ -19,6 +19,7 @@
 
 		if (!user) {
 			if (appState.channels?.length) {
+				appState.channel = null
 				appState.channels = []
 			}
 			return
