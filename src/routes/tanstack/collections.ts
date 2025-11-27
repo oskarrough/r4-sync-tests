@@ -51,39 +51,6 @@ export const tracksCollection = createCollection(
 	})
 )
 
-// Channels collection
-export const channelsCollection = createCollection(
-	queryCollectionOptions({
-		queryKey: (opts) => {
-			const parsed = parseLoadSubsetOptions(opts)
-			const cacheKey = ['channels']
-			parsed.filters.forEach((f) => {
-				cacheKey.push(`${f.field.join('.')}-${f.operator}-${f.value}`)
-			})
-			if (parsed.limit) {
-				cacheKey.push(`limit-${parsed.limit}`)
-			}
-			return cacheKey
-		},
-		syncMode: 'on-demand',
-		staleTime: 5 * 60 * 1000,
-		queryFn: async (ctx) => {
-			const {filters, limit} = parseLoadSubsetOptions(ctx.meta?.loadSubsetOptions)
-			console.log('channels.queryFn', {filters, limit})
-			const slug = filters.find((f) => f.field.includes('slug') && f.operator === 'eq')?.value
-			if (slug) {
-				const {data, error} = await sdk.channels.readChannel(slug)
-				if (error) throw error
-				return data ? [data] : []
-			}
-			const {data, error} = await sdk.channels.readChannels()
-			if (error) throw error
-			return data || []
-		},
-		queryClient,
-		getKey: (item) => item.id
-	})
-)
 
 // API sync function - handles all track mutations
 // Uses direct writes to avoid flicker (optimistic → gone → refetched)
@@ -129,51 +96,14 @@ const tracksAPI = {
 	}
 }
 
-// API sync function - handles all channel mutations
-const channelsAPI = {
-	async syncChannels({transaction}: {transaction: {mutations: Array<PendingMutation>}; idempotencyKey: string}) {
-		for (const mutation of transaction.mutations) {
-			console.log('syncChannels', mutation.type, mutation)
-			switch (mutation.type) {
-				case 'insert': {
-					const channel = mutation.modified as {id: string; name: string; slug: string; user_id?: string}
-					if (!channel.user_id) throw new Error('user_id required')
-					const {error} = await sdk.channels.createChannel({
-						name: channel.name,
-						slug: channel.slug,
-						userId: channel.user_id
-					})
-					if (error) throw new Error(error.message || JSON.stringify(error))
-					break
-				}
-				case 'update': {
-					const channel = mutation.modified as {id: string}
-					const {error} = await sdk.channels.updateChannel(channel.id, mutation.changes)
-					if (error) throw new Error(error.message || JSON.stringify(error))
-					break
-				}
-				case 'delete': {
-					const channel = mutation.original as {id: string}
-					const {error} = await sdk.channels.deleteChannel(channel.id)
-					if (error) throw new Error(error.message || JSON.stringify(error))
-					break
-				}
-			}
-		}
-		// Invalidate cache so persisted data doesn't override optimistic updates
-		queryClient.invalidateQueries({queryKey: ['channels']})
-	}
-}
-
 // Create offline executor
 export const offlineExecutor = startOfflineExecutor({
 	onTransactionComplete: (tx) => console.log('transaction complete', tx.id),
 	onTransactionError: (tx, err) => console.log('transaction error', tx.id, err),
-	collections: {tracks: tracksCollection, channels: channelsCollection},
+	collections: {tracks: tracksCollection},
 	storage: new IndexedDBAdapter('r5-offline-mutations', 'transactions'),
 	mutationFns: {
-		syncTracks: tracksAPI.syncTracks,
-		syncChannels: channelsAPI.syncChannels
+		syncTracks: tracksAPI.syncTracks
 	},
 	onLeadershipChange: (isLeader) => {
 		console.log('offline executor leadership:', {isLeader})
@@ -238,5 +168,3 @@ export function createTrackActions(executor: typeof offlineExecutor, channelId: 
 
 	return {addTrack, updateTrack, deleteTrack}
 }
-
-// @todo Offline actions for channels once we've establish that the pattern works for tracks.
