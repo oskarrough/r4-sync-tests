@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Menu from '../menu.svelte'
 	import {useLiveQuery, eq} from '@tanstack/svelte-db'
-	import {channelsCollection, offlineExecutor} from '../collections'
+	import {channelsCollection} from '../collections'
 	// import {sdk} from '@radio4000/sdk'
 	import SyncStatus from '../sync-status.svelte'
 
@@ -27,11 +27,11 @@
 		console.log('todo')
 	}
 
-	async function handleUpdate(channelId: string, currentName: string) {
+	async function handleUpdate() {
 		console.log('todo')
 	}
 
-	async function handleDelete(id: string) {
+	async function handleDelete() {
 		console.log('todo')
 	}
 </script>
@@ -83,9 +83,9 @@
 			{#each allChannelsQuery.data as ch (ch.id)}
 				<li>
 					{ch.slug} — {ch.name}
-					{#if channelActions}
-						<button onclick={() => handleUpdate(ch.id, ch.name)}>edit</button>
-						<button onclick={() => handleDelete(ch.id)}>×</button>
+					{#if userId}
+						<button onclick={() => handleUpdate()}>edit</button>
+						<button onclick={() => handleDelete()}>×</button>
 					{/if}
 				</li>
 			{/each}

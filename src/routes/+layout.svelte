@@ -11,7 +11,6 @@
 	import QueuePanel from '$lib/components/queue-panel.svelte'
 	import '@radio4000/components'
 	import {onMount} from 'svelte'
-	import {goto} from '$app/navigation'
 	import {applyCustomCssVariables} from '$lib/apply-css-variables'
 	import {logger} from '$lib/logger'
 	import * as m from '$lib/paraglide/messages'
@@ -84,7 +83,6 @@
 	$effect(() => {
 		applyCustomCssVariables(appState.custom_css_variables)
 	})
-
 
 	// "Close" the database on page unload. I have not noticed any difference, but seems like a good thing to do.
 	$effect(() => {

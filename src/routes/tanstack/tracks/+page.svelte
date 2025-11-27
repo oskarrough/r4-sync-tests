@@ -1,12 +1,9 @@
 <script lang="ts">
 	import Menu from '../menu.svelte'
 	import {useLiveQuery, eq} from '@tanstack/svelte-db'
-	import {tracksCollection, offlineExecutor, createTrackActions} from '../collections'
-	import {hydrateTracksFromIDB} from '../idb-persistence'
+	import {tracksCollection, addTrack, updateTrack, deleteTrack} from '../collections'
 	import SyncStatus from '../sync-status.svelte'
 	import {appState} from '$lib/app-state.svelte'
-
-	// hydrateTracksFromIDB()
 
 	let error = $state('')
 
@@ -20,17 +17,13 @@
 			.limit(20)
 	)
 
-	const trackActions = $derived(
-		userChannel ? createTrackActions(offlineExecutor, userChannel.id, userChannel.slug) : null
-	)
-
 	async function handleInsert(e: SubmitEvent) {
 		e.preventDefault()
-		if (!trackActions) return
+		if (!userChannel) return
 		const form = e.target as HTMLFormElement
 		const formData = new FormData(form)
 		try {
-			await trackActions.addTrack({
+			await addTrack(userChannel, {
 				url: formData.get('url') as string,
 				title: formData.get('title') as string
 			})
@@ -42,11 +35,11 @@
 	}
 
 	async function handleUpdate(trackId: string, currentTitle: string) {
-		if (!trackActions) return
+		if (!userChannel) return
 		const newTitle = prompt('New title:', currentTitle)
 		if (!newTitle || newTitle === currentTitle) return
 		try {
-			await trackActions.updateTrack({id: trackId, changes: {title: newTitle}})
+			await updateTrack(userChannel, trackId, {title: newTitle})
 			error = ''
 		} catch (err) {
 			error = (err as Error).message
@@ -54,9 +47,9 @@
 	}
 
 	async function handleDelete(id: string) {
-		if (!trackActions) return
+		if (!userChannel) return
 		try {
-			await trackActions.deleteTrack(id)
+			await deleteTrack(userChannel, id)
 			error = ''
 		} catch (err) {
 			error = (err as Error).message

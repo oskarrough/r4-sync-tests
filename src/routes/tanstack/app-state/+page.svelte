@@ -9,7 +9,10 @@
 
 <Menu />
 
-<p>Here we have a "global state" that can be mutated anywhere in the app, it's reactive and persisted to local storage without tanstack.</p>
+<p>
+	Here we have a "global state" that can be mutated anywhere in the app, it's reactive and persisted to local storage
+	without tanstack.
+</p>
 
 <section>
 	<p>appState.counter = {appState.counter} <button onclick={increment}>+1</button></p>

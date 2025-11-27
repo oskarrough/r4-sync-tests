@@ -123,58 +123,55 @@ export const offlineExecutor = startOfflineExecutor({
 	}
 })
 
-// Offline actions - components call these instead of collection.insert() directly
-export function createTrackActions(executor: typeof offlineExecutor, channelId: string, slug: string) {
-	const addTrack = (input: {url: string; title: string}) => {
-		const tx = executor.createOfflineTransaction({
-			mutationFnName: 'syncTracks',
-			metadata: {channelId, slug},
-			autoCommit: false
-		})
-		tx.mutate(() => {
-			const newTrack = {
-				id: crypto.randomUUID(),
-				url: input.url,
-				title: input.title,
-				slug,
-				created_at: new Date().toISOString(),
-				updated_at: new Date().toISOString()
-			}
-			tracksCollection.insert(newTrack)
-		})
-		return tx.commit()
-	}
+// Track actions - standalone functions, pass channel each time
+type Channel = {id: string; slug: string}
 
-	const updateTrack = (input: {id: string; changes: Record<string, unknown>}) => {
-		const tx = executor.createOfflineTransaction({
-			mutationFnName: 'syncTracks',
-			metadata: {channelId, slug},
-			autoCommit: false
+export function addTrack(channel: Channel, input: {url: string; title: string}) {
+	const tx = offlineExecutor.createOfflineTransaction({
+		mutationFnName: 'syncTracks',
+		metadata: {channelId: channel.id, slug: channel.slug},
+		autoCommit: false
+	})
+	tx.mutate(() => {
+		tracksCollection.insert({
+			id: crypto.randomUUID(),
+			url: input.url,
+			title: input.title,
+			slug: channel.slug,
+			created_at: new Date().toISOString(),
+			updated_at: new Date().toISOString()
 		})
-		tx.mutate(() => {
-			const track = tracksCollection.get(input.id)
-			if (!track) return
-			tracksCollection.update(input.id, (draft) => {
-				Object.assign(draft, input.changes, {updated_at: new Date().toISOString()})
-			})
-		})
-		return tx.commit()
-	}
+	})
+	return tx.commit()
+}
 
-	const deleteTrack = (id: string) => {
-		const tx = executor.createOfflineTransaction({
-			mutationFnName: 'syncTracks',
-			metadata: {channelId, slug},
-			autoCommit: false
+export function updateTrack(channel: Channel, id: string, changes: Record<string, unknown>) {
+	const tx = offlineExecutor.createOfflineTransaction({
+		mutationFnName: 'syncTracks',
+		metadata: {channelId: channel.id, slug: channel.slug},
+		autoCommit: false
+	})
+	tx.mutate(() => {
+		const track = tracksCollection.get(id)
+		if (!track) return
+		tracksCollection.update(id, (draft) => {
+			Object.assign(draft, changes, {updated_at: new Date().toISOString()})
 		})
-		tx.mutate(() => {
-			const track = tracksCollection.get(id)
-			if (track) {
-				tracksCollection.delete(id)
-			}
-		})
-		return tx.commit()
-	}
+	})
+	return tx.commit()
+}
 
-	return {addTrack, updateTrack, deleteTrack}
+export function deleteTrack(channel: Channel, id: string) {
+	const tx = offlineExecutor.createOfflineTransaction({
+		mutationFnName: 'syncTracks',
+		metadata: {channelId: channel.id, slug: channel.slug},
+		autoCommit: false
+	})
+	tx.mutate(() => {
+		const track = tracksCollection.get(id)
+		if (track) {
+			tracksCollection.delete(id)
+		}
+	})
+	return tx.commit()
 }
