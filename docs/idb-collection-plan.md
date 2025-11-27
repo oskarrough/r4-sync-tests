@@ -134,12 +134,12 @@ collection.insert(track)
 
 ## Key Differences from queryCollectionOptions
 
-| queryCollectionOptions | idbCollectionOptions |
-|------------------------|----------------------|
-| Query cache persistence | IDB persistence |
-| Cache restore overwrites optimistic updates | No conflict |
-| invalidateQueries causes refetch cascade | {refetch: false} - no cascade |
-| Loses data on cache clear | IDB survives |
+| queryCollectionOptions                      | idbCollectionOptions          |
+| ------------------------------------------- | ----------------------------- |
+| Query cache persistence                     | IDB persistence               |
+| Cache restore overwrites optimistic updates | No conflict                   |
+| invalidateQueries causes refetch cascade    | {refetch: false} - no cascade |
+| Loses data on cache clear                   | IDB survives                  |
 
 ## What We Keep from queryCollectionOptions
 
@@ -151,17 +151,20 @@ collection.insert(track)
 ## Implementation Approach
 
 Option A: Wrap queryCollectionOptions
+
 - Use queryCollectionOptions internally
 - Intercept cache operations to also write to IDB
 - Hydrate from IDB before query cache
 - Complex, fighting the abstraction
 
 Option B: Fork localStorageCollectionOptions
+
 - Start from simpler base
 - Add queryFn + predicate handling from queryCollectionOptions
 - Cleaner, but more code
 
 Option C: Compose at usage level (pragmatic)
+
 - Keep queryCollectionOptions as-is
 - Remove persistQueryClient (no query cache persistence)
 - Manually persist collection.toArray to IDB after mutations
