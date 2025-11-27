@@ -49,8 +49,8 @@
 			await channelActions.addChannel({name, slug: channelSlug})
 			status = 'Created!'
 			form.reset()
-		} catch (err: any) {
-			status = `Create failed: ${err.message}`
+		} catch (err) {
+			status = `Create failed: ${(err as Error).message}`
 		}
 	}
 
@@ -62,8 +62,8 @@
 		try {
 			await channelActions.updateChannel({id: channelId, changes: {name: newName}})
 			status = 'Updated!'
-		} catch (err: any) {
-			status = `Update failed: ${err.message}`
+		} catch (err) {
+			status = `Update failed: ${(err as Error).message}`
 		}
 	}
 
@@ -75,68 +75,60 @@
 		try {
 			await channelActions.deleteChannel(id)
 			status = 'Deleted!'
-		} catch (err: any) {
-			status = `Delete failed: ${err.message}`
+		} catch (err) {
+			status = `Delete failed: ${(err as Error).message}`
 		}
 	}
 </script>
 
-<h2>Channels Collection Test</h2>
-<p>Testing <code>channelsCollection</code></p>
+<h2>Channels</h2>
 
 <SyncStatus />
+
+{#if !userId}
+	<p>Sign in to manage channels</p>
+{:else}
+	<form onsubmit={handleCreate}>
+		<input name="name" placeholder="Channel name" required />
+		<input name="slug" placeholder="channel-slug" required pattern="[a-z0-9-]+" />
+		<button type="submit">Create</button>
+	</form>
+{/if}
 
 {#if status}<p><strong>{status}</strong></p>{/if}
 
 <section>
-	<h3>Create Channel</h3>
-	{#if userId}
-		<form onsubmit={handleCreate}>
-			<input name="name" placeholder="Channel name" required />
-			<input name="slug" placeholder="channel-slug" required pattern="[a-z0-9-]+" />
-			<button type="submit">Create</button>
-		</form>
-	{:else}
-		<p><em>Log in to create channels</em></p>
-	{/if}
-</section>
-
-<section>
-	<h3>Single Channel: <code>{slug}</code></h3>
+	<h3>{slug}</h3>
 	{#if channelQuery.isLoading}
-		<p>Loading...</p>
+		<p>Loading…</p>
 	{:else if channelQuery.isError}
-		<p style="color: red;">Error: {channelQuery.error.message}</p>
+		<p style="color: var(--red)">{channelQuery.error.message}</p>
 	{:else if channel}
-		<dl>
-			<dt>ID</dt>
-			<dd><code>{channel.id}</code></dd>
+		<dl class="meta">
 			<dt>Name</dt>
 			<dd>{channel.name}</dd>
-			<dt>Slug</dt>
-			<dd>{channel.slug}</dd>
 			<dt>Description</dt>
-			<dd>{channel.description || '(none)'}</dd>
+			<dd>{channel.description || '—'}</dd>
 		</dl>
 	{:else}
-		<p>No channel found</p>
+		<p>Not found</p>
 	{/if}
 </section>
 
 <section>
-	<h3>All Channels ({allChannelsQuery.data?.length ?? 0})</h3>
+	<h3>All channels</h3>
 	{#if allChannelsQuery.isLoading}
-		<p>Loading...</p>
+		<p>Loading…</p>
 	{:else if allChannelsQuery.isError}
-		<p style="color: red;">Error: {allChannelsQuery.error.message}</p>
-	{:else if allChannelsQuery.isReady}
+		<p style="color: var(--red)">{allChannelsQuery.error.message}</p>
+	{:else if allChannelsQuery.data?.length}
 		<ul>
 			{#each allChannelsQuery.data as ch (ch.id)}
 				<li>
-					<code>{ch.slug}</code> — {ch.name}
+					{ch.slug} — {ch.name}
 					{#if channelActions}
 						<button onclick={() => handleUpdate(ch.id, ch.name)}>edit</button>
-						<button onclick={() => handleDelete(ch.id)}>delete</button>
+						<button onclick={() => handleDelete(ch.id)}>×</button>
 					{/if}
 				</li>
 			{/each}

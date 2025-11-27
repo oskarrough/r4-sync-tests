@@ -38,6 +38,7 @@
 	"auth_reset_instruction": "We'll send you instructions to reset your password",
 	"auth_reset_help_intro": "Having trouble?",
 	"auth_reset_help_link": "Chat with us",
+	"auth_reset_email_sent": "Email sent! Check your inbox for a password reset link.",
 	"auth_already_have_account": "Already have an account? Sign in instead.",
 	"auth_check_email": "Check your inbox for a confirmation link.",
 	"auth_click_link": "Click the link in the email to finish creating your account.",

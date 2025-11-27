@@ -77,8 +77,10 @@ export interface AppState {
 	channels_display: string
 	channels_filter: string
 	channels_shuffled: boolean
-	/** the user's channels */
+	/** the user's channels (IDs) */
 	channels?: string[]
+	/** the user's primary channel (full object) */
+	channel?: Channel
 	shuffle: boolean
 	broadcasting_channel_id?: string
 	listening_to_channel_id?: string

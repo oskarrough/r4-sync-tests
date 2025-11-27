@@ -10,9 +10,10 @@
 		if (user) {
 			const redirect = page.url.searchParams.get('redirect') || '/settings'
 			goto(redirect)
+		} else {
+			console.error('signinerror', {user, error})
+			throw new Error('Failed to sign in')
 		}
-		console.error('signinerror', {user, error})
-		throw new Error('Failed to sign in')
 	}
 </script>
 

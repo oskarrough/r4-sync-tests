@@ -1,8 +1,13 @@
 <script>
 	import * as m from '$lib/paraglide/messages'
 
+	let emailSent = $state(false)
+
 	function handleResetPassword(event) {
-		console.log('handleResetPassword', event.detail)
+		const {error} = event.detail
+		if (!error) {
+			emailSent = true
+		}
 	}
 </script>
 
@@ -21,7 +26,11 @@
 	<p>{m.auth_reset_instruction()}</p>
 	<br />
 
-	<r4-password-reset onsubmit={handleResetPassword}></r4-password-reset>
+	{#if emailSent}
+		<p><strong>{m.auth_reset_email_sent()}</strong></p>
+	{:else}
+		<r4-password-reset onsubmit={handleResetPassword}></r4-password-reset>
+	{/if}
 	<!-- <r4-update-password onsubmit={handleUpdatePassword}></r4-update-password> -->
 
 	<footer>

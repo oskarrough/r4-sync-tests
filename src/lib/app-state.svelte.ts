@@ -9,6 +9,7 @@ export const defaultAppState: AppState = {
 	counter: 0,
 
 	channels: [],
+	channel: undefined,
 	custom_css_variables: {},
 	shortcuts: {},
 

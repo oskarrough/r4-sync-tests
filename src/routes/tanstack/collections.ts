@@ -1,11 +1,8 @@
 import {createCollection} from '@tanstack/svelte-db'
 import {queryCollectionOptions, parseLoadSubsetOptions} from '@tanstack/query-db-collection'
 import {QueryClient} from '@tanstack/svelte-query'
-import {persistQueryClient} from '@tanstack/query-persist-client-core'
 import {startOfflineExecutor, IndexedDBAdapter} from '@tanstack/offline-transactions'
-import {get, set, del} from 'idb-keyval'
 import {sdk} from '@radio4000/sdk'
-import type {PersistedClient, Persister} from '@tanstack/query-persist-client-core'
 import type {PendingMutation} from '@tanstack/db'
 
 const queryClient = new QueryClient({
@@ -16,35 +13,6 @@ const queryClient = new QueryClient({
 	}
 })
 
-// Cycle-safe JSON serialization
-function safeStringify(obj: unknown): string {
-	const seen = new WeakSet()
-	return JSON.stringify(obj, (_key, value) => {
-		if (typeof value === 'object' && value !== null) {
-			if (seen.has(value)) return undefined
-			seen.add(value)
-		}
-		if (typeof value === 'function') return undefined
-		return value
-	})
-}
-
-// IDB persister for query cache
-const idbPersister: Persister = {
-	persistClient: async (client: PersistedClient) => {
-		await set('r5-tanstack-query', safeStringify(client))
-	},
-	restoreClient: async () => {
-		const data = await get<string>('r5-tanstack-query')
-		return data ? JSON.parse(data) : undefined
-	},
-	removeClient: async () => {
-		await del('r5-tanstack-query')
-	}
-}
-
-persistQueryClient({queryClient, persister: idbPersister})
-
 // Tracks collection - NO mutation hooks, mutations go through offline actions
 export const tracksCollection = createCollection(
 	queryCollectionOptions({
@@ -54,9 +22,7 @@ export const tracksCollection = createCollection(
 			parsed.filters.forEach((f) => {
 				cacheKey.push(`${f.field.join('.')}-${f.operator}-${f.value}`)
 			})
-			if (parsed.limit) {
-				cacheKey.push(`limit-${parsed.limit}`)
-			}
+			// Limit not in key - all queries for same slug share cache
 			return cacheKey
 		},
 		syncMode: 'on-demand',
@@ -65,10 +31,20 @@ export const tracksCollection = createCollection(
 		staleTime: 1 * 60 * 1000,
 		queryFn: async (ctx) => {
 			const {filters, limit} = parseLoadSubsetOptions(ctx.meta?.loadSubsetOptions)
-			const slug = filters.find((f) => f.field.includes('slug') && f.operator === 'eq')?.value
-			console.log('tracks.queryFn', {slug, limit})
+			const slug = filters.find((f) => f.field[0] === 'slug' && f.operator === 'eq')?.value
+			const createdAfter = filters.find((f) => f.field[0] === 'created_at' && f.operator === 'gt')?.value
+			console.log('tracks.queryFn', {slug, limit, createdAfter})
 			if (!slug) return []
-			const {data, error} = await sdk.channels.readChannelTracks(slug, limit)
+
+			let query = sdk.supabase
+				.from('channel_tracks')
+				.select('*')
+				.eq('slug', slug)
+				.order('created_at', {ascending: false})
+			if (limit) query = query.limit(limit)
+			if (createdAfter) query = query.gt('created_at', createdAfter)
+
+			const {data, error} = await query
 			if (error) throw error
 			return data || []
 		}
@@ -111,14 +87,19 @@ export const channelsCollection = createCollection(
 
 // API sync function - handles all track mutations
 const tracksAPI = {
-	async syncTracks({transaction}: {transaction: {mutations: Array<PendingMutation>}; idempotencyKey: string}) {
+	async syncTracks({
+		transaction
+	}: {
+		transaction: {mutations: Array<PendingMutation>; metadata?: Record<string, unknown>}
+		idempotencyKey: string
+	}) {
 		for (const mutation of transaction.mutations) {
 			console.log('syncTracks', mutation.type, mutation)
 			switch (mutation.type) {
 				case 'insert': {
 					const track = mutation.modified as {id: string; url: string; title: string}
-					const channelId = mutation.metadata?.channelId as string
-					if (!channelId) throw new Error('channelId required in mutation metadata')
+					const channelId = transaction.metadata?.channelId as string
+					if (!channelId) throw new Error('channelId required in transaction metadata')
 					const {error} = await sdk.tracks.createTrack(channelId, track)
 					if (error) throw new Error(error.message || JSON.stringify(error))
 					break
@@ -137,7 +118,9 @@ const tracksAPI = {
 				}
 			}
 		}
-		await tracksCollection.utils.refetch()
+		// Persist to IDB after successful remote sync (dynamic import avoids circular dep)
+		const {persistTracksToIDB} = await import('./idb-persistence')
+		await persistTracksToIDB()
 	}
 }
 
@@ -172,7 +155,8 @@ const channelsAPI = {
 				}
 			}
 		}
-		await channelsCollection.utils.refetch()
+		// Invalidate cache so persisted data doesn't override optimistic updates
+		queryClient.invalidateQueries({queryKey: ['channels']})
 	}
 }
 
@@ -194,9 +178,13 @@ export const offlineExecutor = startOfflineExecutor({
 
 // Offline actions - components call these instead of collection.insert() directly
 export function createTrackActions(executor: typeof offlineExecutor, channelId: string, slug: string) {
-	const addTrack = executor.createOfflineAction({
-		mutationFnName: 'syncTracks',
-		onMutate: (input: {url: string; title: string}) => {
+	const addTrack = (input: {url: string; title: string}) => {
+		const tx = executor.createOfflineTransaction({
+			mutationFnName: 'syncTracks',
+			metadata: {channelId, slug},
+			autoCommit: false
+		})
+		tx.mutate(() => {
 			const newTrack = {
 				id: crypto.randomUUID(),
 				url: input.url,
@@ -205,33 +193,41 @@ export function createTrackActions(executor: typeof offlineExecutor, channelId: 
 				created_at: new Date().toISOString(),
 				updated_at: new Date().toISOString()
 			}
-			tracksCollection.insert(newTrack, {metadata: {channelId}})
-			return newTrack
-		}
-	})
+			tracksCollection.insert(newTrack)
+		})
+		return tx.commit()
+	}
 
-	const updateTrack = executor.createOfflineAction({
-		mutationFnName: 'syncTracks',
-		onMutate: (input: {id: string; changes: Record<string, unknown>}) => {
+	const updateTrack = (input: {id: string; changes: Record<string, unknown>}) => {
+		const tx = executor.createOfflineTransaction({
+			mutationFnName: 'syncTracks',
+			metadata: {channelId, slug},
+			autoCommit: false
+		})
+		tx.mutate(() => {
 			const track = tracksCollection.get(input.id)
 			if (!track) return
 			tracksCollection.update(input.id, (draft) => {
 				Object.assign(draft, input.changes, {updated_at: new Date().toISOString()})
 			})
-			return track
-		}
-	})
+		})
+		return tx.commit()
+	}
 
-	const deleteTrack = executor.createOfflineAction({
-		mutationFnName: 'syncTracks',
-		onMutate: (id: string) => {
+	const deleteTrack = (id: string) => {
+		const tx = executor.createOfflineTransaction({
+			mutationFnName: 'syncTracks',
+			metadata: {channelId, slug},
+			autoCommit: false
+		})
+		tx.mutate(() => {
 			const track = tracksCollection.get(id)
 			if (track) {
 				tracksCollection.delete(id)
 			}
-			return track
-		}
-	})
+		})
+		return tx.commit()
+	}
 
 	return {addTrack, updateTrack, deleteTrack}
 }

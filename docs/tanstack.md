@@ -10,6 +10,37 @@ Exploring TanStack DB as potential PGlite replacement. Goal: reactive collection
 - `@tanstack/query-persist-client-core` - Persist query cache to storage
 - `@tanstack/offline-transactions` - Outbox pattern for offline mutations
 
+## Offline transactions
+
+The outbox pattern ensures zero data loss during offline periods:
+
+1. Mutation persists to IndexedDB outbox first
+2. Optimistic update applied to collection
+3. Server sync when online (via mutationFn → sdk)
+4. Remove from outbox on success
+
+```typescript
+const offline = startOfflineExecutor({
+	collections: {tracks: tracksCollection},
+	mutationFns: {
+		syncTracks: async ({transaction, idempotencyKey}) => {
+			await sdk.tracks.createTrack(transaction.mutations[0])
+		}
+	},
+	onLeadershipChange: (isLeader) => {
+		/* multi-tab: only leader persists */
+	}
+})
+
+const tx = offline.createOfflineTransaction({mutationFnName: 'syncTracks'})
+tx.mutate(() => tracksCollection.insert({id, url, title}))
+await tx.commit()
+```
+
+Multi-tab: leader election ensures one tab manages outbox, others run online-only. Automatic failover.
+
+Errors: throw `NonRetriableError` for permanent failures (422, validation), regular errors retry with exponential backoff.
+
 ## Key concepts
 
 - `useLiveQuery()` returns reactive object (not a store, no `$` prefix needed)

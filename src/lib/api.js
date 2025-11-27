@@ -22,6 +22,7 @@ export async function checkUser() {
 
 		if (!user) {
 			appState.channels = []
+			appState.channel = undefined
 			appState.broadcasting_channel_id = undefined
 			return null
 		}
@@ -34,6 +35,7 @@ export async function checkUser() {
 		}
 
 		appState.channels = channels.map((/** @type {any} */ c) => c.id)
+		appState.channel = channels[0] || undefined
 
 		// Sync followers when user signs in (not on every check)
 		if (wasSignedOut && appState.channels.length) {

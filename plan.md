@@ -13,6 +13,8 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
   - [x] sync status UI (online/offline, pending transactions)
   - [x] channel mutations (create/update/delete)
   - [x] query cache persistence (IDB via persistQueryClient)
+  - [x] track mutations use metadata for channelId (cleaner API)
+  - [ ] load user's channel into collection on auth (have userChannelId from appState, need to fetch into collection)
   - [ ] real-world offline → online test (manual verification)
 
 read
