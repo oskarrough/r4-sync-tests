@@ -51,9 +51,12 @@ export const tracksCollection = createCollection(
 	})
 )
 
+// Workaround for https://github.com/TanStack/db/issues/921
+// loadAndReplayTransactions is called twice on init, causing duplicate mutations
+// Only track SUCCESSFUL completions to allow retries after failures
+const completedIdempotencyKeys = new Set<string>()
 
 // API sync function - handles all track mutations
-// Uses direct writes to avoid flicker (optimistic → gone → refetched)
 const tracksAPI = {
 	async syncTracks({
 		transaction,
@@ -62,6 +65,11 @@ const tracksAPI = {
 		transaction: {mutations: Array<PendingMutation>; metadata?: Record<string, unknown>}
 		idempotencyKey: string
 	}) {
+		if (completedIdempotencyKeys.has(idempotencyKey)) {
+			console.log('syncTracks skipping already-completed', {idempotencyKey})
+			return
+		}
+
 		const slug = transaction.metadata?.slug as string
 		for (const mutation of transaction.mutations) {
 			console.log('syncTracks', mutation.type, mutation, {idempotencyKey})
@@ -89,6 +97,9 @@ const tracksAPI = {
 				}
 			}
 		}
+		// Mark as completed only after all mutations succeeded
+		completedIdempotencyKeys.add(idempotencyKey)
+
 		// Invalidate to sync state after all mutations
 		if (slug) {
 			await queryClient.invalidateQueries({queryKey: ['tracks', `slug-eq-${slug}`]})
@@ -96,7 +107,6 @@ const tracksAPI = {
 	}
 }
 
-// Create offline executor
 export const offlineExecutor = startOfflineExecutor({
 	onTransactionComplete: (tx) => console.log('transaction complete', tx.id),
 	onTransactionError: (tx, err) => console.log('transaction error', tx.id, err),
