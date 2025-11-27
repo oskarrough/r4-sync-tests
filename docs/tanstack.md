@@ -40,16 +40,18 @@ Collection updated
 - [x] On-demand sync mode with dynamic cache keys
 - [x] Query cache persistence (IDB via persistQueryClient)
 - [x] Offline mutations via @tanstack/offline-transactions
-- [x] Offline action pattern (createTrackActions)
-- [ ] Test offline → online sync flow
-- [ ] app_state equivalent (single row preferences)
-- [ ] Channel mutations (create/update/delete channel)
+- [x] Offline action pattern (createTrackActions, createChannelActions)
+- [x] Sync status component (online/offline indicator, pending transactions)
+- [x] app_state equivalent (localStorage-based, same API as PGlite version)
+- [x] Channel mutations (create/update/delete channel)
 
 ## Files
 
-- `src/routes/tanstack/collections.ts` - Collections, executor, actions
+- `src/routes/tanstack/collections.ts` - Collections, executor, track/channel actions
+- `src/routes/tanstack/app-state.svelte.ts` - App state (localStorage, same API as PGlite)
+- `src/routes/tanstack/sync-status.svelte` - Online/offline + pending transactions UI
 - `src/routes/tanstack/tracks/+page.svelte` - Tracks CRUD test
-- `src/routes/tanstack/channels/+page.svelte` - Channels read test
+- `src/routes/tanstack/channels/+page.svelte` - Channels CRUD test
 
 ## References
 

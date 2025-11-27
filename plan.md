@@ -9,9 +9,11 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
   - [x] basic read queries (channels, tracks by slug)
   - [x] mutation handlers for tracks (onInsert, onUpdate, onDelete)
   - [x] query cache behavior verified (staleTime, dynamic keys)
-  - [ ] app_state equivalent (single-row preferences collection) - can use localStorageCollectionOptions for this
-  - [ ] test offline → online sync cycle
-  - [ ] localStorage persistence - BLOCKER: localStorageCollectionOptions is local-only (no queryFn/remote sync). TanStack DB expects sync engines (ElectricSQL/PowerSync) not manual localStorage. Options: 1) add sync engine, 2) persist QueryClient cache, 3) stay with PGlite
+  - [x] app_state equivalent (localStorage-based, same API as PGlite version)
+  - [x] sync status UI (online/offline, pending transactions)
+  - [x] channel mutations (create/update/delete)
+  - [x] query cache persistence (IDB via persistQueryClient)
+  - [ ] real-world offline → online test (manual verification)
 
 read
 https://github.com/TanStack/db/issues/865

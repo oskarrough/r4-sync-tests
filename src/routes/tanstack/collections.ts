@@ -116,9 +116,9 @@ const tracksAPI = {
 			console.log('syncTracks', mutation.type, mutation)
 			switch (mutation.type) {
 				case 'insert': {
-					const track = mutation.modified as {id: string; url: string; title: string; channel_id?: string}
-					const channelId = track.channel_id
-					if (!channelId) throw new Error('channel_id required')
+					const track = mutation.modified as {id: string; url: string; title: string}
+					const channelId = mutation.metadata?.channelId as string
+					if (!channelId) throw new Error('channelId required in mutation metadata')
 					const {error} = await sdk.tracks.createTrack(channelId, track)
 					if (error) throw new Error(error.message || JSON.stringify(error))
 					break
@@ -141,12 +141,48 @@ const tracksAPI = {
 	}
 }
 
+// API sync function - handles all channel mutations
+const channelsAPI = {
+	async syncChannels({transaction}: {transaction: {mutations: Array<PendingMutation>}; idempotencyKey: string}) {
+		for (const mutation of transaction.mutations) {
+			console.log('syncChannels', mutation.type, mutation)
+			switch (mutation.type) {
+				case 'insert': {
+					const channel = mutation.modified as {id: string; name: string; slug: string; user_id?: string}
+					if (!channel.user_id) throw new Error('user_id required')
+					const {error} = await sdk.channels.createChannel({
+						name: channel.name,
+						slug: channel.slug,
+						userId: channel.user_id
+					})
+					if (error) throw new Error(error.message || JSON.stringify(error))
+					break
+				}
+				case 'update': {
+					const channel = mutation.modified as {id: string}
+					const {error} = await sdk.channels.updateChannel(channel.id, mutation.changes)
+					if (error) throw new Error(error.message || JSON.stringify(error))
+					break
+				}
+				case 'delete': {
+					const channel = mutation.original as {id: string}
+					const {error} = await sdk.channels.deleteChannel(channel.id)
+					if (error) throw new Error(error.message || JSON.stringify(error))
+					break
+				}
+			}
+		}
+		await channelsCollection.utils.refetch()
+	}
+}
+
 // Create offline executor
 export const offlineExecutor = startOfflineExecutor({
 	collections: {tracks: tracksCollection, channels: channelsCollection},
 	storage: new IndexedDBAdapter('r5-offline', 'transactions'),
 	mutationFns: {
-		syncTracks: tracksAPI.syncTracks
+		syncTracks: tracksAPI.syncTracks,
+		syncChannels: channelsAPI.syncChannels
 	},
 	onLeadershipChange: (isLeader) => {
 		console.log('offline executor leadership:', {isLeader})
@@ -157,7 +193,7 @@ export const offlineExecutor = startOfflineExecutor({
 })
 
 // Offline actions - components call these instead of collection.insert() directly
-export function createTrackActions(executor: typeof offlineExecutor, channelId: string) {
+export function createTrackActions(executor: typeof offlineExecutor, channelId: string, slug: string) {
 	const addTrack = executor.createOfflineAction({
 		mutationFnName: 'syncTracks',
 		onMutate: (input: {url: string; title: string}) => {
@@ -165,11 +201,11 @@ export function createTrackActions(executor: typeof offlineExecutor, channelId: 
 				id: crypto.randomUUID(),
 				url: input.url,
 				title: input.title,
-				channel_id: channelId,
+				slug,
 				created_at: new Date().toISOString(),
 				updated_at: new Date().toISOString()
 			}
-			tracksCollection.insert(newTrack)
+			tracksCollection.insert(newTrack, {metadata: {channelId}})
 			return newTrack
 		}
 	})
@@ -198,4 +234,48 @@ export function createTrackActions(executor: typeof offlineExecutor, channelId: 
 	})
 
 	return {addTrack, updateTrack, deleteTrack}
+}
+
+// Offline actions for channels
+export function createChannelActions(executor: typeof offlineExecutor, userId: string) {
+	const addChannel = executor.createOfflineAction({
+		mutationFnName: 'syncChannels',
+		onMutate: (input: {name: string; slug: string}) => {
+			const newChannel = {
+				id: crypto.randomUUID(),
+				name: input.name,
+				slug: input.slug,
+				user_id: userId,
+				created_at: new Date().toISOString(),
+				updated_at: new Date().toISOString()
+			}
+			channelsCollection.insert(newChannel)
+			return newChannel
+		}
+	})
+
+	const updateChannel = executor.createOfflineAction({
+		mutationFnName: 'syncChannels',
+		onMutate: (input: {id: string; changes: Record<string, unknown>}) => {
+			const channel = channelsCollection.get(input.id)
+			if (!channel) return
+			channelsCollection.update(input.id, (draft) => {
+				Object.assign(draft, input.changes, {updated_at: new Date().toISOString()})
+			})
+			return channel
+		}
+	})
+
+	const deleteChannel = executor.createOfflineAction({
+		mutationFnName: 'syncChannels',
+		onMutate: (id: string) => {
+			const channel = channelsCollection.get(id)
+			if (channel) {
+				channelsCollection.delete(id)
+			}
+			return channel
+		}
+	})
+
+	return {addChannel, updateChannel, deleteChannel}
 }

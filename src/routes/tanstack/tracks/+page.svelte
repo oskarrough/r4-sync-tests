@@ -1,30 +1,28 @@
 <script lang="ts">
 	import {useLiveQuery, eq} from '@tanstack/svelte-db'
 	import {channelsCollection, tracksCollection, offlineExecutor, createTrackActions} from '../collections'
+	import SyncStatus from '../sync-status.svelte'
+	import {appState} from '$lib/app-state.svelte'
 
-	const slug = 'oskar'
 	let status = $state('')
+
+	// Get user's channel from appState
+	const userChannelId = $derived(appState.channels?.[0])
+	const userChannel = $derived(userChannelId ? channelsCollection.state.data?.find((c) => c.id === userChannelId) : null)
+	const slug = $derived(userChannel?.slug)
+
+	$inspect({userChannelId, userChannel, collectionData: channelsCollection.state.data})
 
 	const tracksQuery = useLiveQuery((q) =>
 		q
 			.from({tracks: tracksCollection})
-			.where(({tracks}) => eq(tracks.slug, slug))
+			.where(({tracks}) => eq(tracks.slug, slug ?? ''))
 			.orderBy(({tracks}) => tracks.created_at)
 			.limit(5)
 	)
 
-	// Need channel ID for mutations
-	const channelsQuery = useLiveQuery((q) =>
-		q
-			.from({channels: channelsCollection})
-			.where(({channels}) => eq(channels.slug, slug))
-			.orderBy(({channels}) => channels.created_at)
-			.limit(1)
-	)
-	const channelId = $derived(channelsQuery.data?.[0]?.id)
-
-	// Create actions when we have a channel ID
-	const trackActions = $derived(channelId ? createTrackActions(offlineExecutor, channelId) : null)
+	// Create actions when channel is loaded
+	const trackActions = $derived(userChannel ? createTrackActions(offlineExecutor, userChannel.id, userChannel.slug) : null)
 
 	async function handleInsert(e: SubmitEvent) {
 		e.preventDefault()
@@ -60,12 +58,13 @@
 		}
 	}
 
-	async function handleDelete(trackId: string, title: string) {
+	async function handleDelete(id: string) {
 		if (!trackActions) return
-		if (!confirm(`Delete "${title}"?`)) return
+		const track = tracksCollection.get(id)
+		if (!track || !confirm(`Delete "${track.title}"?`)) return
 		status = 'Deleting...'
 		try {
-			await trackActions.deleteTrack(trackId)
+			await trackActions.deleteTrack(id)
 			status = 'Deleted!'
 		} catch (err) {
 			status = `Delete failed: ${err.message}`
@@ -74,8 +73,10 @@
 </script>
 
 <h2>Tracks Collection Test</h2>
-<p>Testing <code>tracksCollection</code> for <code>{slug}</code></p>
-<p>Executor mode: <code>{offlineExecutor.mode}</code></p>
+<p>Testing <code>tracksCollection</code> for <code>{slug ?? 'no channel'}</code></p>
+{#if !userChannel}<p><em>Sign in and load your channel to test mutations</em></p>{/if}
+
+<SyncStatus />
 
 {#if status}<p><strong>{status}</strong></p>{/if}
 
@@ -99,7 +100,7 @@
 					<code>{track.id.slice(0, 8)}</code>
 					{track.title}
 					<button onclick={() => handleUpdate(track.id, track.title)}>edit</button>
-					<button onclick={() => handleDelete(track.id, track.title)}>delete</button>
+					<button onclick={() => handleDelete(track.id)}>delete</button>
 				</li>
 			{/each}
 		</ul>
