@@ -55,8 +55,6 @@
 
 	async function handleDelete(id: string) {
 		if (!trackActions) return
-		const track = tracksCollection.get(id)
-		if (!track || !confirm(`Delete "${track.title}"?`)) return
 		try {
 			await trackActions.deleteTrack(id)
 			error = ''
@@ -67,8 +65,6 @@
 </script>
 
 <Menu />
-
-<SyncStatus />
 
 {#if !userChannel}
 	<p>Sign in to manage tracks</p>
@@ -98,3 +94,5 @@
 		{/each}
 	</ul>
 {/if}
+
+<SyncStatus />

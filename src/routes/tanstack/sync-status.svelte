@@ -26,25 +26,26 @@
 	const showStatus = $derived(!isOnline || hasPending)
 </script>
 
-{#if showStatus}
-	<dl class="meta">
-		<dt>Sync</dt>
-		<dd>
-			{#if !isOnline}Offline{/if}
-			{#if hasPending}
-				<details>
-					<summary>{pendingTransactions.length} pending</summary>
-					<ul>
-						{#each pendingTransactions as t, i (i)}
-							{@const m = t.mutations?.[0]}
-							<li>
-								{m?.type || '?'} – {m?.modified?.title || m?.original?.title || '?'}
-								{#if t.lastError}<br /><small>⚠️ {t.lastError.message} (retry {t.retryCount})</small>{/if}
-							</li>
-						{/each}
-					</ul>
-				</details>
-			{/if}
-		</dd>
-	</dl>
-{/if}
+<dl class="meta">
+	<dt>Sync status</dt>
+	<dd>
+		{#if isOnline}Online{:else}Offline{/if}
+		{#if hasPending}
+			<details>
+				<summary>{pendingTransactions.length} pending</summary>
+				<ul>
+					{#each pendingTransactions as t, i (i)}
+						{@const m = t.mutations?.[0]}
+						<li>
+							{m?.type || '?'} – {m?.modified?.title || m?.original?.title || '?'}
+							{#if t.lastError}<br /><small>⚠️ {t.lastError.message} (retry {t.retryCount})</small>{/if}
+						</li>
+					{/each}
+				</ul>
+			</details>
+		{:else}
+			<p>No pending transactions</p>
+		{/if}
+	</dd>
+</dl>
+{#if showStatus}{/if}

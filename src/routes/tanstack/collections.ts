@@ -86,22 +86,26 @@ export const channelsCollection = createCollection(
 )
 
 // API sync function - handles all track mutations
+// Uses direct writes to avoid flicker (optimistic → gone → refetched)
 const tracksAPI = {
 	async syncTracks({
-		transaction
+		transaction,
+		idempotencyKey
 	}: {
 		transaction: {mutations: Array<PendingMutation>; metadata?: Record<string, unknown>}
 		idempotencyKey: string
 	}) {
+		const slug = transaction.metadata?.slug as string
 		for (const mutation of transaction.mutations) {
-			console.log('syncTracks', mutation.type, mutation)
+			console.log('syncTracks', mutation.type, mutation, {idempotencyKey})
 			switch (mutation.type) {
 				case 'insert': {
 					const track = mutation.modified as {id: string; url: string; title: string}
 					const channelId = transaction.metadata?.channelId as string
 					if (!channelId) throw new Error('channelId required in transaction metadata')
-					const {error} = await sdk.tracks.createTrack(channelId, track)
+					const {data, error} = await sdk.tracks.createTrack(channelId, track)
 					if (error) throw new Error(error.message || JSON.stringify(error))
+					console.log('syncTracks insert success', {data})
 					break
 				}
 				case 'update': {
@@ -118,9 +122,10 @@ const tracksAPI = {
 				}
 			}
 		}
-		// Persist to IDB after successful remote sync (dynamic import avoids circular dep)
-		const {persistTracksToIDB} = await import('./idb-persistence')
-		await persistTracksToIDB()
+		// Invalidate to sync state after all mutations
+		if (slug) {
+			await queryClient.invalidateQueries({queryKey: ['tracks', `slug-eq-${slug}`]})
+		}
 	}
 }
 
@@ -162,8 +167,10 @@ const channelsAPI = {
 
 // Create offline executor
 export const offlineExecutor = startOfflineExecutor({
+	onTransactionComplete: (tx) => console.log('transaction complete', tx.id),
+	onTransactionError: (tx, err) => console.log('transaction error', tx.id, err),
 	collections: {tracks: tracksCollection, channels: channelsCollection},
-	storage: new IndexedDBAdapter('r5-offline', 'transactions'),
+	storage: new IndexedDBAdapter('r5-offline-mutations', 'transactions'),
 	mutationFns: {
 		syncTracks: tracksAPI.syncTracks,
 		syncChannels: channelsAPI.syncChannels

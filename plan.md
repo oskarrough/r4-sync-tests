@@ -23,6 +23,7 @@ https://github.com/TanStack/db/issues/82
 https://github.com/TanStack/db/pull/559
 https://github.com/TanStack/db/blob/main/packages/offline-transactions/README.md
 https://tanstack.com/query/latest/docs/framework/react/plugins/persistQueryClient
+https://github.com/TanStack/db/issues/921 (our bug report: loadAndReplayTransactions called twice)
 
 - explore replacing pglite with automerge v3
 - consider https://turso.tech/blog/introducing-turso-in-the-browser to replace pgsql (tough performance at times)
