@@ -232,46 +232,4 @@ export function createTrackActions(executor: typeof offlineExecutor, channelId: 
 	return {addTrack, updateTrack, deleteTrack}
 }
 
-// Offline actions for channels
-export function createChannelActions(executor: typeof offlineExecutor, userId: string) {
-	const addChannel = executor.createOfflineAction({
-		mutationFnName: 'syncChannels',
-		onMutate: (input: {name: string; slug: string}) => {
-			const newChannel = {
-				id: crypto.randomUUID(),
-				name: input.name,
-				slug: input.slug,
-				user_id: userId,
-				created_at: new Date().toISOString(),
-				updated_at: new Date().toISOString()
-			}
-			channelsCollection.insert(newChannel)
-			return newChannel
-		}
-	})
-
-	const updateChannel = executor.createOfflineAction({
-		mutationFnName: 'syncChannels',
-		onMutate: (input: {id: string; changes: Record<string, unknown>}) => {
-			const channel = channelsCollection.get(input.id)
-			if (!channel) return
-			channelsCollection.update(input.id, (draft) => {
-				Object.assign(draft, input.changes, {updated_at: new Date().toISOString()})
-			})
-			return channel
-		}
-	})
-
-	const deleteChannel = executor.createOfflineAction({
-		mutationFnName: 'syncChannels',
-		onMutate: (id: string) => {
-			const channel = channelsCollection.get(id)
-			if (channel) {
-				channelsCollection.delete(id)
-			}
-			return channel
-		}
-	})
-
-	return {addChannel, updateChannel, deleteChannel}
-}
+// @todo Offline actions for channels once we've establish that the pattern works for tracks.

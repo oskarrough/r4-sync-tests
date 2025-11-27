@@ -1,24 +1,23 @@
 <script lang="ts">
+	import Menu from '../menu.svelte'
 	import {useLiveQuery, eq} from '@tanstack/svelte-db'
 	import {tracksCollection, offlineExecutor, createTrackActions} from '../collections'
 	import {hydrateTracksFromIDB} from '../idb-persistence'
 	import SyncStatus from '../sync-status.svelte'
 	import {appState} from '$lib/app-state.svelte'
 
-	// Hydrate from IDB on mount
-	hydrateTracksFromIDB()
+	// hydrateTracksFromIDB()
 
 	let error = $state('')
 
 	const userChannel = $derived(appState.channel)
-	const slug = $derived(userChannel?.slug)
 
 	const tracksQuery = useLiveQuery((q) =>
 		q
 			.from({tracks: tracksCollection})
-			.where(({tracks}) => eq(tracks.slug, slug ?? ''))
+			.where(({tracks}) => eq(tracks.slug, userChannel?.slug || ''))
 			.orderBy(({tracks}) => tracks.created_at)
-			.limit(slug ? 10 : 0)
+			.limit(20)
 	)
 
 	const trackActions = $derived(
@@ -67,18 +66,14 @@
 	}
 </script>
 
-<h2>Tracks</h2>
-
-<dl class="meta">
-	<dt>Channel</dt>
-	<dd>{slug ?? '—'}</dd>
-</dl>
+<Menu />
 
 <SyncStatus />
 
 {#if !userChannel}
 	<p>Sign in to manage tracks</p>
 {:else}
+	<p>Add track to {appState.channel.slug}</p>
 	<form onsubmit={handleInsert}>
 		<input name="url" value="https://www.youtube.com/watch?v=GGmGMEVbTAY" required />
 		<input name="title" placeholder="Title" required />
@@ -86,8 +81,8 @@
 	</form>
 {/if}
 
+<h2>Latest 20 tracks</h2>
 {#if error}<p style="color: var(--red)">{error}</p>{/if}
-
 {#if tracksQuery.isLoading}
 	<p>Loading…</p>
 {:else if tracksQuery.isError}

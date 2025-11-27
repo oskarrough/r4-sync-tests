@@ -1,28 +1,18 @@
 <script lang="ts">
+	import Menu from '../menu.svelte'
 	import {useLiveQuery, eq} from '@tanstack/svelte-db'
 	import {channelsCollection, offlineExecutor, createChannelActions} from '../collections'
-	import {sdk} from '@radio4000/sdk'
+	// import {sdk} from '@radio4000/sdk'
 	import SyncStatus from '../sync-status.svelte'
 
 	const slug = 'oskar'
 	let status = $state('')
 	let userId = $state<string | null>(null)
 
-	// Get current user
-	sdk.auth.getUser().then(({data}) => {
-		userId = data?.user?.id ?? null
-	})
-
-	// Single channel query
-	const channelQuery = useLiveQuery((q) =>
-		q
-			.from({channels: channelsCollection})
-			.where(({channels}) => eq(channels.slug, slug))
-			.orderBy(({channels}) => channels.created_at)
-			.limit(1)
+	const singleChannelQuery = useLiveQuery((q) =>
+		q.from({channels: channelsCollection}).where(({channels}) => eq(channels.slug, slug))
 	)
 
-	// All channels query (no filter)
 	const allChannelsQuery = useLiveQuery((q) =>
 		q
 			.from({channels: channelsCollection})
@@ -30,7 +20,7 @@
 			.limit(10)
 	)
 
-	const channel = $derived(channelQuery.data?.[0])
+	const channel = $derived(singleChannelQuery.data?.[0])
 	const channelActions = $derived(userId ? createChannelActions(offlineExecutor, userId) : null)
 
 	async function handleCreate(e: SubmitEvent) {
@@ -81,6 +71,8 @@
 	}
 </script>
 
+<Menu />
+
 <h2>Channels</h2>
 
 <SyncStatus />
@@ -98,11 +90,11 @@
 {#if status}<p><strong>{status}</strong></p>{/if}
 
 <section>
-	<h3>{slug}</h3>
-	{#if channelQuery.isLoading}
+	<h3>Single channel query: {slug}</h3>
+	{#if singleChannelQuery.isLoading}
 		<p>Loading…</p>
-	{:else if channelQuery.isError}
-		<p style="color: var(--red)">{channelQuery.error.message}</p>
+	{:else if singleChannelQuery.isError}
+		<p style="color: var(--red)">{singleChannelQuery.error.message}</p>
 	{:else if channel}
 		<dl class="meta">
 			<dt>Name</dt>
