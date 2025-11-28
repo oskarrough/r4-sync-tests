@@ -59,11 +59,14 @@
 		"idb-keyval": "^6.2.2",
 		"leaflet": "^1.9.4",
 		"luxon": "^3.7.2",
-		"media-chrome": "^4.16.0",
+		"media-chrome": "^4.16.1",
 		"obra-icons-svelte": "^1.23.1",
 		"p-limit": "^7.2.0",
 		"svelte-awesome-color-picker": "^4.1.0",
 		"tinykeys": "^3.0.0",
 		"youtube-video-element": "^1.8.1"
+	},
+	"overrides": {
+		"@tanstack/db": "0.5.8"
 	}
 }
