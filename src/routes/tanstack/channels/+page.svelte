@@ -2,7 +2,9 @@
 	import Menu from '../menu.svelte'
 </script>
 
-<Menu />
+<div class="SmallContainer">
+	<Menu />
 
-<h2>Channels</h2>
-<p>Coming soon</p>
+	<h2>Channels</h2>
+	<p>Coming soon</p>
+</div>

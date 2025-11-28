@@ -2,4 +2,6 @@
 	import Menu from './menu.svelte'
 </script>
 
-<Menu />
+<div class="SmallContainer">
+	<Menu />
+</div>
