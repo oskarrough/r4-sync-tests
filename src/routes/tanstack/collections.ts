@@ -5,10 +5,10 @@ import {startOfflineExecutor, IndexedDBAdapter} from '@tanstack/offline-transact
 import {sdk} from '@radio4000/sdk'
 import type {PendingMutation} from '@tanstack/db'
 
-const queryClient = new QueryClient({
+export const queryClient = new QueryClient({
 	defaultOptions: {
 		queries: {
-			gcTime: 1000 * 60 * 60 * 24 // 24 hours
+			gcTime: 1000 * 60 * 60 * 24 // 24 hours - must match persistence maxAge
 		}
 	}
 })
