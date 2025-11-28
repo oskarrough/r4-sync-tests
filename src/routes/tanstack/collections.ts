@@ -57,6 +57,29 @@ export const tracksCollection = createCollection(
 const completedIdempotencyKeys = new Set<string>()
 
 // API sync function - handles all track mutations
+type MutationHandler = (mutation: PendingMutation, metadata: Record<string, unknown>) => Promise<void>
+
+const mutationHandlers: Record<string, MutationHandler> = {
+	insert: async (mutation, metadata) => {
+		const track = mutation.modified as {id: string; url: string; title: string}
+		const channelId = metadata?.channelId as string
+		if (!channelId) throw new Error('channelId required in transaction metadata')
+		const {data, error} = await sdk.tracks.createTrack(channelId, track)
+		if (error) throw new Error(error.message || JSON.stringify(error))
+		console.log('syncTracks insert success', {data})
+	},
+	update: async (mutation) => {
+		const track = mutation.modified as {id: string}
+		const {error} = await sdk.tracks.updateTrack(track.id, mutation.changes)
+		if (error) throw new Error(error.message || JSON.stringify(error))
+	},
+	delete: async (mutation) => {
+		const track = mutation.original as {id: string}
+		const {error} = await sdk.tracks.deleteTrack(track.id)
+		if (error) throw new Error(error.message || JSON.stringify(error))
+	}
+}
+
 const tracksAPI = {
 	async syncTracks({
 		transaction,
@@ -73,28 +96,11 @@ const tracksAPI = {
 		const slug = transaction.metadata?.slug as string
 		for (const mutation of transaction.mutations) {
 			console.log('syncTracks', mutation.type, mutation, {idempotencyKey})
-			switch (mutation.type) {
-				case 'insert': {
-					const track = mutation.modified as {id: string; url: string; title: string}
-					const channelId = transaction.metadata?.channelId as string
-					if (!channelId) throw new Error('channelId required in transaction metadata')
-					const {data, error} = await sdk.tracks.createTrack(channelId, track)
-					if (error) throw new Error(error.message || JSON.stringify(error))
-					console.log('syncTracks insert success', {data})
-					break
-				}
-				case 'update': {
-					const track = mutation.modified as {id: string}
-					const {error} = await sdk.tracks.updateTrack(track.id, mutation.changes)
-					if (error) throw new Error(error.message || JSON.stringify(error))
-					break
-				}
-				case 'delete': {
-					const track = mutation.original as {id: string}
-					const {error} = await sdk.tracks.deleteTrack(track.id)
-					if (error) throw new Error(error.message || JSON.stringify(error))
-					break
-				}
+			const handler = mutationHandlers[mutation.type]
+			if (handler) {
+				await handler(mutation, transaction.metadata || {})
+			} else {
+				console.warn(`Unhandled mutation type: ${mutation.type}`)
 			}
 		}
 		// Mark as completed only after all mutations succeeded

@@ -5,6 +5,10 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 
 # BACKLOG
 
+- **Implement cache persistence for offline startup:** Explore using `@tanstack/query-persist-client` to hydrate collections from IndexedDB on page load. This would provide an instant, offline-first UI.
+- **Create `channelsCollection`:** Add a new collection for managing channels, including offline-first actions for create, update, and delete, similar to the existing `tracksCollection`.
+- **Refine offline error handling:** In `syncTracks` and future sync functions, use `NonRetriableError` from `@tanstack/offline-transactions` for server-side validation errors (e.g., HTTP 4xx) to prevent unnecessary retries.
+
 - explore replacing pglite with tanstack db (branch #tanstackdb)
   - [x] basic read queries (channels, tracks by slug)
   - [x] mutation handlers for tracks (onInsert, onUpdate, onDelete)
