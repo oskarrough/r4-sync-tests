@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type {Snippet} from 'svelte'
-	import {deleteTrack, playTrack} from '$lib/api'
+	import {playTrack} from '$lib/api'
+	import {deleteTrack} from '../../routes/tanstack/collections'
 	import {appState} from '$lib/app-state.svelte'
 	import type {Track} from '$lib/types'
 	import {extractYouTubeId} from '$lib/utils.ts'
@@ -55,7 +56,8 @@
 	let showDeleteConfirm = $state(false)
 
 	async function handleDelete() {
-		await deleteTrack(track.id)
+		if (!track.channel_id || !track.slug) return
+		await deleteTrack({id: track.channel_id, slug: track.slug}, track.id)
 		showDeleteConfirm = false
 	}
 

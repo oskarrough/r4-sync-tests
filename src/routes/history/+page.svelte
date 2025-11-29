@@ -1,30 +1,16 @@
 <script>
 	import {page} from '$app/state'
+	import {useLiveQuery} from '@tanstack/svelte-db'
 	import Icon from '$lib/components/icon.svelte'
 	import {formatDate} from '$lib/dates'
-	import {pg} from '$lib/r5/db'
+	import {playHistoryCollection} from '../tanstack/collections'
 	import * as m from '$lib/paraglide/messages'
 
-	const historyPromise = $derived.by(async () => {
-		const result = await pg.sql`SELECT * FROM play_history ORDER BY started_at DESC`
-		return result.rows
-	})
+	const historyQuery = useLiveQuery((q) =>
+		q.from({history: playHistoryCollection}).orderBy(({history}) => history.started_at, 'desc')
+	)
 
-	const tracksLookup = $derived.by(async () => {
-		const history = await historyPromise
-		const trackIds = [...new Set(history.map((h) => h.track_id))]
-		if (trackIds.length === 0) return new Map()
-
-		console.log('getting', trackIds.length)
-
-		const result = await pg.sql`
-			SELECT t.id, t.title, t.url, c.name as channel_name, c.slug as slug
-			FROM tracks t
-			JOIN channels c ON t.channel_id = c.id
-			WHERE t.id = ANY(${trackIds})
-		`
-		return new Map(result.rows.map((t) => [t.id, t]))
-	})
+	let history = $derived(historyQuery.data || [])
 </script>
 
 <svelte:head>
@@ -48,37 +34,29 @@
 		<p>{m.history_local_note()}</p>
 	</header>
 
-	{#await Promise.all([historyPromise, tracksLookup])}
+	{#if historyQuery.isLoading}
 		<p>{m.loading_generic()}</p>
-	{:then [history, tracks]}
-		{#if history.length === 0}
-			<p>{m.history_empty()}</p>
-		{:else}
-			<ul class="list">
-				{#each history as play (play.id)}
-					<li>
-						{@render playRecord(play, tracks.get(play.track_id))}
-					</li>
-				{/each}
-			</ul>
-		{/if}
-	{:catch error}
-		<p>{m.history_error()} {error.message}</p>
-	{/await}
+	{:else if history.length === 0}
+		<p>{m.history_empty()}</p>
+	{:else}
+		<ul class="list">
+			{#each history as play (play.id)}
+				<li>
+					{@render playRecord(play)}
+				</li>
+			{/each}
+		</ul>
+	{/if}
 </article>
 
-{#snippet playRecord(play, track)}
+{#snippet playRecord(play)}
 	<article class="row">
 		<header>
 			<span class="channel">
-				<a href={`/${track.slug}`}>@{track.slug}</a>
+				<a href={`/${play.slug}`}>@{play.slug}</a>
 			</span>
 			<span class="track">
-				{#if track}
-					<a href={`/${track.slug}/tracks/${track.id}`}>{track.title}</a>
-				{:else}
-					{play.track_id}
-				{/if}
+				<a href={`/${play.slug}/tracks/${play.track_id}`}>{play.title}</a>
 			</span>
 		</header>
 		<div class="reasons">{play.reason_start || ''} → {play.reason_end || ''}</div>

@@ -27,16 +27,39 @@ Core tracks/channels collections working. See `docs/tanstack/tanstack.md` for ar
 
 **Remaining:**
 
-- [ ] **Track page reactivity** - `src/routes/[slug]/tracks/[tid]/+page.svelte` needs to re-render when metadata is fetched. `getTrackWithMeta()` is not reactive. Options: use `onResult` callback from TrackMeta component, or use `useLiveQuery` on trackMetaCollection
+- [x] **Track page reactivity** - Now uses `useLiveQuery` on `trackMetaCollection`, re-renders when metadata updates
 - [ ] **r5 SDK** - `src/lib/r5/` still queries PGlite for local/r4/v1/pull pattern. Either deprecate or rewrite to use TanStack collections
-- [ ] **Search** - uses PGlite's `pg_trgm`. Need client-side fuzzy search (minisearch, fuse.js) or remote Supabase search
-- [ ] **Tags** - `src/lib/r5/tags.js` derives tags from track descriptions, local-only. Move to derived query on tracks collection
-- [ ] **Followers** - `src/lib/r5/followers.js` needs its own collection or merge into channels
-- [ ] **History** - `src/routes/history/+page.svelte` reads from PGlite
-- [ ] **Stats** - `src/routes/stats/+page.svelte` aggregates from PGlite
-- [ ] **Queue** - currently in app_state, might stay there
+- [x] **Search** - Now uses `fuzzysort` on TanStack collections in `src/lib/search.js`
+- [x] **Tags** - `src/routes/[slug]/tags/+page.svelte` derives tags from tracks collection (old `src/lib/r5/tags.js` is dead code)
+- [ ] **Followers** - needs `followersCollection`. Used in `src/lib/api.js` (followChannel, unfollowChannel, getFollowers, isFollowing) and `src/lib/r5/followers.js`
+- [ ] **History** - needs `playHistoryCollection`. Used in `src/lib/api.js` (addPlayHistory) and `src/routes/history/+page.svelte`
+- [ ] **Stats** - `src/routes/stats/+page.svelte` - derive from tracks/channels collections instead of SQL aggregation
+- [x] **Queue** - already in app_state, no PGlite dependency
 - [ ] **Broadcast** - `src/lib/broadcast.js` uses PGlite
-- [ ] **tracks_with_meta view** - no longer needed, use `getTrackWithMeta()` helper instead
+- [x] **tracks_with_meta view** - no longer needed, removed dependency
+- [x] **Player** - `src/lib/components/player.svelte` already uses TanStack collections
+- [ ] **updateTrack/deleteTrack** - `src/lib/api.js` still uses `pg.sql`, should use TanStack mutations from collections.ts
+
+### Routes using PGlite (need migration)
+
+**Direct `pg.sql` queries:**
+
+- [x] `src/routes/auth/+page.svelte` — migrated to `useLiveQuery` with `inArray`
+- [x] `src/routes/[slug]/update/+page.svelte` — migrated to `useLiveQuery` with `eq`
+- [x] `src/routes/[slug]/trackids/` — deleted +page.js, moved to `useLiveQuery` in svelte
+- [ ] `src/routes/stats/+page.svelte:49,59,60` — raw SQL for stats aggregation
+- [ ] `src/routes/history/+page.svelte:9,20` — play history queries
+- [ ] `src/routes/playground/spam-warrior/` — multiple spam-related updates (low priority, playground)
+
+**r5 SDK usage (depends on r5 SDK migration):**
+
+- [x] `src/routes/search/+page.svelte` — uses `r5.search.all()` which now uses fuzzysort
+- [ ] `src/routes/+layout.js:27-28` — `r5.db.migrate()`, `r5.db.getPg()`
+- [x] `src/routes/create-channel/+page.svelte` — migrated to `channelsCollection.state.get()`
+- [ ] `src/routes/[slug]/batch-edit/` — **Rebuild from scratch with TanStack**. Current version uses `r5.pull()` for sync + custom `batchEdit` staging system. With TanStack offline mutations, edits go directly to collection and sync automatically. Keep: filter logic, selection UX, TrackRow/EditsPanel components. Remove: manual pull/staging/commit flow.
+- [x] `src/routes/[slug]/edit/+page.svelte` — migrated to `useLiveQuery`
+- [x] `src/routes/[slug]/tracks/+page.svelte` — migrated to `useLiveQuery`
+- [ ] `src/routes/recovery/+page.svelte:15-16` — `r5.db.reset()`, `r5.db.migrate()`
 
 References:
 

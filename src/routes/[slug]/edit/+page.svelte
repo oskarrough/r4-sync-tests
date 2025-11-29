@@ -1,11 +1,21 @@
 <script>
 	import {goto} from '$app/navigation'
+	import {useLiveQuery, eq} from '@tanstack/svelte-db'
 	import {appState} from '$lib/app-state.svelte'
+	import {channelsCollection} from '../../tanstack/collections'
 	import * as m from '$lib/paraglide/messages'
 
 	let {data} = $props()
 
-	const channel = $derived(data.channel)
+	const channelQuery = useLiveQuery((q) =>
+		q
+			.from({channels: channelsCollection})
+			.where(({channels}) => eq(channels.slug, data.slug))
+			.orderBy(({channels}) => channels.created_at)
+			.limit(1)
+	)
+
+	const channel = $derived(channelQuery.data?.[0])
 	const isSignedIn = $derived(!!appState.user)
 	const canEdit = $derived(isSignedIn && appState.channels?.includes(channel?.id))
 

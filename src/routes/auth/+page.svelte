@@ -4,17 +4,16 @@
 	import {appState} from '$lib/app-state.svelte'
 	import ChannelCard from '$lib/components/channel-card.svelte'
 	import IconR4 from '$lib/icon-r4.svelte'
-	import {pg} from '$lib/r5/db.js'
+	import {useLiveQuery, inArray} from '@tanstack/svelte-db'
+	import {channelsCollection} from '../tanstack/collections'
 	import * as m from '$lib/paraglide/messages'
 
 	const redirect = page.url.searchParams.get('redirect')
 	const redirectParam = redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''
 
-	const userChannels = $derived.by(async () => {
-		if (!appState.channels?.length) return []
-		const result = await pg.sql`select * from channels where id = ANY(${appState.channels})`
-		return result.rows
-	})
+	const userChannelsQuery = useLiveQuery((q) =>
+		q.from({channels: channelsCollection}).where(({channels}) => inArray(channels.id, appState.channels || []))
+	)
 </script>
 
 <svelte:head>
@@ -30,24 +29,22 @@
 		<p>{m.auth_signed_in_as({email: appState.user.email})}</p>
 		<p><button type="button" onclick={() => sdk.auth.signOut()}>{m.auth_log_out()}</button></p>
 
-		{#await userChannels}
+		{#if userChannelsQuery.isLoading}
 			<p>{m.auth_loading_channels()}</p>
-		{:then channels}
-			{#if channels.length > 0}
-				<div class="channels-grid">
-					{#each channels as channel (channel.id)}
-						<ChannelCard {channel} />
-					{/each}
-				</div>
-			{:else}
-				<br />
-				<p><a href="/create-channel">{m.auth_create_radio_cta()}</a></p>
-			{/if}
-		{:catch error}
-			<p>{m.auth_error_loading_channels({message: error.message})}</p>
+		{:else if userChannelsQuery.isError}
+			<p>{m.auth_error_loading_channels({message: userChannelsQuery.error.message})}</p>
 			<br />
 			<p><a href="/create-channel">{m.auth_create_radio_cta()}</a></p>
-		{/await}
+		{:else if userChannelsQuery.data?.length}
+			<div class="channels-grid">
+				{#each userChannelsQuery.data as channel (channel.id)}
+					<ChannelCard {channel} />
+				{/each}
+			</div>
+		{:else}
+			<br />
+			<p><a href="/create-channel">{m.auth_create_radio_cta()}</a></p>
+		{/if}
 	{:else}
 		<menu class="options">
 			<a href="/auth/create-account{redirectParam}">

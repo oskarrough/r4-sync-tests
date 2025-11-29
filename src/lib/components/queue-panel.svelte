@@ -1,10 +1,11 @@
 <script>
 	import fuzzysort from 'fuzzysort'
+	import {useLiveQuery} from '@tanstack/svelte-db'
 	import {appState} from '$lib/app-state.svelte'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
-	import {incrementalLiveQuery, liveQuery} from '$lib/live-query'
-	import {pg} from '$lib/r5/db'
+	import {incrementalLiveQuery} from '$lib/live-query'
 	import {relativeTime} from '$lib/dates'
+	import {playHistoryCollection, clearPlayHistory} from '../../routes/tanstack/collections'
 	import Modal from './modal.svelte'
 	import SearchInput from './search-input.svelte'
 	import TrackCard from './track-card.svelte'
@@ -21,8 +22,10 @@
 	/** @type {import('$lib/types').Track[]} */
 	let queueTracks = $state([])
 
-	/** @type {(import('$lib/types').Track & import('$lib/types').PlayHistory)[]} */
-	let playHistory = $state([])
+	const historyQuery = useLiveQuery((q) =>
+		q.from({history: playHistoryCollection}).orderBy(({history}) => history.started_at, 'desc')
+	)
+	let playHistory = $derived(historyQuery.data || [])
 
 	let filteredQueueTracks = $derived(
 		searchQuery
@@ -39,7 +42,7 @@
 		searchQuery
 			? fuzzysort
 					.go(searchQuery, playHistory, {
-						keys: ['title', 'tags', 'channel_name'],
+						keys: ['title', 'slug'],
 						threshold: -10000
 					})
 					.map((result) => result.obj)
@@ -66,27 +69,19 @@
 		)
 	})
 
-	$effect(() => {
-		return liveQuery(
-			`SELECT twm.*, h.started_at, h.ended_at, h.ms_played, h.reason_start, h.reason_end, h.skipped
-			 FROM play_history h
-			 JOIN tracks_with_meta twm ON h.track_id = twm.id
-			 ORDER BY h.started_at DESC`,
-			[],
-			(res) => {
-				playHistory = res.rows
-			}
-		)
-	})
-
 	function clearQueue() {
 		appState.playlist_tracks = []
 		appState.playlist_track = undefined
 	}
 
-	async function clearHistory() {
-		await pg.sql`DELETE FROM play_history`
+	function clearHistory() {
+		clearPlayHistory()
 		showClearHistoryModal = false
+	}
+
+	/** Transform history entry to track-like shape for TrackCard */
+	function historyToTrack(entry) {
+		return {id: entry.track_id, slug: entry.slug, title: entry.title, url: entry.url}
 	}
 </script>
 
@@ -135,9 +130,9 @@
 			{/if}
 		{:else if filteredPlayHistory.length > 0}
 			<ul class="list tracks">
-				{#each filteredPlayHistory as entry, index (index)}
+				{#each filteredPlayHistory as entry, index (entry.id)}
 					<li>
-						<TrackCard track={entry} {index}>
+						<TrackCard track={historyToTrack(entry)} {index}>
 							<p class="history">
 								<small>
 									{relativeTime(entry.started_at)}

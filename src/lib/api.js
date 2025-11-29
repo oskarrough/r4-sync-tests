@@ -6,7 +6,7 @@ import {r4} from '$lib/r4'
 import {pg} from '$lib/r5/db'
 import {pull as pullFollowers, sync as syncFollowers} from '$lib/r5/followers'
 import {shuffleArray} from '$lib/utils.ts'
-import {tracksCollection} from '../routes/tanstack/collections'
+import {tracksCollection, addPlayHistoryEntry, endPlayHistoryEntry} from '../routes/tanstack/collections'
 
 const log = logger.ns('api').seal()
 
@@ -73,10 +73,20 @@ export async function playTrack(id, endReason, startReason) {
 		.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
 	const ids = channelTracks.map((t) => t.id)
 
+	// Record play history
+	const previousTrackId = appState.playlist_track
+	if (previousTrackId && previousTrackId !== id && endReason) {
+		const mediaController = document.querySelector('media-controller#r5')
+		const actualPlayTime = mediaController?.getAttribute('mediacurrenttime')
+		const msPlayed = actualPlayTime ? Math.round(Number.parseFloat(actualPlayTime) * 1000) : 0
+		endPlayHistoryEntry(previousTrackId, {ms_played: msPlayed, reason_end: endReason})
+	}
+	if (startReason) {
+		addPlayHistoryEntry(track, {reason_start: startReason, shuffle: appState.shuffle})
+	}
+
 	appState.playlist_track = id
 	if (!appState.playlist_tracks.length || !appState.playlist_tracks.includes(id)) await setPlaylist(ids)
-	// @TODO: re-enable when play_history migrated to Tanstack
-	// await addPlayHistory({nextTrackId: id, previousTrackId, endReason, startReason})
 
 	// Auto-update broadcast if currently broadcasting
 	if (appState.broadcasting_channel_id && startReason !== 'broadcast_sync') {
@@ -183,45 +193,6 @@ export function togglePlayPause() {
 		} else {
 			ytPlayer.pause()
 		}
-	}
-}
-
-/**
- * @param {object} options
- * @param {string} [options.previousTrackId]
- * @param {string} options.nextTrackId
- * @param {string} [options.endReason]
- * @param {string} options.startReason
- */
-export async function addPlayHistory({previousTrackId, nextTrackId, endReason = '', startReason}) {
-	const {rows} = await pg.sql`SELECT shuffle FROM app_state WHERE id = 1`
-	const shuffleState = rows[0]?.shuffle || false
-
-	if (previousTrackId && previousTrackId !== nextTrackId && endReason) {
-		const mediaController = document.querySelector('media-controller#r5')
-		const actualPlayTime = mediaController?.getAttribute('mediacurrenttime')
-		const msPlayed = actualPlayTime ? Math.round(Number.parseFloat(actualPlayTime) * 1000) : 0
-
-		await pg.sql`
-			UPDATE play_history
-			SET ended_at = CURRENT_TIMESTAMP,
-				ms_played = ${msPlayed},
-				reason_end = ${endReason}
-			WHERE track_id = ${previousTrackId} AND ended_at IS NULL
-		`
-	}
-
-	// Start new track if reason provided
-	if (startReason) {
-		await pg.sql`
-			INSERT INTO play_history (
-				track_id, started_at, ended_at, ms_played,
-				reason_start, reason_end, shuffle, skipped
-			) VALUES (
-				${nextTrackId}, CURRENT_TIMESTAMP, NULL, 0,
-				${startReason}, NULL, ${shuffleState}, FALSE
-			)
-		`
 	}
 }
 

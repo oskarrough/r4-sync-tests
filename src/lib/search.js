@@ -17,11 +17,7 @@ export async function searchChannels(query, options = {}) {
 	const {remote = false, limit = 100} = options
 
 	if (remote) {
-		const {data, error} = await sdk.supabase
-			.from('channels')
-			.select()
-			.textSearch('fts', `'${query}':*`)
-			.limit(limit)
+		const {data, error} = await sdk.supabase.from('channels').select().textSearch('fts', `'${query}':*`).limit(limit)
 		if (error) throw new Error(error.message)
 		return data
 	}
@@ -44,11 +40,7 @@ export async function searchTracks(query, options = {}) {
 	const {remote = false, limit = 100, channelSlug} = options
 
 	if (remote) {
-		let q = sdk.supabase
-			.from('channel_tracks')
-			.select()
-			.textSearch('fts', `'${query}':*`)
-			.limit(limit)
+		let q = sdk.supabase.from('channel_tracks').select().textSearch('fts', `'${query}':*`).limit(limit)
 		if (channelSlug) {
 			q = q.eq('slug', channelSlug)
 		}

@@ -20,7 +20,6 @@
 			.where(({tracks}) => eq(tracks.slug, data.slug))
 			.where(({tracks}) => eq(tracks.id, data.tid))
 			.orderBy(({tracks}) => tracks.created_at)
-			.limit(1)
 	)
 
 	const channelQuery = useLiveQuery((q) =>
@@ -28,7 +27,6 @@
 			.from({channels: channelsCollection})
 			.where(({channels}) => eq(channels.slug, data.slug))
 			.orderBy(({channels}) => channels.created_at)
-			.limit(1)
 	)
 
 	const rawTrack = $derived(trackQuery.data?.[0])
@@ -39,6 +37,7 @@
 		q
 			.from({meta: trackMetaCollection})
 			.where(({meta}) => eq(meta.ytid, ytid || ''))
+			.orderBy(({meta}) => meta.ytid)
 			.limit(1)
 	)
 

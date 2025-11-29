@@ -1,43 +1,50 @@
 <script>
 	import {page} from '$app/state'
+	import {useLiveQuery, eq} from '@tanstack/svelte-db'
 	import {playTrack} from '$lib/api'
 	import CoverFlip from '$lib/components/cover-flip.svelte'
-	import {r5} from '$lib/r5'
+	import {tracksCollection} from '../../tanstack/collections'
 	import {extractYouTubeId} from '$lib/utils.ts'
 	import * as m from '$lib/paraglide/messages'
 
-	let tracks = $derived(r5.tracks.local({slug: page.params.slug, limit: 100}))
+	const tracksQuery = useLiveQuery((q) =>
+		q
+			.from({tracks: tracksCollection})
+			.where(({tracks}) => eq(tracks.slug, page.params.slug))
+			.orderBy(({tracks}) => tracks.created_at, 'desc')
+			.limit(100)
+	)
+
+	let tracks = $derived(tracksQuery.data || [])
 </script>
 
 <div class="page">
-	{#await tracks}
+	{#if tracksQuery.isLoading}
 		<p>{m.common_loading()}</p>
-	{:then tracks}
-		{#if tracks.length === 0}
-			<p>{m.tracks_no_results()}</p>
-		{:else}
-			<CoverFlip items={tracks} scrollItemsPerNotch={1}>
-				{#snippet item({item, active})}
-					{@const ytid = extractYouTubeId(item.url)}
-					<button class="item" class:active onclick={() => playTrack(item.id, null, 'user_click_track')}>
-						{#if ytid}
-							<img src={`https://i.ytimg.com/vi/${ytid}/mqdefault.jpg`} alt={item.title} />
-						{:else}
-							{m.tracks_no_ytid({url: item.url})}
-						{/if}
-					</button>
-				{/snippet}
-				{#snippet active({item})}
-					<div class="current">
-						<h3>{item.title}</h3>
-						{#if item.description}
-							<p>{item.description}</p>
-						{/if}
-					</div>
-				{/snippet}
-			</CoverFlip>
-		{/if}
-	{/await}
+	{:else if tracks.length === 0}
+		<p>{m.tracks_no_results()}</p>
+	{:else}
+		<CoverFlip items={tracks} scrollItemsPerNotch={1}>
+			{#snippet item({item, active})}
+				{@const ytid = extractYouTubeId(item.url)}
+				<button class="item" class:active onclick={() => playTrack(item.id, null, 'user_click_track')}>
+					{#if ytid}
+						<img src={`https://i.ytimg.com/vi/${ytid}/mqdefault.jpg`} alt={item.title} />
+					{:else}
+						{m.tracks_no_ytid({url: item.url})}
+					{/if}
+				</button>
+			{/snippet}
+			{#snippet active({item})}
+				<div class="current">
+					<h3>{item.title}</h3>
+					{#if item.description}
+						<p>{item.description}</p>
+					{/if}
+				</div>
+			{/snippet}
+		</CoverFlip>
+	{/if}
 </div>
 
 <style>
