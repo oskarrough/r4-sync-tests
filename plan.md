@@ -20,7 +20,7 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
   - [x] track mutations use metadata for channelId (cleaner API)
   - [x] real-world offline → online test (insert + update, verified FIFO order and ID consistency)
   - [x] SDK: createTrack accepts optional client-provided UUID (enables offline-first)
-  - [ ] load user's channel into collection on auth (have userChannelId from appState, need to fetch into collection)
+  - [x] user's channel: kept in appState.channel (simpler, channel editing is rare)
 
 read
 https://github.com/TanStack/db/issues/865

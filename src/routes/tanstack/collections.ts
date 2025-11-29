@@ -21,12 +21,9 @@ export const tracksCollection = createCollection(
 	queryCollectionOptions({
 		queryKey: (opts) => {
 			const parsed = parseLoadSubsetOptions(opts)
-			const cacheKey = ['tracks']
-			parsed.filters.forEach((f) => {
-				cacheKey.push(`${f.field.join('.')}-${f.operator}-${f.value}`)
-			})
-			// Limit not in key - all queries for same slug share cache
-			return cacheKey
+			// Only slug in key - created_at filters are for incremental sync, not cache identity
+			const slug = parsed.filters.find((f) => f.field[0] === 'slug' && f.operator === 'eq')?.value
+			return slug ? ['tracks', slug] : ['tracks']
 		},
 		syncMode: 'on-demand',
 		queryClient,
@@ -124,7 +121,7 @@ const tracksAPI = {
 		// Invalidate to sync state after all mutations
 		if (slug) {
 			log.debug('invalidate_start', {slug})
-			await queryClient.invalidateQueries({queryKey: ['tracks', `slug-eq-${slug}`]})
+			await queryClient.invalidateQueries({queryKey: ['tracks', slug]})
 			log.debug('invalidate_done', {slug})
 		}
 	}
