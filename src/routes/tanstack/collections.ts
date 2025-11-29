@@ -9,6 +9,12 @@ import {logger} from '$lib/logger'
 
 const log = logger.ns('tanstack').seal()
 
+// V1 channel loader
+async function loadV1Channels() {
+	const response = await fetch('/channels_v1.json')
+	return response.json() // Already has source: 'v1' and firebase_id
+}
+
 export const queryClient = new QueryClient({
 	defaultOptions: {
 		queries: {
@@ -41,22 +47,39 @@ export const channelsCollection = createCollection(
 			if (slug) {
 				const {data, error} = await sdk.channels.readChannel(slug)
 				if (error) throw error
-				return data ? [data] : []
+				return data ? [{...data, source: 'v2'}] : []
 			}
 
 			if (id) {
 				const {data, error} = await sdk.supabase.from('channels').select('*').eq('id', id).single()
 				if (error) throw error
-				return data ? [data] : []
+				return data ? [{...data, source: 'v2'}] : []
 			}
 
-			const {data, error} = await sdk.supabase
-				.from('channels_with_tracks')
-				.select('*')
-				.order('created_at', {ascending: false})
-				.limit(limit || 50)
-			if (error) throw error
-			return data || []
+			// List all: merge v1 + v2
+			const [allV1Channels, v2Result] = await Promise.all([
+				loadV1Channels(),
+				sdk.channels.readChannels(10) // limit=10 for testing
+			])
+
+			const v2Channels = (v2Result.data || []).map((ch) => ({...ch, source: 'v2'}))
+			const v2SlugsSet = new Set(v2Channels.map((ch) => ch.slug))
+			const uniqueV1 = allV1Channels.filter((ch) => !v2SlugsSet.has(ch.slug))
+			const allChannels = [...v2Channels, ...uniqueV1]
+
+			// Copy-pastable logs
+			console.log(`v2:${v2Channels.length} v1:${uniqueV1.length} total:${allChannels.length}`)
+			console.log('v2_slugs:' + v2Channels.map((c) => c.slug).join(','))
+			console.log(
+				'v1_slugs:' +
+					uniqueV1
+						.slice(0, 10)
+						.map((c) => c.slug)
+						.join(',') +
+					(uniqueV1.length > 10 ? `...+${uniqueV1.length - 10}` : '')
+			)
+
+			return allChannels
 		}
 	})
 )
@@ -81,6 +104,20 @@ export const tracksCollection = createCollection(
 			log.debug('queryFn', {slug, limit})
 			if (!slug) return []
 
+			// Lookup channel to route by source
+			const [channel] = await channelsCollection.loadSubset({
+				filters: [{field: ['slug'], operator: 'eq', value: slug}]
+			})
+
+			if (channel?.source === 'v1') {
+				console.log(`tracks:v1:${slug}`)
+				const {data, error} = await sdk.firebase.readTracks({slug})
+				if (error) throw error
+				return (data || []).map((t) => sdk.firebase.parseTrack(t, channel.id, slug))
+			}
+
+			// V2: use Supabase
+			console.log(`tracks:v2:${slug}`)
 			let query = sdk.supabase
 				.from('channel_tracks')
 				.select('*')
@@ -293,14 +330,16 @@ export const offlineExecutor = startOfflineExecutor({
 	}
 })
 
-// Initialize collections - must be awaited before using writeUpsert
-export async function initCollections() {
-	// Refetch initializes the sync context for on-demand collections
+// Collections are created at module import time - this is just a hook for future init logic
+export async function initCollections() {}
+
+// Fetch/refresh channels from remote (v1+v2 merged in queryFn)
+export async function pullChannels() {
 	await channelsCollection.utils.refetch()
 }
 
 // Track actions - standalone functions, pass channel each time
-type Channel = {id: string; slug: string}
+type Channel = {id: string; slug: string; source?: 'v1' | 'v2'; firebase_id?: string}
 
 export function addTrack(channel: Channel, input: {url: string; title: string; description?: string}) {
 	const tx = offlineExecutor.createOfflineTransaction({
