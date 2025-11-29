@@ -7,6 +7,8 @@ Humans also welcome.
 R5 is a prototype local-first music player for Radio4000. The name in dev is `r5`.
 SvelteKit + Svelte 5, PGlite (client-side postgres), @radio4000/sdk
 
+Currently we're in a branch refactoring AWAY from pglite and trying to use tanstack db instead. See docs/tanstack/.
+
 ## Documentation
 
 Read `docs/index.md` for more.

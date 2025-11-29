@@ -1,10 +1,11 @@
 import {logger} from '$lib/logger'
-import {getPg} from '../r5/db.js'
+import {upsertTrackMeta, getTrackMeta, getTrackMetaMany} from '../../routes/tanstack/collections'
+import {tracksCollection, updateTrack} from '../../routes/tanstack/collections'
 
 const log = logger.ns('metadata/discogs').seal()
 
 /**
- * Fetch Discogs data from URL and save to track_meta
+ * Fetch Discogs data from URL and save to track_meta collection
  * @param {string} ytid YouTube video ID
  * @param {string} discogsUrl Discogs release/master URL
  * @returns {Promise<Object|null>} Discogs data
@@ -16,15 +17,10 @@ export async function pull(ytid, discogsUrl) {
 	if (!discogsData) return null
 
 	try {
-		const pg = await getPg()
-		await pg.sql`
-			INSERT INTO track_meta (ytid, discogs_data, discogs_updated_at, updated_at)
-			VALUES (${ytid}, ${JSON.stringify(discogsData)}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-			ON CONFLICT (ytid) DO UPDATE SET
-				discogs_data = EXCLUDED.discogs_data,
-				discogs_updated_at = EXCLUDED.discogs_updated_at,
-				updated_at = EXCLUDED.updated_at
-		`
+		upsertTrackMeta(ytid, {
+			discogs_data: discogsData,
+			discogs_updated_at: new Date().toISOString()
+		})
 		log.info('updated', discogsData)
 		return discogsData
 	} catch (error) {

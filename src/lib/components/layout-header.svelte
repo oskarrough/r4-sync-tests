@@ -12,8 +12,32 @@
 	import ThemeToggle from '$lib/components/theme-toggle.svelte'
 	import {r5} from '$lib/r5'
 	import * as m from '$lib/paraglide/messages'
+	import {queryClient} from '../../routes/tanstack/collections'
 
 	const {preloading} = $props()
+
+	// Cache debug timer
+	const STALE_TIME = 10 * 1000
+	const MAX_AGE = 20 * 1000
+	let cacheState = $state(/** @type {{staleIn: number, expiresIn: number, isStale: boolean} | null} */ (null))
+	$effect(() => {
+		function update() {
+			const query = queryClient.getQueryState(['channels'])
+			if (!query?.dataUpdatedAt) {
+				cacheState = null
+				return
+			}
+			const age = Date.now() - query.dataUpdatedAt
+			cacheState = {
+				staleIn: Math.max(0, Math.ceil((STALE_TIME - age) / 1000)),
+				expiresIn: Math.max(0, Math.ceil((MAX_AGE - age) / 1000)),
+				isStale: age > STALE_TIME
+			}
+		}
+		update()
+		const interval = setInterval(update, 1000)
+		return () => clearInterval(interval)
+	})
 
 	const userChannel = $derived.by(async () => {
 		const id = appState.channels?.[0]
@@ -49,6 +73,12 @@
 		{/await}
 	</a>
 	<HeaderSearch />
+
+	{#if cacheState}
+		<small class="cache-debug" class:stale={cacheState.isStale}>
+			stale:{cacheState.staleIn}s exp:{cacheState.expiresIn}s
+		</small>
+	{/if}
 
 	<menu class="row right">
 		{#await preloading then}
@@ -140,5 +170,16 @@
 
 	.btn:has(.count) {
 		position: relative;
+	}
+
+	.cache-debug {
+		font-family: monospace;
+		font-size: var(--font-2);
+		padding: 0.2rem 0.4rem;
+		background: var(--green-3);
+		border-radius: 3px;
+		&.stale {
+			background: var(--orange-3);
+		}
 	}
 </style>

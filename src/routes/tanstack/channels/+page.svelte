@@ -2,7 +2,6 @@
 	import Menu from '../menu.svelte'
 	import {useLiveQuery, inArray} from '@tanstack/svelte-db'
 	import {channelsCollection, createChannel, updateChannel, deleteChannel} from '../collections'
-	import '../persistence'
 	import SyncStatus from '../sync-status.svelte'
 	import {appState} from '$lib/app-state.svelte'
 

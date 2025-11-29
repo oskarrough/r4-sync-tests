@@ -133,7 +133,7 @@ describe('r5 API', () => {
 			// Verify they're stored locally
 			const local = await r5.tracks.local({slug: R4_SLUG})
 			expect(local.length).toBe(pulled.length)
-			expect(local[0].channel_slug).toBe(R4_SLUG)
+			expect(local[0].slug).toBe(R4_SLUG)
 		})
 
 		it('should pull v1 tracks and store locally', async () => {
@@ -145,7 +145,7 @@ describe('r5 API', () => {
 			// Verify they're stored locally
 			const local = await r5.tracks.local({slug: V1_SLUG})
 			expect(local.length).toBeGreaterThan(0)
-			expect(local[0].channel_slug).toBe(V1_SLUG)
+			expect(local[0].slug).toBe(V1_SLUG)
 		})
 
 		it('should handle pull for non-existent channel', async () => {

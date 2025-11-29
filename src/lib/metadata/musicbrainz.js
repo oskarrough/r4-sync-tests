@@ -1,10 +1,10 @@
 import {logger} from '$lib/logger'
-import {pg} from '$lib/r5/db'
+import {upsertTrackMeta, getTrackMetaMany} from '../../routes/tanstack/collections'
 
 const log = logger.ns('metadata/musicbrainz').seal()
 
 /**
- * Search MusicBrainz and save to track_meta
+ * Search MusicBrainz and save to track_meta collection
  * @param {string} ytid YouTube video ID
  * @param {string} title Track title to search
  * @returns {Promise<Object|null>} MusicBrainz data
@@ -16,14 +16,10 @@ export async function pull(ytid, title) {
 	if (!musicbrainzData) return null
 
 	try {
-		await pg.sql`
-			INSERT INTO track_meta (ytid, musicbrainz_data, musicbrainz_updated_at, updated_at)
-			VALUES (${ytid}, ${JSON.stringify(musicbrainzData)}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-			ON CONFLICT (ytid) DO UPDATE SET
-				musicbrainz_data = EXCLUDED.musicbrainz_data,
-				musicbrainz_updated_at = EXCLUDED.musicbrainz_updated_at,
-				updated_at = EXCLUDED.updated_at
-		`
+		upsertTrackMeta(ytid, {
+			musicbrainz_data: musicbrainzData,
+			musicbrainz_updated_at: new Date().toISOString()
+		})
 		log.info('updated', musicbrainzData)
 		return musicbrainzData
 	} catch (error) {
@@ -139,14 +135,10 @@ export async function search(title) {
 }
 
 /**
- * Read MusicBrainz metadata from local track_meta
+ * Read MusicBrainz metadata from local track_meta collection
  * @param {string[]} ytids YouTube video IDs
- * @returns {Promise<Object[]>} Local metadata
+ * @returns {Object[]} Local metadata with musicbrainz_data
  */
-export async function local(ytids) {
-	const res = await pg.sql`
-		SELECT * FROM track_meta 
-		WHERE ytid = ANY(${ytids}) AND musicbrainz_data IS NOT NULL
-	`
-	return res.rows
+export function local(ytids) {
+	return getTrackMetaMany(ytids).filter((m) => m.musicbrainz_data)
 }

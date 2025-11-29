@@ -10,8 +10,7 @@
 	import LinkEntities from '$lib/components/link-entities.svelte'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
 	import {logger} from '$lib/logger'
-	import {pg} from '$lib/r5/db'
-	import {r5} from '$lib/r5/index'
+	import {tracksCollection, channelsCollection} from '../../routes/tanstack/collections'
 	import {extractYouTubeId, detectMediaProvider} from '$lib/utils.ts'
 	import * as m from '$lib/paraglide/messages'
 
@@ -24,15 +23,17 @@
 	let youtubePlayer = $state()
 	let soundcloudPlayer = $state()
 
-	/** @type {Track|undefined} */
-	let track = $state()
+	// Reactive track lookup - undefined until data loads
+	let track = $derived(appState.playlist_track ? tracksCollection.state.get(appState.playlist_track) : undefined)
+
+	// Reactive channel lookup based on track
+	let channel = $derived(
+		track ? [...channelsCollection.state.values()].find((ch) => ch.slug === track.slug) : undefined
+	)
 
 	let src = $derived(track?.url)
 	let trackType = $derived(detectMediaProvider(src))
 	let mediaElement = $derived(trackType === 'youtube' ? youtubePlayer : soundcloudPlayer)
-
-	/** @type {Channel|undefined} */
-	let channel = $state()
 
 	/** @type {string[]} */
 	let trackIds = $derived(appState.playlist_tracks || [])
@@ -53,16 +54,16 @@
 		return ytid ? `https://i.ytimg.com/vi/${ytid}/mqdefault.jpg` : '' // default, mqdefault, hqdefault, sddefault, maxresdefault
 	})
 
+	// Track previous track ID to detect changes for autoplay
+	let prevTrackId = $state(/** @type {string|undefined} */ (undefined))
+
 	$effect(async () => {
-		const tid = appState.playlist_track
-		const trackChanged = tid && tid !== track?.id
+		if (!track) return // Wait for data to load
 
-		if (!trackChanged) {
-			log.debug('same track. @todo maybe call play unless user did not play already?', tid, track?.id)
-			return
-		}
+		const trackChanged = track.id !== prevTrackId
+		if (!trackChanged) return
 
-		await setChannelFromTrack(tid)
+		prevTrackId = track.id
 
 		// Check if a user-initiated play flag was set
 		if (globalThis.__userInitiatedPlay && !userHasPlayed) {
@@ -81,14 +82,6 @@
 			}
 		}
 	})
-
-	/** @param {string} tid */
-	async function setChannelFromTrack(tid) {
-		if (!tid || tid === track?.id) return
-		track = (await pg.sql`select * from tracks_with_meta where id = ${tid}`).rows[0]
-		if (!track) throw new Error(`Track not found: ${tid}`)
-		channel = (await r5.channels.local({slug: track.channel_slug}))[0]
-	}
 
 	function handlePlay() {
 		log.log('handlePlay')
@@ -280,7 +273,7 @@
 				<a href={`/${channel.slug}/tracks/${track.id}`}>{track.title}</a>
 			</h3>
 			{#if track.description}
-				<p><small><LinkEntities text={track.description} slug={track.channel_slug} /></small></p>
+				<p><small><LinkEntities text={track.description} slug={track.slug} /></small></p>
 			{/if}
 		</div>
 	{/if}

@@ -2,7 +2,6 @@
 	import {useLiveQuery, eq} from '@tanstack/svelte-db'
 	import {page} from '$app/state'
 	import {channelsCollection, tracksCollection} from '../tanstack/collections'
-	import '../tanstack/persistence'
 	import ButtonFollow from '$lib/components/button-follow.svelte'
 	import ButtonPlay from '$lib/components/button-play.svelte'
 	import ChannelHero from '$lib/components/channel-hero.svelte'

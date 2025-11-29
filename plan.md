@@ -7,9 +7,36 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 
 - **Refine offline error handling:** In `syncTracks` and `syncChannels`, use `NonRetriableError` from `@tanstack/offline-transactions` for server-side validation errors (e.g., HTTP 4xx) to prevent unnecessary retries.
 
-## TanStack DB experiment (branch #tanstackdb) - COMPLETE
+## TanStack DB experiment (branch #tanstackdb)
 
-All core features implemented. See `docs/tanstack/tanstack.md` for architecture details.
+Core tracks/channels collections working. See `docs/tanstack/tanstack.md` for architecture.
+
+### Migration: Remove PGlite dependency
+
+**Done:**
+
+- [x] Tracks collection (CRUD + offline mutations)
+- [x] Channels collection (CRUD + offline mutations)
+- [x] app_state (moved to $state + localStorage)
+
+**Remaining:**
+
+- [ ] **r5 SDK** - `src/lib/r5/` still queries PGlite for local/r4/v1/pull pattern. Either deprecate or rewrite to use TanStack collections
+- [ ] **Search** - uses PGlite's `pg_trgm`. Need client-side fuzzy search (minisearch, fuse.js) or remote Supabase search
+- [ ] **Tags** - `src/lib/r5/tags.js` derives tags from track descriptions, local-only. Move to derived query on tracks collection
+- [ ] **Followers** - `src/lib/r5/followers.js` needs its own collection or merge into channels
+- [ ] **History** - `src/routes/history/+page.svelte` reads from PGlite
+- [ ] **Stats** - `src/routes/stats/+page.svelte` aggregates from PGlite
+- [ ] **Metadata enrichment** - youtube/musicbrainz/discogs write to `track_meta` table. Options: separate `trackMetaCollection`, or merge into tracks collection as optional fields
+- [ ] **Queue** - currently in app_state, might stay there
+- [ ] **Broadcast** - `src/lib/broadcast.js` uses PGlite
+- [ ] **tracks_with_meta view** - SQL view joining tracks + track_meta. Replace with derived query or merged collection data
+
+**Decision needed:** What to do with `track_meta`? It's local-only enrichment data keyed by YouTube ID. Options:
+
+1. Separate `trackMetaCollection` with ytid as key
+2. Merge into tracks as optional fields (denormalized)
+3. Keep as localStorage/IDB key-value store (not a collection)
 
 References:
 

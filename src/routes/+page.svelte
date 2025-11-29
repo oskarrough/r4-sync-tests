@@ -14,7 +14,7 @@
 	const zoom = $derived(page?.url?.searchParams?.get('zoom') ? Number(page?.url?.searchParams?.get('zoom')) : 4)
 
 	const channelsQuery = useLiveQuery((q) =>
-		q.from({channels: channelsCollection}).orderBy(({channels}) => channels.created_at, 'desc').limit(5)
+		q.from({channels: channelsCollection}).orderBy(({channels}) => channels.created_at, 'desc')
 	)
 
 	const channels = $derived(channelsQuery.data || [])
@@ -37,4 +37,3 @@
 {/if}
 
 <Channels {channels} {slug} {display} {longitude} {latitude} {zoom} />
-

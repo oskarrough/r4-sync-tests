@@ -20,7 +20,7 @@ export async function local({slug, limit, startDate, endDate}) {
 					unnest(tags) as tag,
 					COUNT(*)::int as count
 				FROM tracks_with_meta
-				WHERE channel_slug = ${slug}
+				WHERE slug = ${slug}
 					AND tags IS NOT NULL
 					AND created_at >= ${startDate}
 					AND created_at < ${endDate}
@@ -35,7 +35,7 @@ export async function local({slug, limit, startDate, endDate}) {
 					unnest(tags) as tag,
 					COUNT(*)::int as count
 				FROM tracks_with_meta
-				WHERE channel_slug = ${slug}
+				WHERE slug = ${slug}
 					AND tags IS NOT NULL
 					AND created_at >= ${startDate}
 					AND created_at < ${endDate}
@@ -52,7 +52,7 @@ export async function local({slug, limit, startDate, endDate}) {
 				unnest(tags) as tag,
 				COUNT(*)::int as count
 			FROM tracks_with_meta
-			WHERE channel_slug = ${slug}
+			WHERE slug = ${slug}
 				AND tags IS NOT NULL
 			GROUP BY tag
 			ORDER BY count DESC, tag ASC
@@ -65,7 +65,7 @@ export async function local({slug, limit, startDate, endDate}) {
 				unnest(tags) as tag,
 				COUNT(*)::int as count
 			FROM tracks_with_meta
-			WHERE channel_slug = ${slug}
+			WHERE slug = ${slug}
 				AND tags IS NOT NULL
 			GROUP BY tag
 			ORDER BY count DESC, tag ASC
@@ -85,7 +85,7 @@ export async function getChannelDateRange(slug) {
 			MIN(created_at) as min_date,
 			MAX(created_at) as max_date
 		FROM tracks_with_meta
-		WHERE channel_slug = ${slug}
+		WHERE slug = ${slug}
 	`
 	const result = rows[0]
 	return {

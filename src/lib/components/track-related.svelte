@@ -23,12 +23,12 @@
 	<dl>
 		{#each relatedTracks as related (related.id)}
 			<dt>
-				<a href="/{related.channel_slug}/tracks/{related.id}">
+				<a href="/{related.slug}/tracks/{related.id}">
 					{related.title}
 				</a>
 			</dt>
 			<dd>
-				{m.track_related_by()} <a href="/{related.channel_slug}">@{related.channel_slug}</a>
+				{m.track_related_by()} <a href="/{related.slug}">@{related.slug}</a>
 			</dd>
 		{/each}
 	</dl>

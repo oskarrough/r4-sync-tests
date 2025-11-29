@@ -1,4 +1,5 @@
 import {createCollection} from '@tanstack/svelte-db'
+import {localStorageCollectionOptions} from '@tanstack/db'
 import {queryCollectionOptions, parseLoadSubsetOptions} from '@tanstack/query-db-collection'
 import {QueryClient} from '@tanstack/svelte-query'
 import {startOfflineExecutor, IndexedDBAdapter, NonRetriableError} from '@tanstack/offline-transactions'
@@ -6,14 +7,11 @@ import {sdk} from '@radio4000/sdk'
 import {appState} from '$lib/app-state.svelte'
 import type {PendingMutation} from '@tanstack/db'
 import {logger} from '$lib/logger'
+import {fetchAllChannels} from '$lib/api/seed'
 
 const log = logger.ns('tanstack').seal()
-
-// V1 channel loader
-async function loadV1Channels() {
-	const response = await fetch('/channels_v1.json')
-	return response.json() // Already has source: 'v1' and firebase_id
-}
+const txLog = logger.ns('tanstack.tx').seal()
+const offlineLog = logger.ns('tanstack.offline').seal()
 
 export const queryClient = new QueryClient({
 	defaultOptions: {
@@ -23,63 +21,38 @@ export const queryClient = new QueryClient({
 	}
 })
 
-// Channels collection (mutation functions are in "offline actions")
+// Track metadata collection - local-only cache for YouTube/MusicBrainz/Discogs enrichment
+// No server sync needed, persists to localStorage, syncs across tabs
+export interface TrackMeta {
+	ytid: string
+	duration?: number
+	youtube_data?: object
+	musicbrainz_data?: object
+	discogs_data?: object
+	youtube_updated_at?: string
+	musicbrainz_updated_at?: string
+	discogs_updated_at?: string
+	updated_at: string
+}
+
+export const trackMetaCollection = createCollection<TrackMeta, string>(
+	localStorageCollectionOptions({
+		storageKey: 'r5-track-meta',
+		getKey: (item) => item.ytid
+	})
+)
+
+// Channels collection - fetch all, filter locally
 export const channelsCollection = createCollection(
 	queryCollectionOptions({
-		queryKey: (opts) => {
-			const parsed = parseLoadSubsetOptions(opts)
-			const slug = parsed.filters.find((f) => f.field[0] === 'slug' && f.operator === 'eq')?.value
-			const id = parsed.filters.find((f) => f.field[0] === 'id' && f.operator === 'eq')?.value
-			if (slug) return ['channels', 'slug', slug]
-			if (id) return ['channels', 'id', id]
-			return ['channels']
-		},
+		queryKey: () => ['channels'],
 		syncMode: 'on-demand',
 		queryClient,
 		getKey: (item) => item.id,
-		staleTime: 0,
-		queryFn: async (ctx) => {
-			const {filters, limit} = parseLoadSubsetOptions(ctx.meta?.loadSubsetOptions)
-			const slug = filters.find((f) => f.field[0] === 'slug' && f.operator === 'eq')?.value
-			const id = filters.find((f) => f.field[0] === 'id' && f.operator === 'eq')?.value
-			log.info('channels queryFn', {slug, id, limit})
-
-			if (slug) {
-				const {data, error} = await sdk.channels.readChannel(slug)
-				if (error) throw error
-				return data ? [{...data, source: 'v2'}] : []
-			}
-
-			if (id) {
-				const {data, error} = await sdk.supabase.from('channels').select('*').eq('id', id).single()
-				if (error) throw error
-				return data ? [{...data, source: 'v2'}] : []
-			}
-
-			// List all: merge v1 + v2
-			const [allV1Channels, v2Result] = await Promise.all([
-				loadV1Channels(),
-				sdk.channels.readChannels(10) // limit=10 for testing
-			])
-
-			const v2Channels = (v2Result.data || []).map((ch) => ({...ch, source: 'v2'}))
-			const v2SlugsSet = new Set(v2Channels.map((ch) => ch.slug))
-			const uniqueV1 = allV1Channels.filter((ch) => !v2SlugsSet.has(ch.slug))
-			const allChannels = [...v2Channels, ...uniqueV1]
-
-			// Copy-pastable logs
-			console.log(`v2:${v2Channels.length} v1:${uniqueV1.length} total:${allChannels.length}`)
-			console.log('v2_slugs:' + v2Channels.map((c) => c.slug).join(','))
-			console.log(
-				'v1_slugs:' +
-					uniqueV1
-						.slice(0, 10)
-						.map((c) => c.slug)
-						.join(',') +
-					(uniqueV1.length > 10 ? `...+${uniqueV1.length - 10}` : '')
-			)
-
-			return allChannels
+		staleTime: 10 * 1000, // 10s for testing (maxAge=60s in persistence)
+		queryFn: async () => {
+			log.info('channels queryFn (fetch all)')
+			return fetchAllChannels()
 		}
 	})
 )
@@ -88,46 +61,58 @@ export const channelsCollection = createCollection(
 export const tracksCollection = createCollection(
 	queryCollectionOptions({
 		queryKey: (opts) => {
-			const parsed = parseLoadSubsetOptions(opts)
+			const options = parseLoadSubsetOptions(opts)
 			// Only slug in key - created_at filters are for incremental sync, not cache identity
-			const slug = parsed.filters.find((f) => f.field[0] === 'slug' && f.operator === 'eq')?.value
+			const slug = options.filters.find((f) => f.field[0] === 'slug' && f.operator === 'eq')?.value
 			return slug ? ['tracks', slug] : ['tracks']
 		},
 		syncMode: 'on-demand',
 		queryClient,
 		getKey: (item) => item.id,
-		staleTime: 1 * 60 * 1000,
+		staleTime: 20 * 1000,
 		queryFn: async (ctx) => {
-			const {filters, limit} = parseLoadSubsetOptions(ctx.meta?.loadSubsetOptions)
-			const slug = filters.find((f) => f.field[0] === 'slug' && f.operator === 'eq')?.value
-			const createdAfter = filters.find((f) => f.field[0] === 'created_at' && f.operator === 'gt')?.value
-			log.debug('queryFn', {slug, limit})
+			const options = parseLoadSubsetOptions(ctx.meta?.loadSubsetOptions)
+			const slug = options.filters.find((f) => f.field[0] === 'slug' && f.operator === 'eq')?.value
+			const createdAfter = options.filters.find((f) => f.field[0] === 'created_at' && f.operator === 'gt')?.value
+			log.info('tracks queryFn', {slug, limit: options.limit})
 			if (!slug) return []
 
 			// Lookup channel to route by source
-			const [channel] = await channelsCollection.loadSubset({
-				filters: [{field: ['slug'], operator: 'eq', value: slug}]
-			})
+			const channel = [...channelsCollection.state.values()].find((ch) => ch.slug === slug)
 
 			if (channel?.source === 'v1') {
-				console.log(`tracks:v1:${slug}`)
+				log.info('tracks fetch v1', {slug})
 				const {data, error} = await sdk.firebase.readTracks({slug})
 				if (error) throw error
 				return (data || []).map((t) => sdk.firebase.parseTrack(t, channel.id, slug))
 			}
 
 			// V2: use Supabase
-			console.log(`tracks:v2:${slug}`)
+			log.info('tracks fetch v2', {slug, limit: options.limit, createdAfter})
 			let query = sdk.supabase
 				.from('channel_tracks')
 				.select('*')
 				.eq('slug', slug)
 				.order('created_at', {ascending: false})
-			if (limit) query = query.limit(limit)
+			if (options.limit) query = query.limit(options.limit)
 			if (createdAfter) query = query.gt('created_at', createdAfter)
 
 			const {data, error} = await query
 			if (error) throw error
+
+			// Fallback to v1 if v2 returns empty (race condition: channel not loaded yet)
+			if (!data?.length) {
+				log.info('tracks fetch v1 fallback', {slug})
+				const {data: v1Data, error: v1Error} = await sdk.firebase.readTracks({slug})
+				if (v1Error) throw v1Error
+				if (v1Data?.length) {
+					// Need channel id for parsing - look it up or generate deterministic one
+					const ch = [...channelsCollection.state.values()].find((c) => c.slug === slug)
+					const channelId = ch?.id || slug
+					return v1Data.map((t) => sdk.firebase.parseTrack(t, channelId, slug))
+				}
+			}
+
 			return data || []
 		}
 	})
@@ -257,17 +242,17 @@ const channelsAPI = {
 		idempotencyKey: string
 	}) {
 		if (completedIdempotencyKeys.has(idempotencyKey)) {
-			console.log('syncChannels skipping already-completed', {idempotencyKey})
+			txLog.debug('channels skip duplicate', {key: idempotencyKey.slice(0, 8)})
 			return
 		}
 
 		for (const mutation of transaction.mutations) {
-			console.log('syncChannels', mutation.type, mutation, {idempotencyKey})
+			txLog.info('channels', {type: mutation.type, key: idempotencyKey.slice(0, 8)})
 			const handler = channelMutationHandlers[mutation.type]
 			if (handler) {
 				await handler(mutation, transaction.metadata || {})
 			} else {
-				console.warn(`Unhandled channel mutation type: ${mutation.type}`)
+				txLog.warn('channels unhandled type', {type: mutation.type})
 			}
 		}
 		completedIdempotencyKeys.add(idempotencyKey)
@@ -286,18 +271,18 @@ const tracksAPI = {
 		idempotencyKey: string
 	}) {
 		if (completedIdempotencyKeys.has(idempotencyKey)) {
-			console.log('syncTracks skipping already-completed', {idempotencyKey})
+			txLog.info('tracks skip duplicate', {key: idempotencyKey.slice(0, 8)})
 			return
 		}
 
 		const slug = transaction.metadata?.slug as string
 		for (const mutation of transaction.mutations) {
-			console.log('syncTracks', mutation.type, mutation, {idempotencyKey})
+			txLog.info('tracks', {type: mutation.type, slug, key: idempotencyKey.slice(0, 8)})
 			const handler = mutationHandlers[mutation.type]
 			if (handler) {
 				await handler(mutation, transaction.metadata || {})
 			} else {
-				console.warn(`Unhandled mutation type: ${mutation.type}`)
+				txLog.warn('tracks unhandled type', {type: mutation.type})
 			}
 		}
 		// Mark as completed only after all mutations succeeded
@@ -306,36 +291,28 @@ const tracksAPI = {
 
 		// Invalidate to sync state after all mutations
 		if (slug) {
-			log.debug('invalidate_start', {slug})
+			log.info('invalidate', {slug})
 			await queryClient.invalidateQueries({queryKey: ['tracks', slug]})
-			log.debug('invalidate_done', {slug})
 		}
 	}
 }
 
 export const offlineExecutor = startOfflineExecutor({
-	onTransactionComplete: (tx) => console.log('transaction complete', tx.id),
-	onTransactionError: (tx, err) => console.log('transaction error', tx.id, err),
+	onTransactionComplete: (tx) => offlineLog.info('complete', {id: tx.id.slice(0, 8)}),
+	onTransactionError: (tx, err) => offlineLog.error('error', {id: tx.id.slice(0, 8), err}),
 	collections: {tracks: tracksCollection, channels: channelsCollection},
 	storage: new IndexedDBAdapter('r5-offline-mutations', 'transactions'),
 	mutationFns: {
 		syncTracks: tracksAPI.syncTracks,
 		syncChannels: channelsAPI.syncChannels
 	},
-	onLeadershipChange: (isLeader) => {
-		console.log('offline executor leadership:', {isLeader})
-	},
-	onStorageFailure: (diagnostic) => {
-		console.warn('offline storage failed:', diagnostic)
-	}
+	onLeadershipChange: (isLeader) => offlineLog.info('leader', {isLeader}),
+	onStorageFailure: (diagnostic) => offlineLog.warn('storage failed', diagnostic)
 })
 
-// Collections are created at module import time - this is just a hook for future init logic
-export async function initCollections() {}
-
-// Fetch/refresh channels from remote (v1+v2 merged in queryFn)
-export async function pullChannels() {
-	await channelsCollection.utils.refetch()
+// Ensure persistence is loaded (query cache to IDB)
+export async function initCollections() {
+	await import('./persistence')
 }
 
 // Track actions - standalone functions, pass channel each time
@@ -443,4 +420,29 @@ export function deleteChannel(id: string) {
 		}
 	})
 	return tx.commit()
+}
+
+// Track metadata helpers - direct mutations (no offline sync needed, local-only)
+export function getTrackMeta(ytid: string): TrackMeta | undefined {
+	return trackMetaCollection.get(ytid)
+}
+
+export function getTrackMetaMany(ytids: string[]): TrackMeta[] {
+	return ytids.map((id) => trackMetaCollection.get(id)).filter((m): m is TrackMeta => !!m)
+}
+
+export function upsertTrackMeta(ytid: string, data: Partial<Omit<TrackMeta, 'ytid'>>): TrackMeta {
+	const now = new Date().toISOString()
+	const existing = trackMetaCollection.get(ytid)
+
+	if (existing) {
+		trackMetaCollection.update(ytid, (draft) => {
+			Object.assign(draft, data, {updated_at: now})
+		})
+		return {...existing, ...data, updated_at: now}
+	}
+
+	const newMeta: TrackMeta = {ytid, ...data, updated_at: now}
+	trackMetaCollection.insert(newMeta)
+	return newMeta
 }

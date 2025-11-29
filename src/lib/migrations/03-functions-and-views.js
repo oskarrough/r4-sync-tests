@@ -27,7 +27,7 @@ SELECT
   tm.youtube_updated_at,
   tm.musicbrainz_updated_at,
   tm.discogs_updated_at,
-  c.slug as channel_slug,
+  c.slug as slug,
   -- Helper flags for checking metadata existence
   (tm.youtube_data IS NOT NULL) as has_youtube_meta,
   (tm.musicbrainz_data IS NOT NULL) as has_musicbrainz_meta,

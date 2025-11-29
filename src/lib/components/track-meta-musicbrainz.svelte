@@ -30,7 +30,7 @@
 				<dd>
 					<a
 						href="/search?search={encodeURIComponent(
-							(track?.channel_slug ? '@' + track.channel_slug + ' ' : '') + artistCredit.artist.name
+							(track?.slug ? '@' + track.slug + ' ' : '') + artistCredit.artist.name
 						)}"
 					>
 						{artistCredit.artist.name}

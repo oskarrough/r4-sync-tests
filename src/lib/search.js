@@ -47,7 +47,7 @@ export async function searchTracks(query, channelSlug) {
 			`
 			SELECT *
 			FROM tracks_with_meta
-			WHERE channel_slug = $1
+			WHERE slug = $1
 			AND (LOWER(title) LIKE $2 OR LOWER(description) LIKE $2)
 			ORDER BY title
 			`,

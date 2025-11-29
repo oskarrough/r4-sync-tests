@@ -6,6 +6,7 @@ import {r4} from '$lib/r4'
 import {pg} from '$lib/r5/db'
 import {pull as pullFollowers, sync as syncFollowers} from '$lib/r5/followers'
 import {shuffleArray} from '$lib/utils.ts'
+import {tracksCollection, channelsCollection} from '../routes/tanstack/collections'
 
 const log = logger.ns('api').seal()
 
@@ -53,8 +54,12 @@ export async function checkUser() {
 export async function playTrack(id, endReason, startReason) {
 	log.log('play_track', {id, endReason, startReason})
 
-	const track = (await pg.sql`SELECT * FROM tracks WHERE id = ${id}`).rows[0]
-	if (!track) throw new Error(`play_track_error: Missing local track: ${id}`)
+	const track = tracksCollection.get(id)
+	if (!track) {
+		log.warn('play_track_not_loaded', {id})
+		appState.playlist_track = null
+		return
+	}
 
 	// Set flag for user-initiated playback
 	const userInitiatedReasons = ['user_click_track', 'user_next', 'user_prev', 'play_channel', 'play_search']
@@ -65,13 +70,16 @@ export async function playTrack(id, endReason, startReason) {
 	// Get current track before we change it
 	const previousTrackId = appState.playlist_track
 
-	const tracks = (await pg.sql`select id from tracks where channel_id = ${track.channel_id} order by created_at desc`)
-		.rows
-	const ids = tracks.map((t) => t.id)
+	// Build playlist from tracks already loaded in collection (same channel/slug)
+	const channelTracks = [...tracksCollection.state.values()]
+		.filter((t) => t.slug === track.slug)
+		.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+	const ids = channelTracks.map((t) => t.id)
 
 	appState.playlist_track = id
 	if (!appState.playlist_tracks.length || !appState.playlist_tracks.includes(id)) await setPlaylist(ids)
-	await addPlayHistory({nextTrackId: id, previousTrackId, endReason, startReason})
+	// @TODO: re-enable when play_history migrated to Tanstack
+	// await addPlayHistory({nextTrackId: id, previousTrackId, endReason, startReason})
 
 	// Auto-update broadcast if currently broadcasting
 	if (appState.broadcasting_channel_id && startReason !== 'broadcast_sync') {
@@ -102,8 +110,13 @@ export async function playTrack(id, endReason, startReason) {
 export async function playChannel({id, slug}, index = 0) {
 	log.log('play_channel', {id, slug})
 	leaveBroadcast()
-	if (await r5.channels.outdated(slug)) await r5.pull(slug)
-	const tracks = (await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`).rows
+	const tracks = [...tracksCollection.state.values()]
+		.filter((t) => t.slug === slug)
+		.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+	if (!tracks.length) {
+		log.warn('play_channel_no_tracks', {slug})
+		return
+	}
 	const ids = tracks.map((t) => t.id)
 	await setPlaylist(ids)
 	await playTrack(tracks[index].id, '', 'play_channel')

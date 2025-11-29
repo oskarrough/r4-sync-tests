@@ -18,7 +18,7 @@
 		console.log('getting', trackIds.length)
 
 		const result = await pg.sql`
-			SELECT t.id, t.title, t.url, c.name as channel_name, c.slug as channel_slug
+			SELECT t.id, t.title, t.url, c.name as channel_name, c.slug as slug
 			FROM tracks t
 			JOIN channels c ON t.channel_id = c.id
 			WHERE t.id = ANY(${trackIds})
@@ -71,11 +71,11 @@
 	<article class="row">
 		<header>
 			<span class="channel">
-				<a href={`/${track.channel_slug}`}>@{track.channel_slug}</a>
+				<a href={`/${track.slug}`}>@{track.slug}</a>
 			</span>
 			<span class="track">
 				{#if track}
-					<a href={`/${track.channel_slug}/tracks/${track.id}`}>{track.title}</a>
+					<a href={`/${track.slug}/tracks/${track.id}`}>{track.title}</a>
 				{:else}
 					{play.track_id}
 				{/if}

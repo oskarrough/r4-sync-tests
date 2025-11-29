@@ -11,8 +11,8 @@ const LIMIT = 5000
 async function trackIdToSlug(id) {
 	const pg = await getPg()
 	// try to get slug local
-	const result = await pg.sql`select channel_slug from tracks_with_meta where id = ${id}`
-	if (result.rows.length) return result.rows[0].channel_slug
+	const result = await pg.sql`select slug from tracks_with_meta where id = ${id}`
+	if (result.rows.length) return result.rows[0].slug
 	// fallback to r4
 	try {
 		const {data} = await r4Api.sdk.supabase
@@ -33,7 +33,7 @@ export {trackIdToSlug}
 /** Get tracks from local database */
 export async function local({slug = '', limit = LIMIT} = {}) {
 	const pg = await getPg()
-	const whereClause = slug ? sql`where channel_slug = ${slug}` : raw``
+	const whereClause = slug ? sql`where slug = ${slug}` : raw``
 	const result = await pg.sql`select * from tracks_with_meta ${whereClause} order by created_at desc limit ${limit}`
 	return result.rows
 }

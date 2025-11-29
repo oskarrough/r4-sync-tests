@@ -90,7 +90,6 @@
 			log.log('beforeunload_closing_db')
 			// event.preventDefault()
 			appState.broadcasting_channel_id = undefined
-			//await pg.close()
 		}
 		window.addEventListener('beforeunload', handler)
 		return () => window.removeEventListener('beforeunload', handler)

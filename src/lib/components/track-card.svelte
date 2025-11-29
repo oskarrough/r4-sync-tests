@@ -19,7 +19,7 @@
 
 	let {track, index, showImage = true, showSlug = false, canEdit = false, children}: Props = $props()
 
-	const permalink = $derived(`/${track.channel_slug}/tracks/${track?.id}`)
+	const permalink = $derived(`/${track?.slug}/tracks/${track?.id}`)
 	const active = $derived(track?.id === appState.playlist_track)
 	// Only extract YouTube ID when we need it for images
 	const ytid = $derived.by(() => {
@@ -96,7 +96,7 @@
 			{#if track.description}
 				<p class="description">
 					<small>
-						<LinkEntities slug={track.channel_slug} text={track.description} />
+						<LinkEntities slug={track.slug} text={track.description} />
 					</small>
 					{#if track.duration}<small>{m.track_duration_seconds({seconds: track.duration})}</small>{/if}
 				</p>
@@ -105,7 +105,7 @@
 		<time>
 			<span class="mobile">&rarr;</span>
 			<!--<small>{formatDate(new Date(track.created_at))}</small>-->
-			{#if showSlug}<small>@{track.channel_slug}</small>{/if}
+			{#if showSlug}<small>@{track.slug}</small>{/if}
 		</time>
 	</a>
 	<r4-actions>

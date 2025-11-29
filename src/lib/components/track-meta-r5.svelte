@@ -26,9 +26,9 @@
 				<dd>{data.title}</dd>
 			{/if}
 
-			{#if data.channel_slug}
+			{#if data.slug}
 				<dt>{m.track_meta_channel()}</dt>
-				<dd><a href="/{data.channel_slug}">@{data.channel_slug}</a></dd>
+				<dd><a href="/{data.slug}">@{data.slug}</a></dd>
 			{/if}
 
 			{#if data.duration}

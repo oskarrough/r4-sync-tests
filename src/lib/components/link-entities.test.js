@@ -22,11 +22,7 @@ function createLinkedParts(text, track = null) {
 			}
 
 			// Add the entity as a link
-			const searchQuery = entity.startsWith('@')
-				? entity
-				: track?.channel_slug
-					? `@${track.channel_slug} ${entity}`
-					: entity
+			const searchQuery = entity.startsWith('@') ? entity : track?.slug ? `@${track.slug} ${entity}` : entity
 
 			parts.push({
 				type: 'link',
@@ -56,7 +52,7 @@ function partsToHtml(parts) {
 
 describe('link-entities', () => {
 	test('converts hashtags to search links with channel context', () => {
-		const track = {channel_slug: 'oskar'}
+		const track = {slug: 'oskar'}
 		const parts = createLinkedParts('Check out this #techno track', track)
 		const result = partsToHtml(parts)
 		expect(result).toBe('Check out this <a href="/search?search=%40oskar%20%23techno">#techno</a> track')
@@ -75,7 +71,7 @@ describe('link-entities', () => {
 	})
 
 	test('handles multiple entities in one text', () => {
-		const track = {channel_slug: 'oskar'}
+		const track = {slug: 'oskar'}
 		const parts = createLinkedParts('Great #house track from @radio4000 with #electronic vibes', track)
 		const result = partsToHtml(parts)
 		expect(result).toBe(
@@ -90,7 +86,7 @@ describe('link-entities', () => {
 	})
 
 	test('handles hyphenated entities', () => {
-		const track = {channel_slug: 'dj-mix'}
+		const track = {slug: 'dj-mix'}
 		const parts = createLinkedParts('Love this #deep-house track', track)
 		const result = partsToHtml(parts)
 		expect(result).toBe('Love this <a href="/search?search=%40dj-mix%20%23deep-house">#deep-house</a> track')
@@ -115,7 +111,7 @@ describe('link-entities', () => {
 	})
 
 	test('case insensitive matching', () => {
-		const track = {channel_slug: 'MyChannel'}
+		const track = {slug: 'MyChannel'}
 		const parts = createLinkedParts('Love #TECHNO and @OSKAR', track)
 		const result = partsToHtml(parts)
 		expect(result).toBe(
@@ -124,7 +120,7 @@ describe('link-entities', () => {
 	})
 
 	test('handles malicious content safely', () => {
-		const track = {channel_slug: 'test'}
+		const track = {slug: 'test'}
 		const parts = createLinkedParts('Track with <script>alert("xss")</script> #techno', track)
 		const result = partsToHtml(parts)
 		// The <script> tag should be preserved as plain text, not executed
@@ -136,7 +132,7 @@ describe('link-entities', () => {
 	})
 
 	test('handles complex real-world hashtag example', () => {
-		const track = {channel_slug: 'seance-centre'}
+		const track = {slug: 'seance-centre'}
 		const text = '#am #pm blend #new-wave #dub #disco #jazz on #séance-centre'
 		const parts = createLinkedParts(text, track)
 		const result = partsToHtml(parts)
@@ -158,7 +154,7 @@ describe('link-entities', () => {
 	})
 
 	test('handles creative Unicode hashtags', () => {
-		const track = {channel_slug: 'radio4000'}
+		const track = {slug: 'radio4000'}
 		const text = 'Amazing #🎵techno and #deep_house plus some #tech+house vibes'
 		const parts = createLinkedParts(text, track)
 
@@ -179,7 +175,7 @@ describe('link-entities', () => {
 	})
 
 	test('handles alternative hash symbols', () => {
-		const track = {channel_slug: 'test'}
+		const track = {slug: 'test'}
 		const text = 'Regular #hash and fullwidth ＃fullwidth and small ﹟small'
 		const parts = createLinkedParts(text, track)
 		const linkParts = parts.filter((p) => p.type === 'link')

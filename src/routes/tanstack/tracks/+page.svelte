@@ -2,7 +2,6 @@
 	import Menu from '../menu.svelte'
 	import {useLiveQuery, eq} from '@tanstack/svelte-db'
 	import {tracksCollection, addTrack, updateTrack, deleteTrack} from '../collections'
-	import '../persistence' // activate query cache persistence
 	import SyncStatus from '../sync-status.svelte'
 	import {appState} from '$lib/app-state.svelte'
 

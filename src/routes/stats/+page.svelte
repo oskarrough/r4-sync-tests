@@ -51,7 +51,7 @@
 						ph.*,
 						twm.title, twm.duration, twm.description,
 						twm.channel_id,
-						c.name as channel_name, c.slug as channel_slug
+						c.name as channel_name, c.slug as slug
 					FROM play_history ph
 					JOIN tracks_with_meta twm ON ph.track_id = twm.id
 					JOIN channels c ON twm.channel_id = c.id
@@ -76,7 +76,7 @@
 					channelPlays[play.channel_id] = {
 						id: play.channel_id,
 						name: play.channel_name,
-						slug: play.channel_slug,
+						slug: play.slug,
 						plays: 0,
 						total_listening_ms: 0,
 						completions: []
@@ -156,7 +156,7 @@
 							id: p.track_id,
 							title: p.title,
 							channel_name: p.channel_name,
-							channel_slug: p.channel_slug,
+							slug: p.slug,
 							started_at: p.started_at
 						}
 					}
@@ -173,7 +173,7 @@
 					trackPlays[key] = {
 						title: p.title,
 						channel_name: p.channel_name,
-						channel_slug: p.channel_slug,
+						slug: p.slug,
 						track_id: p.track_id,
 						play_count: 0
 					}
@@ -343,9 +343,9 @@
 				<ol>
 					{#each stats.mostReplayedTrack as track (track.track_id)}
 						<li>
-							<a href="/{track.channel_slug}">@{track.channel_slug}</a>
+							<a href="/{track.slug}">@{track.slug}</a>
 							&rarr;
-							<a href={`/${track.channel_slug}/${track.track_id}`}>
+							<a href={`/${track.slug}/${track.track_id}`}>
 								<em>{track.title}</em>
 							</a>
 							• {m.stats_play_count({count: track.play_count})}
@@ -363,9 +363,9 @@
 				<ol>
 					{#each stats.recentlyPlayed as track (track.id)}
 						<li>
-							<a href="/{track.channel_slug}">@{track.channel_slug}</a>
+							<a href="/{track.slug}">@{track.slug}</a>
 							&rarr;
-							<a href={`/${track.channel_slug}/${track.id}`}>
+							<a href={`/${track.slug}/${track.id}`}>
 								<em>{track.title}</em>
 							</a>
 						</li>

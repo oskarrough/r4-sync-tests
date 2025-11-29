@@ -55,7 +55,7 @@ export type Track = {
 	firebase_id?: string
 	// sometimes we include this, too
 	channel_id?: string
-	channel_slug?: string
+	slug?: string
 	// when joined with track_meta table
 	ytid?: string
 	duration?: number
