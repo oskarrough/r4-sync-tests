@@ -3,11 +3,9 @@ import {appState, defaultAppState} from '$lib/app-state.svelte'
 import {leaveBroadcast, upsertRemoteBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
 import {r4} from '$lib/r4'
-import {r5} from '$lib/r5'
 import {pg} from '$lib/r5/db'
 import {pull as pullFollowers, sync as syncFollowers} from '$lib/r5/followers'
 import {shuffleArray} from '$lib/utils.ts'
-import {channelsCollection} from '../routes/tanstack/collections'
 
 const log = logger.ns('api').seal()
 
@@ -32,13 +30,7 @@ export async function checkUser() {
 		const channels = await r4.channels.readUserChannels()
 		const wasSignedOut = !appState.channels?.length
 
-		for (const c of channels) {
-			log.log('inserting via checkUser', c.slug)
-			await r5.channels.pull({slug: c.slug})
-			// Seed tanstack collection with user's channels
-			channelsCollection.utils.writeUpsert(c)
-		}
-
+		// Store IDs - collection handles fetching when needed
 		appState.channels = channels.map((/** @type {any} */ c) => c.id)
 		appState.channel = channels[0] || undefined
 
