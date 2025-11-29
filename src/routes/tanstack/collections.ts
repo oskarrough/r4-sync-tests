@@ -77,6 +77,19 @@ export const followsCollection = createCollection<Follow, string>(
 	})
 )
 
+// Spam decisions collection - local-only admin state for spam-warrior tool
+export interface SpamDecision {
+	channelId: string
+	spam: boolean // true = mark for deletion, false = keep
+}
+
+export const spamDecisionsCollection = createCollection<SpamDecision, string>(
+	localStorageCollectionOptions({
+		storageKey: 'r5-spam-decisions',
+		getKey: (item) => item.channelId
+	})
+)
+
 // Channels collection - fetch all, filter locally
 export const channelsCollection = createCollection(
 	queryCollectionOptions({
@@ -268,50 +281,29 @@ const channelMutationHandlers: Record<string, MutationHandler> = {
 	}
 }
 
-// Follows mutation handlers
+// Follows mutation handlers - v1 and anonymous users are local-only
+const shouldSyncFollow = (follow: Follow) => follow.source !== 'v1' && appState.channels?.[0]
+
 const followsMutationHandlers: Record<string, MutationHandler> = {
 	insert: async (mutation) => {
 		const follow = mutation.modified as unknown as Follow
-		// Skip v1 channels — can't sync to remote (FK constraint)
-		if (follow.source === 'v1') {
-			log.info('follow_insert_skip_v1', {channelId: follow.channelId})
-			return
-		}
+		const userChannelId = shouldSyncFollow(follow)
+		if (!userChannelId) return
 
-		const userChannelId = appState.channels?.[0]
-		if (!userChannelId) {
-			log.info('follow_insert_skip_anon', {channelId: follow.channelId})
-			return // Anonymous user, local-only
-		}
-
-		log.info('follow_insert_start', {channelId: follow.channelId, userChannelId})
 		try {
 			await sdk.channels.followChannel(userChannelId, follow.channelId)
-			log.info('follow_insert_done', {channelId: follow.channelId})
 		} catch (err) {
-			log.error('follow_insert_error', {channelId: follow.channelId, err})
 			throw new NonRetriableError(getErrorMessage(err))
 		}
 	},
 	delete: async (mutation) => {
 		const follow = mutation.original as unknown as Follow
-		if (follow.source === 'v1') {
-			log.info('follow_delete_skip_v1', {channelId: follow.channelId})
-			return
-		}
+		const userChannelId = shouldSyncFollow(follow)
+		if (!userChannelId) return
 
-		const userChannelId = appState.channels?.[0]
-		if (!userChannelId) {
-			log.info('follow_delete_skip_anon', {channelId: follow.channelId})
-			return
-		}
-
-		log.info('follow_delete_start', {channelId: follow.channelId, userChannelId})
 		try {
 			await sdk.channels.unfollowChannel(userChannelId, follow.channelId)
-			log.info('follow_delete_done', {channelId: follow.channelId})
 		} catch (err) {
-			log.error('follow_delete_error', {channelId: follow.channelId, err})
 			throw new NonRetriableError(getErrorMessage(err))
 		}
 	}
@@ -591,61 +583,36 @@ export function clearPlayHistory() {
 
 // Follow actions
 export function followChannel(channel: {id: string; source?: 'v1' | 'v2'}) {
-	const tx = offlineExecutor.createOfflineTransaction({
-		mutationFnName: 'syncFollows',
-		autoCommit: false
-	})
-	tx.mutate(() => {
+	if (followsCollection.state.has(channel.id)) return Promise.resolve() // already following
+
+	const tx = offlineExecutor.createOfflineTransaction({mutationFnName: 'syncFollows', autoCommit: false})
+	tx.mutate(() =>
 		followsCollection.insert({
 			channelId: channel.id,
 			createdAt: new Date().toISOString(),
 			source: channel.source || 'v2'
 		})
-	})
+	)
 	return tx.commit()
 }
 
 export function unfollowChannel(channelId: string) {
-	const tx = offlineExecutor.createOfflineTransaction({
-		mutationFnName: 'syncFollows',
-		autoCommit: false
-	})
-	tx.mutate(() => {
-		const follow = followsCollection.get(channelId)
-		if (follow) followsCollection.delete(channelId)
-	})
+	if (!followsCollection.state.has(channelId)) return Promise.resolve() // not following
+
+	const tx = offlineExecutor.createOfflineTransaction({mutationFnName: 'syncFollows', autoCommit: false})
+	tx.mutate(() => followsCollection.delete(channelId))
 	return tx.commit()
 }
 
-export function isFollowing(channelId: string): boolean {
-	return followsCollection.state.has(channelId)
-}
-
-export function getFollowedChannelIds(): string[] {
-	return [...followsCollection.state.keys()]
-}
-
-/**
- * Pull follows from remote and merge into local collection
- * Does not overwrite existing follows (preserves v1 follows)
- */
+/** Pull follows from remote, merge into local (preserves v1 follows) */
 export async function pullFollows(userChannelId: string) {
-	log.info('pull_follows_start', {userChannelId})
 	try {
 		const {data} = await sdk.channels.readFollowings(userChannelId)
-		let added = 0
 		for (const ch of data || []) {
-			if (!followsCollection.get(ch.id)) {
-				// Direct insert — not through offline tx since it's already on remote
-				followsCollection.insert({
-					channelId: ch.id,
-					createdAt: ch.created_at,
-					source: 'v2'
-				})
-				added++
+			if (!followsCollection.state.has(ch.id)) {
+				followsCollection.insert({channelId: ch.id, createdAt: ch.created_at, source: 'v2'})
 			}
 		}
-		log.info('pull_follows_done', {userChannelId, total: data?.length || 0, added})
 	} catch (err) {
 		log.error('pull_follows_error', {userChannelId, err})
 	}

@@ -1,4 +1,3 @@
-import {pg} from '$lib/r5/db'
 import {businessPartners, spamDomains, spamKeywords, suspiciousPhrases} from './spam-words'
 
 /**
@@ -257,43 +256,6 @@ export function analyzeChannel(channel, tracks = []) {
 	}
 
 	return {isSpam, confidence, reasons}
-}
-
-/**
- * Update spam status for a channel
- * @param {string} channelId
- * @param {boolean} isSpam
- */
-export async function updateChannelSpam(channelId, isSpam) {
-	await pg.query('UPDATE channels SET spam = $1 WHERE id = $2', [isSpam, channelId])
-}
-
-/**
- * Clear spam status for a channel
- * @param {string} channelId
- */
-export async function clearChannelSpam(channelId) {
-	await pg.query('UPDATE channels SET spam = NULL WHERE id = $1', [channelId])
-}
-
-/**
- * Get first tracks for a channel to help with spam detection
- * @param {string} channelId
- * @param {number} limit
- * @returns {Promise<Array<import('$lib/types').Track>>}
- */
-export async function getChannelTracks(channelId, limit = 2) {
-	const {rows} = await pg.query(
-		`
-		SELECT id, title, description, url, created_at
-		FROM tracks
-		WHERE channel_id = $1
-		ORDER BY created_at ASC
-		LIMIT $2
-	`,
-		[channelId, limit]
-	)
-	return rows
 }
 
 /**

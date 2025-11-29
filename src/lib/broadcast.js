@@ -2,9 +2,7 @@ import {playTrack} from '$lib/api'
 import {appState} from '$lib/app-state.svelte'
 import {logger} from '$lib/logger'
 import {r4} from '$lib/r4'
-import {r5} from '$lib/r5'
-import {pg} from '$lib/r5/db'
-import {trackIdToSlug} from '$lib/r5/tracks'
+import {channelsCollection, queryClient} from '../routes/tanstack/collections'
 
 const log = logger.ns('broadcast').seal()
 
@@ -68,8 +66,8 @@ export async function startBroadcast(channelId, trackId) {
 	}
 
 	// Check if track is from v1 channel - these can't be broadcast
-	const channel = (await pg.sql`SELECT source, slug FROM channels where id = ${channelId}`).rows[0]
-	if (channel.source === 'v1') {
+	const channel = channelsCollection.get(channelId)
+	if (channel?.source === 'v1') {
 		log.error('failed_v1_track', {channelId, trackId, channel})
 		throw new Error('Cannot broadcast v1 channels')
 	}
@@ -202,11 +200,13 @@ export async function playBroadcastTrack(broadcast) {
 		appState.listening_to_channel_id = channel_id
 		return true
 	} catch {
-		// if it failed, fetch and retry
+		// if it failed, fetch channel tracks and retry
 		try {
-			const slug = await trackIdToSlug(track_id)
-			if (!slug) throw new Error('No channel found for track')
-			await r5.pull(slug)
+			// Get slug from channel (we have channel_id from broadcast)
+			const channel = channelsCollection.get(channel_id)
+			const slug = channel?.slug
+			if (!slug) throw new Error('No channel found for broadcast')
+			await queryClient.invalidateQueries({queryKey: ['tracks', slug]})
 			await playTrack(track_id, '', 'broadcast_sync')
 			appState.listening_to_channel_id = channel_id
 			log.log('play_success_after_fetch', {track_id, channel_id, slug})

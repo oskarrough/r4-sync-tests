@@ -7,29 +7,23 @@
 	/** @type {{channel: import('$lib/types').Channel, label?: string, class?: string}} */
 	let {channel, label, ...rest} = $props()
 
-	const followQuery = useLiveQuery((q) =>
-		q.from({follows: followsCollection}).where(({follows}) => eq(follows.channelId, channel.id))
-	)
-	let isFollowing = $derived((followQuery.data?.length || 0) > 0)
+	const query = useLiveQuery((q) => q.from({f: followsCollection}).where(({f}) => eq(f.channelId, channel.id)))
+	let following = $derived(query.data?.length > 0)
 
-	function toggleFollow(event) {
-		event.stopPropagation()
-		event.preventDefault()
-
-		if (isFollowing) {
-			unfollowChannel(channel.id)
-		} else {
-			followChannel({id: channel.id, source: channel.source})
-		}
+	const toggle = (e) => {
+		e.stopPropagation()
+		e.preventDefault()
+		if (following) unfollowChannel(channel.id)
+		else followChannel(channel)
 	}
 </script>
 
 <button
-	onclick={toggleFollow}
-	title={isFollowing ? m.button_unfollow() : m.button_follow()}
-	aria-label={isFollowing ? m.button_unfollow() : m.button_follow()}
+	onclick={toggle}
+	title={following ? m.button_unfollow() : m.button_follow()}
+	aria-label={following ? m.button_unfollow() : m.button_follow()}
 	{...rest}
 >
-	<Icon icon={isFollowing ? 'favorite-fill' : 'favorite'} size={20} />
+	<Icon icon={following ? 'favorite-fill' : 'favorite'} size={20} />
 	{label}
 </button>
