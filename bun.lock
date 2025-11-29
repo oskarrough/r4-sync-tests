@@ -12,7 +12,7 @@
         "@inlang/plugin-m-function-matcher": "^2.1.0",
         "@inlang/plugin-message-format": "^4.0.0",
         "@radio4000/components": "^0.2.17",
-        "@radio4000/sdk": "^0.6.0",
+        "@radio4000/sdk": "^0.6.2",
         "@sveltejs/adapter-static": "^3.0.10",
         "@tanstack/offline-transactions": "^1.0.0",
         "@tanstack/query-db-collection": "^1.0.5",
@@ -27,7 +27,7 @@
         "idb-keyval": "^6.2.2",
         "leaflet": "^1.9.4",
         "luxon": "^3.7.2",
-        "media-chrome": "^4.16.0",
+        "media-chrome": "^4.16.1",
         "obra-icons-svelte": "^1.23.1",
         "p-limit": "^7.2.0",
         "svelte-awesome-color-picker": "^4.1.0",
@@ -46,7 +46,7 @@
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-svelte": "^3.13.0",
         "globals": "^16.5.0",
-        "prettier": "^3.7.1",
+        "prettier": "^3.7.2",
         "prettier-plugin-svelte": "^3.4.0",
         "svelte": "^5.45.2",
         "svelte-check": "^4.3.4",
@@ -303,7 +303,7 @@
 
     "@radio4000/components": ["@radio4000/components@0.2.17", "", { "dependencies": { "@hcaptcha/vanilla-hcaptcha": "^1.1.0-alpha2", "@radio4000/sdk": "^0.4.11", "fuzzysort": "^3.0.2", "lit": "^3.2.0", "lodash.debounce": "^4.0.8", "lodash.isequal": "^4.5.0", "media-url-parser": "^0.2.4", "ol": "^9.2.4", "page": "^1.11.6", "radio4000-player": "^0.7.2" } }, "sha512-HaHA79e7vZZjAnZJ13XlBLCq+NKe83nDX77N7EjUIKpE59wWX0ALzeUA1cOTYvLEZQPxAJTocxm27QCi6shHFg=="],
 
-    "@radio4000/sdk": ["@radio4000/sdk@0.6.0", "", { "dependencies": { "@supabase/supabase-js": "^2.80.0", "media-url-parser": "^0.2.4" } }, "sha512-pn4u8Q5NaT6Q2a10jkm32evCiRtr0K3Mtys578TLH+xp8igca1buk2qUmi/JmDMOC3TLTzz+Eu+xg5Test2T0A=="],
+    "@radio4000/sdk": ["@radio4000/sdk@0.6.2", "", { "dependencies": { "@supabase/supabase-js": "^2.86.0", "media-url-parser": "^0.2.4" } }, "sha512-OsfWXA53v0WKocqRgSXSRCh+cfSKeQBNrIOS8aLiEiocngZZyvWvOZoWGdb+YIF9fKUZM3ZUKUleHCd+uSQT8A=="],
 
     "@rollup/rollup-android-arm-eabi": ["@rollup/rollup-android-arm-eabi@4.53.3", "", { "os": "android", "cpu": "arm" }, "sha512-mRSi+4cBjrRLoaal2PnqH82Wqyb+d3HsPUN/W+WslCXsZsyHa9ZeQQX/pQsZaVIWDkPcpV6jJ+3KLbTbgnwv8w=="],
 
@@ -813,7 +813,7 @@
 
     "prelude-ls": ["prelude-ls@1.2.1", "", {}, "sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g=="],
 
-    "prettier": ["prettier@3.7.1", "", { "bin": { "prettier": "bin/prettier.cjs" } }, "sha512-RWKXE4qB3u5Z6yz7omJkjWwmTfLdcbv44jUVHC5NpfXwFGzvpQM798FGv/6WNK879tc+Cn0AAyherCl1KjbyZQ=="],
+    "prettier": ["prettier@3.7.2", "", { "bin": { "prettier": "bin/prettier.cjs" } }, "sha512-n3HV2J6QhItCXndGa3oMWvWFAgN1ibnS7R9mt6iokScBOC0Ul9/iZORmU2IWUMcyAQaMPjTlY3uT34TqocUxMA=="],
 
     "prettier-plugin-svelte": ["prettier-plugin-svelte@3.4.0", "", { "peerDependencies": { "prettier": "^3.0.0", "svelte": "^3.2.0 || ^4.0.0-next.0 || ^5.0.0-next.0" } }, "sha512-pn1ra/0mPObzqoIQn/vUTR3ZZI6UuZ0sHqMK5x2jMLGrs53h0sXhkVuDcrlssHwIMk7FYrMjHBPoUSyyEEDlBQ=="],
 

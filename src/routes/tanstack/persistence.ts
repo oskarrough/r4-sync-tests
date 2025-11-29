@@ -7,14 +7,16 @@ import {queryClient} from './collections'
 // JSON round-trip with circular ref handling
 function stripNonSerializable(client: PersistedClient): PersistedClient {
 	const seen = new WeakSet()
-	return JSON.parse(JSON.stringify(client, (_key, value) => {
-		if (typeof value === 'function') return undefined
-		if (value && typeof value === 'object') {
-			if (seen.has(value)) return undefined
-			seen.add(value)
-		}
-		return value
-	}))
+	return JSON.parse(
+		JSON.stringify(client, (_key, value) => {
+			if (typeof value === 'function') return undefined
+			if (value && typeof value === 'object') {
+				if (seen.has(value)) return undefined
+				seen.add(value)
+			}
+			return value
+		})
+	)
 }
 
 // IDB persister for query cache

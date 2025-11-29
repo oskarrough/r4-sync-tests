@@ -18,8 +18,9 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
   - [x] channel mutations (create/update/delete)
   - [x] query cache persistence (IDB via persistQueryClient)
   - [x] track mutations use metadata for channelId (cleaner API)
+  - [x] real-world offline → online test (insert + update, verified FIFO order and ID consistency)
+  - [x] SDK: createTrack accepts optional client-provided UUID (enables offline-first)
   - [ ] load user's channel into collection on auth (have userChannelId from appState, need to fetch into collection)
-  - [ ] real-world offline → online test (manual verification)
 
 read
 https://github.com/TanStack/db/issues/865

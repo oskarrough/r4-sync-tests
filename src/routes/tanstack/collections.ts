@@ -4,6 +4,9 @@ import {QueryClient} from '@tanstack/svelte-query'
 import {startOfflineExecutor, IndexedDBAdapter} from '@tanstack/offline-transactions'
 import {sdk} from '@radio4000/sdk'
 import type {PendingMutation} from '@tanstack/db'
+import {logger} from '$lib/logger'
+
+const log = logger.ns('tanstack').seal()
 
 export const queryClient = new QueryClient({
 	defaultOptions: {
@@ -33,7 +36,7 @@ export const tracksCollection = createCollection(
 			const {filters, limit} = parseLoadSubsetOptions(ctx.meta?.loadSubsetOptions)
 			const slug = filters.find((f) => f.field[0] === 'slug' && f.operator === 'eq')?.value
 			const createdAfter = filters.find((f) => f.field[0] === 'created_at' && f.operator === 'gt')?.value
-			console.log('tracks.queryFn', {slug, limit, createdAfter})
+			log.debug('queryFn', {slug, limit})
 			if (!slug) return []
 
 			let query = sdk.supabase
@@ -64,19 +67,30 @@ const mutationHandlers: Record<string, MutationHandler> = {
 		const track = mutation.modified as {id: string; url: string; title: string}
 		const channelId = metadata?.channelId as string
 		if (!channelId) throw new Error('channelId required in transaction metadata')
+		log.info('insert_start', {clientId: track.id, title: track.title, channelId})
 		const {data, error} = await sdk.tracks.createTrack(channelId, track)
+		log.info('insert_done', {clientId: track.id, serverId: data?.id, match: track.id === data?.id, error})
 		if (error) throw new Error(error.message || JSON.stringify(error))
-		console.log('syncTracks insert success', {data})
 	},
 	update: async (mutation) => {
 		const track = mutation.modified as {id: string}
-		const {error} = await sdk.tracks.updateTrack(track.id, mutation.changes)
-		if (error) throw new Error(error.message || JSON.stringify(error))
+		const changes = mutation.changes as Record<string, unknown>
+		log.info('update_start', {id: track.id, title: changes.title})
+		const response = await sdk.tracks.updateTrack(track.id, changes)
+		log.info('update_done', {
+			id: track.id,
+			rowsAffected: response.data?.length,
+			status: response.status,
+			error: response.error
+		})
+		if (response.error) throw new Error(response.error.message || JSON.stringify(response.error))
 	},
 	delete: async (mutation) => {
 		const track = mutation.original as {id: string}
-		const {error} = await sdk.tracks.deleteTrack(track.id)
-		if (error) throw new Error(error.message || JSON.stringify(error))
+		log.info('delete_start', {id: track.id})
+		const response = await sdk.tracks.deleteTrack(track.id)
+		log.info('delete_done', {id: track.id, status: response.status, error: response.error})
+		if (response.error) throw new Error(response.error.message || JSON.stringify(response.error))
 	}
 }
 
@@ -105,10 +119,13 @@ const tracksAPI = {
 		}
 		// Mark as completed only after all mutations succeeded
 		completedIdempotencyKeys.add(idempotencyKey)
+		log.info('tx_complete', {idempotencyKey: idempotencyKey.slice(0, 8), slug})
 
 		// Invalidate to sync state after all mutations
 		if (slug) {
+			log.debug('invalidate_start', {slug})
 			await queryClient.invalidateQueries({queryKey: ['tracks', `slug-eq-${slug}`]})
+			log.debug('invalidate_done', {slug})
 		}
 	}
 }
