@@ -4,6 +4,7 @@ import {logger} from '$lib/logger'
 import {r4} from '$lib/r4'
 import {r5} from '$lib/r5'
 import {queryClient, initCollections, tracksCollection, channelsCollection} from './tanstack/collections'
+import {fetchAllChannels} from '$lib/api/seed'
 import './tanstack/persistence' // Side-effect: sets up query cache persistence
 import {appState} from '$lib/app-state.svelte'
 
@@ -26,6 +27,13 @@ async function preload() {
 		await r5.db.migrate()
 		pg = await r5.db.getPg()
 		await initCollections()
+
+		// Prefetch all channels so search works immediately
+		await queryClient.prefetchQuery({
+			queryKey: ['channels'],
+			queryFn: fetchAllChannels
+		})
+
 		// @ts-expect-error debugging
 		window.r5 = {r5, r4, pg, appState, queryClient, tracksCollection, channelsCollection}
 
