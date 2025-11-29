@@ -198,6 +198,23 @@ The name `syncTracks` is arbitrary - we chose it. TanStack just needs a string k
 - **NonRetriableError**: Throw this for permanent failures (422, validation errors)
 - **Idempotency keys**: Prevent duplicate processing on reload
 
+## Direct Writes (seeding without sync)
+
+Bypass mutation handlers, write directly to synced data store. No optimistic mutations, no handler triggers.
+
+```ts
+collection.utils.writeInsert(item) // insert only
+collection.utils.writeUpsert(item) // insert or update
+collection.utils.writeUpdate(item) // update only
+collection.utils.writeDelete(id) // delete
+collection.utils.writeBatch(() => {
+	// atomic batch
+	items.forEach((i) => collection.utils.writeUpsert(i))
+})
+```
+
+Use for: seeding on login, WebSocket updates, large dataset pagination.
+
 ## Status
 
 - [x] Read queries working (tracks by slug)
@@ -217,6 +234,9 @@ The name `syncTracks` is arbitrary - we chose it. TanStack just needs a string k
 - `src/routes/tanstack/channels/+page.svelte` - Channels CRUD
 
 ## References
+
+You can fetch these with .md suffix for pure markdown.
+http://localhost:5173/tanstack/channelaude
 
 - https://tanstack.com/db/latest/docs/overview.md
 - https://tanstack.com/db/latest/docs/guides/mutations.md

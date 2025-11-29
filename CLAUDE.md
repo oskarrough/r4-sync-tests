@@ -116,3 +116,7 @@ You can use the `r4` cli (separate project) to inspect data, pipe with jq etc. E
 ## @radio4000/components
 
 These are the custom elements used on radio4000.com and many also in this app. See their full docs on http://localhost:4000/docs.html.
+
+## Tanstack
+
+We're exploring Tanstack query + db as a replacement for pglite. See @docs/tanstack/tanstack.md.

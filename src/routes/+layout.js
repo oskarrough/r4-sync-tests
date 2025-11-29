@@ -3,7 +3,8 @@ import {validateListeningState} from '$lib/broadcast.js'
 import {logger} from '$lib/logger'
 import {r4} from '$lib/r4'
 import {r5} from '$lib/r5'
-import {queryClient} from './tanstack/collections'
+import {queryClient, initCollections} from './tanstack/collections'
+import {appState} from '$lib/app-state.svelte'
 
 // Disable server-side rendering for all routes by default. Otherwise we can't use pglite + indexeddb.
 export const ssr = false
@@ -32,9 +33,10 @@ async function preload() {
 		// await delay(60000)
 		await r5.db.migrate()
 		pg = await r5.db.getPg()
+		await initCollections()
 		await autoPull()
 		// @ts-expect-error debugging
-		window.r5 = {r5, r4, pg, queryClient}
+		window.r5 = {r5, r4, pg, appState, queryClient}
 
 		// Validate listening state in background after UI loads
 		validateListeningState().catch((err) => log.error('validate_listening_state_error', err))

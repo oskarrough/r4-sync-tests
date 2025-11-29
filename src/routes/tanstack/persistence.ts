@@ -37,5 +37,13 @@ export const unsubscribePersist = persistQueryClient({
 	queryClient,
 	persister: idbPersister,
 	maxAge: 1000 * 60 * 60 * 24, // 24 hours
-	buster: '' // increment on breaking schema changes
+	buster: '', // increment on breaking schema changes
+	dehydrateOptions: {
+		shouldDehydrateQuery: (query) => {
+			// Don't persist channels queries
+			const key = query.queryKey?.[0]
+			if (!key || key === 'channels') return false
+			return true
+		}
+	}
 })
