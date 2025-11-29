@@ -97,7 +97,7 @@ export const channelsCollection = createCollection(
 		syncMode: 'on-demand',
 		queryClient,
 		getKey: (item) => item.id,
-		staleTime: 10 * 1000, // 10s for testing (maxAge=60s in persistence)
+		staleTime: 24 * 60 * 60 * 1000, // 24h - channels rarely change
 		queryFn: async () => {
 			log.info('channels queryFn (fetch all)')
 			return fetchAllChannels()
@@ -117,7 +117,7 @@ export const tracksCollection = createCollection(
 		syncMode: 'on-demand',
 		queryClient,
 		getKey: (item) => item.id,
-		staleTime: 20 * 1000,
+		staleTime: 60 * 60 * 1000, // 1h - incremental sync fetches only new tracks
 		queryFn: async (ctx) => {
 			const options = parseLoadSubsetOptions(ctx.meta?.loadSubsetOptions)
 			const slug = options.filters.find((f) => f.field[0] === 'slug' && f.operator === 'eq')?.value

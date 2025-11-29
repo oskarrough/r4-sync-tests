@@ -16,6 +16,7 @@ Core tracks/channels collections working. See `docs/tanstack/tanstack.md` for ar
 **Remaining:**
 
 - [x] **Followers** - `followsCollection` with localStorage + offline sync. Deleted `src/lib/r5/followers.js`
+- [x] **Live queries** - Removed `src/lib/live-query.js`. Queue panel now uses `useLiveQuery` with `inArray` filter.
 - [ ] **Broadcast** - `src/lib/broadcast.js` uses PGlite
 - [ ] `src/routes/+layout.js` — `r5.db.migrate()`, `r5.db.getPg()` - remove PGlite init
 - [ ] `src/routes/recovery/+page.svelte` — `r5.db.reset()`, `r5.db.migrate()` - needs rethink for TanStack

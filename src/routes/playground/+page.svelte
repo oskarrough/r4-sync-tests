@@ -1,5 +1,4 @@
 <script>
-	// import {liveQuery} from '$lib/live-query'
 	import {toggleQueuePanel} from '$lib/api'
 	import {appState} from '$lib/app-state.svelte'
 	import InputRange from '$lib/components/input-range.svelte'

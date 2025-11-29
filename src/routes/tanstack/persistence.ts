@@ -1,4 +1,8 @@
-import {persistQueryClient, type PersistedClient} from '@tanstack/query-persist-client-core'
+import {
+	persistQueryClientRestore,
+	persistQueryClientSubscribe,
+	type PersistedClient
+} from '@tanstack/query-persist-client-core'
 import {get, set, del} from 'idb-keyval'
 import {queryClient} from './collections'
 
@@ -32,15 +36,22 @@ const idbPersister = {
 	}
 }
 
-// Persist query cache to IDB - restores on import, subscribes to changes
-export const unsubscribePersist = persistQueryClient({
+const persistOptions = {
 	queryClient,
 	persister: idbPersister,
-	maxAge: 20 * 1000, // 20s (matches tracks staleTime)
+	maxAge: 24 * 60 * 60 * 1000, // 24h - match gcTime
 	buster: '', // increment on breaking schema changes
 	dehydrateOptions: {
 		shouldDehydrateQuery: (query) => {
 			return query.state.status === 'success'
 		}
 	}
+}
+
+// Restore cache from IDB - await this before prefetching
+export const cacheReady = persistQueryClientRestore(persistOptions)
+
+// Subscribe to changes after restore completes
+cacheReady.then(() => {
+	persistQueryClientSubscribe(persistOptions)
 })

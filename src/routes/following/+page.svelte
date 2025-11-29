@@ -11,15 +11,16 @@
 	)
 	const channelsQuery = useLiveQuery((q) => q.from({channels: channelsCollection}))
 
-	// Join follows with channels to get full channel data
-	let followings = $derived(
-		(followsQuery.data || [])
-			.map((follow) => {
-				const channel = (channelsQuery.data || []).find((c) => c.id === follow.channelId)
-				return channel ? {...channel, source: follow.source} : null
+	// Join follows with channels - O(n) via Map lookup
+	let followings = $derived.by(() => {
+		const channelMap = new Map((channelsQuery.data || []).map((c) => [c.id, c]))
+		return (followsQuery.data || [])
+			.map((f) => {
+				const ch = channelMap.get(f.channelId)
+				return ch ? {...ch, source: f.source} : null
 			})
 			.filter(Boolean)
-	)
+	})
 </script>
 
 <svelte:head>

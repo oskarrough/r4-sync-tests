@@ -5,7 +5,7 @@ import {r4} from '$lib/r4'
 import {migrate, getPg} from '$lib/db'
 import {queryClient, initCollections, tracksCollection, channelsCollection} from './tanstack/collections'
 import {fetchAllChannels} from '$lib/api/seed'
-import './tanstack/persistence' // Side-effect: sets up query cache persistence
+import {cacheReady} from './tanstack/persistence'
 import {appState} from '$lib/app-state.svelte'
 
 // Disable server-side rendering for all routes by default. Otherwise we can't use pglite + indexeddb.
@@ -24,14 +24,15 @@ async function preload() {
 	log.debug('preloading')
 	try {
 		// await delay(60000)
-		await migrate()
-		pg = await getPg()
+		// await migrate()
+		// pg = await getPg()
+		await cacheReady
 		await initCollections()
-
 		// Prefetch all channels so search works immediately
 		await queryClient.prefetchQuery({
 			queryKey: ['channels'],
-			queryFn: fetchAllChannels
+			queryFn: fetchAllChannels,
+			staleTime: 24 * 60 * 60 * 1000 // 24h - match channelsCollection
 		})
 
 		// @ts-expect-error debugging

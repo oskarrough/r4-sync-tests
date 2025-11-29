@@ -1,11 +1,10 @@
 <script>
 	import fuzzysort from 'fuzzysort'
-	import {useLiveQuery} from '@tanstack/svelte-db'
+	import {useLiveQuery, inArray} from '@tanstack/svelte-db'
 	import {appState} from '$lib/app-state.svelte'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
-	import {incrementalLiveQuery} from '$lib/live-query'
 	import {relativeTime} from '$lib/dates'
-	import {playHistoryCollection, clearPlayHistory} from '../../routes/tanstack/collections'
+	import {playHistoryCollection, clearPlayHistory, tracksCollection} from '../../routes/tanstack/collections'
 	import Modal from './modal.svelte'
 	import SearchInput from './search-input.svelte'
 	import TrackCard from './track-card.svelte'
@@ -19,8 +18,14 @@
 	/** @type {string[]} */
 	let trackIds = $derived(appState.playlist_tracks || [])
 
-	/** @type {import('$lib/types').Track[]} */
-	let queueTracks = $state([])
+	// Query tracks from collection, preserving playlist order
+	const tracksQuery = useLiveQuery((q) =>
+		q.from({tracks: tracksCollection}).where(({tracks}) => inArray(tracks.id, trackIds))
+	)
+	let queueTracks = $derived.by(() => {
+		const trackMap = new Map((tracksQuery.data || []).map((t) => [t.id, t]))
+		return trackIds.map((id) => trackMap.get(id)).filter(Boolean)
+	})
 
 	const historyQuery = useLiveQuery((q) =>
 		q.from({history: playHistoryCollection}).orderBy(({history}) => history.started_at, 'desc')
@@ -48,26 +53,6 @@
 					.map((result) => result.obj)
 			: playHistory
 	)
-
-	$effect(() => {
-		if (trackIds.length === 0) {
-			queueTracks = []
-			return
-		}
-
-		const uniqueIds = [...new Set(trackIds)]
-		return incrementalLiveQuery(
-			`SELECT twm.*
-			 FROM tracks_with_meta twm
-			 WHERE twm.id IN (select unnest($1::uuid[]))`,
-			[uniqueIds],
-			'id',
-			(res) => {
-				const trackMap = new Map(res.rows.map((track) => [track.id, track]))
-				queueTracks = trackIds.map((id) => trackMap.get(id)).filter(Boolean)
-			}
-		)
-	})
 
 	function clearQueue() {
 		appState.playlist_tracks = []
