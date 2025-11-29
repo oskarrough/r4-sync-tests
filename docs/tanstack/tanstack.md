@@ -205,19 +205,21 @@ The name `syncTracks` is arbitrary - we chose it. TanStack just needs a string k
 - [x] Offline mutations via @tanstack/offline-transactions
 - [x] Domain actions (`addTrack`, `updateTrack`, `deleteTrack`)
 - [x] Sync status component (pending transactions count)
-- [ ] Channel collection + actions
-- [ ] IDB hydration for offline-first startup
+- [x] Channel collection + actions (`createChannel`, `updateChannel`, `deleteChannel`)
+- [x] IDB hydration for offline-first startup (query-persist-client-core)
 
 ## Files
 
-- `src/routes/tanstack/collections.ts` - tracksCollection, offlineExecutor, syncTracks, addTrack/updateTrack/deleteTrack
+- `src/routes/tanstack/collections.ts` - collections, offlineExecutor, sync functions, action functions
+- `src/routes/tanstack/persistence.ts` - query cache persistence to IndexedDB
 - `src/routes/tanstack/sync-status.svelte` - Pending transactions UI
 - `src/routes/tanstack/tracks/+page.svelte` - Tracks CRUD
-- `src/routes/tanstack/channels/+page.svelte` - Channels read-only
+- `src/routes/tanstack/channels/+page.svelte` - Channels CRUD
 
 ## References
 
-- https://tanstack.com/db/latest/docs/overview
-- https://tanstack.com/db/latest/docs/guides/mutations
-- https://github.com/TanStack/db/tree/main/packages/offline-transactions
-- https://tanstack.com/db/latest/docs/collections/query-collection
+- https://tanstack.com/db/latest/docs/overview.md
+- https://tanstack.com/db/latest/docs/guides/mutations.md
+- https://github.com/TanStack/db/tree/main/packages/offline-transactions.md
+- https://tanstack.com/db/latest/docs/collections/query-collection.md
+- https://tanstack.com/query/latest/docs/framework/react/plugins/persistQueryClient.md

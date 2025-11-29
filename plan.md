@@ -5,35 +5,24 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 
 # BACKLOG
 
-- **Implement cache persistence for offline startup:** Explore using `@tanstack/query-persist-client` to hydrate collections from IndexedDB on page load. This would provide an instant, offline-first UI.
-- **Create `channelsCollection`:** Add a new collection for managing channels, including offline-first actions for create, update, and delete, similar to the existing `tracksCollection`.
-- **Refine offline error handling:** In `syncTracks` and future sync functions, use `NonRetriableError` from `@tanstack/offline-transactions` for server-side validation errors (e.g., HTTP 4xx) to prevent unnecessary retries.
+- **Refine offline error handling:** In `syncTracks` and `syncChannels`, use `NonRetriableError` from `@tanstack/offline-transactions` for server-side validation errors (e.g., HTTP 4xx) to prevent unnecessary retries.
 
-- explore replacing pglite with tanstack db (branch #tanstackdb)
-  - [x] basic read queries (channels, tracks by slug)
-  - [x] mutation handlers for tracks (onInsert, onUpdate, onDelete)
-  - [x] query cache behavior verified (staleTime, dynamic keys)
-  - [x] app_state equivalent (localStorage-based, same API as PGlite version)
-  - [x] sync status UI (online/offline, pending transactions)
-  - [x] channel mutations (create/update/delete)
-  - [x] query cache persistence (IDB via persistQueryClient)
-  - [x] track mutations use metadata for channelId (cleaner API)
-  - [x] real-world offline → online test (insert + update, verified FIFO order and ID consistency)
-  - [x] SDK: createTrack accepts optional client-provided UUID (enables offline-first)
-  - [x] user's channel: kept in appState.channel (simpler, channel editing is rare)
+## TanStack DB experiment (branch #tanstackdb) - COMPLETE
 
-read
-https://github.com/TanStack/db/issues/865
-https://github.com/TanStack/db/issues/82
-https://github.com/TanStack/db/pull/559
-https://github.com/TanStack/db/blob/main/packages/offline-transactions/README.md
-https://tanstack.com/query/latest/docs/framework/react/plugins/persistQueryClient
-https://github.com/TanStack/db/issues/921 (our bug report: loadAndReplayTransactions called twice)
+All core features implemented. See `docs/tanstack/tanstack.md` for architecture details.
+
+References:
+
+- https://github.com/TanStack/db/issues/921 (our bug report: loadAndReplayTransactions called twice)
+- https://tanstack.com/db/latest/docs/overview
+
+## Other alternatives to explore
 
 - explore replacing pglite with automerge v3
 - consider https://turso.tech/blog/introducing-turso-in-the-browser to replace pgsql (tough performance at times)
-- crud channels: create/edit/delete channel functionality
-- crud tracks: edit/delete track functionality (we have add)
+
+## General backlog
+
 - implement password reset flow (supabase auth)
 - share buttons/embeds (evaluate if needed)
 - local file player for mp3/m4a uploads
