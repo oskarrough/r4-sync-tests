@@ -6,7 +6,7 @@ import {r4} from '$lib/r4'
 import {pg} from '$lib/r5/db'
 import {pull as pullFollowers, sync as syncFollowers} from '$lib/r5/followers'
 import {shuffleArray} from '$lib/utils.ts'
-import {tracksCollection, channelsCollection} from '../routes/tanstack/collections'
+import {tracksCollection} from '../routes/tanstack/collections'
 
 const log = logger.ns('api').seal()
 
@@ -66,9 +66,6 @@ export async function playTrack(id, endReason, startReason) {
 	if (userInitiatedReasons.includes(startReason)) {
 		globalThis.__userInitiatedPlay = true
 	}
-
-	// Get current track before we change it
-	const previousTrackId = appState.playlist_track
 
 	// Build playlist from tracks already loaded in collection (same channel/slug)
 	const channelTracks = [...tracksCollection.state.values()]
@@ -159,7 +156,7 @@ export async function toggleQueuePanel() {
 export async function resetDatabase() {
 	Object.assign(appState, defaultAppState)
 	await new Promise((resolve) => setTimeout(resolve, 100))
-	await r5.db.reset()
+	await pg.reset()
 }
 
 export function togglePlayerExpanded() {

@@ -8,6 +8,7 @@ import {appState} from '$lib/app-state.svelte'
 import type {PendingMutation} from '@tanstack/db'
 import {logger} from '$lib/logger'
 import {fetchAllChannels} from '$lib/api/seed'
+import {extractYouTubeId} from '$lib/utils'
 
 const log = logger.ns('tanstack').seal()
 const txLog = logger.ns('tanstack.tx').seal()
@@ -29,10 +30,6 @@ export interface TrackMeta {
 	youtube_data?: object
 	musicbrainz_data?: object
 	discogs_data?: object
-	youtube_updated_at?: string
-	musicbrainz_updated_at?: string
-	discogs_updated_at?: string
-	updated_at: string
 }
 
 export const trackMetaCollection = createCollection<TrackMeta, string>(
@@ -422,27 +419,13 @@ export function deleteChannel(id: string) {
 	return tx.commit()
 }
 
-// Track metadata helpers - direct mutations (no offline sync needed, local-only)
-export function getTrackMeta(ytid: string): TrackMeta | undefined {
-	return trackMetaCollection.get(ytid)
-}
-
-export function getTrackMetaMany(ytids: string[]): TrackMeta[] {
-	return ytids.map((id) => trackMetaCollection.get(id)).filter((m): m is TrackMeta => !!m)
-}
-
-export function upsertTrackMeta(ytid: string, data: Partial<Omit<TrackMeta, 'ytid'>>): TrackMeta {
-	const now = new Date().toISOString()
-	const existing = trackMetaCollection.get(ytid)
-
-	if (existing) {
-		trackMetaCollection.update(ytid, (draft) => {
-			Object.assign(draft, data, {updated_at: now})
-		})
-		return {...existing, ...data, updated_at: now}
-	}
-
-	const newMeta: TrackMeta = {ytid, ...data, updated_at: now}
-	trackMetaCollection.insert(newMeta)
-	return newMeta
+/**
+ * Get track with metadata merged from trackMetaCollection
+ */
+export function getTrackWithMeta<T extends {url?: string}>(track: T): T & Partial<TrackMeta> {
+	const ytid = extractYouTubeId(track.url)
+	if (!ytid) return track
+	const meta = trackMetaCollection.get(ytid)
+	if (!meta) return track
+	return {...track, ...meta}
 }

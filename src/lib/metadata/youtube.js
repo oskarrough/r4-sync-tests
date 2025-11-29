@@ -1,6 +1,6 @@
 import {batcher} from '$lib/batcher'
 import {logger} from '$lib/logger'
-import {upsertTrackMeta, getTrackMeta, getTrackMetaMany} from '../../routes/tanstack/collections'
+import {trackMetaCollection} from '../../routes/tanstack/collections'
 
 /** @typedef {{status: string, value: {id: string, tags: string[], duration: number, title: string, categoryId: string, description: string, publishedAt: string}}} YouTubeVideo */
 
@@ -8,11 +8,7 @@ const log = logger.ns('metadata/youtube').seal()
 
 /** @param {string[]} ytids */
 function getTracksToUpdate(ytids) {
-	// Return ytids that don't have youtube_data yet
-	return ytids.filter((ytid) => {
-		const meta = getTrackMeta(ytid)
-		return !meta?.youtube_data
-	})
+	return ytids.filter((ytid) => !trackMetaCollection.get(ytid)?.youtube_data)
 }
 
 /**
@@ -75,11 +71,15 @@ export async function pull(ytids) {
 
 	// Save to collection
 	for (const video of videos) {
-		upsertTrackMeta(video.id, {
-			duration: video.duration,
-			youtube_data: video,
-			youtube_updated_at: new Date().toISOString()
-		})
+		const existing = trackMetaCollection.get(video.id)
+		if (existing) {
+			trackMetaCollection.update(video.id, (draft) => {
+				draft.duration = video.duration
+				draft.youtube_data = video
+			})
+		} else {
+			trackMetaCollection.insert({ytid: video.id, duration: video.duration, youtube_data: video})
+		}
 	}
 
 	log.info(`processed ${toUpdate.length} tracks`)
@@ -92,5 +92,5 @@ export async function pull(ytids) {
  * @returns {Object[]} Local metadata with youtube_data
  */
 export function local(ytids) {
-	return getTrackMetaMany(ytids).filter((m) => m.youtube_data)
+	return ytids.map((id) => trackMetaCollection.get(id)).filter((m) => m?.youtube_data)
 }

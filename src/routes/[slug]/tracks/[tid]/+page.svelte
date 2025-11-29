@@ -1,7 +1,8 @@
 <script>
 	import {page} from '$app/state'
 	import {useLiveQuery, eq} from '@tanstack/svelte-db'
-	import {tracksCollection, channelsCollection} from '../../../tanstack/collections'
+	import {tracksCollection, channelsCollection, trackMetaCollection} from '../../../tanstack/collections'
+	import {extractYouTubeId} from '$lib/utils'
 	import TrackCard from '$lib/components/track-card.svelte'
 	import TrackMeta from '$lib/components/track-meta.svelte'
 	import TrackMetaDiscogs from '$lib/components/track-meta-discogs.svelte'
@@ -30,7 +31,18 @@
 			.limit(1)
 	)
 
-	const track = $derived(trackQuery.data?.[0])
+	const rawTrack = $derived(trackQuery.data?.[0])
+	const ytid = $derived(rawTrack ? extractYouTubeId(rawTrack.url) : null)
+
+	// Reactive query on trackMetaCollection - re-renders when metadata updates
+	const metaQuery = useLiveQuery((q) =>
+		q
+			.from({meta: trackMetaCollection})
+			.where(({meta}) => eq(meta.ytid, ytid || ''))
+			.limit(1)
+	)
+
+	const track = $derived(rawTrack ? {...rawTrack, ...(metaQuery.data?.[0] || {})} : undefined)
 	const channel = $derived(channelQuery.data?.[0])
 	const activeTab = $derived(page.url.searchParams.get('tab') || 'r5')
 	const isLoading = $derived(trackQuery.isLoading || channelQuery.isLoading)

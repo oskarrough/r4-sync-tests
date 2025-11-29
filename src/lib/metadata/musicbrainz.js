@@ -1,5 +1,5 @@
 import {logger} from '$lib/logger'
-import {upsertTrackMeta, getTrackMetaMany} from '../../routes/tanstack/collections'
+import {trackMetaCollection} from '../../routes/tanstack/collections'
 
 const log = logger.ns('metadata/musicbrainz').seal()
 
@@ -16,10 +16,14 @@ export async function pull(ytid, title) {
 	if (!musicbrainzData) return null
 
 	try {
-		upsertTrackMeta(ytid, {
-			musicbrainz_data: musicbrainzData,
-			musicbrainz_updated_at: new Date().toISOString()
-		})
+		const existing = trackMetaCollection.get(ytid)
+		if (existing) {
+			trackMetaCollection.update(ytid, (draft) => {
+				draft.musicbrainz_data = musicbrainzData
+			})
+		} else {
+			trackMetaCollection.insert({ytid, musicbrainz_data: musicbrainzData})
+		}
 		log.info('updated', musicbrainzData)
 		return musicbrainzData
 	} catch (error) {
@@ -140,5 +144,5 @@ export async function search(title) {
  * @returns {Object[]} Local metadata with musicbrainz_data
  */
 export function local(ytids) {
-	return getTrackMetaMany(ytids).filter((m) => m.musicbrainz_data)
+	return ytids.map((id) => trackMetaCollection.get(id)).filter((m) => m?.musicbrainz_data)
 }
