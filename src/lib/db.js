@@ -1,11 +1,11 @@
 import {live} from '@electric-sql/pglite/live'
 import {PGliteWorker} from '@electric-sql/pglite/worker'
-import {logger} from '../logger.js'
-import migration01sql from '../migrations/01-initial-schema.js'
-import migration02sql from '../migrations/02-more-tables.js'
-import migration03sql from '../migrations/03-functions-and-views.js'
-import migration04sql from '../migrations/04-download-tracking.js'
-import migration05sql from '../migrations/05-channels-filter-state.js'
+import {logger} from './logger.js'
+import migration01sql from './migrations/01-initial-schema.js'
+import migration02sql from './migrations/02-more-tables.js'
+import migration03sql from './migrations/03-functions-and-views.js'
+import migration04sql from './migrations/04-download-tracking.js'
+import migration05sql from './migrations/05-channels-filter-state.js'
 
 const browser = typeof window !== 'undefined'
 const log = logger.ns('db').seal()

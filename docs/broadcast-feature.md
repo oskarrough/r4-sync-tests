@@ -38,6 +38,26 @@ stop:  stopBroadcast → delete remote
 - Track loading happens in `playBroadcastTrack` when joining, not in list view
 - Page component manages reactive state with Svelte 5 `$state()`
 
+## Data access (TanStack)
+
+Channel lookups use TanStack collections:
+
+```js
+import {channelsCollection, tracksCollection} from '$lib/tanstack/collections'
+
+// Lookup channel by id
+const channel = channelsCollection.get(channelId)
+
+// Find channel by slug
+const channel = [...channelsCollection.state.values()].find((ch) => ch.slug === slug)
+
+// Lookup track and get its channel slug
+const track = tracksCollection.get(trackId)
+const slug = track?.slug
+```
+
+When a listener joins a broadcast and the track isn't in local cache, fetch via TanStack query invalidation or direct SDK call.
+
 ## Auto-update Behavior
 
 When a broadcaster (user with `broadcasting_channel_id` set) changes tracks:
@@ -49,3 +69,16 @@ When a broadcaster (user with `broadcasting_channel_id` set) changes tracks:
 5. Listeners receive update and play the new track via `playBroadcastTrack()`
 
 This ensures broadcasts stay in sync automatically without manual intervention.
+
+## Migration notes (PGlite → TanStack)
+
+Previous PGlite patterns and their TanStack equivalents:
+
+| PGlite                                                 | TanStack                                                      |
+| ------------------------------------------------------ | ------------------------------------------------------------- |
+| `pg.sql\`SELECT \* FROM channels WHERE id = ${id}\``   | `channelsCollection.get(id)`                                  |
+| `pg.sql\`SELECT slug FROM channels WHERE id = ${id}\`` | `channelsCollection.get(id)?.slug`                            |
+| `r5.pull(slug)`                                        | `queryClient.invalidateQueries({queryKey: ['tracks', slug]})` |
+| `trackIdToSlug(trackId)`                               | `tracksCollection.get(trackId)?.slug`                         |
+
+The `startBroadcast` function needs channel source check - use `channelsCollection.get(channelId)?.source` instead of SQL query.

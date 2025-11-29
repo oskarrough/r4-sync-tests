@@ -1,6 +1,6 @@
 <script>
 	import {page} from '$app/state'
-	import {r5} from '$lib/r5'
+	import {reset, migrate} from '$lib/db'
 	import {delay} from '$lib/utils.ts'
 	import * as m from '$lib/paraglide/messages'
 
@@ -12,8 +12,8 @@
 	async function resetDatabase() {
 		isResetting = true
 		try {
-			await r5.db.reset()
-			await r5.db.migrate()
+			await reset()
+			await migrate()
 			await delay(1000)
 			console.log('Database recreated and migrated')
 			resetSuccess = true

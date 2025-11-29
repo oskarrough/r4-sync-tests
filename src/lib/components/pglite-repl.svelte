@@ -4,7 +4,7 @@
 	 * Connect our `pg` client to the element.
 	 */
 
-	import {pg} from '$lib/r5/db'
+	import {pg} from '$lib/db'
 	import * as m from '$lib/paraglide/messages'
 
 	let el = $state()

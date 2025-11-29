@@ -2,7 +2,7 @@ import {browser} from '$app/environment'
 import {validateListeningState} from '$lib/broadcast.js'
 import {logger} from '$lib/logger'
 import {r4} from '$lib/r4'
-import {r5} from '$lib/r5'
+import {migrate, getPg} from '$lib/db'
 import {queryClient, initCollections, tracksCollection, channelsCollection} from './tanstack/collections'
 import {fetchAllChannels} from '$lib/api/seed'
 import './tanstack/persistence' // Side-effect: sets up query cache persistence
@@ -24,8 +24,8 @@ async function preload() {
 	log.debug('preloading')
 	try {
 		// await delay(60000)
-		await r5.db.migrate()
-		pg = await r5.db.getPg()
+		await migrate()
+		pg = await getPg()
 		await initCollections()
 
 		// Prefetch all channels so search works immediately
@@ -35,7 +35,7 @@ async function preload() {
 		})
 
 		// @ts-expect-error debugging
-		window.r5 = {r5, r4, pg, appState, queryClient, tracksCollection, channelsCollection}
+		window.r5 = {r4, pg, appState, queryClient, tracksCollection, channelsCollection}
 
 		// Validate listening state in background after UI loads
 		validateListeningState().catch((err) => log.error('validate_listening_state_error', err))

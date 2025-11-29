@@ -3,10 +3,9 @@ import {appState, defaultAppState} from '$lib/app-state.svelte'
 import {leaveBroadcast, upsertRemoteBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
 import {r4} from '$lib/r4'
-import {pg} from '$lib/r5/db'
-import {pull as pullFollowers, sync as syncFollowers} from '$lib/r5/followers'
+import {pg} from '$lib/db'
 import {shuffleArray} from '$lib/utils.ts'
-import {tracksCollection, addPlayHistoryEntry, endPlayHistoryEntry} from '../routes/tanstack/collections'
+import {tracksCollection, addPlayHistoryEntry, endPlayHistoryEntry, pullFollows} from '../routes/tanstack/collections'
 
 const log = logger.ns('api').seal()
 
@@ -35,9 +34,9 @@ export async function checkUser() {
 		appState.channels = channels.map((/** @type {any} */ c) => c.id)
 		appState.channel = channels[0] || undefined
 
-		// Sync followers when user signs in (not on every check)
+		// Pull follows when user signs in (not on every check)
 		if (wasSignedOut && appState.channels.length) {
-			syncFollowers(appState.channels[0]).catch((err) => log.error('sync_followers_on_signin_error', err))
+			pullFollows(appState.channels[0]).catch((err) => log.error('pull_follows_on_signin_error', err))
 		}
 
 		return user
@@ -194,174 +193,4 @@ export function togglePlayPause() {
 			ytPlayer.pause()
 		}
 	}
-}
-
-/**
- * @param {string} followerId - ID of the user's channel
- * @param {string} channelId - ID of the channel to follow
- */
-export async function followChannel(followerId, channelId) {
-	await pg.sql`
-		INSERT INTO followers (follower_id, channel_id, created_at, synced_at)
-		VALUES (${followerId}, ${channelId}, CURRENT_TIMESTAMP, NULL)
-		ON CONFLICT (follower_id, channel_id) DO NOTHING
-	`
-
-	// If authenticated and not a v1 channel, sync to R4 immediately
-	if (appState.channels?.length && followerId !== 'local-user') {
-		const channel = await pg.sql`SELECT source FROM channels WHERE id = ${channelId}`.then((r) => r.rows[0])
-		if (channel?.source !== 'v1') {
-			try {
-				await r4.channels.followChannel(followerId, channelId)
-				await pg.sql`
-					UPDATE followers
-					SET synced_at = CURRENT_TIMESTAMP
-					WHERE follower_id = ${followerId} AND channel_id = ${channelId}
-				`
-				log.log('follow_synced', {followerId, channelId})
-			} catch (err) {
-				log.error('follow_sync_error', {followerId, channelId, err})
-			}
-		}
-	}
-}
-
-/**
- * @param {string} followerId - ID of the user's channel
- * @param {string} channelId - ID of the channel to unfollow
- */
-export async function unfollowChannel(followerId, channelId) {
-	// If authenticated and not a v1 channel, unfollow from R4 first
-	if (appState.channels?.length && followerId !== 'local-user') {
-		const channel = await pg.sql`SELECT source FROM channels WHERE id = ${channelId}`.then((r) => r.rows[0])
-		if (channel?.source !== 'v1') {
-			try {
-				await r4.channels.unfollowChannel(followerId, channelId)
-				log.log('unfollow_synced', {followerId, channelId})
-			} catch (err) {
-				log.error('unfollow_sync_error', {followerId, channelId, err})
-			}
-		}
-	}
-
-	await pg.sql`
-		DELETE FROM followers
-		WHERE follower_id = ${followerId} AND channel_id = ${channelId}
-	`
-}
-
-/**
- * Get followers for a user, auto-pulling from remote if needed
- * @param {string} followerId - ID of the user's channel
- * @returns {Promise<import('$lib/types').Channel[]>}
- */
-export async function getFollowers(followerId) {
-	log.log('getting_followers', followerId)
-	const {rows} = await pg.sql`
-		SELECT c.*
-		FROM followers f
-		JOIN channels c ON f.channel_id = c.id
-		WHERE f.follower_id = ${followerId}
-		ORDER BY f.created_at DESC
-	`
-	if (rows.length === 0 && followerId !== 'local-user') {
-		log.log('pulling_followers', {followerId, reason: 'no_local_followers'})
-		await pullFollowers(followerId)
-		const {rows: newRows} = await pg.sql`
-			SELECT c.*
-			FROM followers f
-			JOIN channels c ON f.channel_id = c.id
-			WHERE f.follower_id = ${followerId}
-			ORDER BY f.created_at DESC
-		`
-		return newRows
-	}
-	return rows
-}
-
-/**
- * @param {string} followerId - ID of the user's channel
- * @param {string} channelId - ID of the channel to check
- * @returns {Promise<boolean>}
- */
-export async function isFollowing(followerId, channelId) {
-	const {rows} = await pg.sql`
-		SELECT 1 FROM followers
-		WHERE follower_id = ${followerId} AND channel_id = ${channelId}
-		LIMIT 1
-	`
-	return rows.length > 0
-}
-
-/**
- * Updates a local track, then remote
- * @param {string} trackId
- * @param {object} updates
- * @param {string} [updates.title]
- * @param {string} [updates.description]
- * @param {string} [updates.url]
- */
-export async function updateTrack(trackId, updates) {
-	log.log('update_track', {trackId, updates})
-
-	// Update locally first
-	await pg.sql`
-		UPDATE tracks
-		SET
-			title = COALESCE(${updates.title}, title),
-			description = COALESCE(${updates.description}, description),
-			url = COALESCE(${updates.url}, url)
-		WHERE id = ${trackId}
-	`
-
-	try {
-		await r4.tracks.updateTrack(trackId, updates)
-		log.log('track_updated_remotely', {trackId})
-	} catch (error) {
-		log.error('remote_update_failed', {trackId, error})
-	}
-
-	// Dispatch event for UI updates
-	document.dispatchEvent(
-		new CustomEvent('r5:trackUpdated', {
-			detail: {trackId}
-		})
-	)
-}
-
-/**
- * @param {string} trackId
- */
-export async function deleteTrack(trackId) {
-	log.log('delete_track', {trackId})
-
-	// Verify ownership before deleting
-	const track = (await pg.sql`SELECT channel_id FROM tracks WHERE id = ${trackId}`).rows[0]
-	if (!track) {
-		log.warn('track_not_found', {trackId})
-		return
-	}
-
-	const isOwner = appState.channels?.includes(track.channel_id)
-	if (appState.channels?.length && !isOwner) {
-		log.error('delete_unauthorized', {trackId, channelId: track.channel_id})
-		throw new Error('Cannot delete track from channel you do not own')
-	}
-
-	// Delete locally
-	await pg.sql`DELETE FROM tracks WHERE id = ${trackId}`
-
-	try {
-		await r4.tracks.deleteTrack(trackId)
-		log.log('track_deleted_remotely', {trackId})
-	} catch (error) {
-		log.error('remote_delete_failed', {trackId, error})
-	}
-
-	// Dispatch event for UI updates
-	document.dispatchEvent(
-		new CustomEvent('r5:trackDeleted', {
-			detail: {trackId}
-		})
-	)
 }

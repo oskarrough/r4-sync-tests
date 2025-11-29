@@ -1,31 +1,25 @@
 <script>
-	import {followChannel, isFollowing as isFollowingChannel, unfollowChannel} from '$lib/api'
-	import {appState} from '$lib/app-state.svelte'
+	import {followsCollection, followChannel, unfollowChannel} from '../../routes/tanstack/collections'
+	import {useLiveQuery, eq} from '@tanstack/svelte-db'
 	import Icon from '$lib/components/icon.svelte'
 	import * as m from '$lib/paraglide/messages'
 
 	/** @type {{channel: import('$lib/types').Channel, label?: string, class?: string}} */
 	let {channel, label, ...rest} = $props()
 
-	let followerId = $derived(appState.channels?.[0] || 'local-user')
-	let isFollowing = $state(false)
+	const followQuery = useLiveQuery((q) =>
+		q.from({follows: followsCollection}).where(({follows}) => eq(follows.channelId, channel.id))
+	)
+	let isFollowing = $derived((followQuery.data?.length || 0) > 0)
 
-	$effect(() => {
-		isFollowingChannel(followerId, channel.id).then((x) => {
-			isFollowing = x
-		})
-	})
-
-	async function toggleFollow(event) {
+	function toggleFollow(event) {
 		event.stopPropagation()
 		event.preventDefault()
 
 		if (isFollowing) {
-			await unfollowChannel(followerId, channel.id)
-			isFollowing = false
+			unfollowChannel(channel.id)
 		} else {
-			await followChannel(followerId, channel.id)
-			isFollowing = true
+			followChannel({id: channel.id, source: channel.source})
 		}
 	}
 </script>

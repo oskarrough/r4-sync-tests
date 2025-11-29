@@ -3,11 +3,23 @@
 	import ChannelCard from '$lib/components/channel-card.svelte'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
 	import * as m from '$lib/paraglide/messages'
+	import {followsCollection, channelsCollection} from '../tanstack/collections'
+	import {useLiveQuery} from '@tanstack/svelte-db'
 
-	/** @type {import('./$types').PageData} */
-	let {data} = $props()
+	const followsQuery = useLiveQuery((q) =>
+		q.from({follows: followsCollection}).orderBy(({follows}) => follows.createdAt, 'desc')
+	)
+	const channelsQuery = useLiveQuery((q) => q.from({channels: channelsCollection}))
 
-	let followings = $derived(data.followings)
+	// Join follows with channels to get full channel data
+	let followings = $derived(
+		(followsQuery.data || [])
+			.map((follow) => {
+				const channel = (channelsQuery.data || []).find((c) => c.id === follow.channelId)
+				return channel ? {...channel, source: follow.source} : null
+			})
+			.filter(Boolean)
+	)
 </script>
 
 <svelte:head>

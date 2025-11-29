@@ -59,7 +59,9 @@
 				<a href={`/${play.slug}/tracks/${play.track_id}`}>{play.title}</a>
 			</span>
 		</header>
-		<div class="reasons">{play.reason_start || ''} → {play.reason_end || ''}</div>
+		{#if play.reason_start || play.reason_end}
+			<div class="reasons">{play.reason_start || ''} → {play.reason_end || ''}</div>
+		{/if}
 		<div class="meta">
 			<time>
 				{formatDate(new Date(play.started_at))}

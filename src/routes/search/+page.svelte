@@ -6,7 +6,7 @@
 	import SearchStatus from '$lib/components/search-status.svelte'
 	import TrackCard from '$lib/components/track-card.svelte'
 	import {trap} from '$lib/focus'
-	import {r5} from '$lib/r5'
+	import {searchAll} from '$lib/search'
 	import {channelsCollection} from '../tanstack/collections'
 	import * as m from '$lib/paraglide/messages'
 
@@ -44,7 +44,7 @@
 		if (searchQuery.trim().length < 2) return clear()
 
 		isLoading = true
-		const results = await r5.search.all(searchQuery)
+		const results = await searchAll(searchQuery)
 		channels = results.channels
 		tracks = results.tracks
 		isLoading = false

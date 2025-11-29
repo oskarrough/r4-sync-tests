@@ -1,20 +1,18 @@
 <script>
-	import {pg} from '$lib/r5/db'
+	import {tracksCollection} from '../../routes/tanstack/collections'
+	import {extractYouTubeId} from '$lib/utils'
 	import * as m from '$lib/paraglide/messages'
 
 	let {track} = $props()
-	let relatedTracks = $state([])
 
-	// Find other tracks with same ytid
-	$effect(async () => {
-		if (!track?.url) return
-		const result = await pg.sql`
-			SELECT * FROM tracks_with_meta
-			WHERE ytid(url) = ytid(${track.url})
-			AND id != ${track.id}
-			ORDER BY created_at DESC
-		`
-		relatedTracks = result.rows
+	// Find other tracks with same YouTube video ID
+	const relatedTracks = $derived.by(() => {
+		if (!track?.url) return []
+		const ytid = extractYouTubeId(track.url)
+		if (!ytid) return []
+		return [...tracksCollection.state.values()]
+			.filter((t) => t.id !== track.id && extractYouTubeId(t.url) === ytid)
+			.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
 	})
 </script>
 

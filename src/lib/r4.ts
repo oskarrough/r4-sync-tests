@@ -1,5 +1,5 @@
 import {sdk} from '@radio4000/sdk'
-import {debugLimit} from '$lib/r5/db'
+import {debugLimit} from '$lib/db'
 
 /**
  * Radio4000 API wrapper that throws on errors instead of returning {data, error}
@@ -38,6 +38,11 @@ export const r4 = {
 		},
 		followChannel: async (...args: Parameters<typeof sdk.channels.followChannel>) => {
 			const {data, error} = await sdk.channels.followChannel(...args)
+			if (error) throw error
+			return data
+		},
+		unfollowChannel: async (...args: Parameters<typeof sdk.channels.unfollowChannel>) => {
+			const {data, error} = await sdk.channels.unfollowChannel(...args)
 			if (error) throw error
 			return data
 		}
