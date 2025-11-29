@@ -1,7 +1,7 @@
 import {createCollection} from '@tanstack/svelte-db'
 import {queryCollectionOptions, parseLoadSubsetOptions} from '@tanstack/query-db-collection'
 import {QueryClient} from '@tanstack/svelte-query'
-import {startOfflineExecutor, IndexedDBAdapter} from '@tanstack/offline-transactions'
+import {startOfflineExecutor, IndexedDBAdapter, NonRetriableError} from '@tanstack/offline-transactions'
 import {sdk} from '@radio4000/sdk'
 import type {PendingMutation} from '@tanstack/db'
 import {logger} from '$lib/logger'
@@ -55,6 +55,14 @@ export const tracksCollection = createCollection(
 // loadAndReplayTransactions is called twice on init, causing duplicate mutations
 // Only track SUCCESSFUL completions to allow retries after failures
 const completedIdempotencyKeys = new Set<string>()
+
+// Ideally SDK errors would have consistent shape. They don't.
+function getErrorMessage(err: unknown): string {
+	if (err instanceof Error) return err.message
+	if (typeof err === 'string') return err
+	if (err && typeof err === 'object' && 'message' in err) return String(err.message)
+	return 'Unknown error'
+}
 
 // API sync function - handles all track mutations
 type MutationHandler = (mutation: PendingMutation, metadata: Record<string, unknown>) => Promise<void>
