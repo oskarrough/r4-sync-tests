@@ -302,7 +302,7 @@ export async function initCollections() {
 // Track actions - standalone functions, pass channel each time
 type Channel = {id: string; slug: string}
 
-export function addTrack(channel: Channel, input: {url: string; title: string}) {
+export function addTrack(channel: Channel, input: {url: string; title: string; description?: string}) {
 	const tx = offlineExecutor.createOfflineTransaction({
 		mutationFnName: 'syncTracks',
 		metadata: {channelId: channel.id, slug: channel.slug},
@@ -313,6 +313,7 @@ export function addTrack(channel: Channel, input: {url: string; title: string}) 
 			id: crypto.randomUUID(),
 			url: input.url,
 			title: input.title,
+			description: input.description || '',
 			slug: channel.slug,
 			created_at: new Date().toISOString(),
 			updated_at: new Date().toISOString()

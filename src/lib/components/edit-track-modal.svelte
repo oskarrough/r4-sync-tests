@@ -1,65 +1,29 @@
 <script>
-	import {updateTrack} from '$lib/api'
+	import {appState} from '$lib/app-state.svelte'
 	import Modal from '$lib/components/modal.svelte'
-	import {logger} from '$lib/logger'
+	import TrackForm from '$lib/components/track-form.svelte'
 	import * as m from '$lib/paraglide/messages'
-
-	const log = logger.ns('edit_track_modal').seal()
 
 	let showModal = $state(false)
 	let currentTrack = $state(null)
+	let currentChannel = $state(null)
 
-	let editData = $state({
-		title: '',
-		description: '',
-		url: ''
-	})
-
-	export function openWithTrack(track) {
+	/** @param {object} track
+	 *  @param {{id: string, slug: string}} [channel] - optional, defaults to appState.channel */
+	export function openWithTrack(track, channel) {
 		currentTrack = track
-		editData.title = track.title || ''
-		editData.description = track.description || ''
-		editData.url = track.url || ''
+		currentChannel = channel || appState.channel
 		showModal = true
 	}
 
-	$effect(() => {
-		if (showModal && currentTrack) {
-			// Wait for component to render, then populate fields
-			requestAnimationFrame(() => {
-				const updateComponent = document.querySelector('r4-track-update')
-				if (updateComponent) {
-					updateComponent.setAttribute('id', currentTrack.id)
-					updateComponent.setAttribute('track_id', currentTrack.id)
-					updateComponent.setAttribute('title', editData.title)
-					updateComponent.setAttribute('description', editData.description)
-					updateComponent.setAttribute('url', editData.url)
-				}
-			})
-		}
-	})
-
-	async function handleUpdate(event) {
-		log.info('handleUpdate called', {event_detail: event.detail})
-
-		if (!currentTrack?.id) {
-			log.warn('no currentTrack available')
-			return
-		}
-
-		// Update both local and remote via API
-		await updateTrack(currentTrack.id, {
-			title: editData.title,
-			description: editData.description,
-			url: editData.url
-		})
-
-		// Update the track object for immediate UI feedback
-		currentTrack.title = editData.title
-		currentTrack.description = editData.description
-		currentTrack.url = editData.url
-
+	function handleSubmit() {
 		showModal = false
+
+		document.dispatchEvent(
+			new CustomEvent('r5:trackUpdated', {
+				detail: {trackId: currentTrack?.id}
+			})
+		)
 	}
 </script>
 
@@ -69,25 +33,11 @@
 	{/snippet}
 
 	{#key currentTrack?.id}
-		<r4-track-update
-			id={currentTrack?.id}
-			track_id={currentTrack?.id}
-			title={editData.title}
-			description={editData.description}
-			url={editData.url}
-			onsubmit={handleUpdate}
-		></r4-track-update>
+		<TrackForm
+			channel={currentChannel}
+			track={currentTrack}
+			onsubmit={handleSubmit}
+			oncancel={() => (showModal = false)}
+		/>
 	{/key}
-	<menu class="actions">
-		<button type="button" onclick={() => (showModal = false)}>{m.common_cancel()}</button>
-	</menu>
 </Modal>
-
-<style>
-	.actions {
-		display: flex;
-		flex-direction: row;
-		gap: 0.5rem;
-		justify-content: flex-end;
-	}
-</style>

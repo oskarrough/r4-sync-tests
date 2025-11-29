@@ -3,6 +3,7 @@
 	import {appState} from '$lib/app-state.svelte'
 	import Icon from '$lib/components/icon.svelte'
 	import Modal from '$lib/components/modal.svelte'
+	import TrackForm from '$lib/components/track-form.svelte'
 	import {tooltip} from './tooltip-attachment'
 	import * as m from '$lib/paraglide/messages'
 
@@ -23,9 +24,9 @@
 		}
 	}
 
-	const channelId = $derived(appState.channels?.length > 0 ? appState.channels[0] : undefined)
+	const channel = $derived(appState.channel)
 	const isSignedIn = $derived(!!appState.user)
-	const canAddTrack = $derived(isSignedIn && channelId)
+	const canAddTrack = $derived(isSignedIn && channel)
 
 	/** @param {KeyboardEvent} event */
 	function handleKeyDown(event) {
@@ -52,20 +53,16 @@
 		}
 	}
 
-	function submit(event) {
-		const track = event.detail.data
+	function handleSubmit(track) {
 		recentTracks.unshift(track)
 		if (recentTracks.length > 3) recentTracks.pop()
-		console.log({track, recentTracks})
 
-		// Clear prefilled URL and close modal
 		prefilledUrl = ''
 		showModal = false
 
-		// Dispatch event for parent to handle track insertion
 		document.dispatchEvent(
 			new CustomEvent('r5:trackAdded', {
-				detail: {track, channelId}
+				detail: {track, channelId: channel?.id}
 			})
 		)
 	}
@@ -82,7 +79,7 @@
 		<h2>{m.track_add_title()}</h2>
 	{/snippet}
 
-	<r4-track-create channel_id={channelId} url={prefilledUrl} onsubmit={submit}></r4-track-create>
+	<TrackForm {channel} initialUrl={prefilledUrl} onsubmit={handleSubmit} oncancel={() => (showModal = false)} />
 
 	{#if recentTracks.length > 0}
 		<div class="recent-tracks">

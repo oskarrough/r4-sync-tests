@@ -15,7 +15,10 @@
 	let batchProgress = $state('')
 
 	const filteredChannels = $derived.by(() => {
-		const highConfidenceSpam = allChannels.filter((ch) => ch.spamAnalysis.confidence > 0.3 && (ch.track_count ?? 0) < 5)
+		// High confidence = algorithm says spam AND zero tracks (real channels have tracks)
+		const highConfidenceSpam = allChannels.filter(
+			(ch) => ch.spamAnalysis.confidence > 0.3 && (ch.track_count ?? 0) === 0
+		)
 
 		const needsReview = allChannels.filter((ch) => !highConfidenceSpam.includes(ch))
 
