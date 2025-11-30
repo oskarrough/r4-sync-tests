@@ -22,7 +22,7 @@ export const tracksCollection = createCollection(
 		syncMode: 'on-demand',
 		queryClient,
 		getKey: (item) => item.id,
-		staleTime: 60 * 60 * 1000, // 1h - incremental sync fetches only new tracks
+		staleTime: 24 * 60 * 60 * 1000, // 24h - freshness check triggers invalidation when remote has newer
 		queryFn: async (ctx) => {
 			const options = parseLoadSubsetOptions(ctx.meta?.loadSubsetOptions)
 			const slug = options.filters.find((f) => f.field[0] === 'slug' && f.operator === 'eq')?.value
@@ -212,4 +212,35 @@ export function deleteTrack(channel: Channel, id: string) {
 		}
 	})
 	return tx.commit()
+}
+
+/** Check if remote has newer tracks than local. Invalidates cache if so. */
+export async function checkTracksFreshness(slug: string): Promise<boolean> {
+	const localTracks = [...tracksCollection.state.values()].filter((t) => t.slug === slug)
+	const localLatest = localTracks.reduce(
+		(max, t) => (!max || t.created_at > max ? t.created_at : max),
+		null as string | null
+	)
+
+	const {data, error} = await sdk.supabase
+		.from('channel_tracks')
+		.select('created_at')
+		.eq('slug', slug)
+		.order('created_at', {ascending: false})
+		.limit(1)
+
+	if (error) {
+		log.warn('freshness', {slug, error})
+		return false
+	}
+
+	const remoteLatest = data?.[0]?.created_at
+	const outdated = remoteLatest && (!localLatest || remoteLatest > localLatest)
+
+	if (outdated) {
+		log.info('freshness outdated', {slug, local: localLatest, remote: remoteLatest})
+		await queryClient.invalidateQueries({queryKey: ['tracks', slug]})
+	}
+
+	return !!outdated
 }

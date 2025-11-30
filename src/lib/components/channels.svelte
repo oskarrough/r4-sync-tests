@@ -13,7 +13,7 @@
 
 	const {channels = [], slug: initialSlug, display: initialDisplay, longitude, latitude, zoom} = $props()
 
-	let limit = $state(30)
+	let limit = $state(18)
 	let perPage = $state(100)
 	let filter = $derived(appState.channels_filter || '20+')
 	let shuffled = $derived(appState.channels_shuffled ?? true)
@@ -26,10 +26,8 @@
 		async () => (await pg.sql`SELECT * FROM channels ORDER BY created_at DESC`).rows
 	)*/
 
-	const realChannels = $derived.by(() => processChannels())
-
-	function filterChannels() {
-		return channels.filter((c) => {
+	const filteredChannels = $derived(
+		channels.filter((c) => {
 			if (filter === 'all') return true
 			if (filter === 'v1') return c.source === 'v1'
 			if (filter === 'v2') return c.source !== 'v1'
@@ -39,25 +37,24 @@
 			if (filter === '1000+' && (!c.track_count || c.track_count < 1000)) return false
 			return true
 		})
-	}
+	)
 
-	function processChannels() {
-		const filtered = filterChannels()
-		const processed = shuffled ? shuffleArray([...filtered]) : filtered
-		return {
-			filtered,
-			displayed: processed.slice(0, limit),
-			mapMarkers: channels
-				.filter((c) => c.longitude && c.latitude)
-				.map(({longitude, latitude, slug, name}) => ({
-					longitude,
-					latitude,
-					title: name,
-					href: slug,
-					isActive: slug === initialSlug
-				}))
-		}
-	}
+	// Stable shuffled array - only reshuffles when filter/shuffle settings change, not on limit change
+	const orderedChannels = $derived(shuffled ? shuffleArray([...filteredChannels]) : filteredChannels)
+
+	const realChannels = $derived({
+		filtered: filteredChannels,
+		displayed: orderedChannels.slice(0, limit),
+		mapMarkers: channels
+			.filter((c) => c.longitude && c.latitude)
+			.map(({longitude, latitude, slug, name}) => ({
+				longitude,
+				latitude,
+				title: name,
+				href: slug,
+				isActive: slug === initialSlug
+			}))
+	})
 
 	function setDisplay(value = 'grid') {
 		display = value

@@ -1,7 +1,7 @@
 <script>
 	import {useLiveQuery, eq} from '@tanstack/svelte-db'
 	import {page} from '$app/state'
-	import {channelsCollection, tracksCollection} from '../tanstack/collections'
+	import {channelsCollection, tracksCollection, checkTracksFreshness} from '../tanstack/collections'
 	import ButtonFollow from '$lib/components/button-follow.svelte'
 	import ButtonPlay from '$lib/components/button-play.svelte'
 	import ChannelHero from '$lib/components/channel-hero.svelte'
@@ -13,6 +13,11 @@
 	import * as m from '$lib/paraglide/messages'
 
 	let slug = $derived(page.params.slug)
+
+	// Check if remote has newer tracks on page load
+	$effect(() => {
+		if (slug) checkTracksFreshness(slug)
+	})
 
 	const channelQuery = useLiveQuery((q) =>
 		q

@@ -1,5 +1,5 @@
 import {createCollection} from '@tanstack/svelte-db'
-import {queryCollectionOptions} from '@tanstack/query-db-collection'
+import {queryCollectionOptions, parseLoadSubsetOptions} from '@tanstack/query-db-collection'
 import {NonRetriableError} from '@tanstack/offline-transactions'
 import {sdk} from '@radio4000/sdk'
 import {appState} from '$lib/app-state.svelte'
@@ -11,16 +11,29 @@ import {getOfflineExecutor} from './offline-executor'
 
 export type Channel = {id: string; slug: string; source?: 'v1' | 'v2'; firebase_id?: string}
 
-// Channels collection - fetch all, filter locally
+// Channels collection - on-demand: queries dictate what gets fetched
 export const channelsCollection = createCollection(
 	queryCollectionOptions({
-		queryKey: () => ['channels'],
+		queryKey: (opts) => {
+			const options = parseLoadSubsetOptions(opts)
+			const slug = options.filters.find((f) => f.field[0] === 'slug' && f.operator === 'eq')?.value
+			return slug ? ['channels', slug] : ['channels']
+		},
 		syncMode: 'on-demand',
 		queryClient,
 		getKey: (item) => item.id,
 		staleTime: 24 * 60 * 60 * 1000, // 24h - channels rarely change
-		queryFn: async () => {
-			log.info('channels queryFn (fetch all)')
+		queryFn: async (ctx) => {
+			const options = parseLoadSubsetOptions(ctx.meta?.loadSubsetOptions)
+			const slug = options.filters.find((f) => f.field[0] === 'slug' && f.operator === 'eq')?.value
+
+			if (slug) {
+				log.info('channels queryFn (single)', {slug})
+				const {data} = await sdk.channels.readChannel(slug as string)
+				return data ? [data] : []
+			}
+
+			log.info('channels queryFn (all)')
 			return fetchAllChannels()
 		}
 	})

@@ -1,13 +1,11 @@
 <script>
 	import {page} from '$app/state'
 	import Icon from '$lib/components/icon.svelte'
-	import {extractHashtags} from '$lib/utils.ts'
 	import * as m from '$lib/paraglide/messages'
 	import {getLocale} from '$lib/paraglide/runtime'
 	import {
 		playHistoryCollection,
 		channelsCollection,
-		tracksCollection,
 		trackMetaCollection,
 		followsCollection,
 		queryClient
@@ -17,7 +15,6 @@
 	// Derive data reactively from collections
 	const plays = $derived([...playHistoryCollection.state.values()])
 	const channels = $derived([...channelsCollection.state.values()])
-	const tracks = $derived([...tracksCollection.state.values()])
 	const trackMeta = $derived([...trackMetaCollection.state.values()])
 	const follows = $derived([...followsCollection.state.values()])
 
@@ -59,21 +56,6 @@
 		}, {})
 	)
 
-	// Enrich plays with channel info
-	const enrichedPlays = $derived(
-		plays.map((p) => {
-			const channel = channelBySlug[p.slug]
-			const track = tracks.find((t) => t.id === p.track_id)
-			return {
-				...p,
-				channel_id: channel?.id,
-				channel_name: channel?.name,
-				description: track?.description,
-				duration: track?.duration
-			}
-		})
-	)
-
 	// Basic stats
 	const totalPlays = $derived(plays.length)
 	const totalListeningTime = $derived(Math.round(plays.reduce((sum, p) => sum + (p.ms_played || 0), 0) / 1000 / 60))
@@ -83,60 +65,8 @@
 		plays.length > 0 ? Math.round((plays.filter((p) => p.skipped).length / plays.length) * 100) : 0
 	)
 
-	// Top channels by plays
-	const topChannels = $derived.by(() => {
-		const channelPlays = {}
-		enrichedPlays.forEach((play) => {
-			if (!play.slug) return
-			if (!channelPlays[play.slug]) {
-				channelPlays[play.slug] = {
-					id: play.channel_id,
-					name: play.channel_name,
-					slug: play.slug,
-					plays: 0,
-					total_listening_ms: 0,
-					completions: []
-				}
-			}
-			const ch = channelPlays[play.slug]
-			ch.plays++
-			ch.total_listening_ms += play.ms_played || 0
-			if (play.duration > 0) {
-				ch.completions.push((play.ms_played || 0) / play.duration)
-			}
-		})
-
-		return Object.values(channelPlays)
-			.sort((a, b) => b.plays - a.plays)
-			.slice(0, 8)
-			.map((ch) => ({
-				...ch,
-				completion_rate:
-					ch.completions.length > 0
-						? Math.round((ch.completions.reduce((a, b) => a + b, 0) / ch.completions.length) * 100)
-						: 0
-			}))
-	})
-
-	// Top tags from play history descriptions
-	const topTags = $derived.by(() => {
-		const allTags = enrichedPlays
-			.filter((p) => p.description)
-			.flatMap((p) => extractHashtags(p.description))
-			.reduce((acc, tag) => {
-				acc[tag] = (acc[tag] || 0) + 1
-				return acc
-			}, {})
-
-		return Object.entries(allTags)
-			.sort(([, a], [, b]) => b - a)
-			.slice(0, 20)
-			.map(([tag, count]) => ({tag, count}))
-	})
-
 	// Collection stats
 	const totalChannelsInDb = $derived(channels.length)
-	const totalTracksInDb = $derived(tracks.length)
 	const tracksWithMeta = $derived(trackMeta.length)
 
 	// Channel timeline (by creation month)
