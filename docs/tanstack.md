@@ -193,12 +193,12 @@ The name `syncTracks` is arbitrary - we chose it. TanStack just needs a string k
 
 ## Caching
 
-| Setting | Where | Value | Purpose |
-|---------|-------|-------|---------|
-| `staleTime` | Collection | 24h/1h | Background refetch threshold |
-| `staleTime` | `prefetchQuery()` | 24h | Must set explicitly (default 0!) |
-| `gcTime` | QueryClient | 24h | In-memory lifetime |
-| `maxAge` | persistence | 24h | IDB lifetime (must be >= staleTime)
+| Setting     | Where             | Value  | Purpose                             |
+| ----------- | ----------------- | ------ | ----------------------------------- |
+| `staleTime` | Collection        | 24h/1h | Background refetch threshold        |
+| `staleTime` | `prefetchQuery()` | 24h    | Must set explicitly (default 0!)    |
+| `gcTime`    | QueryClient       | 24h    | In-memory lifetime                  |
+| `maxAge`    | persistence       | 24h    | IDB lifetime (must be >= staleTime) |
 
 ## Debugging
 

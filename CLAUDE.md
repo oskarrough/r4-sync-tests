@@ -41,7 +41,7 @@ tracks       -- music tracks (id, channel_id, url, title, description, ...)
 
 Database is state. Most application state (UI state, user preferences, everything) lives in the local `appState` module. Limited component state, avoid stores. App state is a local collection and stored in local storage.
 
-Read more in `docs/local-database.md` 
+Read more in `docs/local-database.md`
 
 ## Code Style
 
@@ -77,7 +77,7 @@ $effect(() => {
 
 Use $derived liberally. $derived can be mutated!
 `await` can be used inside components' `<script>`, `$derived()`and markup.
-import `page` from `$app/state` (and not`$app/stores`)
+import `page`from`$app/state` (and not`$app/stores`)
 Use `bind:this` to get a reference to the element. You can even export methods on it.
 Snippets can be used for reusable "mini" components, when a file is too much https://svelte.dev/docs/svelte/snippet.
 Attachments can be used for reusable behaviours/effects on elements https://svelte.dev/docs/svelte/@attach.

@@ -16,30 +16,9 @@ export {
 export {spamDecisionsCollection, type SpamDecision} from './spam-decisions'
 
 // Synced collections (with offline support)
-export {
-	followsCollection,
-	followsAPI,
-	pullFollows,
-	followChannel,
-	unfollowChannel,
-	type Follow
-} from './follows'
-export {
-	channelsCollection,
-	channelsAPI,
-	createChannel,
-	updateChannel,
-	deleteChannel,
-	type Channel
-} from './channels'
-export {
-	tracksCollection,
-	tracksAPI,
-	getTrackWithMeta,
-	addTrack,
-	updateTrack,
-	deleteTrack
-} from './tracks'
+export {followsCollection, followsAPI, pullFollows, followChannel, unfollowChannel, type Follow} from './follows'
+export {channelsCollection, channelsAPI, createChannel, updateChannel, deleteChannel, type Channel} from './channels'
+export {tracksCollection, tracksAPI, getTrackWithMeta, addTrack, updateTrack, deleteTrack} from './tracks'
 
 // Offline executor
 export {getOfflineExecutor} from './offline-executor'

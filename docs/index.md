@@ -4,10 +4,11 @@ r5 is a local-first music player prototype.
 - queries and caches it in your browser storage
 - is built as a SvelteKit client-only web app
 
-+------------------+     +-------------------+     +------------------+
-|   Local PGlite   | <-> |      r5 client       | <-> |  Remote Sources  |
-|  (primary data)  |     |  (unified layer)  |     |   (r4/v1 sync)   |
-+------------------+     +-------------------+     +------------------+
++------------------+ +-------------------+ +------------------+
+| Local PGlite | <-> | r5 client | <-> | Remote Sources |
+| (primary data) | | (unified layer) | | (r4/v1 sync) |
++------------------+ +-------------------+ +------------------+
+
 ```
 
 We query from the local collections. Tanstack fires requests as needed to read and write data. We have optimistic updates, offline transactions and caching.
@@ -25,3 +26,4 @@ We query from the local collections. Tanstack fires requests as needed to read a
 - [keyboard](keyboard.md) - keyboard shortcuts
 - [localization](localization.md) - internationalization and multi-language support
 - [styles](styles.md) - css architecture and design system
+```
