@@ -104,3 +104,5 @@ You can use the `r4` cli (separate project) to inspect data, pipe with jq etc. E
 ## @radio4000/components
 
 These are the custom elements used on radio4000.com and many also in this app.
+- When you fetch tanstack documentation, suffix the url with .md to get raw markdown
+- LIMIT and OFFSET queries with tanstack require an ORDER BY clause to ensure deterministic results

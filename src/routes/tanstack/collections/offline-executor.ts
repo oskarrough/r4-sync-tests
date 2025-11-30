@@ -18,7 +18,7 @@ export function getOfflineExecutor() {
 				syncChannels: channelsAPI.syncChannels,
 				syncFollows: followsAPI.syncFollows
 			},
-			onLeadershipChange: (isLeader) => offlineLog.info('leader', {isLeader}),
+			onLeadershipChange: (isLeader) => offlineLog.debug('leader', {isLeader}),
 			onStorageFailure: (diagnostic) => offlineLog.warn('storage failed', diagnostic)
 		})
 	}

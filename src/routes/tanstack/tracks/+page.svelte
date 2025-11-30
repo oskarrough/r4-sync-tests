@@ -1,13 +1,24 @@
 <script lang="ts">
 	import Menu from '../menu.svelte'
 	import {useLiveQuery, eq} from '@tanstack/svelte-db'
-	import {tracksCollection, addTrack, updateTrack, deleteTrack} from '../collections'
+	import {tracksCollection, addTrack, updateTrack, deleteTrack, queryClient} from '../collections'
 	import SyncStatus from '../sync-status.svelte'
 	import {appState} from '$lib/app-state.svelte'
 
 	let error = $state('')
 
 	const userChannel = $derived(appState.channel)
+
+	// Debug: compact state
+	const collectionSize = $derived(tracksCollection.state.size)
+	const slugsInMemory = $derived([...new Set([...tracksCollection.state.values()].map((t) => t.slug))])
+	const cacheLines = $derived(
+		queryClient
+			.getQueryCache()
+			.getAll()
+			.filter((q) => q.queryKey[0] === 'tracks')
+			.map((q) => `${q.queryKey.join('/')},${(q.state.data as unknown[])?.length ?? 0},${q.isStale() ? 'stale' : 'fresh'}`)
+	)
 
 	const tracksQuery = useLiveQuery((q) =>
 		q
@@ -90,4 +101,8 @@
 	{/if}
 
 	<SyncStatus />
+
+	<pre>collection: {collectionSize} ({slugsInMemory.join(', ') || 'none'})
+cache:
+{cacheLines.join('\n')}</pre>
 </div>

@@ -191,6 +191,39 @@ The name `syncTracks` is arbitrary - we chose it. TanStack just needs a string k
 | `@tanstack/svelte-query`         | `QueryClient`                                                     |
 | `@tanstack/offline-transactions` | `startOfflineExecutor()`, `IndexedDBAdapter`, `NonRetriableError` |
 
+## Query Cache vs Collection (important!)
+
+With `syncMode: 'on-demand'`, there are **two** places data lives:
+
+```
+Query Cache (IndexedDB)          Collection (in-memory Map)
+───────────────────────          ─────────────────────────
+tracks/starttv: 263 items        empty until queried
+tracks/blink: 340 items
+tracks/beatsfortheill: 128
+```
+
+**Query cache** = persisted API responses, keyed by query key (`['tracks', 'starttv']`)
+**Collection** = in-memory Map, populated when `useLiveQuery` runs
+
+The collection is **lazy**. Cached data sits in query cache until a live query pulls it in:
+
+```ts
+// This query populates the collection with starttv tracks
+const tracks = useLiveQuery((q) =>
+  q.from({tracks: tracksCollection})
+   .where(({tracks}) => eq(tracks.slug, 'starttv'))
+)
+// Now: tracksCollection.state.size === 263
+```
+
+Without an active query, `tracksCollection.state.size === 0` even if query cache has data.
+
+**Why this matters:**
+- Don't expect `collection.state` to have data on page load
+- Data loads when components with `useLiveQuery` mount
+- Query cache survives reload, collection rebuilds from queries
+
 ## Caching
 
 | Setting     | Where             | Value  | Purpose                             |
@@ -202,17 +235,25 @@ The name `syncTracks` is arbitrary - we chose it. TanStack just needs a string k
 
 ## Debugging
 
-Collections are exposed on `window.r5` for console inspection:
+Collections and queryClient exposed on `window.r5`:
 
 ```js
-window.r5.channelsCollection.state          // Map of all channels
-[...window.r5.channelsCollection.state.values()]  // As array
-window.r5.channelsCollection.get('some-id') // By ID
+// Collection state (only has data if useLiveQuery is active)
+r5.tracksCollection.state.size
+[...r5.tracksCollection.state.values()]
+[...new Set([...r5.tracksCollection.state.values()].map(t => t.slug))]  // slugs in memory
 
-window.r5.tracksCollection.state
-[...window.r5.tracksCollection.state.values()]
+// Query cache (persisted, has data even without active queries)
+r5.queryClient.getQueryCache().getAll().map(q => ({
+  key: q.queryKey,
+  count: q.state.data?.length ?? 0,
+  stale: q.isStale()
+}))
 
-window.r5.queryClient  // TanStack Query client
+// Filter to tracks only
+r5.queryClient.getQueryCache().getAll()
+  .filter(q => q.queryKey[0] === 'tracks')
+  .map(q => `${q.queryKey.join('/')}: ${q.state.data?.length ?? 0}`)
 ```
 
 ## Key behaviors
@@ -251,11 +292,24 @@ Use for: seeding on login, WebSocket updates, large dataset pagination.
 
 ## Files
 
-- `src/routes/tanstack/collections.ts` - collections, offlineExecutor, sync functions, action functions
-- `src/routes/tanstack/persistence.ts` - query cache persistence to IndexedDB
-- `src/routes/tanstack/sync-status.svelte` - Pending transactions UI
-- `src/routes/tanstack/tracks/+page.svelte` - Tracks CRUD
-- `src/routes/tanstack/channels/+page.svelte` - Channels CRUD
+```
+src/routes/tanstack/
+├── collections/
+│   ├── index.ts           - re-exports everything
+│   ├── query-client.ts    - QueryClient instance
+│   ├── tracks.ts          - tracksCollection + addTrack/updateTrack/deleteTrack
+│   ├── channels.ts        - channelsCollection + createChannel/updateChannel/deleteChannel
+│   ├── follows.ts         - followsCollection (localStorage)
+│   ├── track-meta.ts      - trackMetaCollection (localStorage, YouTube/MusicBrainz cache)
+│   ├── play-history.ts    - playHistoryCollection (localStorage)
+│   ├── spam-decisions.ts  - spamDecisionsCollection (localStorage)
+│   ├── offline-executor.ts - offlineExecutor setup
+│   └── utils.ts           - logger, helpers
+├── persistence.ts         - query cache persistence to IndexedDB
+├── sync-status.svelte     - pending transactions UI
+├── tracks/+page.svelte    - tracks CRUD test page
+└── channels/+page.svelte  - channels CRUD test page
+```
 
 ## References
 
