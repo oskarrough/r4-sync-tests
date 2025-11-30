@@ -4,23 +4,13 @@
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
 	import * as m from '$lib/paraglide/messages'
 	import {followsCollection, channelsCollection} from '../tanstack/collections'
-	import {useLiveQuery} from '@tanstack/svelte-db'
 
-	const followsQuery = useLiveQuery((q) =>
-		q.from({follows: followsCollection}).orderBy(({follows}) => follows.createdAt, 'desc')
+	let followings = $derived(
+		[...followsCollection.state.values()]
+			.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+			.map((f) => ({...channelsCollection.get(f.channelId), source: f.source}))
+			.filter((ch) => ch.id)
 	)
-	const channelsQuery = useLiveQuery((q) => q.from({channels: channelsCollection}))
-
-	// Join follows with channels - O(n) via Map lookup
-	let followings = $derived.by(() => {
-		const channelMap = new Map((channelsQuery.data || []).map((c) => [c.id, c]))
-		return (followsQuery.data || [])
-			.map((f) => {
-				const ch = channelMap.get(f.channelId)
-				return ch ? {...ch, source: f.source} : null
-			})
-			.filter(Boolean)
-	})
 </script>
 
 <svelte:head>

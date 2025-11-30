@@ -13,11 +13,7 @@
 	const latitude = $derived(Number(page?.url?.searchParams?.get('latitude')))
 	const zoom = $derived(page?.url?.searchParams?.get('zoom') ? Number(page?.url?.searchParams?.get('zoom')) : 4)
 
-	const channelsQuery = useLiveQuery((q) =>
-		q.from({channels: channelsCollection}).orderBy(({channels}) => channels.created_at, 'desc')
-	)
-
-	const channels = $derived(channelsQuery.data || [])
+	const channels = $derived([...channelsCollection.state.values()])
 
 	onMount(() => {
 		if (Boolean(display) && display !== appState.channels_display) {
@@ -29,11 +25,5 @@
 <svelte:head>
 	<title>{m.home_title()}</title>
 </svelte:head>
-
-{#if channelsQuery.isLoading}
-	<p>Loading channels…</p>
-{:else if channelsQuery.isError}
-	<p style="color: var(--red)">{channelsQuery.error.message}</p>
-{/if}
 
 <Channels {channels} {slug} {display} {longitude} {latitude} {zoom} />
