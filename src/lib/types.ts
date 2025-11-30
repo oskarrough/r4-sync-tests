@@ -23,6 +23,7 @@ export interface Channel {
 	// custom ones
 	tracks_outdated?: boolean
 	track_count?: number
+	latest_track_at?: string
 
 	latitude?: number
 	longitude?: number
@@ -76,6 +77,8 @@ export interface AppState {
 	counter: number
 	channels_display: string
 	channels_filter: string
+	channels_order: 'updated' | 'created' | 'name' | 'tracks'
+	channels_order_direction: 'asc' | 'desc'
 	channels_shuffled: boolean
 	/** the user's channels (IDs) */
 	channels?: string[]

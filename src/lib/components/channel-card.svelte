@@ -1,5 +1,6 @@
 <script>
 	import {appState} from '$lib/app-state.svelte'
+	import {relativeDateDetailed} from '$lib/dates'
 	import * as m from '$lib/paraglide/messages'
 	import {trimWithEllipsis} from '$lib/utils.ts'
 	import ChannelHero from './channel-hero.svelte'
@@ -26,6 +27,11 @@
 				{channel.name}
 				{#if broadcasting}
 					<span>{m.status_live_short()}</span>
+				{/if}
+				{#if channel.latest_track_at}
+					<small class="latest-track">{relativeDateDetailed(channel.latest_track_at)}</small>
+				{:else}
+					<small>no latest_track_at</small>
 				{/if}
 			</h3>
 			<p class="desc">

@@ -4,7 +4,7 @@ import {NonRetriableError} from '@tanstack/offline-transactions'
 import {sdk} from '@radio4000/sdk'
 import {appState} from '$lib/app-state.svelte'
 import type {PendingMutation} from '@tanstack/db'
-import {fetchAllChannels} from '$lib/api/fetch-channels'
+import {fetchAllChannels, fetchChannelBySlug} from '$lib/api/fetch-channels'
 import {queryClient} from './query-client'
 import {log, txLog, completedIdempotencyKeys, getErrorMessage} from './utils'
 import {getOfflineExecutor} from './offline-executor'
@@ -29,8 +29,8 @@ export const channelsCollection = createCollection(
 
 			if (slug) {
 				log.info('channels queryFn (single)', {slug})
-				const {data} = await sdk.channels.readChannel(slug as string)
-				return data ? [data] : []
+				const channel = await fetchChannelBySlug(slug as string)
+				return channel ? [channel] : []
 			}
 
 			log.info('channels queryFn (all)')

@@ -17,6 +17,8 @@
 	let perPage = $state(100)
 	let filter = $derived(appState.channels_filter || '20+')
 	let shuffled = $derived(appState.channels_shuffled ?? true)
+	let order = $derived(appState.channels_order)
+	let orderDirection = $derived(appState.channels_order_direction)
 
 	/** @type {'grid' | 'list' | 'map' | 'tuner' | 'infinite'}*/
 	let display = $derived(appState.channels_display || initialDisplay || 'grid')
@@ -39,8 +41,23 @@
 		})
 	)
 
-	// Stable shuffled array - only reshuffles when filter/shuffle settings change, not on limit change
-	const orderedChannels = $derived(shuffled ? shuffleArray([...filteredChannels]) : filteredChannels)
+	const sortKey = {
+		updated: (c) => c.latest_track_at ?? '',
+		created: (c) => c.created_at ?? '',
+		name: (c) => c.name?.toLowerCase() ?? '',
+		tracks: (c) => c.track_count ?? 0
+	}
+
+	const sortedChannels = $derived(
+		[...filteredChannels].sort((a, b) => {
+			const av = sortKey[order](a)
+			const bv = sortKey[order](b)
+			const cmp = av < bv ? -1 : av > bv ? 1 : 0
+			return orderDirection === 'asc' ? cmp : -cmp
+		})
+	)
+
+	const orderedChannels = $derived(shuffled ? shuffleArray([...sortedChannels]) : sortedChannels)
 
 	const realChannels = $derived({
 		filtered: filteredChannels,
@@ -74,8 +91,16 @@
 		appState.channels_filter = value
 	}
 
+	function setOrder(value) {
+		appState.channels_order = value
+	}
+
 	function toggleShuffle() {
 		appState.channels_shuffled = !appState.channels_shuffled
+	}
+
+	function toggleOrderDirection() {
+		appState.channels_order_direction = orderDirection === 'asc' ? 'desc' : 'asc'
 	}
 
 	function handleMapChange({latitude, longitude, zoom}) {
@@ -119,6 +144,23 @@
 					<option value="v2">{m.channels_filter_option_v2()}</option>
 				</select>
 			</label>
+			<label title={m.channels_order_label()}>
+				<select value={order} onchange={(e) => setOrder(e.target.value)} disabled={shuffled}>
+					<option value="updated">{m.channels_order_updated()}</option>
+					<option value="created">{m.channels_order_created()}</option>
+					<option value="name">{m.channels_order_name()}</option>
+					<option value="tracks">{m.channels_order_tracks()}</option>
+				</select>
+			</label>
+			<button
+				title={m.channels_order_direction_tooltip({
+					direction: orderDirection === 'asc' ? m.channels_order_asc() : m.channels_order_desc()
+				})}
+				onclick={toggleOrderDirection}
+				disabled={shuffled}
+			>
+				<Icon icon={orderDirection === 'asc' ? 'arrow-up' : 'arrow-down'} />
+			</button>
 			<button title={m.channels_shuffle_tooltip()} class:active={appState.channels_shuffled} onclick={toggleShuffle}>
 				<Icon icon="shuffle" />
 			</button>
