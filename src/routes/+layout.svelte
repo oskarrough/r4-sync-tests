@@ -15,6 +15,9 @@
 	import {logger} from '$lib/logger'
 	import * as m from '$lib/paraglide/messages'
 	import {getLocale, setLocale, locales} from '$lib/paraglide/runtime'
+	import {QueryClientProvider} from '@tanstack/svelte-query'
+	import {SvelteQueryDevtools} from '@tanstack/svelte-query-devtools'
+	import {queryClient} from './tanstack/collections'
 
 	const log = logger.ns('layout').seal()
 
@@ -96,41 +99,44 @@
 	})
 </script>
 
-<svelte:boundary>
-	{#await data.preloading}
-		<div class="loader">
-			<p>{m.app_loading()}</p>
-			<r4-loading></r4-loading>
-		</div>
-	{:then}
-		<AuthListener />
-		<KeyboardShortcuts />
-
-		{#key uiLocale}
-			<div class={['layout', {asideVisible: appState.queue_panel_visible}]} data-locale={uiLocale}>
-				<LayoutHeader preloading={data.preloading} />
-
-				<div class="content">
-					<main class="scroll">
-						{@render children()}
-					</main>
-
-					<QueuePanel />
-
-					{#if chatPanelVisible}
-						<DraggablePanel title={m.chat_panel_title()}>
-							<LiveChat />
-						</DraggablePanel>
-					{/if}
-				</div>
-
-				<LayoutFooter />
+<QueryClientProvider client={queryClient}>
+	<svelte:boundary>
+		{#await data.preloading}
+			<div class="loader">
+				<p>{m.app_loading()}</p>
+				<r4-loading></r4-loading>
 			</div>
-		{/key}
-	{:catch}
-		<p>{m.loading_generic()}</p>
-	{/await}
-</svelte:boundary>
+		{:then}
+			<AuthListener />
+			<KeyboardShortcuts />
+
+			{#key uiLocale}
+				<div class={['layout', {asideVisible: appState.queue_panel_visible}]} data-locale={uiLocale}>
+					<LayoutHeader preloading={data.preloading} />
+
+					<div class="content">
+						<main class="scroll">
+							{@render children()}
+						</main>
+
+						<QueuePanel />
+
+						{#if chatPanelVisible}
+							<DraggablePanel title={m.chat_panel_title()}>
+								<LiveChat />
+							</DraggablePanel>
+						{/if}
+					</div>
+
+					<LayoutFooter />
+				</div>
+			{/key}
+		{:catch}
+			<p>{m.loading_generic()}</p>
+		{/await}
+	</svelte:boundary>
+	<SvelteQueryDevtools buttonPosition="bottom-left" />
+</QueryClientProvider>
 
 <style>
 	.layout {

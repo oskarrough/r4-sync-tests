@@ -3,7 +3,6 @@
 	import {page} from '$app/state'
 	import {appState} from '$lib/app-state.svelte'
 	import Channels from '$lib/components/channels.svelte'
-	import {useLiveQuery} from '@tanstack/svelte-db'
 	import {channelsCollection} from './tanstack/collections'
 	import * as m from '$lib/paraglide/messages'
 

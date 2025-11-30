@@ -19,6 +19,7 @@
         "@tanstack/query-persist-client-core": "^5.91.10",
         "@tanstack/svelte-db": "^0.1.51",
         "@tanstack/svelte-query": "^6.0.9",
+        "@tanstack/svelte-query-devtools": "^6.0.2",
         "@types/yargs": "^17.0.35",
         "adze": "^2.2.5",
         "filenamify": "^7.0.1",
@@ -397,11 +398,15 @@
 
     "@tanstack/query-db-collection": ["@tanstack/query-db-collection@1.0.5", "", { "dependencies": { "@standard-schema/spec": "^1.0.0" }, "peerDependencies": { "@tanstack/db": "*", "@tanstack/query-core": "^5.0.0", "typescript": ">=4.7" } }, "sha512-+QZQG+Oj/r2BBLffZbOdQSDZOkoq2FVI/OpYGjHv+LkXjC2J22eJJAs6/kdMF2BxrLa7lvnNm2dJFQjaOL9zIQ=="],
 
+    "@tanstack/query-devtools": ["@tanstack/query-devtools@5.91.1", "", {}, "sha512-l8bxjk6BMsCaVQH6NzQEE/bEgFy1hAs5qbgXl0xhzezlaQbPk6Mgz9BqEg2vTLPOHD8N4k+w/gdgCbEzecGyNg=="],
+
     "@tanstack/query-persist-client-core": ["@tanstack/query-persist-client-core@5.91.10", "", { "dependencies": { "@tanstack/query-core": "5.90.11" } }, "sha512-oZQk/kap5jHx2w+JcSI6CvDFXR5jmAldqJsH5IEQizVOEwaRlCyYEBZ3Df56HXNxW4spWX0cjhI/4o+mnCGtHw=="],
 
     "@tanstack/svelte-db": ["@tanstack/svelte-db@0.1.51", "", { "dependencies": { "@tanstack/db": "0.5.8" }, "peerDependencies": { "svelte": "^5.0.0" } }, "sha512-rCP+aztFIqwEG2ZOTcsjht5CyqAtlgj3wbDsOI/hJtr6xlIM5Xh6Der9Z1kUL8FavD6Fx8M7SPwl+SW+PfpMjQ=="],
 
     "@tanstack/svelte-query": ["@tanstack/svelte-query@6.0.9", "", { "dependencies": { "@tanstack/query-core": "5.90.11" }, "peerDependencies": { "svelte": "^5.25.0" } }, "sha512-ezawzencc07h61M+p8R9Opp2CmpgGwrM05IsIGJiPkr1SrBPW8gDZ9sTdaQbEpzLNXMXaZUkq0MS+61Rw2EfSg=="],
+
+    "@tanstack/svelte-query-devtools": ["@tanstack/svelte-query-devtools@6.0.2", "", { "dependencies": { "@tanstack/query-devtools": "5.91.1", "esm-env": "^1.2.1" }, "peerDependencies": { "@tanstack/svelte-query": "^6.0.8", "svelte": "^5.25.0" } }, "sha512-UQdtAPsdJQ2HijMVy+W+/CHyrUZmCkubfAi/sqWsx+1fdY+g7ONa5xroBLiaebC+5jJxvk9kij61QMUHzzJgQA=="],
 
     "@types/chai": ["@types/chai@5.2.3", "", { "dependencies": { "@types/deep-eql": "*", "assertion-error": "^2.0.1" } }, "sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA=="],
 
