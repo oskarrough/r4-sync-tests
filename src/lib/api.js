@@ -1,9 +1,8 @@
 import {play} from '$lib/api/player'
-import {appState, defaultAppState} from '$lib/app-state.svelte'
+import {appState} from '$lib/app-state.svelte'
 import {leaveBroadcast, upsertRemoteBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
 import {sdk} from '@radio4000/sdk'
-import {pg} from '$lib/db'
 import {shuffleArray} from '$lib/utils.ts'
 import {tracksCollection, addPlayHistoryEntry, endPlayHistoryEntry, pullFollows} from '../routes/tanstack/collections'
 
@@ -161,12 +160,6 @@ export async function toggleTheme() {
 
 export async function toggleQueuePanel() {
 	appState.queue_panel_visible = !appState.queue_panel_visible
-}
-
-export async function resetDatabase() {
-	Object.assign(appState, defaultAppState)
-	await new Promise((resolve) => setTimeout(resolve, 100))
-	await pg.reset()
 }
 
 export function togglePlayerExpanded() {

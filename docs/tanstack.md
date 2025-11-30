@@ -210,16 +210,14 @@ The collection is **lazy**. Cached data sits in query cache until a live query p
 
 ```ts
 // This query populates the collection with starttv tracks
-const tracks = useLiveQuery((q) =>
-  q.from({tracks: tracksCollection})
-   .where(({tracks}) => eq(tracks.slug, 'starttv'))
-)
+const tracks = useLiveQuery((q) => q.from({tracks: tracksCollection}).where(({tracks}) => eq(tracks.slug, 'starttv')))
 // Now: tracksCollection.state.size === 263
 ```
 
 Without an active query, `tracksCollection.state.size === 0` even if query cache has data.
 
 **Why this matters:**
+
 - Don't expect `collection.state` to have data on page load
 - Data loads when components with `useLiveQuery` mount
 - Query cache survives reload, collection rebuilds from queries

@@ -17,7 +17,9 @@
 			.getQueryCache()
 			.getAll()
 			.filter((q) => q.queryKey[0] === 'tracks')
-			.map((q) => `${q.queryKey.join('/')},${(q.state.data as unknown[])?.length ?? 0},${q.isStale() ? 'stale' : 'fresh'}`)
+			.map(
+				(q) => `${q.queryKey.join('/')},${(q.state.data as unknown[])?.length ?? 0},${q.isStale() ? 'stale' : 'fresh'}`
+			)
 	)
 
 	const tracksQuery = useLiveQuery((q) =>

@@ -2,8 +2,8 @@ import {browser} from '$app/environment'
 import {validateListeningState} from '$lib/broadcast.js'
 import {logger} from '$lib/logger'
 import {sdk} from '@radio4000/sdk'
-import {queryClient, initCollections, tracksCollection, channelsCollection} from './tanstack/collections'
-import {fetchAllChannels} from '$lib/api/seed'
+import {queryClient, tracksCollection, channelsCollection} from './tanstack/collections'
+import {fetchAllChannels} from '$lib/api/fetch-channels'
 import {cacheReady} from './tanstack/persistence'
 import {appState} from '$lib/app-state.svelte'
 
@@ -20,7 +20,6 @@ async function preload() {
 	log.debug('preloading')
 	try {
 		await cacheReady
-		await initCollections()
 		// Prefetch all channels so search works immediately
 		await queryClient.prefetchQuery({
 			queryKey: ['channels'],

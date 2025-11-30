@@ -22,8 +22,3 @@ export {tracksCollection, tracksAPI, getTrackWithMeta, addTrack, updateTrack, de
 
 // Offline executor
 export {getOfflineExecutor} from './offline-executor'
-
-// Ensure persistence is loaded (query cache to IDB)
-export async function initCollections() {
-	await import('../persistence')
-}

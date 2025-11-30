@@ -8,14 +8,48 @@
 		playHistoryCollection,
 		channelsCollection,
 		tracksCollection,
-		trackMetaCollection
+		trackMetaCollection,
+		followsCollection,
+		queryClient
 	} from '../tanstack/collections'
+	import SyncStatus from '../tanstack/sync-status.svelte'
 
 	// Derive data reactively from collections
 	const plays = $derived([...playHistoryCollection.state.values()])
 	const channels = $derived([...channelsCollection.state.values()])
 	const tracks = $derived([...tracksCollection.state.values()])
 	const trackMeta = $derived([...trackMetaCollection.state.values()])
+	const follows = $derived([...followsCollection.state.values()])
+
+	// Query cache stats (tracks are loaded on-demand per slug, so state may be empty)
+	const tracksCached = $derived(
+		queryClient
+			.getQueryCache()
+			.getAll()
+			.filter((q) => q.queryKey[0] === 'tracks')
+			.reduce((sum, q) => sum + (Array.isArray(q.state.data) ? q.state.data.length : 0), 0)
+	)
+	const channelsCached = $derived(
+		queryClient
+			.getQueryCache()
+			.getAll()
+			.filter((q) => q.queryKey[0] === 'channels')
+			.reduce((sum, q) => sum + (Array.isArray(q.state.data) ? q.state.data.length : 0), 0)
+	)
+
+	// Storage estimate
+	/** @type {{usage?: number, quota?: number} | null} */
+	let storageEstimate = $state(null)
+	$effect(() => {
+		navigator.storage?.estimate?.().then((est) => (storageEstimate = est))
+	})
+
+	/** @param {number} bytes */
+	function formatBytes(bytes) {
+		if (bytes < 1024) return bytes + ' B'
+		if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
+		return (bytes / 1024 / 1024).toFixed(1) + ' MB'
+	}
 
 	// Build lookup maps
 	const channelBySlug = $derived(
@@ -100,22 +134,10 @@
 			.map(([tag, count]) => ({tag, count}))
 	})
 
-	// Database stats
+	// Collection stats
 	const totalChannelsInDb = $derived(channels.length)
 	const totalTracksInDb = $derived(tracks.length)
 	const tracksWithMeta = $derived(trackMeta.length)
-
-	// Average tracks per channel
-	const avgTracksPerChannel = $derived.by(() => {
-		const tracksByChannel = {}
-		tracks.forEach((t) => {
-			if (t.slug) tracksByChannel[t.slug] = (tracksByChannel[t.slug] || 0) + 1
-		})
-		const trackCounts = Object.values(tracksByChannel)
-		return trackCounts.length > 0
-			? Math.round((trackCounts.reduce((a, b) => a + b, 0) / trackCounts.length) * 10) / 10
-			: 0
-	})
 
 	// Channel timeline (by creation month)
 	const channelTimeline = $derived.by(() => {
@@ -371,23 +393,32 @@
 
 	<section>
 		<header>
-			<h2>{m.stats_database_heading()}</h2>
+			<h2>local system</h2>
 		</header>
-		<p>
-			{m.stats_database_summary({
-				channels: totalChannelsInDb.toLocaleString(),
-				tracks: totalTracksInDb.toLocaleString()
-			})}
-			<small>{m.stats_database_local_hint()}</small>
-		</p>
-		<p>
-			{m.stats_database_tracks_per_channel({average: avgTracksPerChannel})}
-		</p>
-		<p>
-			{m.stats_database_metadata_summary({
-				count: tracksWithMeta.toLocaleString()
-			})}
-		</p>
+
+		<SyncStatus />
+
+		<dl class="meta">
+			<dt>channels</dt>
+			<dd>{channelsCached.toLocaleString()}</dd>
+			<dt>tracks</dt>
+			<dd>{tracksCached.toLocaleString()}</dd>
+			<dt>track metadata</dt>
+			<dd>{tracksWithMeta.toLocaleString()}</dd>
+			<dt>play history</dt>
+			<dd>{plays.length.toLocaleString()}</dd>
+			<dt>follows</dt>
+			<dd>{follows.length.toLocaleString()}</dd>
+		</dl>
+
+		{#if storageEstimate?.usage}
+			<p class="storage">
+				Storage: {formatBytes(storageEstimate.usage)}
+				{#if storageEstimate.quota}
+					/ {formatBytes(storageEstimate.quota)}
+				{/if}
+			</p>
+		{/if}
 	</section>
 
 	{#if channelTimeline.length > 1}
@@ -477,5 +508,10 @@
 		display: flex;
 		justify-content: space-between;
 		min-width: 12em;
+	}
+
+	.storage {
+		color: var(--gray-10);
+		font-size: 0.85em;
 	}
 </style>
