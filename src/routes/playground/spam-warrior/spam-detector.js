@@ -1,10 +1,64 @@
 import {businessPartners, spamDomains, spamKeywords, suspiciousPhrases} from './spam-words'
 
+// Music-related terms that suggest legitimacy
+const musicTerms = [
+	'music',
+	'radio',
+	'rádio',
+	'dj',
+	'song',
+	'track',
+	'album',
+	'band',
+	'artist',
+	'mix',
+	'playlist',
+	'sound',
+	'audio',
+	'rock',
+	'pop',
+	'jazz',
+	'blues',
+	'electronic',
+	'classical',
+	'metal',
+	'folk',
+	'country',
+	'hip hop',
+	'rap',
+	'reggae',
+	'latin',
+	'dance',
+	'disco',
+	'funk',
+	'soul',
+	'r&b',
+	'techno',
+	'house',
+	'ambient',
+	'indie',
+	'punk',
+	'grunge',
+	'alternative',
+	'acoustic',
+	'vinyl',
+	'record',
+	'beat',
+	'rhythm',
+	'melody',
+	'concert',
+	'gig',
+	'live',
+	'studio',
+	'producer',
+	'remix'
+]
+
 /**
  * Analyze a channel for spam indicators
- * @param {{name?: string, description?: string}} channel
+ * @param {{name?: string, description?: string, created_at?: string}} channel
  * @param {Array<import('$lib/types').Track>} [tracks] - Optional track data for enhanced analysis
- * @returns {{isSpam: boolean, confidence: number, reasons: string[]}}
+ * @returns {{isSpam: boolean, confidence: number, reasons: string[], evidence: {keywords: string[], phrases: string[], locations: string[], patterns: string[], musicTerms: string[]}}}
  */
 export function analyzeChannel(channel, tracks = []) {
 	const reasons = []
@@ -13,6 +67,19 @@ export function analyzeChannel(channel, tracks = []) {
 	const title = (channel.name || '').toLowerCase()
 	const description = (channel.description || '').toLowerCase()
 	const text = `${title} ${description}`
+
+	// Evidence collectors
+	const evidence = {
+		keywords: [],
+		phrases: [],
+		locations: [],
+		patterns: [],
+		musicTerms: []
+	}
+
+	// Check for music terms (counter-evidence)
+	const foundMusicTerms = musicTerms.filter((term) => text.includes(term.toLowerCase()))
+	evidence.musicTerms = foundMusicTerms
 
 	// Check for spam keywords (increased weight for multiple matches) - use word boundaries for short words
 	const matchedKeywords = spamKeywords.filter((keyword) => {
@@ -23,6 +90,8 @@ export function analyzeChannel(channel, tracks = []) {
 		}
 		return text.includes(lowerKeyword)
 	})
+
+	evidence.keywords = matchedKeywords
 
 	if (matchedKeywords.length > 0) {
 		spamScore += matchedKeywords.length * 3 // Increased from 2
@@ -44,6 +113,7 @@ export function analyzeChannel(channel, tracks = []) {
 
 	// Check for suspicious business phrases - increased weight for multiple
 	const matchedPhrases = suspiciousPhrases.filter((phrase) => text.includes(phrase.toLowerCase()))
+	evidence.phrases = matchedPhrases
 
 	if (matchedPhrases.length > 0) {
 		spamScore += matchedPhrases.length * 2 // Increased from 1
@@ -58,6 +128,7 @@ export function analyzeChannel(channel, tracks = []) {
 		// Use word boundaries to avoid partial matches
 		return new RegExp(`\\b${lowerDomain.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`).test(text)
 	})
+	evidence.locations = matchedDomains
 
 	if (matchedDomains.length > 0) {
 		spamScore += matchedDomains.length * 2 // Increased from 1
@@ -255,7 +326,7 @@ export function analyzeChannel(channel, tracks = []) {
 		reasons.push('Long description - flagged for manual review')
 	}
 
-	return {isSpam, confidence, reasons}
+	return {isSpam, confidence, reasons, evidence}
 }
 
 /**
@@ -273,7 +344,8 @@ export function analyzeChannels(channels) {
 					spamAnalysis: {
 						isSpam: false,
 						confidence: 0,
-						reasons: ['Manually marked as legitimate']
+						reasons: ['Manually marked as legitimate'],
+						evidence: {keywords: [], phrases: [], locations: [], patterns: [], musicTerms: []}
 					}
 				}
 			}

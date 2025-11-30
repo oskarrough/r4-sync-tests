@@ -15,12 +15,7 @@ Core tracks/channels collections working. See `docs/tanstack/tanstack.md` for ar
 
 **Remaining:**
 
-- [x] **Followers** - `followsCollection` with localStorage + offline sync. Deleted `src/lib/r5/followers.js`
-- [x] **Live queries** - Removed `src/lib/live-query.js`. Queue panel now uses `useLiveQuery` with `inArray` filter.
-- [x] **Broadcast** - migrated to TanStack (needs testing)
-- [ ] `src/routes/+layout.js` — `r5.db.migrate()`, `r5.db.getPg()` - remove PGlite init
-- [ ] `src/routes/recovery/+page.svelte` — `r5.db.reset()`, `r5.db.migrate()` - needs rethink for TanStack
-- [ ] `src/routes/[slug]/batch-edit/` — **Rebuild from scratch with TanStack**. Keep: filter logic, selection UX. Remove: manual pull/staging/commit flow.
+- [x] `src/routes/[slug]/batch-edit/` — **Rebuilt with TanStack**. Direct mutations via `updateTrack()`. No staging layer.
 - [~] `src/routes/playground/spam-warrior/` — keeps PGlite (playground, fine as-is)
 
 References:

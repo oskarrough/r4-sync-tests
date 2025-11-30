@@ -9,6 +9,7 @@ export interface SpamDecision {
 
 export const spamDecisionsCollection = createCollection<SpamDecision, string>(
 	localStorageCollectionOptions({
+		id: 'spam-decisions',
 		storageKey: 'r5-spam-decisions',
 		getKey: (item) => item.channelId
 	})

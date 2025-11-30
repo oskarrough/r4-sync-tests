@@ -1,22 +1,29 @@
 <script>
+	import {getContext} from 'svelte'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
-	import {channelsCollection, tracksCollection, spamDecisionsCollection} from '../../tanstack/collections'
+	import {tracksCollection, spamDecisionsCollection} from '../../tanstack/collections'
 	import {analyzeChannels} from './spam-detector.js'
 	import * as m from '$lib/paraglide/messages'
 
-	let filterMode = $state('needsReview')
+	let filterMode = $state('highConfidenceSpam')
 	let batchFetching = $state(false)
 	let batchProgress = $state('')
+	let decisionVersion = $state(0)
 
-	const allChannels = $derived(
-		analyzeChannels(
-			[...channelsCollection.state.values()].map((ch) => ({
+	const getChannels = getContext('channels')
+	const channels = $derived(getChannels())
+
+	// Manual reactivity trigger - increment to force re-read of decisions
+	const allChannels = $derived.by(() => {
+		decisionVersion // track this for reactivity
+		return analyzeChannels(
+			channels.map((ch) => ({
 				...ch,
 				spam: spamDecisionsCollection.get(ch.id)?.spam
 			}))
 		)
-	)
+	})
 
 	const highConfidenceSpam = $derived(
 		allChannels.filter((ch) => ch.spamAnalysis.confidence > 0.3 && (ch.track_count ?? 0) === 0)
@@ -65,8 +72,16 @@ DELETE FROM channels WHERE id = '${ch.id}';`
 		if (spam === undefined) {
 			spamDecisionsCollection.delete(channel.id)
 		} else {
-			spamDecisionsCollection.insert({channelId: channel.id, spam})
+			const existing = spamDecisionsCollection.get(channel.id)
+			if (existing) {
+				spamDecisionsCollection.update(channel.id, (draft) => {
+					draft.spam = spam
+				})
+			} else {
+				spamDecisionsCollection.insert({channelId: channel.id, spam})
+			}
 		}
+		decisionVersion++
 	}
 
 	function copyAllSQL() {
@@ -79,6 +94,7 @@ DELETE FROM channels WHERE id = '${ch.id}';`
 		for (const id of spamDecisionsCollection.state.keys()) {
 			spamDecisionsCollection.delete(id)
 		}
+		decisionVersion++
 		alert(m.spam_alert_cleared())
 	}
 
@@ -164,7 +180,7 @@ DELETE FROM channels WHERE id = '${ch.id}';`
 			{#each undecidedChannels as channel (channel.id)}
 				{@const tracks = getChannelTracks(channel.id)}
 				<div class="channel">
-					<ChannelAvatar id={channel.image} alt={channel.name} size={64} />
+					<ChannelAvatar id={channel.image} alt={channel.name} size={50} />
 					<div class="channel-content">
 						<strong><a href="/{channel.slug}">{channel.name}</a></strong> (@{channel.slug})
 						{#if channel.source === 'v1'}

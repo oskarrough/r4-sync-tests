@@ -2,12 +2,12 @@ import {browser} from '$app/environment'
 import {validateListeningState} from '$lib/broadcast.js'
 import {logger} from '$lib/logger'
 import {sdk} from '@radio4000/sdk'
-import {queryClient, tracksCollection, channelsCollection} from './tanstack/collections'
+import {queryClient, tracksCollection, channelsCollection, spamDecisionsCollection} from './tanstack/collections'
 import {fetchAllChannels} from '$lib/api/fetch-channels'
 import {cacheReady} from './tanstack/persistence'
 import {appState} from '$lib/app-state.svelte'
 
-// Disable server-side rendering for all routes by default. Otherwise we can't use pglite + indexeddb.
+// Disable SSR - TanStack collections use browser APIs (localStorage, IndexedDB)
 export const ssr = false
 
 const log = logger.ns('layout').seal()
@@ -28,7 +28,7 @@ async function preload() {
 		})
 
 		// @ts-expect-error debugging
-		window.r5 = {sdk, appState, queryClient, tracksCollection, channelsCollection}
+		window.r5 = {sdk, appState, queryClient, tracksCollection, channelsCollection, spamDecisionsCollection}
 
 		// Validate listening state in background after UI loads
 		validateListeningState().catch((err) => log.error('validate_listening_state_error', err))
