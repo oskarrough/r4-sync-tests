@@ -1,0 +1,19 @@
+import {createCollection} from '@tanstack/svelte-db'
+import {localStorageCollectionOptions} from '@tanstack/db'
+
+// Track metadata collection - local-only cache for YouTube/MusicBrainz/Discogs enrichment
+// No server sync needed, persists to localStorage, syncs across tabs
+export interface TrackMeta {
+	ytid: string
+	duration?: number
+	youtube_data?: object
+	musicbrainz_data?: object
+	discogs_data?: object
+}
+
+export const trackMetaCollection = createCollection<TrackMeta, string>(
+	localStorageCollectionOptions({
+		storageKey: 'r5-track-meta',
+		getKey: (item) => item.ytid
+	})
+)

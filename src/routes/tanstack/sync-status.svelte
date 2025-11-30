@@ -1,5 +1,5 @@
 <script lang="ts">
-	import {offlineExecutor} from './collections'
+	import {getOfflineExecutor} from './collections'
 
 	let isOnline = $state(navigator.onLine)
 	let pendingTransactions = $state<unknown[]>([])
@@ -17,7 +17,7 @@
 
 	$effect(() => {
 		const interval = setInterval(async () => {
-			pendingTransactions = await offlineExecutor.peekOutbox()
+			pendingTransactions = await getOfflineExecutor().peekOutbox()
 		}, 1000)
 		return () => clearInterval(interval)
 	})

@@ -1,7 +1,7 @@
 <script>
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
-	import {channelsCollection, tracksCollection, spamDecisionsCollection} from '$routes/tanstack/collections'
+	import {channelsCollection, tracksCollection, spamDecisionsCollection} from '../../tanstack/collections'
 	import {analyzeChannels} from './spam-detector.js'
 	import * as m from '$lib/paraglide/messages'
 
