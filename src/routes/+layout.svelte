@@ -10,19 +10,25 @@
 	import LiveChat from '$lib/components/live-chat.svelte'
 	import QueuePanel from '$lib/components/queue-panel.svelte'
 	import '@radio4000/components'
-	import {onMount} from 'svelte'
+	import {onMount, setContext} from 'svelte'
 	import {applyCustomCssVariables} from '$lib/apply-css-variables'
 	import {logger} from '$lib/logger'
 	import * as m from '$lib/paraglide/messages'
 	import {getLocale, setLocale, locales} from '$lib/paraglide/runtime'
 	import {QueryClientProvider} from '@tanstack/svelte-query'
 	import {SvelteQueryDevtools} from '@tanstack/svelte-query-devtools'
-	import {queryClient} from './tanstack/collections'
+	import {queryClient, channelsCollection} from './tanstack/collections'
+	import {useLiveQuery} from '@tanstack/svelte-db'
 
 	const log = logger.ns('layout').seal()
 
 	/** @type {import('./$types').LayoutProps} */
 	const {data, children} = $props()
+
+	// Query channels once at layout level, share via context
+	const channelsQuery = useLiveQuery((q) => q.from({channels: channelsCollection}))
+	const channels = $derived(channelsQuery.data || [])
+	setContext('channels', () => channels)
 
 	let chatPanelVisible = $state(false)
 	const rtlLocales = new Set(['ar', 'ur'])

@@ -49,12 +49,14 @@
 	}
 
 	const sortedChannels = $derived(
-		[...filteredChannels].sort((a, b) => {
-			const av = sortKey[order](a)
-			const bv = sortKey[order](b)
-			const cmp = av < bv ? -1 : av > bv ? 1 : 0
-			return orderDirection === 'asc' ? cmp : -cmp
-		})
+		[...filteredChannels]
+			.filter((c) => order !== 'updated' || c.latest_track_at)
+			.sort((a, b) => {
+				const av = sortKey[order](a)
+				const bv = sortKey[order](b)
+				const cmp = av < bv ? -1 : av > bv ? 1 : 0
+				return orderDirection === 'asc' ? cmp : -cmp
+			})
 	)
 
 	const orderedChannels = $derived(shuffled ? shuffleArray([...sortedChannels]) : sortedChannels)
