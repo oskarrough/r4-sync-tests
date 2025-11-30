@@ -2,7 +2,7 @@ import {play} from '$lib/api/player'
 import {appState, defaultAppState} from '$lib/app-state.svelte'
 import {leaveBroadcast, upsertRemoteBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
-import {r4} from '$lib/r4'
+import {sdk} from '@radio4000/sdk'
 import {pg} from '$lib/db'
 import {shuffleArray} from '$lib/utils.ts'
 import {tracksCollection, addPlayHistoryEntry, endPlayHistoryEntry, pullFollows} from '../routes/tanstack/collections'
@@ -18,16 +18,17 @@ const log = logger.ns('api').seal()
 export async function checkUser() {
 	try {
 		log.log('checkUser')
-		const user = await r4.users.readUser()
-
-		if (!user) {
+		const {data: userData, error: userError} = await sdk.supabase.auth.getUser()
+		if (userError || !userData?.user) {
 			appState.channels = []
 			appState.channel = undefined
 			appState.broadcasting_channel_id = undefined
 			return null
 		}
+		const user = userData.user
 
-		const channels = await r4.channels.readUserChannels()
+		const {data: channels, error: channelsError} = await sdk.channels.readUserChannels()
+		if (channelsError) throw channelsError
 		const wasSignedOut = !appState.channels?.length
 
 		// Store IDs - collection handles fetching when needed

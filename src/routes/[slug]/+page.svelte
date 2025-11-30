@@ -87,10 +87,10 @@
 		</header>
 
 		<section>
-			{#if tracksQuery.isLoading}
-				<p style="margin-top:1rem; margin-left: 0.5rem;">{m.channel_loading_tracks()}</p>
-			{:else if tracks.length > 0}
+			{#if tracks.length > 0}
 				<Tracklist {tracks} {canEdit} grouped={true} />
+			{:else if tracksQuery.isLoading || channel.track_count > 0}
+				<p style="margin-top:1rem; margin-left: 0.5rem;">{m.channel_loading_tracks()}</p>
 			{:else}
 				<p style="margin-top:1rem; margin-left: 0.5rem;">No tracks yet</p>
 			{/if}

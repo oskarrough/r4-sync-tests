@@ -1,8 +1,7 @@
 import {browser} from '$app/environment'
 import {validateListeningState} from '$lib/broadcast.js'
 import {logger} from '$lib/logger'
-import {r4} from '$lib/r4'
-import {migrate, getPg} from '$lib/db'
+import {sdk} from '@radio4000/sdk'
 import {queryClient, initCollections, tracksCollection, channelsCollection} from './tanstack/collections'
 import {fetchAllChannels} from '$lib/api/seed'
 import {cacheReady} from './tanstack/persistence'
@@ -13,9 +12,6 @@ export const ssr = false
 
 const log = logger.ns('layout').seal()
 
-/** @type {import('@electric-sql/pglite/live').PGliteWithLive} */
-let pg
-
 async function preload() {
 	if (!browser) {
 		log.warn('preloading_failed_no_browser')
@@ -23,9 +19,6 @@ async function preload() {
 	}
 	log.debug('preloading')
 	try {
-		// await delay(60000)
-		// await migrate()
-		// pg = await getPg()
 		await cacheReady
 		await initCollections()
 		// Prefetch all channels so search works immediately
@@ -36,7 +29,7 @@ async function preload() {
 		})
 
 		// @ts-expect-error debugging
-		window.r5 = {r4, pg, appState, queryClient, tracksCollection, channelsCollection}
+		window.r5 = {sdk, appState, queryClient, tracksCollection, channelsCollection}
 
 		// Validate listening state in background after UI loads
 		validateListeningState().catch((err) => log.error('validate_listening_state_error', err))

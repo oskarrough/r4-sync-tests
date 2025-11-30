@@ -1,10 +1,27 @@
 import {playTrack} from '$lib/api'
 import {appState} from '$lib/app-state.svelte'
 import {logger} from '$lib/logger'
-import {r4} from '$lib/r4'
+import {sdk} from '@radio4000/sdk'
 import {channelsCollection, queryClient} from '../routes/tanstack/collections'
 
 const log = logger.ns('broadcast').seal()
+
+async function readBroadcastsWithChannel() {
+	const {data, error} = await sdk.supabase.from('broadcast').select(`
+		channel_id,
+		track_id,
+		track_played_at,
+		channels (
+			id,
+			name,
+			slug,
+			image,
+			description
+		)
+	`)
+	if (error) throw error
+	return data || []
+}
 
 /** This will be the Supabase "channel" for broadcast updates
  * @type {any}
@@ -14,12 +31,7 @@ let broadcastChannel = null
 /** @param {string} channelId */
 export async function joinBroadcast(channelId) {
 	try {
-		const {data} = await r4.sdk.supabase
-			.from('broadcast')
-			.select('*')
-			.eq('channel_id', channelId)
-			.single()
-			.throwOnError()
+		const {data} = await sdk.supabase.from('broadcast').select('*').eq('channel_id', channelId).single().throwOnError()
 		await playBroadcastTrack(data)
 		startBroadcastSync(channelId)
 		log.log('joined', {channelId})
@@ -43,7 +55,7 @@ export function leaveBroadcast() {
  * @param {string} trackId
  */
 export async function upsertRemoteBroadcast(channelId, trackId) {
-	return r4.sdk.supabase
+	return sdk.supabase
 		.from('broadcast')
 		.upsert({
 			channel_id: channelId,
@@ -83,7 +95,7 @@ export async function stopBroadcast(channelId) {
 	log.log('stop_requested', {channelId})
 	if (!channelId) return
 	try {
-		await r4.sdk.supabase.from('broadcast').delete().eq('channel_id', channelId).throwOnError()
+		await sdk.supabase.from('broadcast').delete().eq('channel_id', channelId).throwOnError()
 		log.log('deleted remote broadcast', {channelId})
 	} catch (error) {
 		log.error('failed to delete remote broadcast', {
@@ -102,12 +114,11 @@ export function watchBroadcasts(onChange) {
 	log.debug('watching for remote changes')
 
 	// Load initial data
-	r4.broadcasts
-		.readBroadcastsWithChannel()
+	readBroadcastsWithChannel()
 		.then((broadcasts) => onChange({broadcasts, error: null}))
 		.catch((error) => onChange({broadcasts: [], error: error.message}))
 
-	let watchChannel = r4.sdk.supabase
+	let watchChannel = sdk.supabase
 		.channel('broadcasts-page')
 		.on('postgres_changes', {event: '*', schema: 'public', table: 'broadcast'}, async (payload) => {
 			const channelId = payload.new?.channel_id || payload.old?.channel_id
@@ -130,7 +141,7 @@ export function watchBroadcasts(onChange) {
 
 			// Reload and notify
 			try {
-				const broadcasts = await r4.broadcasts.readBroadcastsWithChannel()
+				const broadcasts = await readBroadcastsWithChannel()
 				onChange({broadcasts, error: null})
 			} catch (error) {
 				onChange({broadcasts: [], error: error.message})
@@ -155,7 +166,7 @@ function startBroadcastSync(channelId) {
 
 	log.log('starting_sync', {channelId})
 
-	broadcastChannel = r4.sdk.supabase
+	broadcastChannel = sdk.supabase
 		.channel(`broadcast:${channelId}`)
 		.on(
 			'postgres_changes',
@@ -223,8 +234,7 @@ export async function validateListeningState() {
 	if (!appState.listening_to_channel_id) return
 
 	try {
-		const {r4} = await import('$lib/r4')
-		const {data} = await r4.sdk.supabase
+		const {data} = await sdk.supabase
 			.from('broadcast')
 			.select('channel_id')
 			.eq('channel_id', appState.listening_to_channel_id)
