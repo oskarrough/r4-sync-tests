@@ -200,6 +200,21 @@ The name `syncTracks` is arbitrary - we chose it. TanStack just needs a string k
 | `gcTime` | QueryClient | 24h | In-memory lifetime |
 | `maxAge` | persistence | 24h | IDB lifetime (must be >= staleTime)
 
+## Debugging
+
+Collections are exposed on `window.r5` for console inspection:
+
+```js
+window.r5.channelsCollection.state          // Map of all channels
+[...window.r5.channelsCollection.state.values()]  // As array
+window.r5.channelsCollection.get('some-id') // By ID
+
+window.r5.tracksCollection.state
+[...window.r5.tracksCollection.state.values()]
+
+window.r5.queryClient  // TanStack Query client
+```
+
 ## Key behaviors
 
 - **Leader election**: Only one tab processes the outbox (prevents duplicate syncs)
