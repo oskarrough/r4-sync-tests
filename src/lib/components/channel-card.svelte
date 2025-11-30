@@ -29,9 +29,7 @@
 					<span>{m.status_live_short()}</span>
 				{/if}
 				{#if channel.latest_track_at}
-					<small class="latest-track">{relativeDateDetailed(channel.latest_track_at)}</small>
-				{:else}
-					<small>no latest_track_at</small>
+					<small>{relativeDateDetailed(channel.latest_track_at)}</small>
 				{/if}
 			</h3>
 			<p class="desc">
