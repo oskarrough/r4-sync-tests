@@ -1,41 +1,52 @@
 <script>
 	import {getContext} from 'svelte'
-	import {SvelteSet} from 'svelte/reactivity'
-	import {browser} from '$app/environment'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
-	import {analyzeChannel} from '../spam-warrior/spam-detector.js'
-
-	const STORAGE_KEY = 'r5-spam-decisions'
+	import {analyzeChannel} from './spam-detector.js'
+	import {spamDecisionsCollection} from '../../tanstack/collections'
 
 	const getChannels = getContext('channels')
 	const allChannels = $derived(getChannels())
 
+	// Trigger reactivity when decisions change
+	let decisionVersion = $state(0)
+
 	// Channels with 0 tracks AND spam signals, sorted by confidence (highest first)
-	const candidates = $derived(
-		allChannels
+	const candidates = $derived.by(() => {
+		decisionVersion
+		return allChannels
 			.filter((ch) => (ch.track_count ?? 0) === 0)
-			.map((ch) => ({...ch, analysis: analyzeChannel(ch)}))
+			.map((ch) => ({
+				...ch,
+				analysis: analyzeChannel(ch),
+				decision: spamDecisionsCollection.get(ch.id)?.spam
+			}))
 			.filter((ch) => ch.analysis.confidence > 0)
 			.sort((a, b) => b.analysis.confidence - a.analysis.confidence)
-	)
+	})
 
-	/** @type {Record<string, boolean>} */
-	let decisions = $state(browser ? JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') : {})
+	let expanded = $state(new Set())
 
-	let expanded = new SvelteSet()
-
-	function save() {
-		localStorage.setItem(STORAGE_KEY, JSON.stringify(decisions))
+	function setDecision(id, spam) {
+		const existing = spamDecisionsCollection.get(id)
+		if (existing) {
+			spamDecisionsCollection.update(id, (draft) => { draft.spam = spam })
+		} else {
+			spamDecisionsCollection.insert({channelId: id, spam})
+		}
+		decisionVersion++
 	}
 
-	function markDelete(id) {
-		decisions[id] = true
-		save()
+	function undoDecision(id) {
+		spamDecisionsCollection.delete(id)
+		decisionVersion++
 	}
 
-	function markKeep(id) {
-		decisions[id] = false
-		save()
+	function clearAll() {
+		if (!confirm('Clear all decisions?')) return
+		for (const id of spamDecisionsCollection.state.keys()) {
+			spamDecisionsCollection.delete(id)
+		}
+		decisionVersion++
 	}
 
 	function toggleExpand(id) {
@@ -44,11 +55,12 @@
 		} else {
 			expanded.add(id)
 		}
+		expanded = expanded // trigger reactivity
 	}
 
-	const undecided = $derived(candidates.filter((ch) => !(ch.id in decisions)))
-	const toDelete = $derived(candidates.filter((ch) => decisions[ch.id] === true))
-	const keptCount = $derived(Object.values(decisions).filter((v) => v === false).length)
+	const undecided = $derived(candidates.filter((ch) => ch.decision === undefined))
+	const toDelete = $derived(candidates.filter((ch) => ch.decision === true))
+	const toKeep = $derived(candidates.filter((ch) => ch.decision === false))
 
 	const sql = $derived(
 		toDelete
@@ -80,20 +92,22 @@
 <main>
 	<header>
 		<h1>Spam Angel</h1>
-		<p>Empty channels with spam signals. Evidence shown inline.</p>
-		<p class="stats">
+		<p>
 			<strong>{undecided.length}</strong> to review ·
 			<strong>{toDelete.length}</strong> to delete ·
-			<strong>{keptCount}</strong> kept
+			<strong>{toKeep.length}</strong> kept
 		</p>
-		<p>
+		<menu>
 			<button onclick={() => navigator.clipboard.writeText(sql)} disabled={toDelete.length === 0}>
 				Copy SQL ({toDelete.length})
 			</button>
-		</p>
+			<button onclick={clearAll} disabled={toDelete.length === 0 && toKeep.length === 0}>
+				Clear all
+			</button>
+		</menu>
 	</header>
 
-	<pre>{sql || '-- Mark channels for deletion to generate SQL'}</pre>
+	<pre>{sql || '-- Mark channels for deletion'}</pre>
 
 	<ul class="list">
 		{#each undecided as channel (channel.id)}
@@ -102,7 +116,7 @@
 			{@const isExpanded = expanded.has(channel.id)}
 			<li>
 				<div class="main-row">
-					<button class="avatar" onclick={() => toggleExpand(channel.id)} title="Click to expand">
+					<button class="IconBtn" onclick={() => toggleExpand(channel.id)} title="Expand">
 						<ChannelAvatar id={channel.image} alt={channel.name} size={40} />
 					</button>
 
@@ -112,19 +126,18 @@
 							<span class="meta">{channel.slug} · {formatDate(channel.created_at)}</span>
 						</div>
 
-						<!-- Evidence inline -->
 						<div class="evidence">
 							{#if ev.keywords.length > 0}
-								<span class="tag spam">{ev.keywords.slice(0, 4).join(', ')}{ev.keywords.length > 4 ? '…' : ''}</span>
+								<span class="tag" data-type="spam">{ev.keywords.slice(0, 4).join(', ')}{ev.keywords.length > 4 ? '…' : ''}</span>
 							{/if}
 							{#if ev.phrases.length > 0}
-								<span class="tag spam">"{ev.phrases[0]}"</span>
+								<span class="tag" data-type="spam">"{ev.phrases[0]}"</span>
 							{/if}
 							{#if ev.locations.length > 0}
-								<span class="tag location">{ev.locations.join(', ')}</span>
+								<span class="tag" data-type="location">{ev.locations.join(', ')}</span>
 							{/if}
 							{#if hasMusic}
-								<span class="tag music">{ev.musicTerms.join(', ')}</span>
+								<span class="tag" data-type="music">{ev.musicTerms.join(', ')}</span>
 							{/if}
 						</div>
 					</div>
@@ -134,8 +147,8 @@
 					</span>
 
 					<div class="actions">
-						<button onclick={() => markKeep(channel.id)}>Keep</button>
-						<button class="danger" onclick={() => markDelete(channel.id)}>Delete</button>
+						<button onclick={() => setDecision(channel.id, false)}>Keep</button>
+						<button class="danger" onclick={() => setDecision(channel.id, true)}>Delete</button>
 					</div>
 				</div>
 
@@ -150,36 +163,45 @@
 			</li>
 		{/each}
 	</ul>
+
+	{#if toDelete.length > 0}
+		<details>
+			<summary>Marked for deletion ({toDelete.length})</summary>
+			<ul class="list">
+				{#each toDelete as channel (channel.id)}
+					<li>
+						{channel.name} <span class="meta">@{channel.slug}</span>
+						<button onclick={() => undoDecision(channel.id)}>Undo</button>
+					</li>
+				{/each}
+			</ul>
+		</details>
+	{/if}
+
+	{#if toKeep.length > 0}
+		<details>
+			<summary>Marked to keep ({toKeep.length})</summary>
+			<ul class="list">
+				{#each toKeep as channel (channel.id)}
+					<li>
+						{channel.name} <span class="meta">@{channel.slug}</span>
+						<button onclick={() => undoDecision(channel.id)}>Undo</button>
+					</li>
+				{/each}
+			</ul>
+		</details>
+	{/if}
 </main>
 
 <style>
-	header {
-		margin: 0.5rem;
-	}
-	.stats {
-		margin-top: 1rem;
-	}
-	h1,
 	h3 {
 		margin: 0;
 		font-weight: normal;
-	}
-	li {
-		padding: 0.5rem;
-		border-bottom: 1px solid var(--color-border, #ddd);
 	}
 	.main-row {
 		display: flex;
 		align-items: flex-start;
 		gap: 0.5rem;
-	}
-	.avatar {
-		width: 40px;
-		flex-shrink: 0;
-		padding: 0;
-		border: none;
-		background: none;
-		cursor: pointer;
 	}
 	.info {
 		flex: 1;
@@ -192,7 +214,7 @@
 		flex-wrap: wrap;
 	}
 	.meta {
-		font-size: 0.75em;
+		font-size: var(--font-4);
 		opacity: 0.5;
 	}
 	.evidence {
@@ -202,41 +224,28 @@
 		margin-top: 0.25rem;
 	}
 	.tag {
-		font-size: 0.7em;
+		font-size: var(--font-4);
 		padding: 0.1em 0.4em;
-		border-radius: 3px;
-		white-space: nowrap;
+		border-radius: var(--border-radius);
 	}
-	.tag.spam {
-		background: #e57373;
-		color: #fff;
+	.tag[data-type='spam'] {
+		background: var(--color-red);
+		color: white;
 	}
-	.tag.location {
-		background: #fef3e0;
-		color: #854;
+	.tag[data-type='location'] {
+		background: var(--orange-3);
 	}
-	.tag.music {
-		background: #e8f5e9;
-		color: #2e7d32;
+	.tag[data-type='music'] {
+		background: var(--green-3);
 	}
 	.score {
 		min-width: 2.5rem;
 		text-align: right;
 		font-weight: bold;
-		font-size: 0.9em;
 	}
 	.actions {
 		display: flex;
 		gap: 0.25rem;
-	}
-	.actions button {
-		padding: 0.25em 0.5em;
-		font-size: 0.85em;
-	}
-	.actions .danger {
-		background: #c00;
-		color: white;
-		border-color: #900;
 	}
 	.expanded {
 		margin-top: 0.5rem;
@@ -247,16 +256,12 @@
 	}
 	.desc {
 		margin: 0;
-		font-size: 0.85em;
 		opacity: 0.8;
 		white-space: pre-wrap;
 		word-break: break-word;
 	}
 	pre {
-		max-height: 200px;
+		height: 3em;
 		overflow: auto;
-		border: 1px solid var(--color-border, #ddd);
-		padding: 0.5rem;
-		margin: 0 0.5rem;
 	}
 </style>
