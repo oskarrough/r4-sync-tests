@@ -37,8 +37,6 @@
 		"yargs": "^18.0.0"
 	},
 	"dependencies": {
-		"@electric-sql/pglite": "^0.3.14",
-		"@electric-sql/pglite-repl": "^0.2.32",
 		"@humanspeak/svelte-virtual-list": "^0.3.6",
 		"@inlang/paraglide-js": "^2.5.0",
 		"@inlang/plugin-m-function-matcher": "^2.1.0",

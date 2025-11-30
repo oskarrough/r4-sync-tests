@@ -27,10 +27,6 @@ export default defineConfig({
 		}),
 		devtoolsJson()
 	],
-	optimizeDeps: {
-		// https://pglite.dev/docs/bundler-support#vite
-		exclude: ['@electric-sql/pglite']
-	},
 	worker: {
 		format: 'es'
 	},

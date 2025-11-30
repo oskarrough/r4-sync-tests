@@ -16,7 +16,6 @@ Core tracks/channels collections working. See `docs/tanstack/tanstack.md` for ar
 **Remaining:**
 
 - [x] `src/routes/[slug]/batch-edit/` — **Rebuilt with TanStack**. Direct mutations via `updateTrack()`. No staging layer.
-- [~] `src/routes/playground/spam-warrior/` — keeps PGlite (playground, fine as-is)
 
 References:
 
