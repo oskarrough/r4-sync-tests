@@ -29,7 +29,9 @@
 	function setDecision(id, spam) {
 		const existing = spamDecisionsCollection.get(id)
 		if (existing) {
-			spamDecisionsCollection.update(id, (draft) => { draft.spam = spam })
+			spamDecisionsCollection.update(id, (draft) => {
+				draft.spam = spam
+			})
 		} else {
 			spamDecisionsCollection.insert({channelId: id, spam})
 		}
@@ -101,9 +103,7 @@
 			<button onclick={() => navigator.clipboard.writeText(sql)} disabled={toDelete.length === 0}>
 				Copy SQL ({toDelete.length})
 			</button>
-			<button onclick={clearAll} disabled={toDelete.length === 0 && toKeep.length === 0}>
-				Clear all
-			</button>
+			<button onclick={clearAll} disabled={toDelete.length === 0 && toKeep.length === 0}> Clear all </button>
 		</menu>
 	</header>
 
@@ -128,7 +128,9 @@
 
 						<div class="evidence">
 							{#if ev.keywords.length > 0}
-								<span class="tag" data-type="spam">{ev.keywords.slice(0, 4).join(', ')}{ev.keywords.length > 4 ? '…' : ''}</span>
+								<span class="tag" data-type="spam"
+									>{ev.keywords.slice(0, 4).join(', ')}{ev.keywords.length > 4 ? '…' : ''}</span
+								>
 							{/if}
 							{#if ev.phrases.length > 0}
 								<span class="tag" data-type="spam">"{ev.phrases[0]}"</span>
