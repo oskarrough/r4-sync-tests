@@ -3,7 +3,6 @@
 	import {appState} from '$lib/app-state.svelte'
 	import Icon from '$lib/components/icon.svelte'
 	import Modal from '$lib/components/modal.svelte'
-	import TrackForm from '$lib/components/track-form.svelte'
 	import {tooltip} from './tooltip-attachment'
 	import * as m from '$lib/paraglide/messages'
 
@@ -53,8 +52,11 @@
 		}
 	}
 
-	function handleSubmit(track) {
-		recentTracks.unshift(track)
+	function handleSubmit(event) {
+		const {data, error} = event.detail
+		if (error || !data) return
+
+		recentTracks.unshift(data)
 		if (recentTracks.length > 3) recentTracks.pop()
 
 		prefilledUrl = ''
@@ -62,7 +64,7 @@
 
 		document.dispatchEvent(
 			new CustomEvent('r5:trackAdded', {
-				detail: {track, channelId: channel?.id}
+				detail: {track: data, channelId: channel?.id}
 			})
 		)
 	}
@@ -79,7 +81,7 @@
 		<h2>{m.track_add_title()}</h2>
 	{/snippet}
 
-	<TrackForm {channel} initialUrl={prefilledUrl} onsubmit={handleSubmit} oncancel={() => (showModal = false)} />
+	<r4-track-create channel_id={channel?.id} url={prefilledUrl} onsubmit={handleSubmit}></r4-track-create>
 
 	{#if recentTracks.length > 0}
 		<div class="recent-tracks">

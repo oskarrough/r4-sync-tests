@@ -1,7 +1,6 @@
 <script>
 	import {appState} from '$lib/app-state.svelte'
 	import Modal from '$lib/components/modal.svelte'
-	import TrackForm from '$lib/components/track-form.svelte'
 	import * as m from '$lib/paraglide/messages'
 
 	let showModal = $state(false)
@@ -16,7 +15,10 @@
 		showModal = true
 	}
 
-	function handleSubmit() {
+	function handleSubmit(event) {
+		const {data, error} = event.detail
+		if (error) return
+
 		showModal = false
 
 		document.dispatchEvent(
@@ -33,11 +35,13 @@
 	{/snippet}
 
 	{#key currentTrack?.id}
-		<TrackForm
-			channel={currentChannel}
-			track={currentTrack}
+		<r4-track-update
+			id={currentTrack?.id}
+			url={currentTrack?.url}
+			title={currentTrack?.title}
+			description={currentTrack?.description}
+			discogs_url={currentTrack?.discogs_url}
 			onsubmit={handleSubmit}
-			oncancel={() => (showModal = false)}
-		/>
+		></r4-track-update>
 	{/key}
 </Modal>
