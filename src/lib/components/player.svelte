@@ -104,6 +104,11 @@
 		const code = event.target.error.code
 		const msg = `youtube_error_${code}`
 		log.warn(msg)
+		if (track?.id) {
+			tracksCollection.update(track.id, (draft) => {
+				draft.playback_error = msg
+			})
+		}
 		next(track, activeQueue, msg)
 	}
 

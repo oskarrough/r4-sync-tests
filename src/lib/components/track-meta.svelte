@@ -4,6 +4,7 @@
 	import {pull as insertMusicBrainzMeta} from '$lib/metadata/musicbrainz'
 	import {pullSingle as insertYouTubeMeta} from '$lib/metadata/youtube'
 	import {extractYouTubeId} from '$lib/utils.ts'
+	import {tracksCollection, trackMetaCollection} from '../../routes/tanstack/collections'
 	import * as m from '$lib/paraglide/messages'
 
 	const log = logger.ns('track-meta').seal()
@@ -39,6 +40,13 @@
 				}
 
 				const [youtube_data, musicbrainz_data] = await Promise.all(promises)
+
+				const meta = trackMetaCollection.get(ytid)
+				if (meta?.duration && !track.duration) {
+					tracksCollection.update(track.id, (draft) => {
+						draft.duration = meta.duration
+					})
+				}
 
 				// Sequential follow-up for discogs
 				let discogs_data = null

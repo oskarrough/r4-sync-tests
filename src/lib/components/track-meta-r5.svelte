@@ -78,6 +78,11 @@
 				<dt>{m.track_meta_updated()}</dt>
 				<dd>{relativeDate(data.updated_at)}</dd>
 			{/if}
+
+			{#if data.playback_error}
+				<dt>{m.track_meta_playback_error()}</dt>
+				<dd>{data.playback_error}</dd>
+			{/if}
 		</dl>
 	{/if}
 {:else}

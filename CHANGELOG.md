@@ -1,5 +1,10 @@
 # Changelog
 
+## December 2025
+
+- Added `track.duration` + `track.playback_error` fields
+- Replaced pglite with tanstack db
+
 ## November 2025
 
 - Multilanguage! Enjoy reading "play" in all the languages

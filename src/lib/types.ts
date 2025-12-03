@@ -60,6 +60,7 @@ export type Track = {
 	// when joined with track_meta table
 	ytid?: string
 	duration?: number
+	playback_error?: string
 	youtube_data?: object
 	musicbrainz_data?: object
 	discogs_data?: object

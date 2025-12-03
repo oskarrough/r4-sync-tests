@@ -434,6 +434,7 @@
 	"track_meta_flag_discogs": "✓ discogs",
 	"track_meta_added": "added",
 	"track_meta_updated": "updated",
+	"track_meta_playback_error": "playback error",
 	"track_meta_no_data": "No track data available",
 	"track_meta_published": "published",
 	"track_meta_thumbnail": "thumbnail",
