@@ -107,3 +107,4 @@ These are the custom elements used on radio4000.com and many also in this app.
 
 - When you fetch tanstack documentation, suffix the url with .md to get raw markdown
 - LIMIT and OFFSET queries with tanstack require an ORDER BY clause to ensure deterministic results
+- when you fetch tanstack suffix urls with .md  to get raw markdown
