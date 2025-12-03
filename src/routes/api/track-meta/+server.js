@@ -2,14 +2,10 @@ import {error, json} from '@sveltejs/kit'
 import {Duration} from 'luxon'
 import {YOUTUBE_API_KEY} from '$env/static/private'
 
-// Assuming you have httpie installed in the CLI:
+// This is our only API endpoint in the app. Only piece of server code. Consider migrating to api.radio4000.com
+//
+// Assuming you have httpie installed in your terminal:
 // http POST localhost:5173/api/track-meta ids:='["dQw4w9WgXcQ", "pjeUbWj6k"]'
-
-/** @param {string} duration */
-function parseDurationToSeconds(duration) {
-	const luxonDuration = Duration.fromISO(duration)
-	return luxonDuration.as('seconds')
-}
 
 /** @type {import('./$types').RequestHandler} */
 export async function POST({request}) {
@@ -41,4 +37,13 @@ export async function POST({request}) {
 	} catch (err) {
 		error(500, `Failed to fetch track metadata: ${err.message}`)
 	}
+}
+
+/**
+ * The "duration" is a special string youtube uses.. "pomerian durationss"
+ * @param {string} duration
+ **/
+function parseDurationToSeconds(duration) {
+	const luxonDuration = Duration.fromISO(duration)
+	return luxonDuration.as('seconds')
 }

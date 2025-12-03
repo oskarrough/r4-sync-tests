@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest'
-import {fetchDiscogs, parseDiscogsUrl, searchUrl} from './discogs.js'
+import {fetchDiscogs, parseDiscogsUrl, searchUrl} from './discogs-core.js'
 
 describe('discogs integration', () => {
 	it('parses discogs URLs correctly', () => {

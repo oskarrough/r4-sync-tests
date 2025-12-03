@@ -31,12 +31,11 @@
 	</menu>
 
 	<menu vertical>
-		<a href="/recovery">{m.settings_recovery()}</a>
-		<a href="/repl">Developer repl</a>
 		<a href="/about">{m.nav_about()}</a>
 		<a href="https://matrix.to/#/#radio4000:matrix.org" rel="noreferrer">{m.nav_chat()} &rarr;</a>
 		{#if sha}
-			<a href="https://github.com/radio4000/r4-sync-tests/commit/{sha}" target="_blank" rel="noreferrer">{sha} &rarr;</a
+			<a href="https://github.com/radio4000/r4-sync-tests/commit/{sha}" target="_blank" rel="noreferrer"
+				>Source code {sha} &rarr;</a
 			>
 		{/if}
 	</menu>

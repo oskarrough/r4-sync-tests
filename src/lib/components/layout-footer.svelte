@@ -1,9 +1,12 @@
 <script>
+	import {page} from '$app/state'
 	import gsap from 'gsap'
 	import {Draggable} from 'gsap/Draggable'
 	import {InertiaPlugin} from 'gsap/InertiaPlugin'
 	import {appState} from '$lib/app-state.svelte'
 	import Player from '$lib/components/player.svelte'
+
+	let showPlayer = $derived(page.url.searchParams.get('player') !== 'false')
 
 	// This component wraps the player and controls the "expanded" state,
 	// via a toggle button and a draggable element.
@@ -39,15 +42,17 @@
 	})
 </script>
 
-<footer
-	bind:this={footerElement}
-	class={{
-		expanded: appState.player_expanded,
-		showVideo: appState.show_video_player
-	}}
->
-	<Player />
-</footer>
+{#if showPlayer}
+	<footer
+		bind:this={footerElement}
+		class={{
+			expanded: appState.player_expanded,
+			showVideo: appState.show_video_player
+		}}
+	>
+		<Player />
+	</footer>
+{/if}
 
 <style>
 	footer {

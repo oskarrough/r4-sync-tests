@@ -21,10 +21,13 @@
 		<h1>{m.auth_create_account_title()}</h1>
 		<r4-sign-up onsubmit={onSubmit}></r4-sign-up>
 		<footer>
-			<p>{m.auth_already_have_account()}</p>
+			<p>{m.auth_already_have_account_intro()} <a href="/auth/login">{m.auth_card_login_title()}</a></p>
 			<p>
 				<small>
-					{m.auth_having_trouble()}
+					{m.auth_reset_help_intro()}
+					<a href="https://matrix.to/#/#radio4000:matrix.org" target="_blank" rel="noopener">Matrix</a>
+					{m.common_or()}
+					<a href="mailto:contact@radio4000.com">contact@radio4000.com</a>.
 				</small>
 			</p>
 		</footer>
@@ -44,7 +47,7 @@
 	}
 
 	h1 {
-		margin-bottom: 3vh;
+		margin: 3vh auto;
 		font-size: var(--font-7);
 		text-align: center;
 	}

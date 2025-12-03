@@ -23,6 +23,7 @@ export interface Channel {
 	// custom ones
 	tracks_outdated?: boolean
 	track_count?: number
+	latest_track_at?: string
 
 	latitude?: number
 	longitude?: number
@@ -55,7 +56,7 @@ export type Track = {
 	firebase_id?: string
 	// sometimes we include this, too
 	channel_id?: string
-	channel_slug?: string
+	slug?: string
 	// when joined with track_meta table
 	ytid?: string
 	duration?: number
@@ -76,9 +77,13 @@ export interface AppState {
 	counter: number
 	channels_display: string
 	channels_filter: string
+	channels_order: 'updated' | 'created' | 'name' | 'tracks'
+	channels_order_direction: 'asc' | 'desc'
 	channels_shuffled: boolean
-	/** the user's channels */
+	/** the user's channels (IDs) */
 	channels?: string[]
+	/** the user's primary channel (full object) */
+	channel?: Channel
 	shuffle: boolean
 	broadcasting_channel_id?: string
 	listening_to_channel_id?: string

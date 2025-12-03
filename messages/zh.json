@@ -44,7 +44,7 @@
 	"auth_create_account_title": "创建 Radio4000 账户",
 	"auth_create_or_signin": "创建账户或登录",
 	"auth_forgot_password": "忘记密码？",
-	"auth_having_trouble": "遇到困难？请在 Matrix 或 hello@radio4000.com 上联系我们。",
+	"auth_having_trouble": "遇到困难？请在 Matrix 或 contact@radio4000.com 上联系我们。",
 	"auth_log_out": "退出登录",
 	"auth_login_title": "登录 Radio4000",
 	"auth_new_to_r4": "新用户？一分钟内即可创建账户。",

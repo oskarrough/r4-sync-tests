@@ -63,7 +63,7 @@
 					discogs_data: discogs_data || track.discogs_data
 				}
 				log.info('metadata updated', result)
-				onResult(result)
+				onResult?.(result)
 			} catch (err) {
 				error = err instanceof Error ? err.message : String(err)
 			} finally {

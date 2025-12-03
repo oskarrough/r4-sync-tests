@@ -19,6 +19,7 @@
 
 		if (!user) {
 			if (appState.channels?.length) {
+				appState.channel = null
 				appState.channels = []
 			}
 			return
@@ -29,6 +30,9 @@
 
 		if (isNewSession || isNewSignIn) {
 			await checkUser()
+		} else if (event === 'INITIAL_SESSION' && user) {
+			// Background sync - verify channels match remote
+			checkUser()
 		}
 	}
 </script>

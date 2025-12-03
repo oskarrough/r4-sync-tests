@@ -10,9 +10,10 @@
 		if (user) {
 			const redirect = page.url.searchParams.get('redirect') || '/settings'
 			goto(redirect)
+		} else {
+			console.error('signinerror', {user, error})
+			throw new Error('Failed to sign in')
 		}
-		console.error('signinerror', {user, error})
-		throw new Error('Failed to sign in')
 	}
 </script>
 
@@ -25,11 +26,14 @@
 	<r4-sign-in onsubmit={onSubmit}></r4-sign-in>
 
 	<footer>
-		<p>{m.auth_new_to_r4()}</p>
+		<p>{m.auth_new_to_r4_intro()} <a href="/auth/create-account">{m.auth_card_create_title()}</a></p>
 		<p><a href="/auth/reset-password">{m.auth_forgot_password()}</a></p>
 		<p>
 			<small>
-				{m.auth_having_trouble()}
+				{m.auth_reset_help_intro()}
+				<a href="https://matrix.to/#/#radio4000:matrix.org" target="_blank" rel="noopener">Matrix</a>
+				{m.common_or()}
+				<a href="mailto:contact@radio4000.com">contact@radio4000.com</a>.
 			</small>
 		</p>
 	</footer>

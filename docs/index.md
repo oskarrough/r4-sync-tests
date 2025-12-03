@@ -1,34 +1,22 @@
 r5 is a local-first music player prototype.
 
-- pulls data from Radio4000 v1 (firebase) and v2 (r4)
-- inserts it into your local in-browser (pg) database
+- pulls data from Radio4000 v1 (firebase) and v2 (r4 postgres)
+- queries and caches it in your browser storage
 - is built as a SvelteKit client-only web app
 
-## architecture & data flow
++------------------+ +-------------------+ +------------------+
+| Local PGlite | <-> | r5 client | <-> | Remote Sources |
+| (primary data) | | (unified layer) | | (r4/v1 sync) |
++------------------+ +-------------------+ +------------------+
 
 ```
-+------------------+     +-------------------+     +------------------+
-|   Local PGlite   | <-> |      r5 SDK       | <-> |  Remote Sources  |
-|  (primary data)  |     |  (unified layer)  |     |   (r4/v1 sync)   |
-+------------------+     +-------------------+     +------------------+
-```
 
-We read from the local database. We do optimistic updates, write to r4 and optionally `pull` data to refresh it.
+We query from the local collections. Tanstack fires requests as needed to read and write data. We have optimistic updates, offline transactions and caching.
 
-1. App starts → loads from local database
-2. As the user browses and plays it triggers sync → `.pull()` methods
-3. User adds tracks → saves local first, persists to r4
+## Overview
 
-## documentation
-
-data/sync
-
-- [local-database](local-database.md) - pglite setup, migrations, and query patterns
-- [r5 sdk](r5-sdk.md) - unified api for local/remote data access
+- [tanstack](tanstack.md) - unified api for local/remote data access
 - [v1 data](v1-data.md) - how we deal with firebase v1 data
-
-features
-
 - [metadata](metadata.md) - track enrichment via youtube, musicbrainz, discogs etc
 - [player](player.md) - audio playback engine and controls
 - [play-history](play-history.md) - track play history and statistics
@@ -38,3 +26,4 @@ features
 - [keyboard](keyboard.md) - keyboard shortcuts
 - [localization](localization.md) - internationalization and multi-language support
 - [styles](styles.md) - css architecture and design system
+```

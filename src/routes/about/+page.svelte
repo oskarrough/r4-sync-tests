@@ -54,7 +54,6 @@
 			<a href="/" class="btn">{m.about_start_exploring()}</a>
 		</p>
 		<p>
-			<a href="/repl">{m.about_repl_link()}</a> •
 			<a href="https://github.com/radio4000/r4-sync-tests" rel="noopener noreferrer">{m.about_source_code()}</a>
 		</p>
 	</footer>

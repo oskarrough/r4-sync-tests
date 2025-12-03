@@ -1,12 +1,17 @@
 <script>
 	import {page} from '$app/state'
+	import {useLiveQuery} from '@tanstack/svelte-db'
 	import {addToPlaylist, playTrack, setPlaylist} from '$lib/api'
 	import ChannelCard from '$lib/components/channel-card.svelte'
 	import SearchStatus from '$lib/components/search-status.svelte'
 	import TrackCard from '$lib/components/track-card.svelte'
 	import {trap} from '$lib/focus'
-	import {r5} from '$lib/r5'
+	import {searchAll} from '$lib/search'
+	import {channelsCollection} from '../tanstack/collections'
 	import * as m from '$lib/paraglide/messages'
+
+	// Trigger channels to load into collection state (needed for search on direct page load)
+	const channelsQuery = useLiveQuery((q) => q.from({channels: channelsCollection}))
 
 	/** @type {import('$lib/types.ts').Channel[]} */
 	let channels = $state([])
@@ -17,9 +22,10 @@
 	let searchQuery = $state('')
 	let isLoading = $state(false)
 
-	// Watch for URL changes and update search
+	// Watch for URL changes and update search (wait for channels to load)
 	$effect(() => {
 		const urlSearch = page.url.searchParams.get('search')
+		if (channelsQuery.isLoading) return
 		if (urlSearch && urlSearch !== searchQuery) {
 			searchQuery = urlSearch
 			search()
@@ -38,15 +44,9 @@
 		if (searchQuery.trim().length < 2) return clear()
 
 		isLoading = true
-
-		try {
-			const results = await r5.search.all(searchQuery)
-			channels = results.channels
-			tracks = results.tracks
-		} catch (error) {
-			console.error('search:error', error)
-		}
-
+		const results = await searchAll(searchQuery)
+		channels = results.channels
+		tracks = results.tracks
 		isLoading = false
 	}
 

@@ -3,11 +3,14 @@
 	import ChannelCard from '$lib/components/channel-card.svelte'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
 	import * as m from '$lib/paraglide/messages'
+	import {followsCollection, channelsCollection} from '../tanstack/collections'
 
-	/** @type {import('./$types').PageData} */
-	let {data} = $props()
-
-	let followings = $derived(data.followings)
+	let followings = $derived(
+		[...followsCollection.state.values()]
+			.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+			.map((f) => ({...channelsCollection.get(f.channelId), source: f.source}))
+			.filter((ch) => ch.id)
+	)
 </script>
 
 <svelte:head>

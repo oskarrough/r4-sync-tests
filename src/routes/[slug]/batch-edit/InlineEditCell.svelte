@@ -1,15 +1,11 @@
 <script>
-	let {track, field, edits, onEdit} = $props()
+	let {track, field, onEdit, canEdit = true} = $props()
 
 	let isEditing = $state(false)
-
-	let originalValue = $derived(track?.[field] || '')
-
-	let edit = $derived(edits.find((e) => e.track_id === track.id && e.field === field))
-	let currentValue = $derived(edit ? edit.new_value : originalValue)
-	let isDiff = $derived(!!edit)
+	let value = $derived(track?.[field] || '')
 
 	function startEdit(e) {
+		if (!canEdit) return
 		e.stopPropagation()
 		isEditing = true
 	}
@@ -18,9 +14,11 @@
 		isEditing = false
 	}
 
-	async function commitEdit(value) {
+	async function commitEdit(newValue) {
 		stopEdit()
-		await onEdit(track.id, field, value)
+		if (newValue !== value) {
+			await onEdit(track.id, field, newValue)
+		}
 	}
 
 	function handleKeydown(e) {
@@ -42,20 +40,15 @@
 {#if isEditing}
 	<input
 		type="text"
-		value={currentValue}
+		{value}
 		class="inline-input"
 		onblur={(e) => commitEdit(e.target.value)}
 		onkeydown={handleKeydown}
 		use:focus
 	/>
-{:else if isDiff}
-	<span class="editable diff" onclick={startEdit} title="{originalValue} → {currentValue}">
-		<del>{originalValue || '(empty)'}</del>
-		<ins>{currentValue}</ins>
-	</span>
 {:else}
-	<span class="editable" onclick={startEdit}>
-		{currentValue}&nbsp;
+	<span class="editable" class:readonly={!canEdit} onclick={startEdit}>
+		{value}&nbsp;
 	</span>
 {/if}
 
@@ -66,12 +59,8 @@
 		width: 100%;
 	}
 
-	.diff {
-		background: var(--yellow-1);
-	}
-
-	.diff ins {
-		margin-left: 0.25rem;
+	.editable.readonly {
+		cursor: default;
 	}
 
 	.inline-input {

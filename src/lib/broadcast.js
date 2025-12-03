@@ -1,12 +1,27 @@
 import {playTrack} from '$lib/api'
 import {appState} from '$lib/app-state.svelte'
 import {logger} from '$lib/logger'
-import {r4} from '$lib/r4'
-import {r5} from '$lib/r5'
-import {pg} from '$lib/r5/db'
-import {trackIdToSlug} from '$lib/r5/tracks'
+import {sdk} from '@radio4000/sdk'
+import {channelsCollection, queryClient} from '../routes/tanstack/collections'
 
 const log = logger.ns('broadcast').seal()
+
+async function readBroadcastsWithChannel() {
+	const {data, error} = await sdk.supabase.from('broadcast').select(`
+		channel_id,
+		track_id,
+		track_played_at,
+		channels (
+			id,
+			name,
+			slug,
+			image,
+			description
+		)
+	`)
+	if (error) throw error
+	return data || []
+}
 
 /** This will be the Supabase "channel" for broadcast updates
  * @type {any}
@@ -16,12 +31,7 @@ let broadcastChannel = null
 /** @param {string} channelId */
 export async function joinBroadcast(channelId) {
 	try {
-		const {data} = await r4.sdk.supabase
-			.from('broadcast')
-			.select('*')
-			.eq('channel_id', channelId)
-			.single()
-			.throwOnError()
+		const {data} = await sdk.supabase.from('broadcast').select('*').eq('channel_id', channelId).single().throwOnError()
 		await playBroadcastTrack(data)
 		startBroadcastSync(channelId)
 		log.log('joined', {channelId})
@@ -45,7 +55,7 @@ export function leaveBroadcast() {
  * @param {string} trackId
  */
 export async function upsertRemoteBroadcast(channelId, trackId) {
-	return r4.sdk.supabase
+	return sdk.supabase
 		.from('broadcast')
 		.upsert({
 			channel_id: channelId,
@@ -68,8 +78,8 @@ export async function startBroadcast(channelId, trackId) {
 	}
 
 	// Check if track is from v1 channel - these can't be broadcast
-	const channel = (await pg.sql`SELECT source, slug FROM channels where id = ${channelId}`).rows[0]
-	if (channel.source === 'v1') {
+	const channel = channelsCollection.get(channelId)
+	if (channel?.source === 'v1') {
 		log.error('failed_v1_track', {channelId, trackId, channel})
 		throw new Error('Cannot broadcast v1 channels')
 	}
@@ -85,7 +95,7 @@ export async function stopBroadcast(channelId) {
 	log.log('stop_requested', {channelId})
 	if (!channelId) return
 	try {
-		await r4.sdk.supabase.from('broadcast').delete().eq('channel_id', channelId).throwOnError()
+		await sdk.supabase.from('broadcast').delete().eq('channel_id', channelId).throwOnError()
 		log.log('deleted remote broadcast', {channelId})
 	} catch (error) {
 		log.error('failed to delete remote broadcast', {
@@ -104,12 +114,11 @@ export function watchBroadcasts(onChange) {
 	log.debug('watching for remote changes')
 
 	// Load initial data
-	r4.broadcasts
-		.readBroadcastsWithChannel()
+	readBroadcastsWithChannel()
 		.then((broadcasts) => onChange({broadcasts, error: null}))
 		.catch((error) => onChange({broadcasts: [], error: error.message}))
 
-	let watchChannel = r4.sdk.supabase
+	let watchChannel = sdk.supabase
 		.channel('broadcasts-page')
 		.on('postgres_changes', {event: '*', schema: 'public', table: 'broadcast'}, async (payload) => {
 			const channelId = payload.new?.channel_id || payload.old?.channel_id
@@ -132,7 +141,7 @@ export function watchBroadcasts(onChange) {
 
 			// Reload and notify
 			try {
-				const broadcasts = await r4.broadcasts.readBroadcastsWithChannel()
+				const broadcasts = await readBroadcastsWithChannel()
 				onChange({broadcasts, error: null})
 			} catch (error) {
 				onChange({broadcasts: [], error: error.message})
@@ -157,7 +166,7 @@ function startBroadcastSync(channelId) {
 
 	log.log('starting_sync', {channelId})
 
-	broadcastChannel = r4.sdk.supabase
+	broadcastChannel = sdk.supabase
 		.channel(`broadcast:${channelId}`)
 		.on(
 			'postgres_changes',
@@ -202,11 +211,13 @@ export async function playBroadcastTrack(broadcast) {
 		appState.listening_to_channel_id = channel_id
 		return true
 	} catch {
-		// if it failed, fetch and retry
+		// if it failed, fetch channel tracks and retry
 		try {
-			const slug = await trackIdToSlug(track_id)
-			if (!slug) throw new Error('No channel found for track')
-			await r5.pull(slug)
+			// Get slug from channel (we have channel_id from broadcast)
+			const channel = channelsCollection.get(channel_id)
+			const slug = channel?.slug
+			if (!slug) throw new Error('No channel found for broadcast')
+			await queryClient.invalidateQueries({queryKey: ['tracks', slug]})
 			await playTrack(track_id, '', 'broadcast_sync')
 			appState.listening_to_channel_id = channel_id
 			log.log('play_success_after_fetch', {track_id, channel_id, slug})
@@ -215,5 +226,24 @@ export async function playBroadcastTrack(broadcast) {
 			log.error('failed_completely', {track_id, error: /** @type {Error} */ (error).message})
 			return false
 		}
+	}
+}
+
+/** Validate that listening_to_channel_id points to an active broadcast */
+export async function validateListeningState() {
+	if (!appState.listening_to_channel_id) return
+
+	try {
+		const {data} = await sdk.supabase
+			.from('broadcast')
+			.select('channel_id')
+			.eq('channel_id', appState.listening_to_channel_id)
+			.single()
+
+		if (!data) {
+			appState.listening_to_channel_id = undefined
+		}
+	} catch {
+		appState.listening_to_channel_id = undefined
 	}
 }

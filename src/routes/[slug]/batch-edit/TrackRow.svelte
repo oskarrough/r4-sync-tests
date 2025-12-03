@@ -2,7 +2,7 @@
 	import InlineEditCell from './InlineEditCell.svelte'
 	import * as m from '$lib/paraglide/messages'
 
-	let {track, isSelected, selectedTracks, onSelect, data, edits, onEdit} = $props()
+	let {track, slug, isSelected, selectedTracks, onSelect, onEdit, canEdit} = $props()
 
 	function handleCheckboxChange(e) {
 		if (e.target.checked) {
@@ -20,7 +20,7 @@
 
 	<div class="col-link">
 		<a
-			href="/{data.slug}/tracks/{track.id}"
+			href="/{slug}/tracks/{track.id}"
 			target="_blank"
 			rel="noopener noreferrer"
 			title={m.batch_edit_track_link_title()}
@@ -30,17 +30,17 @@
 	</div>
 
 	<div class="col-url">
-		<InlineEditCell {track} field="url" {edits} {onEdit} />
+		<InlineEditCell {track} field="url" {onEdit} {canEdit} />
 	</div>
 	<div class="col-title">
-		<InlineEditCell {track} field="title" {edits} {onEdit} />
+		<InlineEditCell {track} field="title" {onEdit} {canEdit} />
 	</div>
 
 	<div class="col-description">
-		<InlineEditCell {track} field="description" {edits} {onEdit} />
+		<InlineEditCell {track} field="description" {onEdit} {canEdit} />
 	</div>
 	<div class="col-discogs">
-		<InlineEditCell {track} field="discogs_url" {edits} {onEdit} />
+		<InlineEditCell {track} field="discogs_url" {onEdit} {canEdit} />
 	</div>
 	<div class="col-tags">{track.tags || ''}</div>
 	<div class="col-mentions">{track.mentions || ''}</div>
@@ -90,17 +90,6 @@
 
 	.col-date {
 		white-space: nowrap;
-	}
-
-	.editable {
-		cursor: pointer;
-	}
-
-	.inline-edit {
-		width: 100%;
-		border: none;
-		background: transparent;
-		font: inherit;
 	}
 
 	.meta-indicator {

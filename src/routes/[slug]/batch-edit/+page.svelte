@@ -1,29 +1,39 @@
 <script>
+	import {useLiveQuery, eq} from '@tanstack/svelte-db'
+	import {page} from '$app/state'
+	import {channelsCollection, tracksCollection, updateTrack} from '../../tanstack/collections'
 	import {appState} from '$lib/app-state.svelte'
-	import {batchEdit} from '$lib/batch-edit.svelte'
-	import {r5} from '$lib/r5'
-	import EditsPanel from './EditsPanel.svelte'
 	import TrackRow from './TrackRow.svelte'
 	import * as m from '$lib/paraglide/messages'
 
-	let {data} = $props()
+	let slug = $derived(page.params.slug)
 
-	let {channel, tracks} = $derived(data)
+	const channelQuery = useLiveQuery((q) =>
+		q
+			.from({channels: channelsCollection})
+			.where(({channels}) => eq(channels.slug, slug))
+			.orderBy(({channels}) => channels.created_at, 'desc')
+			.limit(1)
+	)
+
+	const tracksQuery = useLiveQuery((q) =>
+		q
+			.from({tracks: tracksCollection})
+			.where(({tracks}) => eq(tracks.slug, slug))
+			.orderBy(({tracks}) => tracks.created_at, 'desc')
+	)
+
+	let channel = $derived(channelQuery.data?.[0])
+	let tracks = $derived(tracksQuery.data || [])
 	const readonly = $derived(channel?.source === 'v1')
-	const canEdit = $derived(!readonly && appState.channels && appState.channels.includes(channel.id))
+	const canEdit = $derived(!readonly && appState.channels?.includes(channel?.id))
 
-	let {edits, appliedEdits} = $derived(data)
-	let hasEdits = $derived(edits?.length > 0)
-
-	/** @type {import('$lib/types').Track[]} */
+	/** @type {string[]} */
 	let selectedTracks = $state([])
-
 	let filter = $state('all')
 
 	let selectedCount = $derived(selectedTracks.length)
 	let hasSelection = $derived(selectedCount > 0)
-
-	let tracksMap = $derived(new Map(tracks?.map((t) => [t.id, t]) || []))
 
 	let filteredTracks = $derived.by(() => {
 		if (!tracks) return []
@@ -49,7 +59,6 @@
 
 	function selectTrack(trackId, event) {
 		if (event.shiftKey && selectedTracks.length > 0) {
-			// Shift+click: select range
 			const trackIndex = filteredTracks.findIndex((t) => t.id === trackId)
 			const lastSelected = selectedTracks[selectedTracks.length - 1]
 			const lastIndex = filteredTracks.findIndex((t) => t.id === lastSelected)
@@ -63,14 +72,12 @@
 			}
 			selectedTracks = [...new Set([...selectedTracks, ...rangeIds])]
 		} else if (event.ctrlKey || event.metaKey) {
-			// Ctrl/Cmd+click: toggle selection
 			if (selectedTracks.includes(trackId)) {
 				selectedTracks = selectedTracks.filter((id) => id !== trackId)
 			} else {
 				selectedTracks = [...selectedTracks, trackId]
 			}
 		} else {
-			// Regular click: select only this track
 			selectedTracks = [trackId]
 		}
 	}
@@ -84,14 +91,10 @@
 	}
 
 	async function onEdit(trackId, field, newValue) {
+		if (!channel || !canEdit) return
 		const track = tracks.find((t) => t.id === trackId)
-		if (!track) return
-		const originalValue = track[field] || ''
-		try {
-			await batchEdit.stageFieldEdit(trackId, field, originalValue, newValue)
-		} catch (error) {
-			console.error('Failed to stage edit:', error)
-		}
+		if (!track || track[field] === newValue) return
+		await updateTrack(channel, trackId, {[field]: newValue})
 	}
 </script>
 
@@ -99,40 +102,39 @@
 	<title>{m.batch_edit_page_title({name: channel?.name || m.channel_page_fallback()})}</title>
 </svelte:head>
 
-<header>
-	<nav>
-		<a href="/{data.slug}">@{channel?.name}</a>
-		{m.batch_edit_nav_suffix()}
-		{#if hasEdits}
-			<span>{m.batch_edit_edit_count({count: edits.length})}</span>
-		{/if}
-		<p>
-			<strong>{m.batch_edit_warning()}</strong>
-		</p>
-	</nav>
-	<menu>
-		<select bind:value={filter}>
-			<option value="all">{m.batch_edit_filter_all()}</option>
-			<option value="missing-description">{m.batch_edit_filter_missing_description()}</option>
-			<option value="single-tag">{m.batch_edit_filter_single_tag()}</option>
-			<option value="no-tags">{m.batch_edit_filter_no_tags()}</option>
-			<option value="no-meta">{m.batch_edit_filter_no_meta()}</option>
-			<option value="has-meta">{m.batch_edit_filter_has_meta()}</option>
-			<option value="has-t-param">{m.batch_edit_filter_has_t_param()}</option>
-		</select>
-		<button onclick={() => r5.tracks.pull({slug: data.slug})}>{m.batch_edit_pull_tracks()}</button>
-		<!--
-		<button onclick={handlePullMeta} disabled={updatingMeta}>
-			{updatingMeta ? '⏳ Pulling...' : '⏱️ Pull metadata (YouTube + MusicBrainz)'}
-		</button>
-		-->
-	</menu>
-</header>
+{#if channelQuery.isLoading}
+	<p style="padding: 1rem;">Loading...</p>
+{:else if !channel}
+	<p style="padding: 1rem;">Channel not found</p>
+{:else}
+	<header>
+		<nav>
+			<a href="/{slug}">@{channel.name}</a>
+			{m.batch_edit_nav_suffix()}
+			{#if readonly}
+				<span style="color: var(--color-yellow);">(v1 channel - read only)</span>
+			{:else if !canEdit}
+				<span style="color: var(--color-yellow);">(no edit access)</span>
+			{/if}
+		</nav>
+		<menu>
+			<select bind:value={filter}>
+				<option value="all">{m.batch_edit_filter_all()}</option>
+				<option value="missing-description">{m.batch_edit_filter_missing_description()}</option>
+				<option value="single-tag">{m.batch_edit_filter_single_tag()}</option>
+				<option value="no-tags">{m.batch_edit_filter_no_tags()}</option>
+				<option value="no-meta">{m.batch_edit_filter_no_meta()}</option>
+				<option value="has-meta">{m.batch_edit_filter_has_meta()}</option>
+				<option value="has-t-param">{m.batch_edit_filter_has_t_param()}</option>
+			</select>
+		</menu>
+	</header>
 
-<div class="batch-edit-layout">
 	<main class="tracks-container">
 		<section class="tracks">
-			{#if filteredTracks.length === 0}
+			{#if tracksQuery.isLoading}
+				<p>Loading tracks...</p>
+			{:else if filteredTracks.length === 0}
 				<p>{m.batch_edit_no_tracks()}</p>
 			{:else}
 				<div class="tracks-list">
@@ -162,12 +164,12 @@
 							<li>
 								<TrackRow
 									{track}
+									{slug}
 									isSelected={selectedTracks.includes(track.id)}
 									{selectedTracks}
 									onSelect={(e) => selectTrack(track.id, e)}
-									{data}
-									{edits}
 									{onEdit}
+									{canEdit}
 								/>
 							</li>
 						{/each}
@@ -176,27 +178,18 @@
 			{/if}
 		</section>
 	</main>
-
-	<EditsPanel
-		{edits}
-		{appliedEdits}
-		{tracksMap}
-		{readonly}
-		{canEdit}
-		onCommit={() => batchEdit.commit()}
-		onDiscard={() => batchEdit.discard()}
-		onUndo={(trackId, field) => batchEdit.undo(trackId, field)}
-		onDelete={(trackId, field) => batchEdit.deletePendingEdit(trackId, field)}
-	/>
-</div>
+{/if}
 
 <style>
 	header nav {
 		display: flex;
 		align-items: center;
-		p {
-			margin: 0 0 0 auto;
-		}
+		gap: 0.5rem;
+		padding: 0.5rem;
+	}
+
+	header menu {
+		padding: 0 0.5rem;
 	}
 
 	.tracks-header {
@@ -207,14 +200,6 @@
 		font-weight: bold;
 		background: var(--gray-1);
 		border-bottom: 1px solid var(--gray-7);
-	}
-
-	.batch-edit-layout {
-		border-top: 1px solid var(--gray-5);
-		display: grid;
-		grid-template-columns: 1fr min(400px, 40%);
-		height: 100%;
-		position: relative;
 	}
 
 	.tracks-container {

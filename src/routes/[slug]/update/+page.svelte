@@ -1,35 +1,28 @@
 <script>
-	import {page} from '$app/stores'
+	import {page} from '$app/state'
 	import {appState} from '$lib/app-state.svelte'
-	import {pg} from '$lib/r5/db'
+	import {useLiveQuery, eq} from '@tanstack/svelte-db'
+	import {channelsCollection} from '../../tanstack/collections'
 	import * as m from '$lib/paraglide/messages'
 
-	const slug = $derived(page.params.slug)
-
-	const channel = $derived.by(async () => {
-		const result = await pg.sql`select * from channels where slug = ${slug}`
-		return result.rows[0]
-	})
-
-	const isOwner = $derived.by(async () => {
-		const channelData = await channel
-		return channelData && appState.channels?.includes(channelData.id)
-	})
+	const channelQuery = useLiveQuery((q) =>
+		q.from({channels: channelsCollection}).where(({channels}) => eq(channels.slug, page.params.slug))
+	)
+	const channel = $derived(channelQuery.data?.[0])
+	const isOwner = $derived(channel && appState.channels?.includes(channel.id))
 </script>
 
 <svelte:head>
-	{#await channel then channelData}
-		<title>{m.channel_update_page_title({name: channelData?.name || slug})}</title>
-	{/await}
+	<title>{m.channel_update_page_title({name: channel?.name || page.params.slug})}</title>
 </svelte:head>
 
-{#await Promise.all([channel, isOwner]) then [channelData, ownerCheck]}
-	{#if !channelData}
-		<p>{m.channel_not_found()}</p>
-	{:else if !ownerCheck}
-		<p>{m.channel_update_permission()}</p>
-	{:else}
-		<h1>{m.channel_update_heading({name: channelData.name})}</h1>
-		<r4-channel-update channel-id={channelData.id}></r4-channel-update>
-	{/if}
-{/await}
+{#if channelQuery.isLoading}
+	<p>Loading…</p>
+{:else if !channel}
+	<p>{m.channel_not_found()}</p>
+{:else if !isOwner}
+	<p>{m.channel_update_permission()}</p>
+{:else}
+	<h1>{m.channel_update_heading({name: channel.name})}</h1>
+	<r4-channel-update channel-id={channel.id}></r4-channel-update>
+{/if}

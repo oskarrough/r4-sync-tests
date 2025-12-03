@@ -1,33 +1,23 @@
 import {batcher} from '$lib/batcher'
 import {logger} from '$lib/logger'
-import {pg} from '$lib/r5/db'
+import {trackMetaCollection} from '../../routes/tanstack/collections'
 
 /** @typedef {{status: string, value: {id: string, tags: string[], duration: number, title: string, categoryId: string, description: string, publishedAt: string}}} YouTubeVideo */
 
 const log = logger.ns('metadata/youtube').seal()
 
 /** @param {string[]} ytids */
-async function getTracksToUpdate(ytids) {
-	const res = await pg.sql`
-			SELECT id, ytid(url) as ytid
-			FROM tracks_with_meta 
-			WHERE 
-				ytid(url) IS NOT NULL
-				AND ytid(url) = ANY(${ytids})
-				AND youtube_data IS NULL
-	`
-	if (res.rows.length === 0) return []
-	return res.rows
+function getTracksToUpdate(ytids) {
+	return ytids.filter((ytid) => !trackMetaCollection.get(ytid)?.youtube_data)
 }
 
 /**
- * Fetch YouTube metadata for channel tracks and save to track_meta
- * @param {string} channelId Channel ID
+ * Fetch YouTube metadata for channel tracks
+ * @deprecated Use pullSingle or pull with ytids from tracksCollection instead
+ * @param {string[]} ytids YouTube video IDs from channel tracks
  * @returns {Promise<Object[]>} Fetched metadata
  */
-export async function pullFromChannel(channelId) {
-	const {rows} = await pg.sql`select ytid(url) as ytid from tracks_with_meta where channel_id = ${channelId}`
-	const ytids = rows.map((r) => r.ytid)
+export async function pullFromChannel(ytids) {
 	return await pull(ytids)
 }
 
@@ -42,21 +32,21 @@ export async function pullSingle(ytid) {
 }
 
 /**
- * Fetch YouTube metadata and save to track_meta
+ * Fetch YouTube metadata and save to track_meta collection
  * @param {string[]} ytids YouTube video IDs
  * @returns {Promise<Object[]>} Fetched metadata
  */
 export async function pull(ytids) {
-	const items = await getTracksToUpdate(ytids)
-	if (items.length === 0) {
+	const toUpdate = getTracksToUpdate(ytids)
+	if (toUpdate.length === 0) {
 		log.info('all tracks already have metadata')
 		return []
 	}
 
 	// Batch fetch YouTube metadata
 	const batches = []
-	for (let i = 0; i < ytids.length; i += 50) {
-		batches.push(ytids.slice(i, i + 50))
+	for (let i = 0; i < toUpdate.length; i += 50) {
+		batches.push(toUpdate.slice(i, i + 50))
 	}
 
 	const results = await batcher(
@@ -79,33 +69,28 @@ export async function pull(ytids) {
 		.flatMap((result) => result.value)
 		.filter((video) => video?.duration)
 
-	await pg.transaction(async (tx) => {
-		for (const video of videos) {
-			await tx.sql`
-				INSERT INTO track_meta (ytid, duration, youtube_data, youtube_updated_at, updated_at)
-				VALUES (${video.id}, ${video.duration}, ${JSON.stringify(video)}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-				ON CONFLICT (ytid) DO UPDATE SET
-					duration = EXCLUDED.duration,
-					youtube_data = EXCLUDED.youtube_data,
-					youtube_updated_at = EXCLUDED.youtube_updated_at,
-					updated_at = EXCLUDED.updated_at
-			`
+	// Save to collection
+	for (const video of videos) {
+		const existing = trackMetaCollection.get(video.id)
+		if (existing) {
+			trackMetaCollection.update(video.id, (draft) => {
+				draft.duration = video.duration
+				draft.youtube_data = video
+			})
+		} else {
+			trackMetaCollection.insert({ytid: video.id, duration: video.duration, youtube_data: video})
 		}
-	})
+	}
 
-	log.info(`processed ${items.length} tracks`)
+	log.info(`processed ${toUpdate.length} tracks`)
 	return results
 }
 
 /**
- * Read YouTube metadata from local track_meta
+ * Read YouTube metadata from local track_meta collection
  * @param {string[]} ytids YouTube video IDs
- * @returns {Promise<Object[]>} Local metadata
+ * @returns {Object[]} Local metadata with youtube_data
  */
-export async function local(ytids) {
-	const res = await pg.sql`
-		SELECT * FROM track_meta 
-		WHERE ytid = ANY(${ytids}) AND youtube_data IS NOT NULL
-	`
-	return res.rows
+export function local(ytids) {
+	return ytids.map((id) => trackMetaCollection.get(id)).filter((m) => m?.youtube_data)
 }

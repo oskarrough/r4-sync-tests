@@ -7,9 +7,6 @@ node_modules
 /build
 /docs/_site
 
-# from the r5 cli pglite
-cli-db/ 
-
 # OS
 .DS_Store
 Thumbs.db

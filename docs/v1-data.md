@@ -9,3 +9,11 @@ R5 treats v1 data as read-only, but otherwise displays it in the app as any othe
 # How v1 channels data works
 
 The `r4` cli repo contains a `data/channels_v1.json` which we can use. The data is already prepared for v2. Track data is still fetched on-demand from the v1 Firebase API and parsed using `@radio4000/sdk`'s `v1.parseTrack()` utility.
+
+## Updating static/channels_v1.json
+
+Copy the file from the CLI repo:
+
+```bash
+cp ../cli/data/channels_v1.json static/channels_v1.json
+```

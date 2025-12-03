@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type {Snippet} from 'svelte'
-	import {deleteTrack, playTrack} from '$lib/api'
+	import {playTrack} from '$lib/api'
+	import {deleteTrack, channelsCollection} from '../../routes/tanstack/collections'
 	import {appState} from '$lib/app-state.svelte'
 	import type {Track} from '$lib/types'
 	import {extractYouTubeId} from '$lib/utils.ts'
@@ -19,7 +20,7 @@
 
 	let {track, index, showImage = true, showSlug = false, canEdit = false, children}: Props = $props()
 
-	const permalink = $derived(`/${track.channel_slug}/tracks/${track?.id}`)
+	const permalink = $derived(`/${track?.slug}/tracks/${track?.id}`)
 	const active = $derived(track?.id === appState.playlist_track)
 	// Only extract YouTube ID when we need it for images
 	const ytid = $derived.by(() => {
@@ -55,7 +56,10 @@
 	let showDeleteConfirm = $state(false)
 
 	async function handleDelete() {
-		await deleteTrack(track.id)
+		if (!track.slug) return
+		const channel = [...channelsCollection.state.values()].find((c) => c.slug === track.slug)
+		if (!channel) return
+		await deleteTrack({id: channel.id, slug: channel.slug}, track.id)
 		showDeleteConfirm = false
 	}
 
@@ -96,7 +100,7 @@
 			{#if track.description}
 				<p class="description">
 					<small>
-						<LinkEntities slug={track.channel_slug} text={track.description} />
+						<LinkEntities slug={track.slug} text={track.description} />
 					</small>
 					{#if track.duration}<small>{m.track_duration_seconds({seconds: track.duration})}</small>{/if}
 				</p>
@@ -105,7 +109,7 @@
 		<time>
 			<span class="mobile">&rarr;</span>
 			<!--<small>{formatDate(new Date(track.created_at))}</small>-->
-			{#if showSlug}<small>@{track.channel_slug}</small>{/if}
+			{#if showSlug}<small>@{track.slug}</small>{/if}
 		</time>
 	</a>
 	<r4-actions>

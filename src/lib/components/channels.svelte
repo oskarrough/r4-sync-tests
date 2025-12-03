@@ -13,10 +13,12 @@
 
 	const {channels = [], slug: initialSlug, display: initialDisplay, longitude, latitude, zoom} = $props()
 
-	let limit = $state(30)
+	let limit = $state(18)
 	let perPage = $state(100)
 	let filter = $derived(appState.channels_filter || '20+')
 	let shuffled = $derived(appState.channels_shuffled ?? true)
+	let order = $derived(appState.channels_order)
+	let orderDirection = $derived(appState.channels_order_direction)
 
 	/** @type {'grid' | 'list' | 'map' | 'tuner' | 'infinite'}*/
 	let display = $derived(appState.channels_display || initialDisplay || 'grid')
@@ -26,10 +28,8 @@
 		async () => (await pg.sql`SELECT * FROM channels ORDER BY created_at DESC`).rows
 	)*/
 
-	const realChannels = $derived.by(() => processChannels())
-
-	function filterChannels() {
-		return channels.filter((c) => {
+	const filteredChannels = $derived(
+		channels.filter((c) => {
 			if (filter === 'all') return true
 			if (filter === 'v1') return c.source === 'v1'
 			if (filter === 'v2') return c.source !== 'v1'
@@ -39,25 +39,41 @@
 			if (filter === '1000+' && (!c.track_count || c.track_count < 1000)) return false
 			return true
 		})
+	)
+
+	const sortKey = {
+		updated: (c) => c.latest_track_at ?? '',
+		created: (c) => c.created_at ?? '',
+		name: (c) => c.name?.toLowerCase() ?? '',
+		tracks: (c) => c.track_count ?? 0
 	}
 
-	function processChannels() {
-		const filtered = filterChannels()
-		const processed = shuffled ? shuffleArray([...filtered]) : filtered
-		return {
-			filtered,
-			displayed: processed.slice(0, limit),
-			mapMarkers: channels
-				.filter((c) => c.longitude && c.latitude)
-				.map(({longitude, latitude, slug, name}) => ({
-					longitude,
-					latitude,
-					title: name,
-					href: slug,
-					isActive: slug === initialSlug
-				}))
-		}
-	}
+	const sortedChannels = $derived(
+		[...filteredChannels]
+			.filter((c) => order !== 'updated' || c.latest_track_at)
+			.sort((a, b) => {
+				const av = sortKey[order](a)
+				const bv = sortKey[order](b)
+				const cmp = av < bv ? -1 : av > bv ? 1 : 0
+				return orderDirection === 'asc' ? cmp : -cmp
+			})
+	)
+
+	const orderedChannels = $derived(shuffled ? shuffleArray([...sortedChannels]) : sortedChannels)
+
+	const realChannels = $derived({
+		filtered: filteredChannels,
+		displayed: orderedChannels.slice(0, limit),
+		mapMarkers: channels
+			.filter((c) => c.longitude && c.latitude)
+			.map(({longitude, latitude, slug, name}) => ({
+				longitude,
+				latitude,
+				title: name,
+				href: slug,
+				isActive: slug === initialSlug
+			}))
+	})
 
 	function setDisplay(value = 'grid') {
 		display = value
@@ -77,8 +93,16 @@
 		appState.channels_filter = value
 	}
 
+	function setOrder(value) {
+		appState.channels_order = value
+	}
+
 	function toggleShuffle() {
 		appState.channels_shuffled = !appState.channels_shuffled
+	}
+
+	function toggleOrderDirection() {
+		appState.channels_order_direction = orderDirection === 'asc' ? 'desc' : 'asc'
 	}
 
 	function handleMapChange({latitude, longitude, zoom}) {
@@ -122,6 +146,23 @@
 					<option value="v2">{m.channels_filter_option_v2()}</option>
 				</select>
 			</label>
+			<label title={m.channels_order_label()}>
+				<select value={order} onchange={(e) => setOrder(e.target.value)} disabled={shuffled}>
+					<option value="updated">{m.channels_order_updated()}</option>
+					<option value="created">{m.channels_order_created()}</option>
+					<option value="name">{m.channels_order_name()}</option>
+					<option value="tracks">{m.channels_order_tracks()}</option>
+				</select>
+			</label>
+			<button
+				title={m.channels_order_direction_tooltip({
+					direction: orderDirection === 'asc' ? m.channels_order_asc() : m.channels_order_desc()
+				})}
+				onclick={toggleOrderDirection}
+				disabled={shuffled}
+			>
+				<Icon icon={orderDirection === 'asc' ? 'arrow-up' : 'arrow-down'} />
+			</button>
 			<button title={m.channels_shuffle_tooltip()} class:active={appState.channels_shuffled} onclick={toggleShuffle}>
 				<Icon icon="shuffle" />
 			</button>

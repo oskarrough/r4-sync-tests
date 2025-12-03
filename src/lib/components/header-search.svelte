@@ -1,19 +1,20 @@
 <script>
-	import {onMount} from 'svelte'
 	import {SvelteURLSearchParams} from 'svelte/reactivity'
 	import {goto} from '$app/navigation'
 	import {page} from '$app/state'
 	import {toggleQueuePanel, toggleTheme} from '$lib/api'
 	import SearchInput from '$lib/components/search-input.svelte'
-	import {getPg, pg} from '$lib/r5/db'
+	import {channelsCollection} from '../../routes/tanstack/collections'
 	import * as m from '$lib/paraglide/messages'
 
 	let debounceTimer = $state()
-	let allChannels = $state([])
 
 	// Reactive URL params - recreate when page URL changes
 	let params = $derived(new SvelteURLSearchParams(page.url.searchParams))
 	let searchQuery = $derived(params.get('search') || '')
+
+	// All channels from collection
+	let allChannels = $derived([...channelsCollection.state.values()])
 
 	// Filtered channels for @mention autocomplete
 	let filteredChannels = $derived.by(() => {
@@ -22,7 +23,8 @@
 		if (mentionQuery.length < 1) return allChannels.slice(0, 5)
 		return allChannels
 			.filter(
-				(c) => c.slug.includes(mentionQuery.toLowerCase()) || c.name.toLowerCase().includes(mentionQuery.toLowerCase())
+				(c) =>
+					c.slug?.includes(mentionQuery.toLowerCase()) || c.name?.toLowerCase().includes(mentionQuery.toLowerCase())
 			)
 			.slice(0, 5)
 	})
@@ -38,19 +40,6 @@
 		if (id === 'toggle-theme') return m.command_toggle_theme()
 		if (id === 'toggle-queue') return m.command_toggle_queue()
 		return id
-	}
-
-	onMount(() => {
-		getPg().then(() => queryChannels())
-	})
-
-	async function queryChannels() {
-		try {
-			const result = await pg.query('SELECT id, name, slug FROM channels ORDER BY name')
-			allChannels = result.rows
-		} catch (error) {
-			console.error('Failed to load channels:', error)
-		}
 	}
 
 	function debouncedSearch(value) {

@@ -1,30 +1,24 @@
 <script>
 	import TrackCard from '$lib/components/track-card.svelte'
-	import {incrementalLiveQuery} from '$lib/live-query'
+	import {SvelteMap} from 'svelte/reactivity'
 
 	/** @typedef {import('$lib/types').Track} Track */
 
 	/** @type {{
-		tracks?: Track[],
-		ids?: string[],
+		tracks: Track[],
 		footer?: (props: {track: Track}) => any,
 		grouped?: boolean,
 		canEdit?: boolean
 		}}
 	*/
-	const {tracks, ids, footer, grouped = false, canEdit = false} = $props()
-
-	/** @type {Track[]}*/
-	let internalTracks = $state([])
-
-	import {SvelteMap} from 'svelte/reactivity'
+	const {tracks, footer, grouped = false, canEdit = false} = $props()
 
 	/** @type {SvelteMap<string, SvelteMap<string, Track[]>>} */
 	let groupedTracks = $derived.by(() => {
-		if (!grouped || !internalTracks.length) return new SvelteMap()
+		if (!grouped || !tracks.length) return new SvelteMap()
 
 		const groups = new SvelteMap()
-		internalTracks.forEach((track) => {
+		tracks.forEach((track) => {
 			const date = new Date(track.created_at)
 			const year = date.getFullYear().toString()
 			const month = date.toLocaleString('en', {month: 'long'})
@@ -42,36 +36,9 @@
 
 		return groups
 	})
-
-	$effect(() => {
-		if (tracks) {
-			internalTracks = tracks
-			return
-		}
-
-		if (!ids || ids.length === 0) {
-			internalTracks = []
-			return
-		}
-
-		// Turn the list of ids into real tracks.
-		return incrementalLiveQuery(
-			`
-		SELECT *
-		FROM tracks_with_meta
-		WHERE id IN (select unnest($1::uuid[]))
-		ORDER BY created_at desc
-	`,
-			[ids],
-			'id',
-			(res) => {
-				internalTracks = res.rows
-			}
-		)
-	})
 </script>
 
-{#if internalTracks.length}
+{#if tracks.length}
 	{#if grouped}
 		<div class="timeline">
 			{#each groupedTracks as [year, months] (year)}
@@ -95,7 +62,7 @@
 		</div>
 	{:else}
 		<ul class="list tracks">
-			{#each internalTracks as track, index (track.id)}
+			{#each tracks as track, index (track.id)}
 				<li>
 					<TrackCard {track} {index} {canEdit} />
 					{@render footer?.({track})}

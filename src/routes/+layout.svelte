@@ -1,7 +1,7 @@
 <script>
 	import '../styles/style.css'
 	import 'leaflet/dist/leaflet.css'
-	import {appState, persistAppState} from '$lib/app-state.svelte'
+	import {appState} from '$lib/app-state.svelte'
 	import AuthListener from '$lib/components/auth-listener.svelte'
 	import DraggablePanel from '$lib/components/draggable-panel.svelte'
 	import KeyboardShortcuts from '$lib/components/keyboard-shortcuts.svelte'
@@ -10,19 +10,26 @@
 	import LiveChat from '$lib/components/live-chat.svelte'
 	import QueuePanel from '$lib/components/queue-panel.svelte'
 	import '@radio4000/components'
-	import {onMount} from 'svelte'
-	import {goto} from '$app/navigation'
+	import {onMount, setContext} from 'svelte'
 	import {applyCustomCssVariables} from '$lib/apply-css-variables'
 	import {logger} from '$lib/logger'
 	import * as m from '$lib/paraglide/messages'
 	import {getLocale, setLocale, locales} from '$lib/paraglide/runtime'
+	import {QueryClientProvider} from '@tanstack/svelte-query'
+	import {SvelteQueryDevtools} from '@tanstack/svelte-query-devtools'
+	import {queryClient, channelsCollection} from './tanstack/collections'
+	import {useLiveQuery} from '@tanstack/svelte-db'
 
 	const log = logger.ns('layout').seal()
 
 	/** @type {import('./$types').LayoutProps} */
 	const {data, children} = $props()
 
-	let skipPersist = $state(true)
+	// Query channels once at layout level, share via context
+	const channelsQuery = useLiveQuery((q) => q.from({channels: channelsCollection}))
+	const channels = $derived(channelsQuery.data || [])
+	setContext('channels', () => channels)
+
 	let chatPanelVisible = $state(false)
 	const rtlLocales = new Set(['ar', 'ur'])
 
@@ -59,7 +66,6 @@
 		if (!storedLocale) {
 			appState.language = currentLocale
 		}
-		skipPersist = false
 	})
 
 	// Theme application
@@ -87,67 +93,55 @@
 		applyCustomCssVariables(appState.custom_css_variables)
 	})
 
-	$effect(() => {
-		if (skipPersist) return
-		// Take a snapshot to track all property changes
-		$state.snapshot(appState)
-		persistAppState()
-			.then(() => {
-				log.debug('persisted app_state', $state.snapshot(appState))
-			})
-			.catch((err) => {
-				goto(`/recovery?err=${err.message}`)
-			})
-	})
-
 	// "Close" the database on page unload. I have not noticed any difference, but seems like a good thing to do.
 	$effect(() => {
 		const handler = async () => {
 			log.log('beforeunload_closing_db')
-			// event.preventDefault()
 			appState.broadcasting_channel_id = undefined
-			//await pg.close()
 		}
 		window.addEventListener('beforeunload', handler)
 		return () => window.removeEventListener('beforeunload', handler)
 	})
 </script>
 
-<svelte:boundary>
-	{#await data.preloading}
-		<div class="loader">
-			<p>{m.app_loading()}</p>
-			<r4-loading></r4-loading>
-		</div>
-	{:then}
-		<AuthListener />
-		<KeyboardShortcuts />
-
-		{#key uiLocale}
-			<div class={['layout', {asideVisible: appState.queue_panel_visible}]} data-locale={uiLocale}>
-				<LayoutHeader preloading={data.preloading} />
-
-				<div class="content">
-					<main class="scroll">
-						{@render children()}
-					</main>
-
-					<QueuePanel />
-
-					{#if chatPanelVisible}
-						<DraggablePanel title={m.chat_panel_title()}>
-							<LiveChat />
-						</DraggablePanel>
-					{/if}
-				</div>
-
-				<LayoutFooter />
+<QueryClientProvider client={queryClient}>
+	<svelte:boundary>
+		{#await data.preloading}
+			<div class="loader">
+				<p>{m.app_loading()}</p>
+				<r4-loading></r4-loading>
 			</div>
-		{/key}
-	{:catch}
-		<p>{m.loading_generic()}</p>
-	{/await}
-</svelte:boundary>
+		{:then}
+			<AuthListener />
+			<KeyboardShortcuts />
+
+			{#key uiLocale}
+				<div class={['layout', {asideVisible: appState.queue_panel_visible}]} data-locale={uiLocale}>
+					<LayoutHeader preloading={data.preloading} />
+
+					<div class="content">
+						<main class="scroll">
+							{@render children()}
+						</main>
+
+						<QueuePanel />
+
+						{#if chatPanelVisible}
+							<DraggablePanel title={m.chat_panel_title()}>
+								<LiveChat />
+							</DraggablePanel>
+						{/if}
+					</div>
+
+					<LayoutFooter />
+				</div>
+			{/key}
+		{:catch}
+			<p>{m.loading_generic()}</p>
+		{/await}
+	</svelte:boundary>
+	<SvelteQueryDevtools buttonPosition="bottom-left" />
+</QueryClientProvider>
 
 <style>
 	.layout {

@@ -1,23 +1,9 @@
 <script>
 	import {goto} from '$app/navigation'
 	import {appState} from '$lib/app-state.svelte'
-	import {r5} from '$lib/r5'
 	import * as m from '$lib/paraglide/messages'
 
-	let userChannelSlug = $state(null)
-
-	$effect(async () => {
-		if (appState.channels?.length > 0) {
-			const channelId = appState.channels[0]
-			try {
-				const channels = await r5.channels.local()
-				const userChannel = channels.find((c) => c.id === channelId)
-				userChannelSlug = userChannel?.slug
-			} catch (err) {
-				console.warn('Failed to get user channel:', err)
-			}
-		}
-	})
+	let userChannelSlug = $derived(appState.channel?.slug)
 
 	function handleSubmit(event) {
 		const {slug} = event.detail

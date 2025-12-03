@@ -23,9 +23,9 @@
 		}
 	}
 
-	const channelId = $derived(appState.channels?.length > 0 ? appState.channels[0] : undefined)
+	const channel = $derived(appState.channel)
 	const isSignedIn = $derived(!!appState.user)
-	const canAddTrack = $derived(isSignedIn && channelId)
+	const canAddTrack = $derived(isSignedIn && channel)
 
 	/** @param {KeyboardEvent} event */
 	function handleKeyDown(event) {
@@ -52,20 +52,19 @@
 		}
 	}
 
-	function submit(event) {
-		const track = event.detail.data
-		recentTracks.unshift(track)
-		if (recentTracks.length > 3) recentTracks.pop()
-		console.log({track, recentTracks})
+	function handleSubmit(event) {
+		const {data, error} = event.detail
+		if (error || !data) return
 
-		// Clear prefilled URL and close modal
+		recentTracks.unshift(data)
+		if (recentTracks.length > 3) recentTracks.pop()
+
 		prefilledUrl = ''
 		showModal = false
 
-		// Dispatch event for parent to handle track insertion
 		document.dispatchEvent(
 			new CustomEvent('r5:trackAdded', {
-				detail: {track, channelId}
+				detail: {track: data, channelId: channel?.id}
 			})
 		)
 	}
@@ -82,7 +81,7 @@
 		<h2>{m.track_add_title()}</h2>
 	{/snippet}
 
-	<r4-track-create channel_id={channelId} url={prefilledUrl} onsubmit={submit}></r4-track-create>
+	<r4-track-create channel_id={channel?.id} url={prefilledUrl} onsubmit={handleSubmit}></r4-track-create>
 
 	{#if recentTracks.length > 0}
 		<div class="recent-tracks">

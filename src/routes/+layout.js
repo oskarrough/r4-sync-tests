@@ -1,25 +1,16 @@
 import {browser} from '$app/environment'
-import {initAppState, validateListeningState} from '$lib/app-state.svelte'
+import {validateListeningState} from '$lib/broadcast.js'
 import {logger} from '$lib/logger'
-import {r4} from '$lib/r4'
-import {r5} from '$lib/r5'
+import {sdk} from '@radio4000/sdk'
+import {queryClient, tracksCollection, channelsCollection, spamDecisionsCollection} from './tanstack/collections'
+import {fetchAllChannels} from '$lib/api/fetch-channels'
+import {cacheReady} from './tanstack/persistence'
+import {appState} from '$lib/app-state.svelte'
 
-// Disable server-side rendering for all routes by default. Otherwise we can't use pglite + indexeddb.
+// Disable SSR - TanStack collections use browser APIs (localStorage, IndexedDB)
 export const ssr = false
 
 const log = logger.ns('layout').seal()
-
-/** @type {import('@electric-sql/pglite/live').PGliteWithLive} */
-let pg
-
-/** Sync if no channels exist locally */
-async function autoPull() {
-	const {rows} = await pg.sql`SELECT COUNT(*) as count FROM channels`
-	const channelCount = Number(rows[0].count)
-	if (channelCount > 100) return
-	log.log('autoPull')
-	await r5.channels.pull().catch((err) => log.error('auto_sync_error', err))
-}
 
 async function preload() {
 	if (!browser) {
@@ -28,13 +19,16 @@ async function preload() {
 	}
 	log.debug('preloading')
 	try {
-		// await delay(60000)
-		await r5.db.migrate()
-		pg = await r5.db.getPg()
-		await initAppState()
-		await autoPull()
+		await cacheReady
+		// Prefetch all channels so search works immediately
+		await queryClient.prefetchQuery({
+			queryKey: ['channels'],
+			queryFn: fetchAllChannels,
+			staleTime: 24 * 60 * 60 * 1000 // 24h - match channelsCollection
+		})
+
 		// @ts-expect-error debugging
-		window.r5 = {r5, r4, pg}
+		window.r5 = {sdk, appState, queryClient, tracksCollection, channelsCollection, spamDecisionsCollection}
 
 		// Validate listening state in background after UI loads
 		validateListeningState().catch((err) => log.error('validate_listening_state_error', err))

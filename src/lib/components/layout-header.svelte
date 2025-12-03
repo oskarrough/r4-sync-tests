@@ -10,19 +10,12 @@
 	import TestCounter from '$lib/components/test-counter.svelte'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
 	import ThemeToggle from '$lib/components/theme-toggle.svelte'
-	import {r5} from '$lib/r5'
 	import * as m from '$lib/paraglide/messages'
+	import {channelsCollection} from '../../routes/tanstack/collections'
 
 	const {preloading} = $props()
 
-	const userChannel = $derived.by(async () => {
-		const id = appState.channels?.[0]
-		if (!id) return null
-		// Query directly by ID to avoid expensive ID→slug resolution
-		const pg = await r5.db.getPg()
-		const result = await pg.sql`select * from channels where id = ${id}`
-		return result.rows[0] || null
-	})
+	const userChannel = $derived(appState.channels?.[0] ? channelsCollection.get(appState.channels[0]) : null)
 
 	let broadcastCount = $state(0)
 	let editModalRef = $state()
@@ -54,13 +47,11 @@
 		{#await preloading then}
 			<AddTrackModal />
 			<EditTrackModal bind:this={editModalRef} />
-			{#await userChannel then channel}
-				{#if channel}
-					<a href="/{channel.slug}">
-						<ChannelAvatar id={channel.image} size={32} alt={channel.name} />
-					</a>
-				{/if}
-			{/await}
+			{#if userChannel}
+				<a href="/{userChannel.slug}">
+					<ChannelAvatar id={userChannel.image} size={32} alt={userChannel.name} />
+				</a>
+			{/if}
 			<hr />
 			<a
 				href="/broadcasts"
