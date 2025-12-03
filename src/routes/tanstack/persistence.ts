@@ -39,7 +39,7 @@ const persistOptions = {
 	queryClient,
 	persister: idbPersister,
 	maxAge: 24 * 60 * 60 * 1000, // 24h - match gcTime
-	buster: '', // increment on breaking schema changes
+	buster: '1', // increment on breaking schema changes
 	dehydrateOptions: {
 		shouldDehydrateQuery: (query) => {
 			// Only persist successful queries with actual data (not empty/null arrays)

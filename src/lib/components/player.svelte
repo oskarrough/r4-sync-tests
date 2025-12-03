@@ -1,4 +1,5 @@
 <script>
+	import {untrack} from 'svelte'
 	import 'media-chrome'
 	import '$lib/youtube-video-custom-element.js'
 	import '$lib/soundcloud-player-custom-element.js'
@@ -10,7 +11,7 @@
 	import LinkEntities from '$lib/components/link-entities.svelte'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
 	import {logger} from '$lib/logger'
-	import {tracksCollection, channelsCollection} from '../../routes/tanstack/collections'
+	import {tracksCollection, channelsCollection, updateTrack} from '../../routes/tanstack/collections'
 	import {extractYouTubeId, detectMediaProvider} from '$lib/utils.ts'
 	import * as m from '$lib/paraglide/messages'
 
@@ -23,13 +24,19 @@
 	let youtubePlayer = $state()
 	let soundcloudPlayer = $state()
 
-	// Reactive track lookup - undefined until data loads
-	let track = $derived(appState.playlist_track ? tracksCollection.state.get(appState.playlist_track) : undefined)
+	// Reactive track lookup - get from collection state
+	// untrack the collection access to avoid state_unsafe_mutation during hydration
+	let track = $derived.by(() => {
+		const id = appState.playlist_track
+		if (!id) return undefined
+		return untrack(() => tracksCollection.state.get(id))
+	})
 
 	// Reactive channel lookup based on track
-	let channel = $derived(
-		track ? [...channelsCollection.state.values()].find((ch) => ch.slug === track.slug) : undefined
-	)
+	let channel = $derived.by(() => {
+		if (!track?.slug) return undefined
+		return untrack(() => [...channelsCollection.state.values()].find((ch) => ch.slug === track.slug))
+	})
 
 	let src = $derived(track?.url)
 	let trackType = $derived(detectMediaProvider(src))
@@ -104,10 +111,13 @@
 		const code = event.target.error.code
 		const msg = `youtube_error_${code}`
 		log.warn(msg)
-		if (track?.id) {
-			tracksCollection.update(track.id, (draft) => {
-				draft.playback_error = msg
-			})
+		// Only write playback_error if user owns this track's channel
+		const canWrite = channel && appState.channels?.includes(channel.id)
+		log.log('handleError', {trackId: track?.id, canWrite, channelId: channel?.id, msg})
+		if (track?.id && canWrite) {
+			updateTrack(channel, track.id, {playback_error: msg})
+				.then(() => log.log('playback_error saved', {id: track.id, msg}))
+				.catch((e) => log.error('playback_error save failed', e))
 		}
 		next(track, activeQueue, msg)
 	}

@@ -51,6 +51,14 @@
 		{#if track.has_discogs_meta}<span class="meta-indicator dc">{m.batch_edit_meta_discogs()}</span>{/if}
 	</div>
 
+	<div class="col-duration">
+		{#if track.duration}{Math.floor(track.duration / 60)}:{String(track.duration % 60).padStart(2, '0')}{/if}
+	</div>
+
+	<div class="col-error" class:has-error={track.playback_error}>
+		{#if track.playback_error}<span title={track.playback_error}>⚠ {track.playback_error}</span>{/if}
+	</div>
+
 	<div class="col-date">{new Date(track.created_at).toLocaleDateString()}</div>
 </div>
 
@@ -95,5 +103,21 @@
 	.meta-indicator {
 		padding: 0.1rem 0.3rem;
 		border-radius: 0.2rem;
+	}
+
+	.col-duration {
+		color: var(--gray-9);
+		font-size: var(--font-1);
+	}
+
+	.col-error {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font-size: var(--font-1);
+	}
+
+	.col-error.has-error {
+		color: var(--red-9);
 	}
 </style>

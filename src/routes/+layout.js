@@ -42,6 +42,11 @@ async function preload() {
 
 /** @type {import('./$types').LayoutLoad} */
 export async function load() {
+	// Wait for cache restore before component mounts - prevents state_unsafe_mutation
+	// when useLiveQuery subscriptions fire during hydration
+	if (browser) {
+		await cacheReady
+	}
 	return {
 		preloading: preload(),
 		preload

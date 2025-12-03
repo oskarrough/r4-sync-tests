@@ -51,6 +51,12 @@
 					return !track.title && !track.description
 				case 'has-meta':
 					return track.title || track.description
+				case 'has-error':
+					return !!track.playback_error
+				case 'has-duration':
+					return track.duration > 0
+				case 'no-duration':
+					return !track.duration
 				default:
 					return true
 			}
@@ -126,6 +132,9 @@
 				<option value="no-meta">{m.batch_edit_filter_no_meta()}</option>
 				<option value="has-meta">{m.batch_edit_filter_has_meta()}</option>
 				<option value="has-t-param">{m.batch_edit_filter_has_t_param()}</option>
+				<option value="has-error">{m.batch_edit_filter_has_error()}</option>
+				<option value="has-duration">{m.batch_edit_filter_has_duration()}</option>
+				<option value="no-duration">{m.batch_edit_filter_no_duration()}</option>
 			</select>
 		</menu>
 	</header>
@@ -157,6 +166,8 @@
 						<div class="col-tags">{m.batch_edit_column_tags()}</div>
 						<div class="col-mentions">{m.batch_edit_column_mentions()}</div>
 						<div class="col-meta">{m.batch_edit_column_meta()}</div>
+						<div class="col-duration">{m.batch_edit_column_duration()}</div>
+						<div class="col-error">{m.batch_edit_column_error()}</div>
 						<div class="col-date">{m.batch_edit_column_created()}</div>
 					</div>
 					<ol class="list scroll">
@@ -235,6 +246,14 @@
 
 	:global(.col-meta) {
 		flex: 0 0 60px;
+	}
+
+	:global(.col-duration) {
+		flex: 0 0 60px;
+	}
+
+	:global(.col-error) {
+		flex: 0 0 80px;
 	}
 
 	:global(.col-date) {
