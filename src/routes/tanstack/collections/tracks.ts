@@ -15,9 +15,9 @@ export const tracksCollection = createCollection(
 	queryCollectionOptions({
 		queryKey: (opts) => {
 			const options = parseLoadSubsetOptions(opts)
-			// Only slug in key - created_at filters are for incremental sync, not cache identity
 			const slug = options.filters.find((f) => f.field[0] === 'slug' && f.operator === 'eq')?.value
-			return slug ? ['tracks', slug] : ['tracks']
+			const key = slug ? ['tracks', slug] : ['tracks']
+			return key
 		},
 		syncMode: 'on-demand',
 		queryClient,
@@ -25,8 +25,10 @@ export const tracksCollection = createCollection(
 		staleTime: 24 * 60 * 60 * 1000, // 24h - freshness check triggers invalidation when remote has newer
 		queryFn: async (ctx) => {
 			const options = parseLoadSubsetOptions(ctx.meta?.loadSubsetOptions)
+			// log.debug('tracks queryFn', {filters: options.filters, limit: options.limit})
 			const slug = options.filters.find((f) => f.field[0] === 'slug' && f.operator === 'eq')?.value
 			const createdAfter = options.filters.find((f) => f.field[0] === 'created_at' && f.operator === 'gt')?.value
+
 			if (!slug) return []
 
 			// Lookup channel to route by source
@@ -54,7 +56,6 @@ export const tracksCollection = createCollection(
 
 			// Fallback to v1 if v2 returns empty (race condition: channel not loaded yet)
 			if (!data?.length) {
-				log.info('tracks fetch v1 fallback', {slug})
 				const {data: v1Data, error: v1Error} = await sdk.firebase.readTracks({slug})
 				if (v1Error) throw v1Error
 				if (v1Data?.length) {

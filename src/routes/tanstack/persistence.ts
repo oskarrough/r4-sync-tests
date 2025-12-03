@@ -49,9 +49,11 @@ const persistOptions = {
 }
 
 // Restore cache from IDB - await this before prefetching
-export const cacheReady = persistQueryClientRestore(persistOptions)
+// TEMPORARILY DISABLED FOR DEBUGGING
+export const cacheReady = Promise.resolve()
+// export const cacheReady = persistQueryClientRestore(persistOptions)
 
 // Subscribe to changes after restore completes
-cacheReady.then(() => {
-	persistQueryClientSubscribe(persistOptions)
-})
+// cacheReady.then(() => {
+// 	persistQueryClientSubscribe(persistOptions)
+// })

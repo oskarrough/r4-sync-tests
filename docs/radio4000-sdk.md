@@ -38,6 +38,23 @@ sdk.users.readUser(jwtToken?) → Promise<{data?, error?}>
 sdk.users.deleteUser() → Promise<{data?, error?}>
 ```
 
+## Firebase (v1 read-only)
+
+```ts
+sdk.firebase.readChannel(slug) → Promise<{data?, error?}>
+sdk.firebase.readTracks({slug?, firebaseId?}) → Promise<{data?, error?}>
+sdk.firebase.parseChannel(rawChannel) → v2Channel
+sdk.firebase.parseTrack(rawTrack, channelId, channelSlug) → v2Track
+```
+
+## Search
+
+```ts
+sdk.search.searchChannels(query, {limit?}) → Promise<{data?, error?}>
+sdk.search.searchTracks(query, {limit?}) → Promise<{data?, error?}>
+sdk.search.searchAll(query, {limit?}) → Promise<{data: {channels, tracks}, error?}>
+```
+
 ## Direct Supabase access
 
 ```ts

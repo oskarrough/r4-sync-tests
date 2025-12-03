@@ -14,11 +14,12 @@
 
 	let {data} = $props()
 
-	const trackQuery = useLiveQuery((q) =>
+	// Query all tracks for slug to triggers the proper fetch.
+	const tracksQuery = useLiveQuery((q) =>
 		q
 			.from({tracks: tracksCollection})
 			.where(({tracks}) => eq(tracks.slug, data.slug))
-			.where(({tracks}) => eq(tracks.id, data.tid))
+			//.where(({tracks}) => eq(tracks.id, data.tid))
 			.orderBy(({tracks}) => tracks.created_at)
 	)
 
@@ -29,7 +30,8 @@
 			.orderBy(({channels}) => channels.created_at)
 	)
 
-	const rawTrack = $derived(trackQuery.data?.[0])
+	// Filter by ID client-side
+	const rawTrack = $derived(tracksQuery.data?.find((t) => t.id === data.tid))
 	const ytid = $derived(rawTrack ? extractYouTubeId(rawTrack.url) : null)
 
 	// Reactive query on trackMetaCollection - re-renders when metadata updates
@@ -44,7 +46,7 @@
 	const track = $derived(rawTrack ? {...rawTrack, ...(metaQuery.data?.[0] || {})} : undefined)
 	const channel = $derived(channelQuery.data?.[0])
 	const activeTab = $derived(page.url.searchParams.get('tab') || 'r5')
-	const isLoading = $derived(trackQuery.isLoading || channelQuery.isLoading)
+	const isLoading = $derived(tracksQuery.isLoading || channelQuery.isLoading)
 </script>
 
 <svelte:head>
@@ -59,7 +61,10 @@
 {#if isLoading}
 	<p>Loading…</p>
 {:else if !track || !channel}
-	<p>Track not found</p>
+	<p>
+		Track not found (tid: {data.tid}, slug: {data.slug}, tracks loaded: {tracksQuery.data?.length ?? 0}, first track id: {tracksQuery
+			.data?.[0]?.id})
+	</p>
 {:else}
 	<article>
 		<header>
@@ -94,10 +99,6 @@
 <style>
 	article {
 		margin: 0.5rem 0.5rem var(--player-compact-size);
-	}
-
-	pre {
-		font-size: var(--font-3);
 	}
 
 	.tree {

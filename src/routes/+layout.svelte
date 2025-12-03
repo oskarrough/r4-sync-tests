@@ -97,7 +97,6 @@
 	$effect(() => {
 		const handler = async () => {
 			log.log('beforeunload_closing_db')
-			// event.preventDefault()
 			appState.broadcasting_channel_id = undefined
 		}
 		window.addEventListener('beforeunload', handler)
