@@ -44,11 +44,11 @@
 		"@radio4000/components": "^0.2.17",
 		"@radio4000/sdk": "^0.6.5",
 		"@sveltejs/adapter-static": "^3.0.10",
-		"@tanstack/offline-transactions": "^1.0.0",
-		"@tanstack/query-db-collection": "^1.0.5",
-		"@tanstack/query-persist-client-core": "^5.91.10",
-		"@tanstack/svelte-db": "^0.1.53",
-		"@tanstack/svelte-query": "^6.0.9",
+		"@tanstack/offline-transactions": "^1.0.1",
+		"@tanstack/query-db-collection": "^1.0.6",
+		"@tanstack/query-persist-client-core": "^5.91.11",
+		"@tanstack/svelte-db": "^0.1.54",
+		"@tanstack/svelte-query": "^6.0.10",
 		"@tanstack/svelte-query-devtools": "^6.0.2",
 		"@types/yargs": "^17.0.35",
 		"adze": "^2.2.5",
@@ -64,8 +64,5 @@
 		"svelte-awesome-color-picker": "^4.1.0",
 		"tinykeys": "^3.0.0",
 		"youtube-video-element": "^1.8.1"
-	},
-	"overrides": {
-		"@tanstack/db": "0.5.8"
 	}
 }
