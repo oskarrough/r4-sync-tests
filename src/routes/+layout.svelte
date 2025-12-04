@@ -27,16 +27,10 @@
 
 	// Query channels once at layout level, share via context
 	// Defer useLiveQuery until after preloading to avoid state_unsafe_mutation during hydration
-	let channelsQuery = $state(/** @type {ReturnType<typeof useLiveQuery> | null} */ (null))
+	const channelsQuery = useLiveQuery((q) => q.from({channels: channelsCollection}))
 	let channels = $derived(channelsQuery?.data || [])
 	setContext('channels', () => channels)
 
-	$effect(() => {
-		if (channelsQuery) return
-		data.preloading.then(() => {
-			channelsQuery = useLiveQuery((q) => q.from({channels: channelsCollection}))
-		})
-	})
 
 	let chatPanelVisible = $state(false)
 	const rtlLocales = new Set(['ar', 'ur'])
