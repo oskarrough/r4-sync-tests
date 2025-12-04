@@ -1,5 +1,6 @@
 <script>
 	import {useLiveQuery, eq} from '@tanstack/svelte-db'
+	import SvelteVirtualList from '@humanspeak/svelte-virtual-list'
 	import {page} from '$app/state'
 	import {channelsCollection, tracksCollection, updateTrack} from '../../tanstack/collections'
 	import {appState} from '$lib/app-state.svelte'
@@ -170,21 +171,24 @@
 						<div class="col-error">{m.batch_edit_column_error()}</div>
 						<div class="col-date">{m.batch_edit_column_created()}</div>
 					</div>
-					<ol class="list scroll">
-						{#each filteredTracks as track (track.id)}
-							<li>
-								<TrackRow
-									{track}
-									{slug}
-									isSelected={selectedTracks.includes(track.id)}
-									{selectedTracks}
-									onSelect={(e) => selectTrack(track.id, e)}
-									{onEdit}
-									{canEdit}
-								/>
-							</li>
-						{/each}
-					</ol>
+					<SvelteVirtualList
+						items={filteredTracks}
+						defaultEstimatedItemHeight={32}
+						bufferSize={20}
+						viewportClass="virtual-viewport"
+					>
+						{#snippet renderItem(track)}
+							<TrackRow
+								{track}
+								{slug}
+								isSelected={selectedTracks.includes(track.id)}
+								{selectedTracks}
+								onSelect={(e) => selectTrack(track.id, e)}
+								{onEdit}
+								{canEdit}
+							/>
+						{/snippet}
+					</SvelteVirtualList>
 				</div>
 			{/if}
 		</section>
@@ -216,6 +220,34 @@
 	.tracks-container {
 		min-width: 0;
 		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+		height: calc(100vh - 120px);
+	}
+
+	.tracks-list {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		min-height: 0;
+	}
+
+	.tracks-list :global(.svelte-virtual-list-container) {
+		flex: 1;
+		min-height: 0;
+	}
+
+	:global(.virtual-viewport) {
+		height: 100%;
+		overflow-y: auto;
+		overflow-x: hidden;
+	}
+
+	.tracks {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		min-height: 0;
 	}
 
 	:global(.col-checkbox),
