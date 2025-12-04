@@ -12,7 +12,7 @@
 
 	// Channels with 0 tracks AND spam signals, sorted by confidence (highest first)
 	const candidates = $derived.by(() => {
-		decisionVersion
+		void decisionVersion
 		return allChannels
 			.filter((ch) => (ch.track_count ?? 0) === 0)
 			.map((ch) => ({

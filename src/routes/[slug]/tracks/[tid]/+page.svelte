@@ -43,7 +43,8 @@
 			.limit(1)
 	)
 
-	const track = $derived(rawTrack ? {...rawTrack, ...(metaQuery.data?.[0] || {})} : undefined)
+	const track = $derived(rawTrack)
+	const meta = $derived(metaQuery.data?.[0])
 	const channel = $derived(channelQuery.data?.[0])
 	const activeTab = $derived(page.url.searchParams.get('tab') || 'r5')
 	const isLoading = $derived(tracksQuery.isLoading || channelQuery.isLoading)
@@ -81,11 +82,11 @@
 		</header>
 
 		{#if activeTab === 'youtube'}
-			<TrackMetaYoutube data={track.youtube_data} {track} />
+			<TrackMetaYoutube data={meta?.youtube_data} {track} />
 		{:else if activeTab === 'musicbrainz'}
-			<TrackMetaMusicbrainz data={track.musicbrainz_data} {track} />
+			<TrackMetaMusicbrainz data={meta?.musicbrainz_data} {track} />
 		{:else if activeTab === 'discogs'}
-			<TrackMetaDiscogs data={track.discogs_data} {track} />
+			<TrackMetaDiscogs data={meta?.discogs_data} {track} />
 		{:else if activeTab === 'related'}
 			<TrackRelated {track} />
 		{:else}
@@ -94,7 +95,7 @@
 		{/if}
 
 		<hr />
-		<TrackMeta {track} />
+		<TrackMeta {track} {channel} />
 	</article>
 {/if}
 

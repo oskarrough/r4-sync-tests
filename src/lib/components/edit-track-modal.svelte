@@ -1,22 +1,18 @@
 <script>
-	import {appState} from '$lib/app-state.svelte'
 	import Modal from '$lib/components/modal.svelte'
 	import * as m from '$lib/paraglide/messages'
 
 	let showModal = $state(false)
 	let currentTrack = $state(null)
-	let currentChannel = $state(null)
 
-	/** @param {object} track
-	 *  @param {{id: string, slug: string}} [channel] - optional, defaults to appState.channel */
-	export function openWithTrack(track, channel) {
+	/** @param {object} track */
+	export function openWithTrack(track) {
 		currentTrack = track
-		currentChannel = channel || appState.channel
 		showModal = true
 	}
 
 	function handleSubmit(event) {
-		const {data, error} = event.detail
+		const {error} = event.detail
 		if (error) return
 
 		showModal = false
