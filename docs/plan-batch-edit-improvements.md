@@ -8,31 +8,9 @@ Tags and mentions are derived from descriptions. Tag editing = description editi
 
 ---
 
-Phase 1: Performance (Virtualization) — IMPLEMENTED (blocked)
+Phase 1: Performance (Virtualization) — ✅ DONE
 
-Problem: Current implementation renders all rows. 3000 tracks = 3000 DOM nodes = pain.
-
-Solution: Virtual scrolling - render only ~50 visible rows.
-
-Implementation:
-
-1.  ✅ Add @tanstack/svelte-virtual (already using TanStack ecosystem)
-2.  ✅ Wrap table body in virtualizer
-3.  ✅ Maintain sticky header outside virtual container
-4.  ✅ Preserve row height consistency for accurate scroll math
-
-Files:
-
-- +page.svelte - integrate virtualizer around track list
-- May need container restructure for sticky header + virtual body
-
-**Status**: Attempted with `@tanstack/svelte-virtual` - Svelte 5 compatibility issues. Scroll events don't trigger re-renders properly. User switched to `@humanspeak/svelte-virtual-list` (see current +page.svelte). Needs fresh approach.
-
-**Learnings**:
-- `@tanstack/svelte-virtual` API expects Svelte 4 reactive statements (`$:`)
-- Svelte 5 runes + TanStack Virtual store subscriptions conflict
-- Creating virtualizer in `$effect` breaks scroll tracking (recreates on deps change)
-- Using getters for reactive options partially works but scroll doesn't update items
+Using `@humanspeak/svelte-virtual-list` - works with Svelte 5.
 
 ---
 
@@ -64,26 +42,12 @@ Files:
 
 ---
 
-Phase 3: Instant Search
+Phase 3: Instant Search — ✅ DONE
 
-Goal: Type and instantly filter to matching tracks.
-
-Features:
-
-- Search box at top
-- Fuzzy match across: title, description, url
-- Combine with existing filters (search + "has-error")
-- Debounced input (50-100ms)
-
-Implementation:
-
-1.  Add search input state
-2.  Extend filteredTracks derived to include search term
-3.  Simple includes() matching (or lightweight fuzzy lib if needed)
-
-Files:
-
-- +page.svelte - search input, derived filter extension
+- Search box with fuzzysort on title/description/url
+- Tags dropdown (from track.tags, sorted by frequency)
+- Mentions dropdown (from track.mentions, sorted by frequency)
+- All filters combine with existing dropdown filter
 
 ---
 
@@ -144,7 +108,8 @@ File Map
 
 Dependencies
 
-- @tanstack/svelte-virtual - virtual scrolling
+- @humanspeak/svelte-virtual-list - virtual scrolling
+- fuzzysort - search filtering
 
 ---
 
@@ -158,8 +123,13 @@ Decisions Made
 
 Implementation Order
 
-1.  Phase 1: Virtualization - Critical for 3000 tracks
-2.  Phase 3: Search - Quick win, high value
+1.  ✅ Phase 1: Virtualization - Critical for 3000 tracks
+2.  ✅ Phase 3: Search - Quick win, high value
 3.  Phase 4: Batch ops - Wire up selection to actions
 4.  Phase 2: Keyboard nav - Polish layer
 5.  Phase 5: Feedback - Confirmations, toasts
+
+Also done:
+
+- Double-click to edit cells (avoids conflict with row selection)
+- Inline editing with Enter to save, Escape to cancel
