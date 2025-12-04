@@ -31,7 +31,6 @@
 	let channels = $derived(channelsQuery?.data || [])
 	setContext('channels', () => channels)
 
-
 	let chatPanelVisible = $state(false)
 	const rtlLocales = new Set(['ar', 'ur'])
 

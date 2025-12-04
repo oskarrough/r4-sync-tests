@@ -70,12 +70,6 @@
 		<header>
 			<p>
 				<a href="/{channel.slug}">@{channel.slug}</a> / {track.title}
-				{#if track.duration}
-					<small>({Math.floor(track.duration / 60)}:{(track.duration % 60).toString().padStart(2, '0')})</small>
-				{/if}
-				{#if track.playback_error}
-					<small style="color: var(--color-error)">{track.playback_error}</small>
-				{/if}
 			</p>
 			<menu class="tree">
 				<a href="?tab=r5" class:active={activeTab === 'r5' || !activeTab}>{m.track_detail_nav_r5()}</a>

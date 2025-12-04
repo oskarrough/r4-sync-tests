@@ -31,25 +31,6 @@
 				<dd><a href="/{data.slug}">@{data.slug}</a></dd>
 			{/if}
 
-			{#if data.duration}
-				<dt>{m.track_meta_duration()}</dt>
-				<dd>{formatDuration(data.duration)}</dd>
-			{/if}
-
-			{#if data.tags && data.tags.length > 0}
-				<dt>{m.track_meta_tags()}</dt>
-				<dd class="tags">
-					{#each data.tags as tag (tag)}
-						<span>#{tag}</span>
-					{/each}
-				</dd>
-			{/if}
-
-			{#if data.description}
-				<dt>{m.track_meta_description()}</dt>
-				<dd>{data.description}</dd>
-			{/if}
-
 			{#if data.url}
 				<dt>{m.track_meta_source()}</dt>
 				<dd><a href={data.url} target="_blank" rel="noopener noreferrer">{m.track_meta_youtube()}</a></dd>
@@ -62,12 +43,19 @@
 				</dd>
 			{/if}
 
-			<dt>{m.track_meta_metadata()}</dt>
-			<dd>
-				{#if data.has_youtube_meta}{m.track_meta_flag_youtube()}{/if}
-				{#if data.has_musicbrainz_meta}{m.track_meta_flag_musicbrainz()}{/if}
-				{#if data.has_discogs_meta}{m.track_meta_flag_discogs()}{/if}
-			</dd>
+			{#if data.description}
+				<dt>{m.track_meta_description()}</dt>
+				<dd>{data.description}</dd>
+			{/if}
+
+			{#if data.tags && data.tags.length > 0}
+				<dt>{m.track_meta_tags()}</dt>
+				<dd class="tags">
+					{#each data.tags as tag (tag)}
+						<span>#{tag}</span>
+					{/each}
+				</dd>
+			{/if}
 
 			{#if data.created_at}
 				<dt>{m.track_meta_added()}</dt>
@@ -79,10 +67,22 @@
 				<dd>{relativeDate(data.updated_at)}</dd>
 			{/if}
 
+			{#if data.duration}
+				<dt>{m.track_meta_duration()}</dt>
+				<dd>{formatDuration(data.duration)}</dd>
+			{/if}
+
 			{#if data.playback_error}
 				<dt>{m.track_meta_playback_error()}</dt>
 				<dd>{data.playback_error}</dd>
 			{/if}
+
+			<dt>{m.track_meta_metadata()}</dt>
+			<dd>
+				{#if data.has_youtube_meta}{m.track_meta_flag_youtube()}{/if}
+				{#if data.has_musicbrainz_meta}{m.track_meta_flag_musicbrainz()}{/if}
+				{#if data.has_discogs_meta}{m.track_meta_flag_discogs()}{/if}
+			</dd>
 		</dl>
 	{/if}
 {:else}
