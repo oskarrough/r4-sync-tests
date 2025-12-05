@@ -95,6 +95,15 @@
 		didPlay = true
 		userHasPlayed = true
 		appState.is_playing = true
+
+		// Update track duration if missing (only for owned channels)
+		const canWrite = channel && appState.channels?.includes(channel.id)
+		if (track && canWrite && !track.duration && mediaElement?.duration) {
+			const duration = Math.round(mediaElement.duration)
+			if (duration > 0) {
+				updateTrack(channel, track.id, {duration})
+			}
+		}
 	}
 
 	function handlePause() {
