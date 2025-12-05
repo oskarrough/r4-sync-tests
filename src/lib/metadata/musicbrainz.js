@@ -137,12 +137,3 @@ export async function search(title) {
 
 	return null
 }
-
-/**
- * Read MusicBrainz metadata from local track_meta collection
- * @param {string[]} ytids YouTube video IDs
- * @returns {Object[]} Local metadata with musicbrainz_data
- */
-export function local(ytids) {
-	return ytids.map((id) => trackMetaCollection.get(id)).filter((m) => m?.musicbrainz_data)
-}

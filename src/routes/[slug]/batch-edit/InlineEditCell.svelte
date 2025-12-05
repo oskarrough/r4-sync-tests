@@ -1,12 +1,19 @@
 <script>
-	let {track, field, onEdit, canEdit = true} = $props()
+	let {track, field, onEdit, onTab, canEdit = true, isFocused = false} = $props()
 
 	let isEditing = $state(false)
 	let value = $derived(track?.[field] || '')
 
+	// Start editing when cell becomes focused
+	$effect(() => {
+		if (isFocused && canEdit && !isEditing) {
+			isEditing = true
+		}
+	})
+
 	function startEdit(e) {
 		if (!canEdit) return
-		e.stopPropagation()
+		e?.stopPropagation()
 		isEditing = true
 	}
 
@@ -28,6 +35,10 @@
 		} else if (e.key === 'Escape') {
 			e.preventDefault()
 			stopEdit()
+		} else if (e.key === 'Tab') {
+			e.preventDefault()
+			commitEdit(e.target.value)
+			onTab?.(e.shiftKey ? -1 : 1)
 		}
 	}
 
@@ -47,7 +58,7 @@
 		use:focus
 	/>
 {:else}
-	<span class="editable" class:readonly={!canEdit} onclick={startEdit}>
+	<span class="editable" class:readonly={!canEdit} ondblclick={startEdit}>
 		{value}&nbsp;
 	</span>
 {/if}

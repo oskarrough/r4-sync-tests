@@ -215,6 +215,41 @@ export function deleteTrack(channel: Channel, id: string) {
 	return tx.commit()
 }
 
+export function batchUpdateTracks(channel: Channel, ids: string[], changes: Record<string, unknown>) {
+	const tx = getOfflineExecutor().createOfflineTransaction({
+		mutationFnName: 'syncTracks',
+		metadata: {channelId: channel.id, slug: channel.slug},
+		autoCommit: false
+	})
+	tx.mutate(() => {
+		for (const id of ids) {
+			const track = tracksCollection.get(id)
+			if (!track) continue
+			tracksCollection.update(id, (draft) => {
+				Object.assign(draft, changes, {updated_at: new Date().toISOString()})
+			})
+		}
+	})
+	return tx.commit()
+}
+
+export function batchDeleteTracks(channel: Channel, ids: string[]) {
+	const tx = getOfflineExecutor().createOfflineTransaction({
+		mutationFnName: 'syncTracks',
+		metadata: {channelId: channel.id, slug: channel.slug},
+		autoCommit: false
+	})
+	tx.mutate(() => {
+		for (const id of ids) {
+			const track = tracksCollection.get(id)
+			if (track) {
+				tracksCollection.delete(id)
+			}
+		}
+	})
+	return tx.commit()
+}
+
 /** Check if remote has newer tracks than local. Invalidates cache if so. */
 export async function checkTracksFreshness(slug: string): Promise<boolean> {
 	const localTracks = [...tracksCollection.state.values()].filter((t) => t.slug === slug)

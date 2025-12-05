@@ -25,6 +25,8 @@ export {
 	addTrack,
 	updateTrack,
 	deleteTrack,
+	batchUpdateTracks,
+	batchDeleteTracks,
 	checkTracksFreshness
 } from './tracks'
 

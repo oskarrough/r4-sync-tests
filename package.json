@@ -50,6 +50,7 @@
 		"@tanstack/svelte-db": "^0.1.54",
 		"@tanstack/svelte-query": "^6.0.10",
 		"@tanstack/svelte-query-devtools": "^6.0.2",
+		"@tanstack/svelte-virtual": "^3.13.12",
 		"@types/yargs": "^17.0.35",
 		"adze": "^2.2.5",
 		"filenamify": "^7.0.1",

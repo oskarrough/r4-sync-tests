@@ -48,7 +48,7 @@
 			<AddTrackModal />
 			<EditTrackModal bind:this={editModalRef} />
 			{#if userChannel}
-				<a href="/{userChannel.slug}">
+				<a href="/{userChannel.slug}" {@attach tooltip({content: 'Go to your channel'})}>
 					<ChannelAvatar id={userChannel.image} size={32} alt={userChannel.name} />
 				</a>
 			{/if}

@@ -102,6 +102,23 @@ export function extractHashtags(text: string): string[] {
 }
 
 /**
+ * Extract mentions from text
+ */
+export function extractMentions(text: string): string[] {
+	if (!text || typeof text !== 'string') return []
+
+	const mentions = []
+	text.replace(ENTITY_REGEX, (match, _prefix, entity) => {
+		if (entity.startsWith('@')) {
+			mentions.push(entity.toLowerCase())
+		}
+		return match
+	})
+
+	return mentions
+}
+
+/**
  * Generate a unique, deterministic frequency based on the channel name and slug.
  * All frequency values are rounded to one decimal place.
  * Values are generated inside a given range.

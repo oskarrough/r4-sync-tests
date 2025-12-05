@@ -3,6 +3,8 @@
 	import * as m from '$lib/paraglide/messages'
 
 	let showModal = $state(false)
+
+	/** @type {import('$lib/types').Track | null} */
 	let currentTrack = $state(null)
 
 	/** @param {object} track */
@@ -12,11 +14,8 @@
 	}
 
 	function handleSubmit(event) {
-		const {error} = event.detail
-		if (error) return
-
+		if (event.detail?.error) return
 		showModal = false
-
 		document.dispatchEvent(
 			new CustomEvent('r5:trackUpdated', {
 				detail: {trackId: currentTrack?.id}

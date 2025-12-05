@@ -1,9 +1,14 @@
 <script>
 	import {useLiveQuery, eq} from '@tanstack/svelte-db'
+	import SvelteVirtualList from '@humanspeak/svelte-virtual-list'
+	import fuzzysort from 'fuzzysort'
 	import {page} from '$app/state'
-	import {channelsCollection, tracksCollection, updateTrack} from '../../tanstack/collections'
+	import {channelsCollection, tracksCollection, trackMetaCollection, updateTrack} from '../../tanstack/collections'
+	import {extractYouTubeId} from '$lib/utils'
 	import {appState} from '$lib/app-state.svelte'
+	import {pull as pullYouTubeMeta} from '$lib/metadata/youtube'
 	import TrackRow from './TrackRow.svelte'
+	import BatchActionBar from './BatchActionBar.svelte'
 	import * as m from '$lib/paraglide/messages'
 
 	let slug = $derived(page.params.slug)
@@ -23,21 +28,167 @@
 			.orderBy(({tracks}) => tracks.created_at, 'desc')
 	)
 
+	const metaQuery = useLiveQuery((q) => q.from({meta: trackMetaCollection}).orderBy(({meta}) => meta.ytid))
+
 	let channel = $derived(channelQuery.data?.[0])
-	let tracks = $derived(tracksQuery.data || [])
+	let rawTracks = $derived(tracksQuery.data || [])
+	let metaMap = $derived(new Map(metaQuery.data?.map((m) => [m.ytid, m]) || []))
+	let tracks = $derived(
+		rawTracks.map((track) => {
+			const ytid = extractYouTubeId(track.url)
+			if (!ytid) return track
+			const meta = metaMap.get(ytid)
+			return meta ? {...track, ...meta} : track
+		})
+	)
 	const readonly = $derived(channel?.source === 'v1')
 	const canEdit = $derived(!readonly && appState.channels?.includes(channel?.id))
 
 	/** @type {string[]} */
 	let selectedTracks = $state([])
 	let filter = $state('all')
+	let tagFilter = $state('')
+	let mentionFilter = $state('')
+	let search = $state('')
+	let fetchingMeta = $state(false)
+
+	// Tracks missing YouTube metadata
+	let tracksMissingMeta = $derived(
+		tracks
+			.filter((t) => !t.youtube_data)
+			.map((t) => extractYouTubeId(t.url))
+			.filter(Boolean)
+	)
+
+	async function fetchYouTubeMeta() {
+		if (fetchingMeta || tracksMissingMeta.length === 0) return
+		fetchingMeta = true
+		try {
+			await pullYouTubeMeta(tracksMissingMeta)
+		} finally {
+			fetchingMeta = false
+		}
+	}
+
+	// Column visibility
+	const ALL_COLUMNS = [
+		'url',
+		'title',
+		'description',
+		'tags',
+		'mentions',
+		'discogs',
+		'meta',
+		'duration',
+		'error',
+		'created',
+		'updated'
+	]
+	const COLUMN_WIDTHS = {
+		url: '1fr',
+		title: '2fr',
+		description: '2fr',
+		tags: '1fr',
+		mentions: '1fr',
+		discogs: '2fr',
+		meta: '80px',
+		duration: '60px',
+		error: '80px',
+		created: '90px',
+		updated: '90px'
+	}
+	let hiddenColumns = $state(['url', 'discogs', 'tags', 'mentions'])
+	let gridTemplate = $derived(
+		'40px 40px ' +
+			ALL_COLUMNS.filter((c) => !hiddenColumns.includes(c))
+				.map((c) => COLUMN_WIDTHS[c])
+				.join(' ')
+	)
+
+	// Focus state for tab navigation
+	let focusedTrackId = $state(null)
+	let focusedField = $state(null)
+
+	/** @type {'title' | 'description' | 'tags' | 'mentions' | 'created_at' | 'duration' | 'error' | 'meta' | null} */
+	let sortBy = $state(null)
+	let sortDir = $state('asc')
+
+	const EDITABLE_FIELDS = ['url', 'title', 'description', 'discogs_url']
+
+	const sortKey = {
+		title: (t) => t.title?.toLowerCase() ?? '',
+		description: (t) => t.description?.toLowerCase() ?? '',
+		tags: (t) => t.tags?.length ?? 0,
+		mentions: (t) => t.mentions?.length ?? 0,
+		created_at: (t) => t.created_at ?? '',
+		updated_at: (t) => t.updated_at ?? '',
+		duration: (t) => t.duration ?? 0,
+		error: (t) => (t.playback_error ? 1 : 0),
+		meta: (t) => (t.youtube_data ? 1 : 0) + (t.musicbrainz_data ? 1 : 0) + (t.discogs_data ? 1 : 0)
+	}
+
+	function toggleSort(column) {
+		if (sortBy === column) {
+			sortDir = sortDir === 'asc' ? 'desc' : 'asc'
+		} else {
+			sortBy = column
+			sortDir = 'asc'
+		}
+	}
+
+	function handleFocusChange(trackId, field) {
+		if (field === 'next-row' || field === 'prev-row') {
+			const currentIndex = filteredTracks.findIndex((t) => t.id === focusedTrackId)
+			const nextIndex = field === 'next-row' ? currentIndex + 1 : currentIndex - 1
+			if (nextIndex >= 0 && nextIndex < filteredTracks.length) {
+				focusedTrackId = filteredTracks[nextIndex].id
+				focusedField = field === 'next-row' ? EDITABLE_FIELDS[0] : EDITABLE_FIELDS[EDITABLE_FIELDS.length - 1]
+			} else {
+				focusedTrackId = null
+				focusedField = null
+			}
+		} else {
+			focusedTrackId = trackId
+			focusedField = field
+		}
+	}
+
+	// Aggregate tags from all tracks
+	let allTags = $derived.by(() => {
+		if (!tracks) return []
+		const counts = {}
+		for (const track of tracks) {
+			for (const tag of track.tags || []) {
+				counts[tag] = (counts[tag] || 0) + 1
+			}
+		}
+		return Object.entries(counts)
+			.map(([tag, count]) => ({tag, count}))
+			.sort((a, b) => b.count - a.count)
+	})
+
+	// Aggregate mentions from all tracks
+	let allMentions = $derived.by(() => {
+		if (!tracks) return []
+		const counts = {}
+		for (const track of tracks) {
+			for (const mention of track.mentions || []) {
+				counts[mention] = (counts[mention] || 0) + 1
+			}
+		}
+		return Object.entries(counts)
+			.map(([mention, count]) => ({mention, count}))
+			.sort((a, b) => b.count - a.count)
+	})
 
 	let selectedCount = $derived(selectedTracks.length)
 	let hasSelection = $derived(selectedCount > 0)
 
 	let filteredTracks = $derived.by(() => {
 		if (!tracks) return []
-		return tracks.filter((track) => {
+
+		// First apply dropdown filter
+		let result = tracks.filter((track) => {
 			switch (filter) {
 				case 'has-t-param':
 					return track.url?.includes('&t=')
@@ -61,6 +212,37 @@
 					return true
 			}
 		})
+
+		// Apply tag filter
+		if (tagFilter) {
+			result = result.filter((track) => (track.tags || []).includes(tagFilter))
+		}
+
+		// Apply mention filter
+		if (mentionFilter) {
+			result = result.filter((track) => (track.mentions || []).includes(mentionFilter))
+		}
+
+		// Then apply search filter
+		if (search.trim().length >= 2) {
+			const results = fuzzysort.go(search, result, {
+				keys: ['title', 'description', 'url'],
+				threshold: -10000
+			})
+			result = results.map((r) => r.obj)
+		}
+
+		// Apply sorting
+		if (sortBy) {
+			result = [...result].sort((a, b) => {
+				const av = sortKey[sortBy](a)
+				const bv = sortKey[sortBy](b)
+				const cmp = av < bv ? -1 : av > bv ? 1 : 0
+				return sortDir === 'asc' ? cmp : -cmp
+			})
+		}
+
+		return result
 	})
 
 	function selectTrack(trackId, event) {
@@ -117,13 +299,20 @@
 		<nav>
 			<a href="/{slug}">@{channel.name}</a>
 			{m.batch_edit_nav_suffix()}
-			{#if readonly}
-				<span style="color: var(--color-yellow);">(v1 channel - read only)</span>
-			{:else if !canEdit}
-				<span style="color: var(--color-yellow);">(no edit access)</span>
-			{/if}
 		</nav>
+
+		{#if readonly}
+			<p class="hint" warn>READ ONLY, this is a v1 channel</p>
+		{:else if !canEdit}
+			<p class="hint" warn>(READ ONLY, you do not have edit access)</p>
+		{/if}
+
+		<p class="hint">
+			Double-click to edit cells. Changes save automatically. Tab to move between cells.<br />
+			Hold <kbd>Shift</kbd> or <kbd>ctrl</kbd> to select multiple cells.
+		</p>
 		<menu>
+			<input type="search" bind:value={search} placeholder="Search tracks..." />
 			<select bind:value={filter}>
 				<option value="all">{m.batch_edit_filter_all()}</option>
 				<option value="missing-description">{m.batch_edit_filter_missing_description()}</option>
@@ -136,8 +325,54 @@
 				<option value="has-duration">{m.batch_edit_filter_has_duration()}</option>
 				<option value="no-duration">{m.batch_edit_filter_no_duration()}</option>
 			</select>
+			{#if allTags.length > 0}
+				<select bind:value={tagFilter}>
+					<option value="">All tags</option>
+					{#each allTags as { tag, count } (tag)}
+						<option value={tag}>{tag} ({count})</option>
+					{/each}
+				</select>
+			{/if}
+			{#if allMentions.length > 0}
+				<select bind:value={mentionFilter}>
+					<option value="">All mentions</option>
+					{#each allMentions as { mention, count } (mention)}
+						<option value={mention}>{mention} ({count})</option>
+					{/each}
+				</select>
+			{/if}
+			<details class="column-picker">
+				<summary>Columns</summary>
+				<div class="column-options">
+					{#each ALL_COLUMNS as col (col)}
+						<label>
+							<input
+								type="checkbox"
+								checked={!hiddenColumns.includes(col)}
+								onchange={() => {
+									if (hiddenColumns.includes(col)) {
+										hiddenColumns = hiddenColumns.filter((c) => c !== col)
+									} else {
+										hiddenColumns = [...hiddenColumns, col]
+									}
+								}}
+							/>
+							{col}
+						</label>
+					{/each}
+				</div>
+			</details>
+			{#if canEdit && tracksMissingMeta.length > 0}
+				<button onclick={fetchYouTubeMeta} disabled={fetchingMeta}>
+					{fetchingMeta ? 'Fetching...' : `Fetch YouTube meta (${tracksMissingMeta.length})`}
+				</button>
+			{/if}
 		</menu>
 	</header>
+
+	{#if hasSelection && canEdit}
+		<BatchActionBar selectedIds={selectedTracks} {channel} {allTags} onClear={clearSelection} />
+	{/if}
 
 	<main class="tracks-container">
 		<section class="tracks">
@@ -147,44 +382,111 @@
 				<p>{m.batch_edit_no_tracks()}</p>
 			{:else}
 				<div class="tracks-list">
-					<div class="tracks-header">
+					<div class="tracks-header" style:grid-template-columns={gridTemplate}>
 						<div class="col-checkbox">
 							<menu class="selection">
-								{#if hasSelection}
-									<span>{m.batch_edit_selected_count({count: selectedCount})}</span>
-									<button onclick={clearSelection}>{m.common_clear()}</button>
-								{:else}
-									<button onclick={selectAll}>{m.batch_edit_select_all({count: filteredTracks.length})}</button>
-								{/if}
+								<button onclick={hasSelection ? clearSelection : selectAll}>
+									{hasSelection ? selectedCount : filteredTracks.length}
+								</button>
 							</menu>
 						</div>
 						<div class="col-link"></div>
-						<div class="col-url">{m.batch_edit_column_url()}</div>
-						<div class="col-title">{m.batch_edit_column_title()}</div>
-						<div class="col-description">{m.batch_edit_column_description()}</div>
-						<div class="col-discogs">{m.batch_edit_column_discogs()}</div>
-						<div class="col-tags">{m.batch_edit_column_tags()}</div>
-						<div class="col-mentions">{m.batch_edit_column_mentions()}</div>
-						<div class="col-meta">{m.batch_edit_column_meta()}</div>
-						<div class="col-duration">{m.batch_edit_column_duration()}</div>
-						<div class="col-error">{m.batch_edit_column_error()}</div>
-						<div class="col-date">{m.batch_edit_column_created()}</div>
+						{#if !hiddenColumns.includes('url')}<div class="col-url">{m.batch_edit_column_url()}</div>{/if}
+						{#if !hiddenColumns.includes('title')}<button
+								class="col-title sortable"
+								class:sorted={sortBy === 'title'}
+								onclick={() => toggleSort('title')}
+							>
+								{m.batch_edit_column_title()}
+								{sortBy === 'title' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+							</button>{/if}
+						{#if !hiddenColumns.includes('description')}<button
+								class="col-description sortable"
+								class:sorted={sortBy === 'description'}
+								onclick={() => toggleSort('description')}
+							>
+								{m.batch_edit_column_description()}
+								{sortBy === 'description' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+							</button>{/if}
+						{#if !hiddenColumns.includes('tags')}<button
+								class="col-tags sortable"
+								class:sorted={sortBy === 'tags'}
+								onclick={() => toggleSort('tags')}
+							>
+								{m.batch_edit_column_tags()}
+								{sortBy === 'tags' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+							</button>{/if}
+						{#if !hiddenColumns.includes('mentions')}<button
+								class="col-mentions sortable"
+								class:sorted={sortBy === 'mentions'}
+								onclick={() => toggleSort('mentions')}
+							>
+								{m.batch_edit_column_mentions()}
+								{sortBy === 'mentions' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+							</button>{/if}
+						{#if !hiddenColumns.includes('discogs')}<div class="col-discogs">{m.batch_edit_column_discogs()}</div>{/if}
+						{#if !hiddenColumns.includes('meta')}<button
+								class="col-meta sortable"
+								class:sorted={sortBy === 'meta'}
+								onclick={() => toggleSort('meta')}
+							>
+								{m.batch_edit_column_meta()}
+								{sortBy === 'meta' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+							</button>{/if}
+						{#if !hiddenColumns.includes('duration')}<button
+								class="col-duration sortable"
+								class:sorted={sortBy === 'duration'}
+								onclick={() => toggleSort('duration')}
+							>
+								{m.batch_edit_column_duration()}
+								{sortBy === 'duration' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+							</button>{/if}
+						{#if !hiddenColumns.includes('error')}<button
+								class="col-error sortable"
+								class:sorted={sortBy === 'error'}
+								onclick={() => toggleSort('error')}
+							>
+								{m.batch_edit_column_error()}
+								{sortBy === 'error' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+							</button>{/if}
+						{#if !hiddenColumns.includes('created')}<button
+								class="col-date sortable"
+								class:sorted={sortBy === 'created_at'}
+								onclick={() => toggleSort('created_at')}
+							>
+								{m.batch_edit_column_created()}
+								{sortBy === 'created_at' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+							</button>{/if}
+						{#if !hiddenColumns.includes('updated')}<button
+								class="col-date sortable"
+								class:sorted={sortBy === 'updated_at'}
+								onclick={() => toggleSort('updated_at')}
+							>
+								Updated {sortBy === 'updated_at' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+							</button>{/if}
 					</div>
-					<ol class="list scroll">
-						{#each filteredTracks as track (track.id)}
-							<li>
-								<TrackRow
-									{track}
-									{slug}
-									isSelected={selectedTracks.includes(track.id)}
-									{selectedTracks}
-									onSelect={(e) => selectTrack(track.id, e)}
-									{onEdit}
-									{canEdit}
-								/>
-							</li>
-						{/each}
-					</ol>
+					<SvelteVirtualList
+						items={filteredTracks}
+						defaultEstimatedItemHeight={32}
+						bufferSize={20}
+						viewportClass="virtual-viewport"
+					>
+						{#snippet renderItem(track)}
+							<TrackRow
+								{track}
+								{slug}
+								isSelected={selectedTracks.includes(track.id)}
+								{selectedTracks}
+								onSelect={(e) => selectTrack(track.id, e)}
+								{onEdit}
+								{canEdit}
+								focusedField={focusedTrackId === track.id ? focusedField : null}
+								onFocusChange={handleFocusChange}
+								{hiddenColumns}
+								{gridTemplate}
+							/>
+						{/snippet}
+					</SvelteVirtualList>
 				</div>
 			{/if}
 		</section>
@@ -201,21 +503,58 @@
 
 	header menu {
 		padding: 0 0.5rem;
+		margin-bottom: 0.5rem;
+		place-items: center;
+	}
+
+	.hint {
+		margin: 0 0.5rem 1rem;
 	}
 
 	.tracks-header {
-		display: flex;
+		margin-bottom: 0.5rem;
+		display: grid;
+		gap: 0.5rem;
 		position: sticky;
 		top: 0;
 		z-index: 1;
-		font-weight: bold;
-		background: var(--gray-1);
-		border-bottom: 1px solid var(--gray-7);
+		/*font-weight: bold;*/
+		/*background: var(--gray-1);*/
+		/*border-bottom: 1px solid var(--gray-7);*/
+		padding-right: 17px;
 	}
 
 	.tracks-container {
 		min-width: 0;
 		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+		height: calc(100vh - 120px);
+	}
+
+	.tracks-list {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		min-height: 0;
+	}
+
+	.tracks-list :global(.svelte-virtual-list-container) {
+		flex: 1;
+		min-height: 0;
+	}
+
+	:global(.virtual-viewport) {
+		height: 100%;
+		overflow-y: auto;
+		overflow-x: hidden;
+	}
+
+	.tracks {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		min-height: 0;
 	}
 
 	:global(.col-checkbox),
@@ -227,36 +566,63 @@
 	:global(.col-url),
 	:global(.col-discogs),
 	:global(.col-meta),
+	:global(.col-duration),
+	:global(.col-error),
 	:global(.col-date) {
-		padding: 0.2rem;
-		flex: 1;
-		text-align: left;
+		/*border-right: 1px solid var(--gray-2);*/
 	}
 
-	:global(.col-title),
-	:global(.col-description),
 	:global(.col-discogs) {
-		flex: 2;
+		border-right: none;
 	}
 
-	:global(.col-checkbox),
-	:global(.col-link) {
-		flex: 0 0 40px;
+	.sortable {
+		font-weight: bold;
+		/*border: none;*/
+		/*border-radius: 0;*/
+		/*padding: 0;*/
+		/*border-right: 1px solid var(--gray-12);*/
+		font-size: inherit;
+
+		&.sorted {
+			background: var(--gray-2);
+		}
 	}
 
-	:global(.col-meta) {
-		flex: 0 0 60px;
+	.column-picker {
+		position: relative;
 	}
 
-	:global(.col-duration) {
-		flex: 0 0 60px;
+	.column-picker summary {
+		user-select: none;
 	}
 
-	:global(.col-error) {
-		flex: 0 0 80px;
+	.column-options {
+		position: absolute;
+		top: 100%;
+		right: 0;
+		background: var(--gray-1);
+		border: 1px solid var(--gray-5);
+		padding: 0.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		z-index: 10;
 	}
 
-	:global(.col-date) {
-		flex: 0 0 100px;
+	.column-options label {
+		display: flex;
+		gap: 0.5rem;
+		white-space: nowrap;
+		cursor: pointer;
+	}
+
+	menu.selection {
+		margin-left: 0.5rem;
+		margin-right: 0.5rem;
+	}
+
+	p[warn] {
+		background: yellow;
 	}
 </style>

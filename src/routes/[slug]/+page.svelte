@@ -62,6 +62,7 @@
 					<a href="/{channel.slug}/tags" class="btn">{m.channel_tags_link()}</a>
 					{#if canEdit}
 						<a href="/{channel.slug}/edit" class="btn">{m.common_edit()}</a>
+						<a href="/{channel.slug}/batch-edit" class="btn">Batch edit</a>
 					{/if}
 				</menu>
 				<h1>
