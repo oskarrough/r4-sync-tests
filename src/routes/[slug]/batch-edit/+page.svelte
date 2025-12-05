@@ -7,8 +7,8 @@
 	import {extractYouTubeId} from '$lib/utils'
 	import {appState} from '$lib/app-state.svelte'
 	import {pull as pullYouTubeMeta} from '$lib/metadata/youtube'
-	import TrackRow from './TrackRow.svelte'
-	import BatchActionBar from './BatchActionBar.svelte'
+	import TrackRow from './track-row.svelte'
+	import BatchActionBar from './batch-action-bar.svelte'
 	import * as m from '$lib/paraglide/messages'
 
 	let slug = $derived(page.params.slug)

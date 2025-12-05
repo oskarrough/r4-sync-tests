@@ -1,5 +1,5 @@
 <script>
-	import InlineEditCell from './InlineEditCell.svelte'
+	import InlineEditCell from './inline-edit-cell.svelte'
 	import * as m from '$lib/paraglide/messages'
 
 	const EDITABLE_FIELDS = ['url', 'title', 'description', 'discogs_url']
