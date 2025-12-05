@@ -96,7 +96,7 @@
 				loading={index > 20 ? 'lazy' : null}
 			/>{/if}
 		<div class="text">
-			<h3 class="title">{track.title} {track.duration}</h3>
+			<h3 class="title">{track.title}</h3>
 			{#if track.description}
 				<p class="description">
 					<small>
