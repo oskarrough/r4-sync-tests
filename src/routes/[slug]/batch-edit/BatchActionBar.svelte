@@ -141,10 +141,11 @@
 	aside {
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
-		padding: 0.5rem;
-		background: var(--gray-2);
-		border-bottom: 1px solid var(--gray-5);
+		gap: 0.2rem;
+		margin: 0.5rem;
+		/*padding: 0.5rem;*/
+		/*background: var(--gray-2);*/
+		/*border-bottom: 1px solid var(--gray-5);*/
 	}
 
 	.count {

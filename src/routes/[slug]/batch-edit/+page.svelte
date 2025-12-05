@@ -3,8 +3,10 @@
 	import SvelteVirtualList from '@humanspeak/svelte-virtual-list'
 	import fuzzysort from 'fuzzysort'
 	import {page} from '$app/state'
-	import {channelsCollection, tracksCollection, updateTrack, getTrackWithMeta} from '../../tanstack/collections'
+	import {channelsCollection, tracksCollection, trackMetaCollection, updateTrack} from '../../tanstack/collections'
+	import {extractYouTubeId} from '$lib/utils'
 	import {appState} from '$lib/app-state.svelte'
+	import {pull as pullYouTubeMeta} from '$lib/metadata/youtube'
 	import TrackRow from './TrackRow.svelte'
 	import BatchActionBar from './BatchActionBar.svelte'
 	import * as m from '$lib/paraglide/messages'
@@ -26,9 +28,19 @@
 			.orderBy(({tracks}) => tracks.created_at, 'desc')
 	)
 
+	const metaQuery = useLiveQuery((q) => q.from({meta: trackMetaCollection}).orderBy(({meta}) => meta.ytid))
+
 	let channel = $derived(channelQuery.data?.[0])
 	let rawTracks = $derived(tracksQuery.data || [])
-	let tracks = $derived(rawTracks.map(getTrackWithMeta))
+	let metaMap = $derived(new Map(metaQuery.data?.map((m) => [m.ytid, m]) || []))
+	let tracks = $derived(
+		rawTracks.map((track) => {
+			const ytid = extractYouTubeId(track.url)
+			if (!ytid) return track
+			const meta = metaMap.get(ytid)
+			return meta ? {...track, ...meta} : track
+		})
+	)
 	const readonly = $derived(channel?.source === 'v1')
 	const canEdit = $derived(!readonly && appState.channels?.includes(channel?.id))
 
@@ -38,6 +50,25 @@
 	let tagFilter = $state('')
 	let mentionFilter = $state('')
 	let search = $state('')
+	let fetchingMeta = $state(false)
+
+	// Tracks missing YouTube metadata
+	let tracksMissingMeta = $derived(
+		tracks
+			.filter((t) => !t.youtube_data)
+			.map((t) => extractYouTubeId(t.url))
+			.filter(Boolean)
+	)
+
+	async function fetchYouTubeMeta() {
+		if (fetchingMeta || tracksMissingMeta.length === 0) return
+		fetchingMeta = true
+		try {
+			await pullYouTubeMeta(tracksMissingMeta)
+		} finally {
+			fetchingMeta = false
+		}
+	}
 
 	// Column visibility
 	const ALL_COLUMNS = [
@@ -78,7 +109,7 @@
 	let focusedTrackId = $state(null)
 	let focusedField = $state(null)
 
-	/** @type {'title' | 'description' | 'tags' | 'mentions' | 'created_at' | 'duration' | 'error' | null} */
+	/** @type {'title' | 'description' | 'tags' | 'mentions' | 'created_at' | 'duration' | 'error' | 'meta' | null} */
 	let sortBy = $state(null)
 	let sortDir = $state('asc')
 
@@ -92,7 +123,8 @@
 		created_at: (t) => t.created_at ?? '',
 		updated_at: (t) => t.updated_at ?? '',
 		duration: (t) => t.duration ?? 0,
-		error: (t) => (t.playback_error ? 1 : 0)
+		error: (t) => (t.playback_error ? 1 : 0),
+		meta: (t) => (t.youtube_data ? 1 : 0) + (t.musicbrainz_data ? 1 : 0) + (t.discogs_data ? 1 : 0)
 	}
 
 	function toggleSort(column) {
@@ -267,13 +299,18 @@
 		<nav>
 			<a href="/{slug}">@{channel.name}</a>
 			{m.batch_edit_nav_suffix()}
-			{#if readonly}
-				<span style="color: var(--color-yellow);">(v1 channel - read only)</span>
-			{:else if !canEdit}
-				<span style="color: var(--color-yellow);">(no edit access)</span>
-			{/if}
 		</nav>
-		<p class="hint">Double-click to edit cells. Changes save automatically. Tab to move between cells.</p>
+
+		{#if readonly}
+			<p class="hint" warn>READ ONLY, this is a v1 channel</p>
+		{:else if !canEdit}
+			<p class="hint" warn>(READ ONLY, you do not have edit access)</p>
+		{/if}
+
+		<p class="hint">
+			Double-click to edit cells. Changes save automatically. Tab to move between cells.<br />
+			Hold <kbd>Shift</kbd> or <kbd>ctrl</kbd> to select multiple cells.
+		</p>
 		<menu>
 			<input type="search" bind:value={search} placeholder="Search tracks..." />
 			<select bind:value={filter}>
@@ -325,6 +362,11 @@
 					{/each}
 				</div>
 			</details>
+			{#if canEdit && tracksMissingMeta.length > 0}
+				<button onclick={fetchYouTubeMeta} disabled={fetchingMeta}>
+					{fetchingMeta ? 'Fetching...' : `Fetch YouTube meta (${tracksMissingMeta.length})`}
+				</button>
+			{/if}
 		</menu>
 	</header>
 
@@ -383,7 +425,14 @@
 								{sortBy === 'mentions' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
 							</button>{/if}
 						{#if !hiddenColumns.includes('discogs')}<div class="col-discogs">{m.batch_edit_column_discogs()}</div>{/if}
-						{#if !hiddenColumns.includes('meta')}<div class="col-meta">{m.batch_edit_column_meta()}</div>{/if}
+						{#if !hiddenColumns.includes('meta')}<button
+								class="col-meta sortable"
+								class:sorted={sortBy === 'meta'}
+								onclick={() => toggleSort('meta')}
+							>
+								{m.batch_edit_column_meta()}
+								{sortBy === 'meta' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+							</button>{/if}
 						{#if !hiddenColumns.includes('duration')}<button
 								class="col-duration sortable"
 								class:sorted={sortBy === 'duration'}
@@ -455,6 +504,7 @@
 	header menu {
 		padding: 0 0.5rem;
 		margin-bottom: 0.5rem;
+		place-items: center;
 	}
 
 	.hint {
@@ -462,14 +512,15 @@
 	}
 
 	.tracks-header {
+		margin-bottom: 0.5rem;
 		display: grid;
 		gap: 0.5rem;
 		position: sticky;
 		top: 0;
 		z-index: 1;
-		font-weight: bold;
-		background: var(--gray-1);
-		border-bottom: 1px solid var(--gray-7);
+		/*font-weight: bold;*/
+		/*background: var(--gray-1);*/
+		/*border-bottom: 1px solid var(--gray-7);*/
 		padding-right: 17px;
 	}
 
@@ -518,7 +569,7 @@
 	:global(.col-duration),
 	:global(.col-error),
 	:global(.col-date) {
-		border-right: 1px solid var(--gray-2);
+		/*border-right: 1px solid var(--gray-2);*/
 	}
 
 	:global(.col-discogs) {
@@ -526,22 +577,16 @@
 	}
 
 	.sortable {
-		cursor: pointer;
-		text-align: left;
 		font-weight: bold;
-		background: transparent;
-		border: none;
-		border-right: 1px solid var(--gray-2);
-		padding: 0;
+		/*border: none;*/
+		/*border-radius: 0;*/
+		/*padding: 0;*/
+		/*border-right: 1px solid var(--gray-12);*/
 		font-size: inherit;
-	}
 
-	.sortable:hover {
-		background: var(--gray-2);
-	}
-
-	.sortable.sorted {
-		background: var(--gray-2);
+		&.sorted {
+			background: var(--gray-2);
+		}
 	}
 
 	.column-picker {
@@ -570,5 +615,14 @@
 		gap: 0.5rem;
 		white-space: nowrap;
 		cursor: pointer;
+	}
+
+	menu.selection {
+		margin-left: 0.5rem;
+		margin-right: 0.5rem;
+	}
+
+	p[warn] {
+		background: yellow;
 	}
 </style>

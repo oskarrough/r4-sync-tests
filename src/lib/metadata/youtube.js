@@ -74,23 +74,13 @@ export async function pull(ytids) {
 		const existing = trackMetaCollection.get(video.id)
 		if (existing) {
 			trackMetaCollection.update(video.id, (draft) => {
-				draft.duration = video.duration
 				draft.youtube_data = video
 			})
 		} else {
-			trackMetaCollection.insert({ytid: video.id, duration: video.duration, youtube_data: video})
+			trackMetaCollection.insert({ytid: video.id, youtube_data: video})
 		}
 	}
 
 	log.info(`processed ${toUpdate.length} tracks`)
 	return results
-}
-
-/**
- * Read YouTube metadata from local track_meta collection
- * @param {string[]} ytids YouTube video IDs
- * @returns {Object[]} Local metadata with youtube_data
- */
-export function local(ytids) {
-	return ytids.map((id) => trackMetaCollection.get(id)).filter((m) => m?.youtube_data)
 }

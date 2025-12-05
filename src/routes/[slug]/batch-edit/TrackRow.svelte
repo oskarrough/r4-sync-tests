@@ -97,9 +97,9 @@
 			/>
 		</div>{/if}
 	{#if !hiddenColumns.includes('meta')}<div class="col-meta">
-			{#if track.has_youtube_meta}<span class="meta-indicator yt">{m.batch_edit_meta_youtube()}</span>{/if}
-			{#if track.has_musicbrainz_meta}<span class="meta-indicator mb">{m.batch_edit_meta_musicbrainz()}</span>{/if}
-			{#if track.has_discogs_meta}<span class="meta-indicator dc">{m.batch_edit_meta_discogs()}</span>{/if}
+			{#if track.youtube_data}<span class="meta-indicator yt">{m.batch_edit_meta_youtube()}</span>{/if}
+			{#if track.musicbrainz_data}<span class="meta-indicator mb">{m.batch_edit_meta_musicbrainz()}</span>{/if}
+			{#if track.discogs_data}<span class="meta-indicator dc">{m.batch_edit_meta_discogs()}</span>{/if}
 		</div>{/if}
 	{#if !hiddenColumns.includes('duration')}<div class="col-duration">
 			{#if track.duration}{Math.floor(track.duration / 60)}:{String(track.duration % 60).padStart(2, '0')}{/if}

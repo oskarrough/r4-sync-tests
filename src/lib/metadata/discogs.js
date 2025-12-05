@@ -127,15 +127,6 @@ async function saveDiscogsUrl(trackId, discogsUrl) {
 }
 
 /**
- * Read Discogs metadata from local track_meta collection
- * @param {string[]} ytids YouTube video IDs
- * @returns {Object[]} Local metadata with discogs_data
- */
-export function local(ytids) {
-	return ytids.map((id) => trackMetaCollection.get(id)).filter((m) => m?.discogs_data)
-}
-
-/**
  * Test the chain with a known track
  */
 export async function testAutoDiscovery() {
