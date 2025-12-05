@@ -476,7 +476,6 @@
 								{track}
 								{slug}
 								isSelected={selectedTracks.includes(track.id)}
-								{selectedTracks}
 								onSelect={(e) => selectTrack(track.id, e)}
 								{onEdit}
 								{canEdit}

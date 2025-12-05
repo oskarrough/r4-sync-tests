@@ -8,7 +8,6 @@
 		track,
 		slug,
 		isSelected,
-		selectedTracks,
 		onSelect,
 		onEdit,
 		canEdit,
@@ -17,14 +16,6 @@
 		hiddenColumns = [],
 		gridTemplate
 	} = $props()
-
-	function handleCheckboxChange(e) {
-		if (e.target.checked) {
-			selectedTracks = [...selectedTracks, track.id]
-		} else {
-			selectedTracks = selectedTracks.filter((id) => id !== track.id)
-		}
-	}
 
 	function handleTab(field, direction) {
 		const currentIndex = EDITABLE_FIELDS.indexOf(field)
@@ -40,7 +31,7 @@
 
 <div class="track-row" class:selected={isSelected} onclick={onSelect} style:grid-template-columns={gridTemplate}>
 	<div class="col-checkbox">
-		<input type="checkbox" checked={isSelected} onchange={handleCheckboxChange} />
+		<input type="checkbox" checked={isSelected} onclick|stopPropagation={onSelect} />
 	</div>
 
 	<div class="col-link">
