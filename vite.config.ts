@@ -22,7 +22,7 @@ export default defineConfig({
 	plugins: [
 		sveltekit(),
 		paraglideVitePlugin({
-			project: './project.inlang',
+			project: './i18n/project.inlang',
 			outdir: './src/lib/paraglide'
 		}),
 		devtoolsJson()

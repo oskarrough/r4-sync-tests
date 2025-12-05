@@ -6,6 +6,9 @@ node_modules
 /.svelte-kit
 /build
 /docs/_site
+# inlang generated artifacts
+./i18n/project.inlang/cache/
+./i18n/project.inlang/project_id
 
 # OS
 .DS_Store
@@ -18,7 +21,3 @@ Thumbs.db
 !.env.test
 .dev.vars
 tmp/
-
-# inlang generated artifacts
-project.inlang/cache/
-project.inlang/project_id
