@@ -202,11 +202,5 @@
 		top: 0;
 		right: 0;
 		height: 100%;
-
-		button[popovertarget] {
-			height: 100%;
-			box-shadow: none;
-			border: none;
-		}
 	}
 </style>

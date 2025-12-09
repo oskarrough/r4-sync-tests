@@ -42,7 +42,7 @@
 			.filter((t) => t.slug === slug)
 			.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))
 	)
-	let tracks = $derived(collectionTracks.length ? collectionTracks : (tracksQuery.data || []))
+	let tracks = $derived(collectionTracks.length ? collectionTracks : tracksQuery.data || [])
 
 	let channel = $derived(channelQuery.data?.[0])
 	let latestTrackDate = $derived(tracks[0]?.created_at)

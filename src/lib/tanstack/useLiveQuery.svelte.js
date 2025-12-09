@@ -65,7 +65,7 @@ export function useLiveQuery(configOrQueryOrCollection, deps = []) {
 
 	const state = new SvelteMap()
 	let internalData = $state([])
-	let status = $state(collection ? collection.status : `disabled`)
+	let status = $state(`disabled`)
 
 	const syncDataFromCollection = (currentCollection) => {
 		untrack(() => {
