@@ -28,6 +28,17 @@ Renamed to align with `mapChunked` terminology. Component at `src/lib/components
 
 ## BACKLOG
 
+### track-card perf improvements
+
+Potential bottlenecks when rendering 3k+ tracks:
+
+- **extractYouTubeId per card**: regex parsing runs for each track. Consider caching results or moving to track sync time.
+- **PopoverMenu per card**: 3k popover instances in DOM even if not visible. Lazy-render only when opened?
+- **LinkEntities per description**: parses/transforms text for each track description. Could batch or cache.
+- **active state**: `appState.playlist_track` check runs on all cards when current track changes. Move check to parent, only pass boolean to playing track.
+
+---
+
 - Refine offline error handling: In `syncTracks` and `syncChannels`, use `NonRetriableError` from `@tanstack/offline-transactions` for server-side validation errors (e.g., HTTP 4xx) to prevent unnecessary retries.
 - add an url param to directly queueplay a track. maybe slug?play=trackid
 - implement password reset flow (supabase auth)
