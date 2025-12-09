@@ -165,7 +165,10 @@ export function getTrackWithMeta<T extends {url?: string}>(track: T): T & Partia
 }
 
 // Track actions
-export function addTrack(channel: Channel, input: {url: string; title: string; description?: string}) {
+export function addTrack(
+	channel: Channel,
+	input: {url: string; title: string; description?: string; discogs_url?: string}
+) {
 	const tx = getOfflineExecutor().createOfflineTransaction({
 		mutationFnName: 'syncTracks',
 		metadata: {channelId: channel.id, slug: channel.slug},
@@ -180,7 +183,7 @@ export function addTrack(channel: Channel, input: {url: string; title: string; d
 			slug: channel.slug,
 			created_at: new Date().toISOString(),
 			updated_at: new Date().toISOString(),
-			discogs_url: null,
+			discogs_url: input.discogs_url || null,
 			duration: null,
 			fts: null,
 			mentions: null,
