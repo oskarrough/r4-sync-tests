@@ -1,17 +1,20 @@
 <script>
+	import SvelteVirtualList from '@humanspeak/svelte-virtual-list'
 	import TrackCard from '$lib/components/track-card.svelte'
 	import {SvelteMap} from 'svelte/reactivity'
 
 	/** @typedef {import('$lib/types').Track} Track */
+	/** @typedef {{type: 'year' | 'month' | 'track', value?: string, data?: Track, index?: number, id: string}} FlatItem */
 
 	/** @type {{
 		tracks: Track[],
 		footer?: (props: {track: Track}) => any,
 		grouped?: boolean,
-		canEdit?: boolean
+		canEdit?: boolean,
+		virtual?: boolean
 		}}
 	*/
-	const {tracks, footer, grouped = false, canEdit = false} = $props()
+	const {tracks, footer, grouped = false, canEdit = false, virtual = false} = $props()
 
 	/** @type {SvelteMap<string, SvelteMap<string, Track[]>>} */
 	let groupedTracks = $derived.by(() => {
@@ -36,10 +39,57 @@
 
 		return groups
 	})
+
+	/** @type {FlatItem[]} */
+	let flatItems = $derived.by(() => {
+		if (!grouped || !tracks.length) {
+			return tracks.map((t, i) => ({type: 'track', data: t, index: i, id: t.id}))
+		}
+
+		/** @type {FlatItem[]} */
+		const items = []
+		let trackIndex = 0
+		for (const [year, months] of groupedTracks) {
+			items.push({type: 'year', value: year, id: `year-${year}`})
+			for (const [month, monthTracks] of months) {
+				items.push({type: 'month', value: month, id: `month-${year}-${month}`})
+				for (const track of monthTracks) {
+					items.push({type: 'track', data: track, index: trackIndex++, id: track.id})
+				}
+			}
+		}
+		return items
+	})
 </script>
 
 {#if tracks.length}
-	{#if grouped}
+	{#if virtual}
+		<div class="virtual-tracklist">
+			<SvelteVirtualList
+				items={flatItems}
+				defaultEstimatedItemHeight={72}
+				bufferSize={20}
+				viewportClass="virtual-viewport"
+			>
+				{#snippet renderItem(item)}
+					{#if item.type === 'year'}
+						<div class="virtual-item year-item">
+							<h2 class="caps">{item.value}</h2>
+						</div>
+					{:else if item.type === 'month'}
+						<div class="virtual-item month-item">
+							<h3 class="caps">{item.value}</h3>
+						</div>
+					{:else if item.data}
+						<div class="virtual-item track-item">
+							<TrackCard track={item.data} index={item.index} {canEdit} />
+							{@render footer?.({track: item.data})}
+						</div>
+					{/if}
+				{/snippet}
+			</SvelteVirtualList>
+		</div>
+	{:else if grouped}
 		<div class="timeline">
 			{#each groupedTracks as [year, months] (year)}
 				<section>
@@ -96,12 +146,44 @@
 		font-weight: 600;
 	}
 
-	/* sticky year */
-	h2 {
+	/* sticky year - only for non-virtual timeline */
+	.timeline h2 {
 		display: inline-flex;
 		position: sticky;
 		top: 0;
 		z-index: 1;
 		background: var(--gray-1);
+	}
+
+	.virtual-tracklist {
+		display: flex;
+		flex-direction: column;
+		height: calc(100vh - 350px);
+		height: calc(100dvh - 350px);
+		min-height: 400px;
+		overflow: hidden;
+	}
+
+	.virtual-tracklist :global(.svelte-virtual-list-container) {
+		flex: 1;
+		min-height: 0;
+	}
+
+	:global(.virtual-viewport) {
+		height: 100%;
+		overflow-y: auto;
+		overflow-x: hidden;
+	}
+
+	.virtual-item {
+		box-sizing: border-box;
+	}
+
+	.year-item {
+		padding: 0.5rem 0;
+	}
+
+	.month-item {
+		padding: 0.25rem 0;
 	}
 </style>
