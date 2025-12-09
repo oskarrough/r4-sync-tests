@@ -36,8 +36,12 @@
 			checked={isSelected}
 			onclick={(e) => {
 				e.stopPropagation()
-				// Checkbox clicks should toggle selection without needing Ctrl
-				onSelect({...e, ctrlKey: true, metaKey: true, shiftKey: false})
+				// Preserve shift for range selection, otherwise toggle without Ctrl
+				if (e.shiftKey) {
+					onSelect(e)
+				} else {
+					onSelect({...e, ctrlKey: true, metaKey: true})
+				}
 			}}
 		/>
 	</div>
