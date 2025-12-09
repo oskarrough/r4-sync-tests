@@ -4,10 +4,17 @@
 	import SvelteVirtualList from '@humanspeak/svelte-virtual-list'
 	import fuzzysort from 'fuzzysort'
 	import {page} from '$app/state'
-	import {channelsCollection, tracksCollection, trackMetaCollection, updateTrack} from '../../tanstack/collections'
+	import {
+		channelsCollection,
+		tracksCollection,
+		trackMetaCollection,
+		updateTrack,
+		batchUpdateTracksIndividual
+	} from '../../tanstack/collections'
 	import {extractYouTubeId} from '$lib/utils'
 	import {appState} from '$lib/app-state.svelte'
 	import {pull as pullYouTubeMeta} from '$lib/metadata/youtube'
+	import {mapChunked} from '$lib/async'
 	import TrackRow from './track-row.svelte'
 	import BatchActionBar from './batch-action-bar.svelte'
 	import PopoverMenu from '$lib/components/popover-menu.svelte'
@@ -56,10 +63,10 @@
 	let search = $state('')
 	let fetchingMeta = $state(false)
 
-	// Tracks missing YouTube metadata
+	// Tracks missing YouTube metadata (exclude tracks with playback errors)
 	let tracksMissingMeta = $derived(
 		tracks
-			.filter((t) => !t.youtube_data)
+			.filter((t) => !t.youtube_data && !t.playback_error)
 			.map((t) => extractYouTubeId(t.url))
 			.filter(Boolean)
 	)
@@ -68,7 +75,33 @@
 		if (fetchingMeta || tracksMissingMeta.length === 0) return
 		fetchingMeta = true
 		try {
-			await pullYouTubeMeta(tracksMissingMeta)
+			// Build ytid → track mapping
+			/** @type {Map<string, import('$lib/types').Track>} */
+			const trackByYtid = new Map()
+			for (const t of rawTracks) {
+				const ytid = extractYouTubeId(t.url)
+				if (ytid) trackByYtid.set(ytid, t)
+			}
+
+			// Stream: fetch chunk → update tracks → next chunk
+			for await (const result of mapChunked(tracksMissingMeta, (batch) => pullYouTubeMeta(batch), {
+				chunk: 50,
+				concurrency: 1
+			})) {
+				if (!result.ok) continue
+
+				const updates = result.value
+					.filter((v) => v?.duration && trackByYtid.has(v.id))
+					.map((v) => {
+						const track = trackByYtid.get(v.id)
+						return track ? {id: track.id, changes: {duration: v.duration}} : null
+					})
+					.filter(Boolean)
+
+				if (updates.length && channel) {
+					await batchUpdateTracksIndividual(channel, updates)
+				}
+			}
 		} finally {
 			fetchingMeta = false
 		}
@@ -358,7 +391,11 @@
 			<input type="search" bind:value={search} placeholder="Search..." />
 
 			{#if canEdit && tracksMissingMeta.length > 0}
-				<button onclick={fetchYouTubeMeta} disabled={fetchingMeta}>
+				<button
+					onclick={fetchYouTubeMeta}
+					disabled={fetchingMeta}
+					title="Fetch YouTube metadata for {tracksMissingMeta.length} tracks (excludes tracks with playback errors)"
+				>
 					{fetchingMeta ? 'Fetching...' : `Fetch meta (${tracksMissingMeta.length})`}
 				</button>
 			{/if}
@@ -640,8 +677,7 @@
 		display: flex;
 		gap: 0.5rem;
 		white-space: nowrap;
-		cursor: pointer;
-		padding: 0.25rem;
+		padding: 0.2rem;
 	}
 
 	.column-options label:hover {

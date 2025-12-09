@@ -53,10 +53,6 @@ body {
 	scrollbar-gutter: stable;
 }
 
-::selection {
-	/* background: var(--accent-9); */
-}
-
 * {
 	/* scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-bg); */
 	scrollbar-color: var(--gray-7) var(--gray-1);

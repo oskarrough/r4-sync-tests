@@ -1,5 +1,5 @@
 <script>
-	import {tracksCollection, batchUpdateTracks} from '../../tanstack/collections'
+	import {tracksCollection, batchUpdateTracksUniform} from '../../tanstack/collections'
 
 	/** @type {{selectedIds?: string[], channel: import('$lib/types').Channel | null, allTags?: {value: string, count: number}[], onClear?: () => void}} */
 	let {selectedIds = [], channel, allTags = [], onClear = () => {}} = $props()
@@ -36,7 +36,7 @@
 		for (const track of selectedTracks) {
 			const desc = track.description || ''
 			const newDesc = desc ? `${desc} ${text}` : text
-			await batchUpdateTracks(channel, [track.id], {description: newDesc})
+			await batchUpdateTracksUniform(channel, [track.id], {description: newDesc})
 		}
 		closeDialogs()
 	}
@@ -49,7 +49,7 @@
 			const desc = track.description || ''
 			const newDesc = desc.replace(tagPattern, '').trim()
 			if (newDesc !== desc) {
-				await batchUpdateTracks(channel, [track.id], {description: newDesc})
+				await batchUpdateTracksUniform(channel, [track.id], {description: newDesc})
 			}
 		}
 		closeDialogs()

@@ -1,8 +1,6 @@
-import {batcher} from '$lib/batcher'
+import {mapChunked} from '$lib/async'
 import {logger} from '$lib/logger'
 import {trackMetaCollection} from '../../routes/tanstack/collections'
-
-/** @typedef {{status: string, value: {id: string, tags: string[], duration: number, title: string, categoryId: string, description: string, publishedAt: string}}} YouTubeVideo */
 
 const log = logger.ns('metadata/youtube').seal()
 
@@ -32,55 +30,57 @@ export async function pullSingle(ytid) {
 }
 
 /**
+ * Fetch a batch of YouTube metadata from the API
+ * @param {string[]} ids YouTube video IDs
+ * @param {AbortSignal} [signal]
+ */
+async function fetchBatch(ids, signal) {
+	const response = await fetch('/api/track-meta', {
+		method: 'POST',
+		headers: {'Content-Type': 'application/json'},
+		body: JSON.stringify({ids}),
+		signal
+	})
+	if (!response.ok) throw new Error(`API error: ${response.status}`)
+	return await response.json()
+}
+
+/**
  * Fetch YouTube metadata and save to track_meta collection
  * @param {string[]} ytids YouTube video IDs
- * @returns {Promise<Object[]>} Fetched metadata
+ * @param {{signal?: AbortSignal}} [options]
+ * @returns {Promise<Array<{id: string, duration: number, title?: string, [key: string]: unknown}>>} Fetched videos with metadata
  */
-export async function pull(ytids) {
+export async function pull(ytids, {signal} = {}) {
 	const toUpdate = getTracksToUpdate(ytids)
 	if (toUpdate.length === 0) {
 		log.info('all tracks already have metadata')
 		return []
 	}
 
-	// Batch fetch YouTube metadata
-	const batches = []
-	for (let i = 0; i < toUpdate.length; i += 50) {
-		batches.push(toUpdate.slice(i, i + 50))
-	}
+	const videos = []
 
-	const results = await batcher(
-		batches,
-		async (batch) => {
-			const response = await fetch('/api/track-meta', {
-				method: 'POST',
-				headers: {'Content-Type': 'application/json'},
-				body: JSON.stringify({ids: batch})
-			})
-			if (!response.ok) throw new Error(`API error: ${response.status}`)
-			return await response.json()
-		},
-		{batchSize: 1, withinBatch: 3}
-	)
+	for await (const result of mapChunked(toUpdate, fetchBatch, {chunk: 50, concurrency: 3, signal})) {
+		if (!result.ok) {
+			log.warn('batch failed:', result.error.message)
+			continue
+		}
 
-	// Flatten batch results
-	const videos = results
-		.filter((result) => result.ok)
-		.flatMap((result) => result.value)
-		.filter((video) => video?.duration)
+		for (const video of result.value) {
+			if (!video?.duration) continue
 
-	// Save to collection
-	for (const video of videos) {
-		const existing = trackMetaCollection.get(video.id)
-		if (existing) {
-			trackMetaCollection.update(video.id, (draft) => {
-				draft.youtube_data = video
-			})
-		} else {
-			trackMetaCollection.insert({ytid: video.id, youtube_data: video})
+			const existing = trackMetaCollection.get(video.id)
+			if (existing) {
+				trackMetaCollection.update(video.id, (draft) => {
+					draft.youtube_data = video
+				})
+			} else {
+				trackMetaCollection.insert({ytid: video.id, youtube_data: video})
+			}
+			videos.push(video)
 		}
 	}
 
-	log.info(`processed ${toUpdate.length} tracks`)
-	return results
+	log.info(`processed ${toUpdate.length} ytids, got ${videos.length} videos`)
+	return videos
 }

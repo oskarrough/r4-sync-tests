@@ -174,7 +174,7 @@
 				>
 			</div>
 			<div class="sort-row">
-				<select value={order} onchange={(e) => setOrder(e.target.value)}>
+				<select value={order} onchange={(e) => setOrder(e.currentTarget.value)}>
 					<option value="updated">{m.channels_order_updated()}</option>
 					<option value="created">{m.channels_order_created()}</option>
 					<option value="name">{m.channels_order_name()}</option>

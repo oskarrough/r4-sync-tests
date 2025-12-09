@@ -222,7 +222,7 @@ export function deleteTrack(channel: {id: string; slug: string}, id: string) {
 	return tx.commit()
 }
 
-export function batchUpdateTracks(channel: Channel, ids: string[], changes: Record<string, unknown>) {
+export function batchUpdateTracksUniform(channel: Channel, ids: string[], changes: Record<string, unknown>) {
 	const tx = getOfflineExecutor().createOfflineTransaction({
 		mutationFnName: 'syncTracks',
 		metadata: {channelId: channel.id, slug: channel.slug},
@@ -234,6 +234,28 @@ export function batchUpdateTracks(channel: Channel, ids: string[], changes: Reco
 			if (!track) continue
 			tracksCollection.update(id, (draft) => {
 				Object.assign(draft, changes, {updated_at: new Date().toISOString()})
+			})
+		}
+	})
+	return tx.commit()
+}
+
+export function batchUpdateTracksIndividual(
+	channel: Channel,
+	updates: Array<{id: string; changes: Record<string, unknown>}>
+) {
+	const tx = getOfflineExecutor().createOfflineTransaction({
+		mutationFnName: 'syncTracks',
+		metadata: {channelId: channel.id, slug: channel.slug},
+		autoCommit: false
+	})
+	tx.mutate(() => {
+		const now = new Date().toISOString()
+		for (const {id, changes} of updates) {
+			const track = tracksCollection.get(id)
+			if (!track) continue
+			tracksCollection.update(id, (draft) => {
+				Object.assign(draft, changes, {updated_at: now})
 			})
 		}
 	})
