@@ -52,7 +52,7 @@
 					<ChannelAvatar id={userChannel.image} size={32} alt={userChannel.name} />
 				</a>
 			{/if}
-			<hr />
+			<!--<hr />-->
 			<a
 				href="/broadcasts"
 				class="btn"
@@ -72,6 +72,7 @@
 			>
 				<Icon icon="favorite" size={20} />
 			</a>
+			<!--
 			<a
 				href="/stats"
 				class="btn"
@@ -80,6 +81,7 @@
 			>
 				<Icon icon="chart-scatter" size={20} />
 			</a>
+			-->
 			<!-- <button onclick={toggleChatPanel}>Chat</button> -->
 		{/await}
 		<ThemeToggle showLabel={false} />
@@ -97,7 +99,7 @@
 <style>
 	header {
 		display: flex;
-		flex-flow: row wrap;
+		flex-flow: row nowrap;
 		place-items: center;
 		gap: 0.2rem;
 		padding: 0.5rem;
@@ -107,6 +109,7 @@
 
 		.right {
 			margin-left: auto;
+			place-content: end;
 		}
 
 		a {
