@@ -14,6 +14,7 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 Renamed to align with `mapChunked` terminology. Component at `src/lib/components/batch-progress.svelte`.
 
 **What it does:**
+
 - Pre-renders all chunk slots before running (based on `total` and `chunkSize`)
 - Shows `{total} items → {chunkCount} chunks of {chunkSize}` before run
 - Shows `{completedItems}/{total} items` during/after run

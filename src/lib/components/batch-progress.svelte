@@ -9,7 +9,9 @@
 
 	let chunkCount = $derived(Math.ceil(total / chunkSize))
 	let lastChunkSize = $derived(total % chunkSize || chunkSize)
-	let isDone = $derived(chunks.length > 0 && !running && chunks.every((c) => c.status === 'done' || c.status === 'error'))
+	let isDone = $derived(
+		chunks.length > 0 && !running && chunks.every((c) => c.status === 'done' || c.status === 'error')
+	)
 
 	// Count completed items based on done chunks
 	let completedItems = $derived.by(() => {
@@ -49,7 +51,7 @@
 	</header>
 
 	<section class="chunks">
-		{#each {length: chunkCount} as _, i}
+		{#each {length: chunkCount}, i (i)}
 			{@const status = getStatus(i)}
 			{@const size = i === chunkCount - 1 ? lastChunkSize : chunkSize}
 			<div
@@ -77,7 +79,14 @@
 			<button onclick={onRun} disabled={running}>{isDone ? '▶ Run again' : '▶ Run'}</button>
 		{/if}
 		{#if running && onAbort}
-			<button class="abort" onclick={(e) => { e.target.disabled = true; e.target.textContent = 'Aborting...'; onAbort(); }}>Abort</button>
+			<button
+				class="abort"
+				onclick={(e) => {
+					e.target.disabled = true
+					e.target.textContent = 'Aborting...'
+					onAbort()
+				}}>Abort</button
+			>
 		{/if}
 	</footer>
 

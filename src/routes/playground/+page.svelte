@@ -26,6 +26,17 @@
 
 <h1>{m.playground_heading()}</h1>
 
+<nav>
+	<menu>
+		<li><a href="/playground/async-test">async-test</a></li>
+		<li><a href="/playground/media-chrome">media-chrome</a></li>
+		<li><a href="/playground/spam-angel">spam-angel</a></li>
+		<li><a href="/playground/tooltips">tooltips</a></li>
+	</menu>
+</nav>
+
+<hr />
+
 <section>
 	<button onclick={toggleQueuePanel}>🔄 {m.playground_toggle_queue()}</button>
 	<p>{m.playground_queue_visible({value: appState.queue_panel_visible})}</p>

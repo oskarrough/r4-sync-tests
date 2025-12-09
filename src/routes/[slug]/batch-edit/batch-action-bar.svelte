@@ -1,6 +1,7 @@
 <script>
 	import {batchUpdateTracksUniform, batchUpdateTracksIndividual, deleteTrackMeta} from '../../tanstack/collections'
 	import {extractYouTubeId} from '$lib/utils'
+	import {tooltip} from '$lib/components/tooltip-attachment.js'
 
 	/** @type {{selectedIds?: string[], channel: import('$lib/types').Channel | null, allTags?: {value: string, count: number}[], tracks?: import('$lib/types').TrackWithMeta[], onClear?: () => void}} */
 	let {selectedIds = [], channel, allTags = [], tracks = [], onClear = () => {}} = $props()
@@ -77,9 +78,7 @@
 	}
 
 	function removeMeta() {
-		const ytids = tracksWithMeta
-			.map((t) => extractYouTubeId(t.url))
-			.filter((id) => id !== null)
+		const ytids = tracksWithMeta.map((t) => extractYouTubeId(t.url)).filter((id) => id !== null)
 		if (ytids.length === 0) return
 		deleteTrackMeta(ytids)
 	}
@@ -88,16 +87,28 @@
 <aside>
 	<span class="count">Selected: {selectedIds.length}</span>
 
-	<button onclick={() => (showAppend = true)}>Append...</button>
-	<button onclick={() => (showRemoveTag = true)} disabled={selectedTracksTags.length === 0}>Remove tag...</button>
+	<button onclick={() => (showAppend = true)} use:tooltip={{content: 'Add text or tags to track descriptions'}}
+		>Append...</button
+	>
+	<button
+		onclick={() => (showRemoveTag = true)}
+		disabled={selectedTracksTags.length === 0}
+		use:tooltip={{content: 'Remove a specific tag from all selected tracks'}}>Remove tag...</button
+	>
 	{#if tracksWithMetaDuration.length > 0}
-		<button onclick={copyDurationFromMeta}>Copy duration ({tracksWithMetaDuration.length})</button>
+		<button onclick={copyDurationFromMeta} use:tooltip={{content: 'Copy duration from YouTube metadata to track'}}
+			>Copy duration ({tracksWithMetaDuration.length})</button
+		>
 	{/if}
-	<button onclick={removeDuration}>Remove duration</button>
+	<button onclick={removeDuration} use:tooltip={{content: 'Clear the duration field from selected tracks'}}
+		>Remove duration</button
+	>
 	{#if tracksWithMeta.length > 0}
-		<button onclick={removeMeta}>Remove meta ({tracksWithMeta.length})</button>
+		<button onclick={removeMeta} use:tooltip={{content: 'Delete cached YouTube/MusicBrainz/Discogs metadata'}}
+			>Remove meta ({tracksWithMeta.length})</button
+		>
 	{/if}
-	<button onclick={onClear}>Clear</button>
+	<button onclick={onClear} use:tooltip={{content: 'Deselect all tracks'}}>Clear</button>
 </aside>
 
 {#if showAppend}

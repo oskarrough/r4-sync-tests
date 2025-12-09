@@ -18,7 +18,6 @@
 
 	// State
 	let running = $state(false)
-	let completed = $state(0)
 	let elapsed = $state(0)
 	/** @type {Batch[]} */
 	let batches = $state([])
@@ -32,7 +31,6 @@
 		if (running) return
 
 		running = true
-		completed = 0
 		elapsed = 0
 		batches = []
 		abortController = new AbortController()
@@ -96,7 +94,6 @@
 					const batch = batches[result.value.batchIndex]
 					batch.endTime = performance.now()
 					batch.status = 'done'
-					completed += result.value.items.length
 				} else {
 					// For errors, find the batch that's still fetching/saving
 					const batch = batches.find((b) => b.status === 'fetching' || b.status === 'saving')
@@ -118,12 +115,6 @@
 	function abort() {
 		abortController?.abort()
 	}
-
-	function reset() {
-		completed = 0
-		elapsed = 0
-		batches.length = 0
-	}
 </script>
 
 <svelte:head>
@@ -131,15 +122,7 @@
 </svelte:head>
 
 <div class="SmallContainer">
-	<BatchProgress
-		total={trackCount}
-		{chunkSize}
-		chunks={batches}
-		{elapsed}
-		{running}
-		onRun={runTest}
-		onAbort={abort}
-	>
+	<BatchProgress total={trackCount} {chunkSize} chunks={batches} {elapsed} {running} onRun={runTest} onAbort={abort}>
 		{#snippet controls()}
 			<label>
 				Items
