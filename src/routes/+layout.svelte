@@ -18,7 +18,7 @@
 	import {QueryClientProvider} from '@tanstack/svelte-query'
 	import {SvelteQueryDevtools} from '@tanstack/svelte-query-devtools'
 	import {queryClient, channelsCollection} from './tanstack/collections'
-	import {useLiveQuery} from '@tanstack/svelte-db'
+	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
 
 	const log = logger.ns('layout').seal()
 

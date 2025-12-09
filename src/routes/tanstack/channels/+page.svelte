@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Menu from '../menu.svelte'
-	import {useLiveQuery, inArray} from '@tanstack/svelte-db'
+	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
+	import {inArray} from '@tanstack/db'
 	import {channelsCollection, createChannel, updateChannel, deleteChannel} from '../collections'
 	import SyncStatus from '../sync-status.svelte'
 	import {appState} from '$lib/app-state.svelte'

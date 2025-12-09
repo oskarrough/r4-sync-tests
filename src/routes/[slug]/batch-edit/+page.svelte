@@ -1,5 +1,6 @@
 <script>
-	import {useLiveQuery, eq} from '@tanstack/svelte-db'
+	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
+	import {eq} from '@tanstack/db'
 	import SvelteVirtualList from '@humanspeak/svelte-virtual-list'
 	import fuzzysort from 'fuzzysort'
 	import {page} from '$app/state'

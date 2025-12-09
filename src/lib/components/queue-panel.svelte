@@ -1,6 +1,7 @@
 <script>
 	import fuzzysort from 'fuzzysort'
-	import {useLiveQuery, inArray} from '@tanstack/svelte-db'
+	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
+	import {inArray} from '@tanstack/db'
 	import {appState} from '$lib/app-state.svelte'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
 	import {relativeTime} from '$lib/dates'

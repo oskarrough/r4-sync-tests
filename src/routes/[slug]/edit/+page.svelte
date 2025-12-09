@@ -1,6 +1,7 @@
 <script>
 	import {goto} from '$app/navigation'
-	import {useLiveQuery, eq} from '@tanstack/svelte-db'
+	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
+	import {eq} from '@tanstack/db'
 	import {appState} from '$lib/app-state.svelte'
 	import {channelsCollection} from '../../tanstack/collections'
 	import * as m from '$lib/paraglide/messages'

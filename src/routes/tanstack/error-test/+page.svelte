@@ -9,7 +9,7 @@
 	 * Workaround: Subscribe to queryClient cache to trigger reactivity
 	 * See: https://github.com/TanStack/db/issues/672
 	 */
-	import {useLiveQuery} from '@tanstack/svelte-db'
+	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
 	import {channelsCollection, queryClient} from '../collections'
 
 	const query = useLiveQuery((q) =>

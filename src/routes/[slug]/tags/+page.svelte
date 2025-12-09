@@ -1,5 +1,6 @@
 <script>
-	import {useLiveQuery, eq} from '@tanstack/svelte-db'
+	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
+	import {eq} from '@tanstack/db'
 	import {page} from '$app/state'
 	import {channelsCollection, tracksCollection} from '../../tanstack/collections'
 	import {extractHashtags} from '$lib/utils'

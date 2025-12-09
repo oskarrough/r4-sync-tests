@@ -1,6 +1,7 @@
 <script>
 	import {page} from '$app/state'
-	import {useLiveQuery, eq} from '@tanstack/svelte-db'
+	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
+	import {eq} from '@tanstack/db'
 	import {playTrack} from '$lib/api'
 	import CoverFlip from '$lib/components/cover-flip.svelte'
 	import {tracksCollection} from '../../tanstack/collections'

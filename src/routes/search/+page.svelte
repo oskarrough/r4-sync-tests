@@ -1,6 +1,6 @@
 <script>
 	import {page} from '$app/state'
-	import {useLiveQuery} from '@tanstack/svelte-db'
+	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
 	import {addToPlaylist, playTrack, setPlaylist} from '$lib/api'
 	import ChannelCard from '$lib/components/channel-card.svelte'
 	import SearchStatus from '$lib/components/search-status.svelte'

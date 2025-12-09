@@ -1,6 +1,7 @@
 <script>
 	import {followsCollection, followChannel, unfollowChannel} from '../../routes/tanstack/collections'
-	import {useLiveQuery, eq} from '@tanstack/svelte-db'
+	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
+	import {eq} from '@tanstack/db'
 	import Icon from '$lib/components/icon.svelte'
 	import * as m from '$lib/paraglide/messages'
 

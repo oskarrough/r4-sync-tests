@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Menu from '../menu.svelte'
-	import {useLiveQuery, eq} from '@tanstack/svelte-db'
+	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
+	import {eq} from '@tanstack/db'
 	import {tracksCollection, addTrack, updateTrack, deleteTrack, queryClient} from '../collections'
 	import SyncStatus from '../sync-status.svelte'
 	import {appState} from '$lib/app-state.svelte'

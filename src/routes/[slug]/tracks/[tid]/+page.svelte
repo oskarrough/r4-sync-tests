@@ -1,6 +1,7 @@
 <script>
 	import {page} from '$app/state'
-	import {useLiveQuery, eq} from '@tanstack/svelte-db'
+	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
+	import {eq} from '@tanstack/db'
 	import {tracksCollection, channelsCollection, trackMetaCollection} from '../../../tanstack/collections'
 	import {extractYouTubeId} from '$lib/utils'
 	import TrackCard from '$lib/components/track-card.svelte'
