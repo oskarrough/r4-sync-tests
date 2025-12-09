@@ -95,9 +95,9 @@
 			/>
 		</div>{/if}
 	{#if !hiddenColumns.includes('meta')}<div class="col-meta">
-			{#if track.youtube_data}<span class="meta-indicator yt">{m.batch_edit_meta_youtube()}</span>{/if}
-			{#if track.musicbrainz_data}<span class="meta-indicator mb">{m.batch_edit_meta_musicbrainz()}</span>{/if}
-			{#if track.discogs_data}<span class="meta-indicator dc">{m.batch_edit_meta_discogs()}</span>{/if}
+			{#if track.youtube_data}<span class="meta-indicator yt" title="YouTube metadata">Y</span>{/if}
+			{#if track.musicbrainz_data}<span class="meta-indicator mb" title="MusicBrainz metadata">M</span>{/if}
+			{#if track.discogs_data}<span class="meta-indicator dc" title="Discogs metadata">D</span>{/if}
 		</div>{/if}
 	{#if !hiddenColumns.includes('duration')}<div class="col-duration">
 			{#if track.duration}{Math.floor(track.duration / 60)}:{String(track.duration % 60).padStart(2, '0')}{/if}
@@ -119,6 +119,7 @@
 		gap: 0.5rem;
 		min-height: 2.5rem;
 		border-bottom: 1px solid var(--gray-7);
+		font-size: var(--font-4);
 	}
 
 	.track-row:hover {
@@ -127,7 +128,9 @@
 
 	.col-checkbox,
 	.col-link {
-		text-align: center;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 
 	.col-title,
@@ -138,6 +141,7 @@
 	.col-discogs,
 	.col-error {
 		display: flex;
+		align-items: center;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
@@ -146,5 +150,12 @@
 
 	.col-error.has-error {
 		color: var(--red-9);
+	}
+
+	.col-meta,
+	.col-duration,
+	.col-date {
+		display: flex;
+		align-items: center;
 	}
 </style>

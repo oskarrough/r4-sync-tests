@@ -10,6 +10,8 @@
 	import {pull as pullYouTubeMeta} from '$lib/metadata/youtube'
 	import TrackRow from './track-row.svelte'
 	import BatchActionBar from './batch-action-bar.svelte'
+	import PopoverMenu from '$lib/components/popover-menu.svelte'
+	import Icon from '$lib/components/icon.svelte'
 	import * as m from '$lib/paraglide/messages'
 
 	let slug = $derived(page.params.slug)
@@ -118,6 +120,19 @@
 	let sortDir = $state('asc')
 
 	const EDITABLE_FIELDS = ['url', 'title', 'description', 'discogs_url']
+
+	const filterLabels = {
+		all: 'All tracks',
+		'missing-description': 'Missing description',
+		'no-tags': 'No tags',
+		'single-tag': 'Single tag',
+		'no-meta': 'No metadata',
+		'has-meta': 'Has metadata',
+		'has-t-param': 'Has &t= param',
+		'has-error': 'Has error',
+		'has-duration': 'Has duration',
+		'no-duration': 'No duration'
+	}
 
 	const sortKey = {
 		title: (t) => t.title?.toLowerCase() ?? '',
@@ -311,42 +326,58 @@
 			<p class="hint warn">(READ ONLY, you do not have edit access)</p>
 		{/if}
 
-		<p class="hint warn">
+		<!-- <p class="hint">
 			Double-click to edit cells. Changes save as you edit. Tab to move between cells.<br />
 			Hold <kbd>Shift</kbd> or <kbd>ctrl</kbd> to select multiple cells.
-		</p>
-		<menu>
-			<input type="search" bind:value={search} placeholder="Search tracks..." />
-			<select bind:value={filter}>
-				<option value="all">{m.batch_edit_filter_all()}</option>
-				<option value="missing-description">{m.batch_edit_filter_missing_description()}</option>
-				<option value="single-tag">{m.batch_edit_filter_single_tag()}</option>
-				<option value="no-tags">{m.batch_edit_filter_no_tags()}</option>
-				<option value="no-meta">{m.batch_edit_filter_no_meta()}</option>
-				<option value="has-meta">{m.batch_edit_filter_has_meta()}</option>
-				<option value="has-t-param">{m.batch_edit_filter_has_t_param()}</option>
-				<option value="has-error">{m.batch_edit_filter_has_error()}</option>
-				<option value="has-duration">{m.batch_edit_filter_has_duration()}</option>
-				<option value="no-duration">{m.batch_edit_filter_no_duration()}</option>
-			</select>
+		</p> -->
+		<menu class="controls">
+			<PopoverMenu id="batch-filter">
+				{#snippet trigger()}<Icon icon="filter-alt" size="20" /> {filterLabels[filter]}{/snippet}
+				<button class:active={filter === 'all'} onclick={() => (filter = 'all')}>All tracks</button>
+				<button class:active={filter === 'missing-description'} onclick={() => (filter = 'missing-description')}>Missing description</button>
+				<button class:active={filter === 'no-tags'} onclick={() => (filter = 'no-tags')}>No tags</button>
+				<button class:active={filter === 'single-tag'} onclick={() => (filter = 'single-tag')}>Single tag</button>
+				<button class:active={filter === 'no-meta'} onclick={() => (filter = 'no-meta')}>No metadata</button>
+				<button class:active={filter === 'has-meta'} onclick={() => (filter = 'has-meta')}>Has metadata</button>
+				<button class:active={filter === 'has-t-param'} onclick={() => (filter = 'has-t-param')}>Has &t= param</button>
+				<button class:active={filter === 'has-error'} onclick={() => (filter = 'has-error')}>Has error</button>
+				<button class:active={filter === 'has-duration'} onclick={() => (filter = 'has-duration')}>Has duration</button>
+				<button class:active={filter === 'no-duration'} onclick={() => (filter = 'no-duration')}>No duration</button>
+			</PopoverMenu>
+
 			{#if allTags.length > 0}
-				<select bind:value={tagFilter}>
-					<option value="">All tags</option>
+				<PopoverMenu id="batch-tags">
+					{#snippet trigger()}<Icon icon="tag" size="20" /> {tagFilter || 'Tags'}{/snippet}
+					<button class:active={!tagFilter} onclick={() => (tagFilter = '')}>All tags</button>
 					{#each allTags as { tag, count } (tag)}
-						<option value={tag}>{tag} ({count})</option>
+						<button class:active={tagFilter === tag} onclick={() => (tagFilter = tag)}>{tag} ({count})</button>
 					{/each}
-				</select>
+				</PopoverMenu>
 			{/if}
+
 			{#if allMentions.length > 0}
-				<select bind:value={mentionFilter}>
-					<option value="">All mentions</option>
+				<PopoverMenu id="batch-mentions">
+					{#snippet trigger()}<Icon icon="user" size="20" /> {mentionFilter || 'Mentions'}{/snippet}
+					<button class:active={!mentionFilter} onclick={() => (mentionFilter = '')}>All mentions</button>
 					{#each allMentions as { mention, count } (mention)}
-						<option value={mention}>{mention} ({count})</option>
+						<button class:active={mentionFilter === mention} onclick={() => (mentionFilter = mention)}>{mention} ({count})</button>
 					{/each}
-				</select>
+				</PopoverMenu>
 			{/if}
-			<details class="column-picker">
-				<summary>Columns</summary>
+
+			<PopoverMenu id="batch-display" closeOnClick={false}>
+				{#snippet trigger()}<Icon icon="grid" size="20" /> Display{/snippet}
+				<div class="sort-options">
+					<button class:active={sortBy === 'title'} onclick={() => toggleSort('title')}>Title</button>
+					<button class:active={sortBy === 'created_at'} onclick={() => toggleSort('created_at')}>Created</button>
+					<button class:active={sortBy === 'updated_at'} onclick={() => toggleSort('updated_at')}>Updated</button>
+					<button class:active={sortBy === 'duration'} onclick={() => toggleSort('duration')}>Duration</button>
+				</div>
+				<button onclick={() => (sortDir = sortDir === 'asc' ? 'desc' : 'asc')}>
+					<Icon icon={sortDir === 'asc' ? 'arrow-up' : 'arrow-down'} size="20" />
+					{sortDir === 'asc' ? 'Ascending' : 'Descending'}
+				</button>
+				<hr />
 				<div class="column-options">
 					{#each ALL_COLUMNS as col (col)}
 						<label>
@@ -365,10 +396,13 @@
 						</label>
 					{/each}
 				</div>
-			</details>
+			</PopoverMenu>
+
+			<input type="search" bind:value={search} placeholder="Search..." />
+
 			{#if canEdit && tracksMissingMeta.length > 0}
 				<button onclick={fetchYouTubeMeta} disabled={fetchingMeta}>
-					{fetchingMeta ? 'Fetching...' : `Fetch YouTube meta (${tracksMissingMeta.length})`}
+					{fetchingMeta ? 'Fetching...' : `Fetch meta (${tracksMissingMeta.length})`}
 				</button>
 			{/if}
 		</menu>
@@ -466,7 +500,7 @@
 								class:sorted={sortBy === 'updated_at'}
 								onclick={() => toggleSort('updated_at')}
 							>
-								Updated {sortBy === 'updated_at' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+								updated {sortBy === 'updated_at' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
 							</button>{/if}
 					</div>
 					<SvelteVirtualList
@@ -565,37 +599,30 @@
 	}
 
 	.sortable {
-		font-weight: bold;
-		/*border: none;*/
-		/*border-radius: 0;*/
-		/*padding: 0;*/
-		/*border-right: 1px solid var(--gray-12);*/
-		font-size: inherit;
-
 		&.sorted {
 			background: var(--gray-2);
 		}
 	}
 
-	.column-picker {
-		position: relative;
+	.controls {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
 	}
 
-	.column-picker summary {
-		user-select: none;
+	.sort-options {
+		display: flex;
+		gap: 0.2rem;
+		padding-bottom: 0.5rem;
+		margin-bottom: 0.2rem;
+		border-bottom: 1px solid var(--gray-6);
 	}
 
 	.column-options {
-		position: absolute;
-		top: 100%;
-		right: 0;
-		background: var(--gray-1);
-		border: 1px solid var(--gray-5);
-		padding: 0.5rem;
 		display: flex;
 		flex-direction: column;
 		gap: 0.25rem;
-		z-index: 10;
 	}
 
 	.column-options label {
@@ -603,6 +630,11 @@
 		gap: 0.5rem;
 		white-space: nowrap;
 		cursor: pointer;
+		padding: 0.25rem;
+	}
+
+	.column-options label:hover {
+		background: var(--gray-3);
 	}
 
 	menu.selection {
@@ -612,5 +644,6 @@
 
 	p.warn {
 		background: yellow;
+		color: var(--gray-1);
 	}
 </style>

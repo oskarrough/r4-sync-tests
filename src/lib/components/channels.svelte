@@ -264,10 +264,10 @@
 			flex-direction: column;
 			gap: 0.2rem;
 			padding: 0.2rem;
-			min-width: 3rem;
+			min-width: 3.2rem;
 
 			small {
-				color: initial;
+				color: inherit;
 			}
 		}
 	}
