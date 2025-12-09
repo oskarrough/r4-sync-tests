@@ -13,7 +13,7 @@
 
 	const {channels = [], slug: initialSlug, display: initialDisplay, longitude, latitude, zoom} = $props()
 
-	let limit = $state(18)
+	let limit = $state(16)
 	let perPage = $state(100)
 	let filter = $derived(appState.channels_filter || '20+')
 	let shuffled = $derived(appState.channels_shuffled ?? true)

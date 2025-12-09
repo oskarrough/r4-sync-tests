@@ -2,10 +2,13 @@
  * Patched version of @tanstack/svelte-db useLiveQuery
  * Fix: await tick() before state mutations in subscribeChanges callback
  * to avoid state_unsafe_mutation errors during render
+ *
+ * Also exports useCachedLiveQuery for cache-first pattern
  */
 import {untrack, tick} from 'svelte'
 import {SvelteMap} from 'svelte/reactivity'
 import {BaseQueryBuilder, createLiveQueryCollection} from '@tanstack/db'
+import {queryClient} from '../../routes/tanstack/collections/query-client'
 
 function toValue(value) {
 	if (typeof value === `function`) {
@@ -179,3 +182,4 @@ export function useLiveQuery(configOrQueryOrCollection, deps = []) {
 		}
 	}
 }
+

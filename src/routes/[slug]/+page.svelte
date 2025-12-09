@@ -2,7 +2,7 @@
 	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
 	import {eq} from '@tanstack/db'
 	import {page} from '$app/state'
-	import {channelsCollection, tracksCollection, checkTracksFreshness} from '../tanstack/collections'
+	import {channelsCollection, tracksCollection, checkTracksFreshness, queryClient} from '../tanstack/collections'
 	import ButtonFollow from '$lib/components/button-follow.svelte'
 	import ButtonPlay from '$lib/components/button-play.svelte'
 	import ChannelHero from '$lib/components/channel-hero.svelte'
@@ -28,15 +28,18 @@
 			.limit(1)
 	)
 
-	const tracksQuery = useLiveQuery((q) =>
-		q
-			.from({tracks: tracksCollection})
-			.where(({tracks}) => eq(tracks.slug, slug))
-			.orderBy(({tracks}) => tracks.created_at, 'desc')
-	)
+	// Instant from persisted cache (restored from IDB on app load)
+	const cachedTracks = $derived(queryClient.getQueryData(['tracks', slug]) || [])
+	// Live from collection state (reactive to inserts)
+	const collectionTracks = $derived([...tracksCollection.state.values()].filter((t) => t.slug === slug))
+	// Merge: collection tracks + cached tracks not in collection, sorted
+	let tracks = $derived.by(() => {
+		const collectionIds = new Set(collectionTracks.map((t) => t.id))
+		const merged = [...collectionTracks, ...cachedTracks.filter((t) => !collectionIds.has(t.id))]
+		return merged.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))
+	})
 
 	let channel = $derived(channelQuery.data?.[0])
-	let tracks = $derived(tracksQuery.data || [])
 	let latestTrackDate = $derived(tracks[0]?.created_at)
 	let isSignedIn = $derived(!!appState.user)
 	let canEdit = $derived(isSignedIn && appState.channels?.includes(channel?.id))
@@ -98,7 +101,7 @@
 		<section>
 			{#if tracks.length > 0}
 				<Tracklist {tracks} {canEdit} grouped={true} virtual={true} />
-			{:else if tracksQuery.isLoading || (channel.track_count ?? 0) > 0}
+			{:else if (channel.track_count ?? 0) > 0}
 				<p style="margin-top:1rem; margin-left: 0.5rem;">{m.channel_loading_tracks()}</p>
 			{:else}
 				<p style="margin-top:1rem; margin-left: 0.5rem;">No tracks yet</p>
