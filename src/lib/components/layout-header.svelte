@@ -9,7 +9,6 @@
 	import Icon from '$lib/components/icon.svelte'
 	import TestCounter from '$lib/components/test-counter.svelte'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
-	import ThemeToggle from '$lib/components/theme-toggle.svelte'
 	import * as m from '$lib/paraglide/messages'
 	import {channelsCollection} from '../../routes/tanstack/collections'
 
@@ -53,7 +52,7 @@
 			<AddTrackModal />
 			<EditTrackModal bind:this={editModalRef} />
 			{#if userChannel}
-				<a href="/{userChannel.slug}" {@attach tooltip({content: 'Go to your channel'})}>
+				<a href="/{userChannel.slug}" class="btn ChannelLinkButton" {@attach tooltip({content: 'Go to your channel'})}>
 					<ChannelAvatar id={userChannel.image} size={32} alt={userChannel.name} />
 				</a>
 			{/if}
@@ -89,7 +88,7 @@
 			-->
 			<!-- <button onclick={toggleChatPanel}>Chat</button> -->
 		{/await}
-		<ThemeToggle showLabel={false} />
+		<!-- <ThemeToggle showLabel={false} /> -->
 		<a
 			href="/settings"
 			class="btn"
@@ -102,6 +101,11 @@
 </header>
 
 <style>
+	.ChannelLinkButton {
+		padding: 0;
+		min-width: 2rem;
+	}
+
 	header {
 		display: flex;
 		flex-flow: row nowrap;
