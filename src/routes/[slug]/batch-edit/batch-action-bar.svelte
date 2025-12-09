@@ -1,14 +1,12 @@
 <script>
-	import {tracksCollection, batchUpdateTracks, batchDeleteTracks} from '../../tanstack/collections'
+	import {tracksCollection, batchUpdateTracks} from '../../tanstack/collections'
 
 	/** @type {{selectedIds?: string[], channel: import('$lib/types').Channel | null, allTags?: {tag: string, count: number}[], onClear?: () => void}} */
 	let {selectedIds = [], channel, allTags = [], onClear = () => {}} = $props()
 
 	let showAddTag = $state(false)
 	let showRemoveTag = $state(false)
-	let showDeleteConfirm = $state(false)
 	let newTag = $state('')
-	let deleteConfirmInput = $state('')
 
 	/** @type {import('$lib/types').Track[]} */
 	let selectedTracks = $derived(selectedIds.map((id) => tracksCollection.get(id)).filter((t) => t !== undefined))
@@ -29,9 +27,7 @@
 	function closeDialogs() {
 		showAddTag = false
 		showRemoveTag = false
-		showDeleteConfirm = false
 		newTag = ''
-		deleteConfirmInput = ''
 	}
 
 	async function addTag(tag) {
@@ -61,13 +57,6 @@
 		}
 		closeDialogs()
 	}
-
-	async function deleteSelected() {
-		if (!channel) return
-		await batchDeleteTracks(channel, selectedIds)
-		onClear()
-		closeDialogs()
-	}
 </script>
 
 <aside>
@@ -75,7 +64,6 @@
 
 	<button onclick={() => (showAddTag = true)}>Add Tag...</button>
 	<button onclick={() => (showRemoveTag = true)} disabled={selectedTracksTags.length === 0}> Remove Tag... </button>
-	<button class="danger" onclick={() => (showDeleteConfirm = true)}>Delete...</button>
 	<button onclick={onClear}>Clear</button>
 </aside>
 
@@ -113,29 +101,6 @@
 		<footer>
 			<button onclick={closeDialogs}>Cancel</button>
 		</footer>
-	</dialog>
-{/if}
-
-{#if showDeleteConfirm}
-	{@const confirmText = `delete ${selectedIds.length}`}
-	<dialog open>
-		<h3>Delete {selectedIds.length} tracks?</h3>
-		<p><strong>This cannot be undone.</strong></p>
-		<p>Type <code>{confirmText}</code> to confirm:</p>
-		<form
-			onsubmit={(e) => {
-				e.preventDefault()
-				if (deleteConfirmInput === confirmText) deleteSelected()
-			}}
-		>
-			<input type="text" bind:value={deleteConfirmInput} placeholder={confirmText} autofocus />
-			<footer>
-				<button type="button" onclick={closeDialogs}>Cancel</button>
-				<button type="submit" class="danger" disabled={deleteConfirmInput !== confirmText}>
-					Delete {selectedIds.length} tracks
-				</button>
-			</footer>
-		</form>
 	</dialog>
 {/if}
 
