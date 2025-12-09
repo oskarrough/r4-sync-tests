@@ -5,7 +5,7 @@ export {queryClient} from './query-client'
 export {log, txLog, offlineLog, completedIdempotencyKeys, getErrorMessage} from './utils'
 
 // Local-only collections (localStorage)
-export {trackMetaCollection, type TrackMeta} from './track-meta'
+export {trackMetaCollection, deleteTrackMeta, type TrackMeta} from './track-meta'
 export {
 	playHistoryCollection,
 	addPlayHistoryEntry,

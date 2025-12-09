@@ -3,6 +3,28 @@
 List of possible improvements to the architecture, idea, cli and web application.
 Verify and evaluate todos before taking them on. They might be outdated or just not good ideas.
 
+## IN PROGRESS
+
+(nothing)
+
+## DONE
+
+### chunk-progress component (was batch-progress)
+
+Renamed to align with `mapChunked` terminology. Component at `src/lib/components/batch-progress.svelte`.
+
+**What it does:**
+- Pre-renders all chunk slots before running (based on `total` and `chunkSize`)
+- Shows `{total} items → {chunkCount} chunks of {chunkSize}` before run
+- Shows `{completedItems}/{total} items` during/after run
+- Done chunks show their item count (e.g. `20` or `10` for last chunk)
+- Spinners for fetching/saving, ✗ for errors
+- Abort button shows "Aborting..." immediately on click
+
+**Props:** `total`, `chunkSize`, `chunks`, `elapsed`, `running`, `onRun`, `onAbort`, `controls` (snippet)
+
+**Future:** Multi-phase operations (fetch then save) would need rethinking - currently one status per chunk
+
 ## BACKLOG
 
 - Refine offline error handling: In `syncTracks` and `syncChannels`, use `NonRetriableError` from `@tanstack/offline-transactions` for server-side validation errors (e.g., HTTP 4xx) to prevent unnecessary retries.

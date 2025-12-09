@@ -16,3 +16,9 @@ export const trackMetaCollection = createCollection<TrackMeta, string>(
 		getKey: (item) => item.ytid
 	})
 )
+
+export function deleteTrackMeta(ytids: string[]) {
+	for (const ytid of ytids) {
+		trackMetaCollection.delete(ytid)
+	}
+}

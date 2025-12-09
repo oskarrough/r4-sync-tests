@@ -158,3 +158,16 @@ export function timeAgo(dateString: string): string {
 	const minutes = Math.floor((durationMs % 3600000) / 60000)
 	return `${hours}h ${minutes}m ago`
 }
+
+/** Random delay between min and max milliseconds */
+export function delayRandom(min: number, max: number): Promise<void> {
+	const ms = Math.random() * (max - min) + min
+	return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+/** Delay with jitter: base ± (base * jitter) */
+export function delayWithJitter(base: number, jitter: number = 0.2): Promise<void> {
+	const variance = base * jitter
+	const ms = base + (Math.random() * 2 - 1) * variance
+	return new Promise((resolve) => setTimeout(resolve, ms))
+}

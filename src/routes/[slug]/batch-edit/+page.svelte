@@ -1,4 +1,5 @@
 <script>
+	import {SvelteMap} from 'svelte/reactivity'
 	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
 	import {eq} from '@tanstack/db'
 	import SvelteVirtualList from '@humanspeak/svelte-virtual-list'
@@ -76,8 +77,8 @@
 		fetchingMeta = true
 		try {
 			// Build ytid → track mapping
-			/** @type {Map<string, import('$lib/types').Track>} */
-			const trackByYtid = new Map()
+			/** @type {SvelteMap<string, import('$lib/types').Track>} */
+			const trackByYtid = new SvelteMap()
 			for (const t of rawTracks) {
 				const ytid = extractYouTubeId(t.url)
 				if (ytid) trackByYtid.set(ytid, t)
@@ -448,7 +449,7 @@
 	</header>
 
 	{#if hasSelection && canEdit}
-		<BatchActionBar selectedIds={selectedTracks} {channel} {allTags} onClear={clearSelection} />
+		<BatchActionBar selectedIds={selectedTracks} {channel} {allTags} {tracks} onClear={clearSelection} />
 	{/if}
 
 	<main class="tracks-container">

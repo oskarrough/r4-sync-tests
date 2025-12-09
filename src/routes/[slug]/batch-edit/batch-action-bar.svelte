@@ -1,15 +1,22 @@
 <script>
-	import {tracksCollection, batchUpdateTracksUniform} from '../../tanstack/collections'
+	import {batchUpdateTracksUniform, batchUpdateTracksIndividual, deleteTrackMeta} from '../../tanstack/collections'
+	import {extractYouTubeId} from '$lib/utils'
 
-	/** @type {{selectedIds?: string[], channel: import('$lib/types').Channel | null, allTags?: {value: string, count: number}[], onClear?: () => void}} */
-	let {selectedIds = [], channel, allTags = [], onClear = () => {}} = $props()
+	/** @type {{selectedIds?: string[], channel: import('$lib/types').Channel | null, allTags?: {value: string, count: number}[], tracks?: import('$lib/types').TrackWithMeta[], onClear?: () => void}} */
+	let {selectedIds = [], channel, allTags = [], tracks = [], onClear = () => {}} = $props()
 
 	let showAppend = $state(false)
 	let showRemoveTag = $state(false)
 	let appendText = $state('')
 
-	/** @type {import('$lib/types').Track[]} */
-	let selectedTracks = $derived(selectedIds.map((id) => tracksCollection.get(id)).filter((t) => t !== undefined))
+	/** @type {import('$lib/types').TrackWithMeta[]} */
+	let selectedTracks = $derived(selectedIds.map((id) => tracks.find((t) => t.id === id)).filter((t) => t !== undefined))
+
+	// Tracks that have metadata duration but no track duration
+	let tracksWithMetaDuration = $derived(selectedTracks.filter((t) => !t.duration && t.youtube_data?.duration))
+
+	// Tracks that have any metadata
+	let tracksWithMeta = $derived(selectedTracks.filter((t) => t.youtube_data || t.musicbrainz_data || t.discogs_data))
 
 	// Tags present in selected tracks
 	let selectedTracksTags = $derived.by(() => {
@@ -54,13 +61,42 @@
 		}
 		closeDialogs()
 	}
+
+	async function removeDuration() {
+		if (!channel || selectedIds.length === 0) return
+		await batchUpdateTracksUniform(channel, selectedIds, {duration: null})
+	}
+
+	async function copyDurationFromMeta() {
+		if (!channel || tracksWithMetaDuration.length === 0) return
+		const updates = tracksWithMetaDuration.map((t) => ({
+			id: t.id,
+			changes: {duration: t.youtube_data?.duration}
+		}))
+		await batchUpdateTracksIndividual(channel, updates)
+	}
+
+	function removeMeta() {
+		const ytids = tracksWithMeta
+			.map((t) => extractYouTubeId(t.url))
+			.filter((id) => id !== null)
+		if (ytids.length === 0) return
+		deleteTrackMeta(ytids)
+	}
 </script>
 
 <aside>
 	<span class="count">Selected: {selectedIds.length}</span>
 
 	<button onclick={() => (showAppend = true)}>Append...</button>
-	<button onclick={() => (showRemoveTag = true)} disabled={selectedTracksTags.length === 0}>Remove Tag...</button>
+	<button onclick={() => (showRemoveTag = true)} disabled={selectedTracksTags.length === 0}>Remove tag...</button>
+	{#if tracksWithMetaDuration.length > 0}
+		<button onclick={copyDurationFromMeta}>Copy duration ({tracksWithMetaDuration.length})</button>
+	{/if}
+	<button onclick={removeDuration}>Remove duration</button>
+	{#if tracksWithMeta.length > 0}
+		<button onclick={removeMeta}>Remove meta ({tracksWithMeta.length})</button>
+	{/if}
 	<button onclick={onClear}>Clear</button>
 </aside>
 

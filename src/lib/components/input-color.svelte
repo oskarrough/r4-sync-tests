@@ -11,7 +11,7 @@
 	}
 </script>
 
-<ColorPicker {label} bind:hex={value} onInput={handleInput} isDialog={true} />
+<ColorPicker {label} bind:hex={value} onInput={handleInput} isDialog={true} {disabled} />
 
 <style>
 	:root {
