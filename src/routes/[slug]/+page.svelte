@@ -2,7 +2,7 @@
 	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
 	import {eq} from '@tanstack/db'
 	import {page} from '$app/state'
-	import {channelsCollection, tracksCollection, checkTracksFreshness, queryClient} from '../tanstack/collections'
+	import {channelsCollection, tracksCollection, checkTracksFreshness} from '../tanstack/collections'
 	import ButtonFollow from '$lib/components/button-follow.svelte'
 	import ButtonPlay from '$lib/components/button-play.svelte'
 	import ChannelHero from '$lib/components/channel-hero.svelte'
@@ -28,16 +28,21 @@
 			.limit(1)
 	)
 
-	// Instant from persisted cache (restored from IDB on app load)
-	const cachedTracks = $derived(queryClient.getQueryData(['tracks', slug]) || [])
-	// Live from collection state (reactive to inserts)
-	const collectionTracks = $derived([...tracksCollection.state.values()].filter((t) => t.slug === slug))
-	// Merge: collection tracks + cached tracks not in collection, sorted
-	let tracks = $derived.by(() => {
-		const collectionIds = new Set(collectionTracks.map((t) => t.id))
-		const merged = [...collectionTracks, ...cachedTracks.filter((t) => !collectionIds.has(t.id))]
-		return merged.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))
-	})
+	// Live query triggers fetch on cache miss
+	const tracksQuery = useLiveQuery((q) =>
+		q
+			.from({tracks: tracksCollection})
+			.where(({tracks}) => eq(tracks.slug, slug))
+			.orderBy(({tracks}) => tracks.created_at, 'desc')
+	)
+
+	// Collection state (hydrated from cache) or live query data (after fetch)
+	const collectionTracks = $derived(
+		[...tracksCollection.state.values()]
+			.filter((t) => t.slug === slug)
+			.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))
+	)
+	let tracks = $derived(collectionTracks.length ? collectionTracks : (tracksQuery.data || []))
 
 	let channel = $derived(channelQuery.data?.[0])
 	let latestTrackDate = $derived(tracks[0]?.created_at)
