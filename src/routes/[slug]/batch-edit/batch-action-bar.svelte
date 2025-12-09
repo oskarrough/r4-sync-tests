@@ -4,9 +4,9 @@
 	/** @type {{selectedIds?: string[], channel: import('$lib/types').Channel | null, allTags?: {tag: string, count: number}[], onClear?: () => void}} */
 	let {selectedIds = [], channel, allTags = [], onClear = () => {}} = $props()
 
-	let showAddTag = $state(false)
+	let showAppend = $state(false)
 	let showRemoveTag = $state(false)
-	let newTag = $state('')
+	let appendText = $state('')
 
 	/** @type {import('$lib/types').Track[]} */
 	let selectedTracks = $derived(selectedIds.map((id) => tracksCollection.get(id)).filter((t) => t !== undefined))
@@ -25,20 +25,17 @@
 	})
 
 	function closeDialogs() {
-		showAddTag = false
+		showAppend = false
 		showRemoveTag = false
-		newTag = ''
+		appendText = ''
 	}
 
-	async function addTag(tag) {
-		if (!tag || !channel) return
-		const tagToAdd = tag.startsWith('#') ? tag : `#${tag}`
+	async function append(text) {
+		if (!text || !channel) return
 
 		for (const track of selectedTracks) {
 			const desc = track.description || ''
-			// Skip if tag already present
-			if (desc.includes(tagToAdd)) continue
-			const newDesc = desc ? `${desc} ${tagToAdd}` : tagToAdd
+			const newDesc = desc ? `${desc} ${text}` : text
 			await batchUpdateTracks(channel, [track.id], {description: newDesc})
 		}
 		closeDialogs()
@@ -62,29 +59,31 @@
 <aside>
 	<span class="count">Selected: {selectedIds.length}</span>
 
-	<button onclick={() => (showAddTag = true)}>Add Tag...</button>
-	<button onclick={() => (showRemoveTag = true)} disabled={selectedTracksTags.length === 0}> Remove Tag... </button>
+	<button onclick={() => (showAppend = true)}>Append...</button>
+	<button onclick={() => (showRemoveTag = true)} disabled={selectedTracksTags.length === 0}>Remove Tag...</button>
 	<button onclick={onClear}>Clear</button>
 </aside>
 
-{#if showAddTag}
+{#if showAppend}
 	<dialog open>
-		<h3>Add tag to {selectedIds.length} tracks</h3>
+		<h3>Append to {selectedIds.length} tracks</h3>
 		<form
 			onsubmit={(e) => {
 				e.preventDefault()
-				addTag(newTag)
+				append(appendText)
 			}}
 		>
-			<input type="text" bind:value={newTag} placeholder="#tag" autofocus />
-			<menu>
-				{#each allTags.slice(0, 10) as { tag } (tag)}
-					<button type="button" onclick={() => addTag(tag)}>#{tag}</button>
-				{/each}
-			</menu>
+			<input type="text" bind:value={appendText} placeholder="text to append" autofocus />
+			{#if allTags.length > 0}
+				<menu>
+					{#each allTags.slice(0, 10) as { tag } (tag)}
+						<button type="button" onclick={() => (appendText = appendText ? `${appendText} #${tag}` : `#${tag}`)}>#{tag}</button>
+					{/each}
+				</menu>
+			{/if}
 			<footer>
 				<button type="button" onclick={closeDialogs}>Cancel</button>
-				<button type="submit" disabled={!newTag.trim()}>Add</button>
+				<button type="submit" disabled={!appendText.trim()}>Append</button>
 			</footer>
 		</form>
 	</dialog>

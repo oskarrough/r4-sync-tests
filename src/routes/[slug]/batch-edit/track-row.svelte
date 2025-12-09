@@ -36,7 +36,7 @@
 			checked={isSelected}
 			onclick={(e) => {
 				e.stopPropagation()
-				onSelect()
+				onSelect(e)
 			}}
 		/>
 	</div>
