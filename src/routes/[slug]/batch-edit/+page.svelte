@@ -119,8 +119,6 @@
 	let sortBy = $state(null)
 	let sortDir = $state('asc')
 
-	const EDITABLE_FIELDS = ['url', 'title', 'description', 'discogs_url']
-
 	const filterLabels = {
 		all: 'All tracks',
 		'missing-description': 'Missing description',
@@ -161,7 +159,7 @@
 			const nextIndex = field === 'next-row' ? currentIndex + 1 : currentIndex - 1
 			if (nextIndex >= 0 && nextIndex < filteredTracks.length) {
 				focusedTrackId = filteredTracks[nextIndex].id
-				focusedField = field === 'next-row' ? EDITABLE_FIELDS[0] : EDITABLE_FIELDS[EDITABLE_FIELDS.length - 1]
+				focusedField = field === 'next-row' ? 'url' : 'discogs_url'
 			} else {
 				focusedTrackId = null
 				focusedField = null
@@ -172,33 +170,21 @@
 		}
 	}
 
-	// Aggregate tags from all tracks
-	let allTags = $derived.by(() => {
-		if (!tracks) return []
+	/** @param {import('$lib/types').Track[]} items @param {'tags' | 'mentions'} field */
+	function countByField(items, field) {
 		const counts = {}
-		for (const track of tracks) {
-			for (const tag of track.tags || []) {
-				counts[tag] = (counts[tag] || 0) + 1
+		for (const item of items) {
+			for (const val of item[field] || []) {
+				counts[val] = (counts[val] || 0) + 1
 			}
 		}
 		return Object.entries(counts)
-			.map(([tag, count]) => ({tag, count}))
+			.map(([value, count]) => ({value, count}))
 			.sort((a, b) => b.count - a.count)
-	})
+	}
 
-	// Aggregate mentions from all tracks
-	let allMentions = $derived.by(() => {
-		if (!tracks) return []
-		const counts = {}
-		for (const track of tracks) {
-			for (const mention of track.mentions || []) {
-				counts[mention] = (counts[mention] || 0) + 1
-			}
-		}
-		return Object.entries(counts)
-			.map(([mention, count]) => ({mention, count}))
-			.sort((a, b) => b.count - a.count)
-	})
+	let allTags = $derived(countByField(tracks, 'tags'))
+	let allMentions = $derived(countByField(tracks, 'mentions'))
 
 	let selectedCount = $derived(selectedTracks.length)
 	let hasSelection = $derived(selectedCount > 0)
@@ -334,7 +320,9 @@
 			<PopoverMenu id="batch-filter">
 				{#snippet trigger()}<Icon icon="filter-alt" size="20" /> {filterLabels[filter]}{/snippet}
 				<button class:active={filter === 'all'} onclick={() => (filter = 'all')}>All tracks</button>
-				<button class:active={filter === 'missing-description'} onclick={() => (filter = 'missing-description')}>Missing description</button>
+				<button class:active={filter === 'missing-description'} onclick={() => (filter = 'missing-description')}
+					>Missing description</button
+				>
 				<button class:active={filter === 'no-tags'} onclick={() => (filter = 'no-tags')}>No tags</button>
 				<button class:active={filter === 'single-tag'} onclick={() => (filter = 'single-tag')}>Single tag</button>
 				<button class:active={filter === 'no-meta'} onclick={() => (filter = 'no-meta')}>No metadata</button>
@@ -349,8 +337,8 @@
 				<PopoverMenu id="batch-tags">
 					{#snippet trigger()}<Icon icon="tag" size="20" /> {tagFilter || 'Tags'}{/snippet}
 					<button class:active={!tagFilter} onclick={() => (tagFilter = '')}>All tags</button>
-					{#each allTags as { tag, count } (tag)}
-						<button class:active={tagFilter === tag} onclick={() => (tagFilter = tag)}>{tag} ({count})</button>
+					{#each allTags as { value, count } (value)}
+						<button class:active={tagFilter === value} onclick={() => (tagFilter = value)}>{value} ({count})</button>
 					{/each}
 				</PopoverMenu>
 			{/if}
@@ -359,15 +347,37 @@
 				<PopoverMenu id="batch-mentions">
 					{#snippet trigger()}<Icon icon="user" size="20" /> {mentionFilter || 'Mentions'}{/snippet}
 					<button class:active={!mentionFilter} onclick={() => (mentionFilter = '')}>All mentions</button>
-					{#each allMentions as { mention, count } (mention)}
-						<button class:active={mentionFilter === mention} onclick={() => (mentionFilter = mention)}>{mention} ({count})</button>
+					{#each allMentions as { value, count } (value)}
+						<button class:active={mentionFilter === value} onclick={() => (mentionFilter = value)}
+							>{value} ({count})</button
+						>
 					{/each}
 				</PopoverMenu>
 			{/if}
 
-			<PopoverMenu id="batch-display" closeOnClick={false}>
+			<input type="search" bind:value={search} placeholder="Search..." />
+
+			{#if canEdit && tracksMissingMeta.length > 0}
+				<button onclick={fetchYouTubeMeta} disabled={fetchingMeta}>
+					{fetchingMeta ? 'Fetching...' : `Fetch meta (${tracksMissingMeta.length})`}
+				</button>
+			{/if}
+
+			<PopoverMenu id="batch-display" closeOnClick={false} style="margin-left: auto;">
 				{#snippet trigger()}<Icon icon="grid" size="20" /> Display{/snippet}
-				<div class="sort-options">
+				<div class="sort-row">
+					<select bind:value={sortBy}>
+						<option value={null}>Sort by...</option>
+						<option value="title">Title</option>
+						<option value="created_at">Created</option>
+						<option value="updated_at">Updated</option>
+						<option value="duration">Duration</option>
+					</select>
+					<button onclick={() => (sortDir = sortDir === 'asc' ? 'desc' : 'asc')}>
+						<Icon icon={sortDir === 'asc' ? 'arrow-up' : 'arrow-down'} size="20" />
+					</button>
+				</div>
+				<!-- <div class="sort-options">
 					<button class:active={sortBy === 'title'} onclick={() => toggleSort('title')}>Title</button>
 					<button class:active={sortBy === 'created_at'} onclick={() => toggleSort('created_at')}>Created</button>
 					<button class:active={sortBy === 'updated_at'} onclick={() => toggleSort('updated_at')}>Updated</button>
@@ -376,7 +386,7 @@
 				<button onclick={() => (sortDir = sortDir === 'asc' ? 'desc' : 'asc')}>
 					<Icon icon={sortDir === 'asc' ? 'arrow-up' : 'arrow-down'} size="20" />
 					{sortDir === 'asc' ? 'Ascending' : 'Descending'}
-				</button>
+				</button> -->
 				<hr />
 				<div class="column-options">
 					{#each ALL_COLUMNS as col (col)}
@@ -397,14 +407,6 @@
 					{/each}
 				</div>
 			</PopoverMenu>
-
-			<input type="search" bind:value={search} placeholder="Search..." />
-
-			{#if canEdit && tracksMissingMeta.length > 0}
-				<button onclick={fetchYouTubeMeta} disabled={fetchingMeta}>
-					{fetchingMeta ? 'Fetching...' : `Fetch meta (${tracksMissingMeta.length})`}
-				</button>
-			{/if}
 		</menu>
 	</header>
 
@@ -555,9 +557,6 @@
 		position: sticky;
 		top: 0;
 		z-index: 1;
-		/*font-weight: bold;*/
-		/*background: var(--gray-1);*/
-		/*border-bottom: 1px solid var(--gray-7);*/
 		padding-right: 17px;
 	}
 
@@ -609,6 +608,18 @@
 		align-items: center;
 		gap: 0.5rem;
 		flex-wrap: wrap;
+	}
+
+	.sort-row {
+		display: flex;
+		gap: 0.25rem;
+		padding-bottom: 0.5rem;
+		margin-bottom: 0.2rem;
+		border-bottom: 1px solid var(--gray-6);
+	}
+
+	.sort-row select {
+		flex: 1;
 	}
 
 	.sort-options {

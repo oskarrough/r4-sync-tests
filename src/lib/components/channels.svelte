@@ -154,7 +154,7 @@
 			<button class:active={filter === 'v2'} onclick={() => setFilter('v2')}>{m.channels_filter_option_v2()}</button>
 		</PopoverMenu>
 
-		<PopoverMenu id="channels-display" closeOnClick={false}>
+		<PopoverMenu id="channels-display" closeOnClick={false} style="margin-left: auto;">
 			{#snippet trigger()}<Icon icon="grid" size="20" /> {viewLabelMap[display]()}{/snippet}
 			<div class="view-modes">
 				<button class:active={display === 'grid'} onclick={() => setDisplay('grid')}
@@ -173,7 +173,21 @@
 					><Icon icon="infinite" size="20" /><small>{m.channels_view_label_infinite()}</small></button
 				>
 			</div>
-			<button class:active={order === 'updated'} onclick={() => setOrder('updated')}
+			<div class="sort-row">
+				<select value={order} onchange={(e) => setOrder(e.target.value)}>
+					<option value="updated">{m.channels_order_updated()}</option>
+					<option value="created">{m.channels_order_created()}</option>
+					<option value="name">{m.channels_order_name()}</option>
+					<option value="tracks">{m.channels_order_tracks()}</option>
+				</select>
+				<button onclick={toggleOrderDirection}>
+					<Icon icon={orderDirection === 'asc' ? 'arrow-up' : 'arrow-down'} size="20" />
+				</button>
+				<button class:active={appState.channels_shuffled} onclick={toggleShuffle}>
+					<Icon icon="shuffle" size="20" />
+				</button>
+			</div>
+			<!-- <button class:active={order === 'updated'} onclick={() => setOrder('updated')}
 				>{m.channels_order_updated()}</button
 			>
 			<button class:active={order === 'created'} onclick={() => setOrder('created')}
@@ -189,7 +203,7 @@
 			<button class:active={appState.channels_shuffled} onclick={toggleShuffle}>
 				<Icon icon="shuffle" size="20" />
 				{m.channels_shuffle_tooltip()}
-			</button>
+			</button> -->
 		</PopoverMenu>
 	</menu>
 
@@ -270,6 +284,15 @@
 				color: inherit;
 			}
 		}
+	}
+
+	.sort-row {
+		display: flex;
+		gap: 0.25rem;
+	}
+
+	.sort-row select {
+		flex: 1;
 	}
 
 	footer p {

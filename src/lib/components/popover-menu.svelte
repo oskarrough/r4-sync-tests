@@ -1,8 +1,8 @@
 <script>
 	import {untrack} from 'svelte'
 
-	/** @type {{id: string, children?: import('svelte').Snippet, trigger?: import('svelte').Snippet, class?: string, closeOnClick?: boolean}} */
-	let {id, children, trigger, class: className = '', closeOnClick = true} = $props()
+	/** @type {{id: string, children?: import('svelte').Snippet, trigger?: import('svelte').Snippet, class?: string, closeOnClick?: boolean, [key: string]: any}} */
+	let {id, children, trigger, class: className = '', closeOnClick = true, ...rest} = $props()
 
 	let buttonEl = $state()
 	let popoverEl = $state()
@@ -15,8 +15,10 @@
 		const handleToggle = () => {
 			if (!el.matches(':popover-open') || !buttonEl) return
 			const rect = buttonEl.getBoundingClientRect()
+			const popoverRect = el.getBoundingClientRect()
+			const left = Math.min(rect.left, window.innerWidth - popoverRect.width - 8)
 			el.style.top = `${rect.bottom + 4}px`
-			el.style.left = `${rect.left}px`
+			el.style.left = `${Math.max(8, left)}px`
 		}
 
 		const handleClick = (e) => {
@@ -36,7 +38,7 @@
 	})
 </script>
 
-<div class="popover-menu {className}">
+<div class="popover-menu {className}" {...rest}>
 	<button type="button" popovertarget={id} bind:this={buttonEl}>
 		{@render trigger?.()}
 	</button>

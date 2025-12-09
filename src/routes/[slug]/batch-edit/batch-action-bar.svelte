@@ -1,7 +1,7 @@
 <script>
 	import {tracksCollection, batchUpdateTracks} from '../../tanstack/collections'
 
-	/** @type {{selectedIds?: string[], channel: import('$lib/types').Channel | null, allTags?: {tag: string, count: number}[], onClear?: () => void}} */
+	/** @type {{selectedIds?: string[], channel: import('$lib/types').Channel | null, allTags?: {value: string, count: number}[], onClear?: () => void}} */
 	let {selectedIds = [], channel, allTags = [], onClear = () => {}} = $props()
 
 	let showAppend = $state(false)
@@ -76,8 +76,10 @@
 			<input type="text" bind:value={appendText} placeholder="text to append" autofocus />
 			{#if allTags.length > 0}
 				<menu>
-					{#each allTags.slice(0, 10) as { tag } (tag)}
-						<button type="button" onclick={() => (appendText = appendText ? `${appendText} #${tag}` : `#${tag}`)}>#{tag}</button>
+					{#each allTags.slice(0, 10) as { value } (value)}
+						<button type="button" onclick={() => (appendText = appendText ? `${appendText} #${value}` : `#${value}`)}
+							>#{value}</button
+						>
 					{/each}
 				</menu>
 			{/if}
@@ -109,9 +111,6 @@
 		align-items: center;
 		gap: 0.2rem;
 		margin: 0.5rem;
-		/*padding: 0.5rem;*/
-		/*background: var(--gray-2);*/
-		/*border-bottom: 1px solid var(--gray-5);*/
 	}
 
 	.count {
