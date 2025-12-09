@@ -17,6 +17,7 @@
 {#if id}
 	<img loading="lazy" src={createImage(id)} {alt} />
 {:else}
+	<!-- <img loading="lazy" src={`base64,${btoa('ba')}`} {alt} /> -->
 	<div class="placeholder">{alt.slice(0, 2) || '?'}</div>
 {/if}
 

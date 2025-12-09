@@ -311,8 +311,8 @@
 			<p class="hint warn">(READ ONLY, you do not have edit access)</p>
 		{/if}
 
-		<p class="hint">
-			Double-click to edit cells. Changes save automatically. Tab to move between cells.<br />
+		<p class="hint warn">
+			Double-click to edit cells. Changes save as you edit. Tab to move between cells.<br />
 			Hold <kbd>Shift</kbd> or <kbd>ctrl</kbd> to select multiple cells.
 		</p>
 		<menu>

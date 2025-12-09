@@ -118,7 +118,7 @@
 		display: grid;
 		gap: 0.5rem;
 		min-height: 2.5rem;
-		border-bottom: 1px solid var(--gray-2);
+		border-bottom: 1px solid var(--gray-7);
 	}
 
 	.track-row:hover {
@@ -137,6 +137,7 @@
 	.col-url,
 	.col-discogs,
 	.col-error {
+		display: flex;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
