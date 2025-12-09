@@ -6,6 +6,7 @@
 	import type {Track} from '$lib/types'
 	import {extractYouTubeId} from '$lib/utils.ts'
 	import Icon from './icon.svelte'
+	import PopoverMenu from './popover-menu.svelte'
 	import LinkEntities from './link-entities.svelte'
 	import * as m from '$lib/paraglide/messages'
 
@@ -62,28 +63,6 @@
 		await deleteTrack({id: channel.id, slug: channel.slug}, track.id)
 		showDeleteConfirm = false
 	}
-
-	let menuElement: HTMLElement
-
-	$effect(() => {
-		if (!menuElement) return
-
-		const handleToggle = (e: Event) => {
-			const menu = e.target as HTMLElement
-			if (menu.matches(':popover-open')) {
-				const button = document.querySelector(`[popovertarget="${menu.id}"]`) as HTMLElement
-				if (button) {
-					const rect = button.getBoundingClientRect()
-					menu.style.position = 'fixed'
-					menu.style.top = `${rect.bottom - 10}px`
-					menu.style.left = `${rect.right - 150}px`
-				}
-			}
-		}
-
-		menuElement.addEventListener('toggle', handleToggle)
-		return () => menuElement?.removeEventListener('toggle', handleToggle)
-	})
 </script>
 
 <article class:active>
@@ -113,10 +92,10 @@
 		</time>
 	</a>
 	<r4-actions>
-		<button type="button" popovertarget="menu-{track.id}">
-			<Icon icon="options-horizontal" size={16} />
-		</button>
-		<menu popover="auto" id="menu-{track.id}" bind:this={menuElement}>
+		<PopoverMenu id="menu-{track.id}" closeOnClick={false}>
+			{#snippet trigger()}
+				<Icon icon="options-horizontal" size={16} />
+			{/snippet}
 			{#if showDeleteConfirm}
 				<div class="delete-confirm">
 					<p>{m.track_delete_confirm({title: track.title})}</p>
@@ -131,7 +110,7 @@
 						>{m.common_delete()}</button
 					>{/if}
 			{/if}
-		</menu>
+		</PopoverMenu>
 	</r4-actions>
 	{@render children?.(track)}
 </article>
@@ -226,35 +205,10 @@
 		right: 0;
 		height: 100%;
 
-		> button:first-child {
+		button[popovertarget] {
 			height: 100%;
 			box-shadow: none;
 			border: none;
-		}
-
-		menu {
-			display: none;
-			flex-direction: column;
-			align-items: stretch;
-			list-style: none;
-			background-color: var(--gray-2);
-			border: 1px solid var(--gray-7);
-			border-radius: var(--border-radius);
-			box-shadow: var(--shadow-modal);
-			width: 140px;
-			/*padding: 3px;*/
-			gap: 0;
-			margin: 0;
-
-			&:popover-open {
-				display: flex;
-			}
-
-			> * {
-				width: 100%;
-				text-align: left;
-				justify-content: flex-start;
-			}
 		}
 	}
 </style>
