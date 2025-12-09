@@ -62,9 +62,13 @@ export class InfiniteGrid {
 
 /**
  * Creates a throttled function that limits execution rate
+ * @param {(...args: any[]) => any} fn
+ * @param {number} [ms]
+ * @returns {(...args: any[]) => any}
  */
 export function throttle(fn, ms = 16) {
 	let lastCall = 0
+	/** @this {any} */
 	return function (...args) {
 		const now = Date.now()
 		if (now - lastCall >= ms) {

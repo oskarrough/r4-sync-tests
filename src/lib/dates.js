@@ -3,7 +3,7 @@ export function formatDate(date) {
 	return new Intl.DateTimeFormat('en-DE').format(date)
 }
 
-/** @param {string} dateString */
+/** @param {string | null | undefined} dateString */
 function differenceInDays(dateString) {
 	if (!dateString) return 0
 	const date = new Date(dateString).getTime()
@@ -12,7 +12,7 @@ function differenceInDays(dateString) {
 	return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 }
 
-/** @param {string} dateString */
+/** @param {string | null | undefined} dateString */
 export function relativeDate(dateString) {
 	if (!dateString) return 'unknown'
 	const days = differenceInDays(dateString)
@@ -20,7 +20,7 @@ export function relativeDate(dateString) {
 }
 
 /** Returns a fancy cosmic time duration string
- * @param {string} dateString */
+ * @param {string | null | undefined} dateString */
 export function relativeDateSolar(dateString) {
 	if (!dateString) return 'unknown'
 	const days = differenceInDays(dateString)
@@ -38,7 +38,7 @@ export function relativeDateDetailed(dateString) {
 	if (!dateString) return ''
 	const date = new Date(dateString)
 	const now = new Date()
-	const diffMs = now - date
+	const diffMs = now.getTime() - date.getTime()
 	const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
 
 	if (diffDays < 30) return `${diffDays} days ago`
@@ -51,7 +51,7 @@ export function relativeDateDetailed(dateString) {
 export function relativeTime(dateInput) {
 	if (!dateInput) return ''
 	const date = new Date(dateInput)
-	const diffMs = Date.now() - date
+	const diffMs = Date.now() - date.getTime()
 	const diffMins = Math.floor(diffMs / 60000)
 
 	// Recent: relative time

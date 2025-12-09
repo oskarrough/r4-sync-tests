@@ -1,6 +1,7 @@
 import {describe, expect, test} from 'vitest'
 
 // Simple function to test the text parsing logic without Svelte component complexity
+/** @param {any} text @param {{slug: string} | null} [track] */
 function createLinkedParts(text, track = null) {
 	if (typeof text !== 'string') return [{type: 'text', content: ''}]
 	if (!text) return [{type: 'text', content: ''}]
@@ -150,7 +151,7 @@ describe('link-entities', () => {
 		// Check that special characters in hashtags are handled
 		const accentedHashtag = linkParts.find((p) => p.content === '#séance-centre')
 		expect(accentedHashtag).toBeDefined()
-		expect(accentedHashtag.href).toContain('%C3%A9') // URL-encoded é
+		expect(accentedHashtag?.href).toContain('%C3%A9') // URL-encoded é
 	})
 
 	test('handles creative Unicode hashtags', () => {

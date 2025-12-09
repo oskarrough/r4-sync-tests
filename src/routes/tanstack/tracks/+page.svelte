@@ -76,7 +76,7 @@
 	{#if !userChannel}
 		<p>Sign in to test tracks</p>
 	{:else}
-		<p>Add track to {appState.channel.slug}</p>
+		<p>Add track to {userChannel.slug}</p>
 		<form onsubmit={handleInsert}>
 			<input name="url" value="https://www.youtube.com/watch?v=GGmGMEVbTAY" required />
 			<input name="title" placeholder="Title" required />
@@ -88,7 +88,9 @@
 	{#if tracksQuery.isLoading}
 		<p>Loading…</p>
 	{:else if tracksQuery.isError}
-		<p style="color: var(--red)">{tracksQuery.error.message}</p>
+		<p style="color: var(--red)">
+			{tracksCollection.utils.lastError instanceof Error ? tracksCollection.utils.lastError.message : 'Sync failed'}
+		</p>
 	{:else if tracksQuery.data?.length}
 		<h2>Latest 20 tracks</h2>
 		<ul>

@@ -33,6 +33,7 @@
 	let channel = $derived(channelQuery.data?.[0])
 	let rawTracks = $derived(tracksQuery.data || [])
 	let metaMap = $derived(new Map(metaQuery.data?.map((m) => [m.ytid, m]) || []))
+	/** @type {import('$lib/types').TrackWithMeta[]} */
 	let tracks = $derived(
 		rawTracks.map((track) => {
 			const ytid = extractYouTubeId(track.url)
@@ -106,10 +107,12 @@
 	)
 
 	// Focus state for tab navigation
+	/** @type {string | null} */
 	let focusedTrackId = $state(null)
+	/** @type {string | null} */
 	let focusedField = $state(null)
 
-	/** @type {'title' | 'description' | 'tags' | 'mentions' | 'created_at' | 'duration' | 'error' | 'meta' | null} */
+	/** @type {'title' | 'description' | 'tags' | 'mentions' | 'created_at' | 'updated_at' | 'duration' | 'error' | 'meta' | null} */
 	let sortBy = $state(null)
 	let sortDir = $state('asc')
 
@@ -205,7 +208,7 @@
 				case 'has-error':
 					return !!track.playback_error
 				case 'has-duration':
-					return track.duration > 0
+					return (track.duration ?? 0) > 0
 				case 'no-duration':
 					return !track.duration
 				default:
@@ -302,9 +305,9 @@
 		</nav>
 
 		{#if readonly}
-			<p class="hint" warn>READ ONLY, this is a v1 channel</p>
+			<p class="hint warn">READ ONLY, this is a v1 channel</p>
 		{:else if !canEdit}
-			<p class="hint" warn>(READ ONLY, you do not have edit access)</p>
+			<p class="hint warn">(READ ONLY, you do not have edit access)</p>
 		{/if}
 
 		<p class="hint">
@@ -556,21 +559,6 @@
 		min-height: 0;
 	}
 
-	:global(.col-checkbox),
-	:global(.col-link),
-	:global(.col-title),
-	:global(.col-tags),
-	:global(.col-mentions),
-	:global(.col-description),
-	:global(.col-url),
-	:global(.col-discogs),
-	:global(.col-meta),
-	:global(.col-duration),
-	:global(.col-error),
-	:global(.col-date) {
-		/*border-right: 1px solid var(--gray-2);*/
-	}
-
 	:global(.col-discogs) {
 		border-right: none;
 	}
@@ -621,7 +609,7 @@
 		margin-right: 0.5rem;
 	}
 
-	p[warn] {
+	p.warn {
 		background: yellow;
 	}
 </style>

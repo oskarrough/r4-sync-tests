@@ -16,6 +16,7 @@
 		onmapchange = null
 	} = $props()
 
+	/** @type {{instance: L.Map | null, markerGroup: L.FeatureGroup | null, markerInstances: Map<string, L.Marker>, newMarker: L.Marker | null, debounceTimer: ReturnType<typeof setTimeout> | null, isInitialized: boolean, isProgrammaticChange: boolean}} */
 	let mapState = $state({
 		instance: null,
 		markerGroup: null,
@@ -45,11 +46,12 @@
 		})
 	}
 
+	/** @param {HTMLElement} node */
 	function setup(node) {
 		const fillNew = getCssVar('--color-accent')
 
-		mapState.instance = L.map(node)
-		const map = mapState.instance
+		const map = L.map(node)
+		mapState.instance = map
 
 		if (urlMode || onmapchange) {
 			map.on('moveend', handleChange)
@@ -227,13 +229,11 @@
 			font-size: 1rem;
 			white-space: pre;
 		}
-		:global(.leaflet-popup-content) {
-		}
+
 		:global(.leaflet-popup-content-wrapper, .leaflet-popup-tip) {
 			background-color: var(--gray-2);
 		}
-		:global(.leaflet-popup a.leaflet-popup-close-button) {
-		}
+
 		@media (prefers-color-scheme: dark) {
 			:global(.Map-tiles) {
 				filter: var(--map-tiles-filter, none);

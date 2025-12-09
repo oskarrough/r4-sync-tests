@@ -8,11 +8,12 @@ import {fetchAllChannels, fetchChannelBySlug} from '$lib/api/fetch-channels'
 import {queryClient} from './query-client'
 import {log, txLog, completedIdempotencyKeys, getErrorMessage} from './utils'
 import {getOfflineExecutor} from './offline-executor'
+import type {Channel} from '$lib/types'
 
-export type Channel = {id: string; slug: string; source?: 'v1' | 'v2'; firebase_id?: string}
+export type {Channel}
 
 // Channels collection - on-demand: queries dictate what gets fetched
-export const channelsCollection = createCollection(
+export const channelsCollection = createCollection<Channel, string>(
 	queryCollectionOptions({
 		queryKey: (opts) => {
 			const options = parseLoadSubsetOptions(opts)
@@ -42,21 +43,25 @@ export const channelsCollection = createCollection(
 type MutationHandler = (mutation: PendingMutation, metadata: Record<string, unknown>) => Promise<void>
 
 const channelMutationHandlers: Record<string, MutationHandler> = {
-	insert: async (mutation) => {
-		const channel = mutation.modified as {id: string; name: string; slug: string; user_id: string}
+	insert: async (mutation, metadata) => {
+		const channel = mutation.modified as {id: string; name: string; slug: string}
+		const userId = metadata.userId as string
 		if (!channel) throw new NonRetriableError('Invalid mutation: missing modified data')
+		if (!userId) throw new NonRetriableError('userId required in transaction metadata')
 		log.info('channel_insert_start', {id: channel.id, name: channel.name})
 		try {
-			// SDK expects userId (camelCase), we store user_id (snake_case)
-			const {data, error} = await sdk.channels.createChannel({
+			const response = await sdk.channels.createChannel({
 				id: channel.id,
 				name: channel.name,
 				slug: channel.slug,
-				userId: channel.user_id
+				userId
 			})
-			log.info('channel_insert_done', {clientId: channel.id, serverId: data?.id, error})
-			if (error) throw new NonRetriableError(getErrorMessage(error))
-			// Add server ID to user's channels list
+			if ('error' in response && response.error) {
+				log.info('channel_insert_done', {clientId: channel.id, error: response.error})
+				throw new NonRetriableError(getErrorMessage(response.error))
+			}
+			const data = 'data' in response ? (response.data as {id: string} | null) : null
+			log.info('channel_insert_done', {clientId: channel.id, serverId: data?.id})
 			if (data?.id) {
 				appState.channels = [...(appState.channels || []), data.id]
 			}
@@ -128,18 +133,25 @@ export function createChannel(input: {name: string; slug: string; description?: 
 
 	const tx = getOfflineExecutor().createOfflineTransaction({
 		mutationFnName: 'syncChannels',
+		metadata: {userId},
 		autoCommit: false
 	})
 	const id = crypto.randomUUID()
 	tx.mutate(() => {
 		channelsCollection.insert({
 			id,
-			user_id: userId,
 			name: input.name,
 			slug: input.slug,
 			description: input.description || '',
 			created_at: new Date().toISOString(),
-			updated_at: new Date().toISOString()
+			updated_at: new Date().toISOString(),
+			image: null,
+			url: null,
+			firebase_id: null,
+			latitude: null,
+			longitude: null,
+			favorites: null,
+			followers: null
 		})
 	})
 	return tx.commit().then(() => ({id, slug: input.slug}))

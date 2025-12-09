@@ -9,9 +9,10 @@ import {channelsCollection, type Channel} from './channels'
 import {trackMetaCollection, type TrackMeta} from './track-meta'
 import {log, txLog, completedIdempotencyKeys, getErrorMessage} from './utils'
 import {getOfflineExecutor} from './offline-executor'
+import type {Track} from '$lib/types'
 
 // Tracks collection - NO mutation hooks, mutations go through offline actions
-export const tracksCollection = createCollection(
+export const tracksCollection = createCollection<Track, string>(
 	queryCollectionOptions({
 		queryKey: (opts) => {
 			const options = parseLoadSubsetOptions(opts)
@@ -178,13 +179,19 @@ export function addTrack(channel: Channel, input: {url: string; title: string; d
 			description: input.description || '',
 			slug: channel.slug,
 			created_at: new Date().toISOString(),
-			updated_at: new Date().toISOString()
+			updated_at: new Date().toISOString(),
+			discogs_url: null,
+			duration: null,
+			fts: null,
+			mentions: null,
+			playback_error: null,
+			tags: null
 		})
 	})
 	return tx.commit()
 }
 
-export function updateTrack(channel: Channel, id: string, changes: Record<string, unknown>) {
+export function updateTrack(channel: {id: string; slug: string}, id: string, changes: Record<string, unknown>) {
 	const tx = getOfflineExecutor().createOfflineTransaction({
 		mutationFnName: 'syncTracks',
 		metadata: {channelId: channel.id, slug: channel.slug},
@@ -200,7 +207,7 @@ export function updateTrack(channel: Channel, id: string, changes: Record<string
 	return tx.commit()
 }
 
-export function deleteTrack(channel: Channel, id: string) {
+export function deleteTrack(channel: {id: string; slug: string}, id: string) {
 	const tx = getOfflineExecutor().createOfflineTransaction({
 		mutationFnName: 'syncTracks',
 		metadata: {channelId: channel.id, slug: channel.slug},

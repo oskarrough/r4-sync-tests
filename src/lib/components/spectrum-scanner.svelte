@@ -5,39 +5,47 @@
 	import InputRange from './input-range.svelte'
 	import * as m from '$lib/paraglide/messages'
 
+	/** @typedef {import('$lib/types').Channel & {frequency: number, signalStrength: number, reception?: number}} ChannelWithFrequency */
+
 	const {channels = [], min = 88.0, max = 108.0} = $props()
 
-	let frequency = $state(Math.random() * (max - min) + min)
+	let frequency = $derived(Math.random() * (max - min) + min)
+	/** @type {ChannelWithFrequency[]} */
 	let channelsWithFrequency = $state([])
+	/** @type {ChannelWithFrequency | null} */
 	let selectedChannel = $state(null)
 	let isScanning = $state(false)
 	let scanDirection = $state(1) // 1 for up, -1 for down
 	let autoplay = $state(true)
+	/** @type {string | null} */
 	let lastPlayedChannelId = $state(null)
+	/** @type {ReturnType<typeof setTimeout> | null} */
 	let autoplayTimeout = null
 
-	let audioContext
-	let staticNode
-	let gainNode
+	/** @type {AudioContext | null} */
+	let audioContext = null
+	/** @type {AudioBufferSourceNode | null} */
+	let staticNode = null
+	/** @type {GainNode | null} */
+	let gainNode = null
 
 	// Initialize channels with frequencies and track counts
-	$effect(async () => {
+	$effect(() => {
+		processChannels()
+	})
+
+	async function processChannels() {
 		const processed = []
 		for (const channel of channels) {
 			const freq = await generateFrequency(channel.name, channel.slug, min, max)
 			processed.push({
 				...channel,
 				frequency: freq,
-				//signalStrength: Math.log10(Math.max(channel.track_count || 1, 1)) / Math.log10(2000) ** 5
-				//signalStrength: Math.log10(channel.track_count + 10) / 3.7
-				signalStrength: Math.min(1, (channel.track_count / 400) ** 0.8)
-				//signalStrength: channel.track_count < 100
-				//? channel.track_count / 200  // linear for small stations
-				//: 0.5 + Math.log10(channel.track_count / 100) / 3  // log for established ones
+				signalStrength: Math.min(1, ((channel.track_count ?? 0) / 400) ** 0.8)
 			})
 		}
 		channelsWithFrequency = processed.sort((a, b) => a.frequency - b.frequency)
-	})
+	}
 
 	// Find closest channel and calculate signal strength
 	$effect(() => {
@@ -59,14 +67,14 @@
 
 		// Debounced autoplay when landing on a new channel
 		if (autoplay && newChannel && newChannel.id !== lastPlayedChannelId) {
-			clearTimeout(autoplayTimeout)
+			if (autoplayTimeout) clearTimeout(autoplayTimeout)
 			autoplayTimeout = setTimeout(() => {
 				if (selectedChannel?.id === newChannel.id) {
 					lastPlayedChannelId = newChannel.id
 					playChannel(newChannel).catch((err) => console.warn('Autoplay failed:', err))
 				}
 			}, 500)
-		} else if (!newChannel) {
+		} else if (!newChannel && autoplayTimeout) {
 			clearTimeout(autoplayTimeout)
 		}
 
@@ -75,7 +83,10 @@
 
 	function initAudio() {
 		if (!audioContext) {
-			audioContext = new (window.AudioContext || window.webkitAudioContext)()
+			const w = /** @type {{AudioContext?: typeof AudioContext, webkitAudioContext?: typeof AudioContext}} */ (window)
+			const AudioContextClass = w.AudioContext || w.webkitAudioContext
+			if (!AudioContextClass) return
+			audioContext = new AudioContextClass()
 
 			// Create static noise
 			const bufferSize = audioContext.sampleRate * 2
@@ -99,7 +110,7 @@
 	}
 
 	function updateStaticLevel(reception) {
-		if (gainNode) {
+		if (gainNode && audioContext) {
 			const staticLevel = Math.max(0, 0.05 - reception * 0.04)
 			gainNode.gain.exponentialRampToValueAtTime(Math.max(staticLevel, 0.001), audioContext.currentTime + 0.1)
 		}
@@ -189,9 +200,9 @@
 	<InputRange bind:value={frequency} {min} {max} step={0.1} />
 
 	{#if selectedChannel}
-		<div class="station" style="opacity: {selectedChannel.reception}">
+		<div class="station" style="opacity: {selectedChannel.reception ?? 1}">
 			<div class="reception">
-				{m.spectrum_signal_strength({percent: Math.round(selectedChannel.reception * 100)})}
+				{m.spectrum_signal_strength({percent: Math.round((selectedChannel.reception ?? 0) * 100)})}
 			</div>
 			<ChannelCard channel={selectedChannel} />
 		</div>

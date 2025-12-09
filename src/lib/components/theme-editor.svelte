@@ -166,13 +166,13 @@
 			<div>
 				<label for={`${uid}--scaling`}>{m.theme_scale_label()}</label>
 				<InputRange
-					value={customVariables['--scaling'] || 1}
+					value={Number(customVariables['--scaling']) || 1}
 					min={0.9}
 					max={1.1}
 					step={0.05}
 					id={`${uid}--scaling`}
 					oninput={(e) => {
-						updateVariable('--scaling', e.target.value)
+						updateVariable('--scaling', /** @type {HTMLInputElement} */ (e.target).value)
 					}}
 				/>
 				<span>{customVariables['--scaling'] || '1'}</span>
@@ -184,7 +184,7 @@
 				<input
 					type="checkbox"
 					checked={customVariables['--border-radius'] ? customVariables['--border-radius'] !== '0' : true}
-					onchange={(e) => updateVariable('--border-radius', e.target.checked ? '0.4rem' : '0')}
+					onchange={(e) => updateVariable('--border-radius', e.currentTarget.checked ? '0.4rem' : '0')}
 					id={`${uid}--border-radius`}
 				/>
 				<span></span>
@@ -196,7 +196,7 @@
 				<input
 					type="checkbox"
 					checked={customVariables['--media-radius'] ? customVariables['--media-radius'] !== '0' : true}
-					onchange={(e) => updateVariable('--media-radius', e.target.checked ? '0.4rem' : '0')}
+					onchange={(e) => updateVariable('--media-radius', e.currentTarget.checked ? '0.4rem' : '0')}
 					id={`${uid}--media-radius`}
 				/>
 				<span></span>
@@ -227,7 +227,7 @@
 					type="text"
 					value={getCurrentValue(variable)}
 					placeholder={m.theme_input_placeholder_hex()}
-					onchange={(e) => updateVariable(variable.name, e.target.value)}
+					onchange={(e) => updateVariable(variable.name, e.currentTarget.value)}
 				/>
 				<small>{variable.description()}</small>
 			</div>
@@ -247,7 +247,7 @@
 					type="text"
 					value={getCurrentValue(variable)}
 					placeholder={m.theme_input_placeholder_inherit()}
-					onchange={(e) => updateVariable(variable.name, e.target.value)}
+					onchange={(e) => updateVariable(variable.name, e.currentTarget.value)}
 				/>
 				<small>{variable.description()}</small>
 			</div>

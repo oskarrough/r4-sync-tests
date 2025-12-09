@@ -14,6 +14,7 @@
 	 * with youtube_data, musicbrainz_data, and discogs_data
 	 */
 
+	/** @type {{track: import('$lib/types').TrackWithMeta, channel?: import('$lib/types').Channel, showResult?: boolean, onResult?: (result: any) => void}} */
 	const {track, channel, showResult = false, onResult} = $props()
 
 	let loading = $state(false)
@@ -42,8 +43,8 @@
 				const [youtube_data, musicbrainz_data] = await Promise.all(promises)
 
 				const meta = trackMetaCollection.get(ytid)
-				if (meta?.duration && !track.duration && channel) {
-					updateTrack(channel, track.id, {duration: meta.duration})
+				if (meta?.youtube_data?.duration && !track.duration && channel) {
+					updateTrack(channel, track.id, {duration: meta.youtube_data.duration})
 				}
 
 				// Sequential follow-up for discogs

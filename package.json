@@ -5,12 +5,12 @@
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
-		"build-cli": "vite build --config vite.config.cli.ts",
 		"preview": "vite preview",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"lint": "prettier --write . --log-level=warn && eslint .",
-		"lint2": "bunx --bun biome lint",
+		"format": "prettier --write . --log-level=warn",
+		"lint": "eslint .",
+		"check": "bun run format && bun run lint",
+		"types": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"types:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test": "vitest run",
 		"paraglide": "bunx @inlang/paraglide-js compile --project ./i18n/project.inlang --outdir ./src/lib/paraglide"
 	},

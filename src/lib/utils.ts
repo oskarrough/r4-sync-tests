@@ -8,7 +8,7 @@ export async function delay(ms: number) {
 	})
 }
 
-export function trimWithEllipsis(text?: string, maxLength: number = 267) {
+export function trimWithEllipsis(text?: string | null, maxLength: number = 267) {
 	return !text || text.length <= maxLength ? text || '' : `${text.substring(0, maxLength)}…`
 }
 
@@ -75,7 +75,7 @@ export function parseEntities(
 ): unknown[] {
 	if (!text || typeof text !== 'string') return []
 
-	const entities = []
+	const entities: unknown[] = []
 	text.replace(ENTITY_REGEX, (match, prefix, entity, offset) => {
 		entities.push(callback(match, prefix, entity, offset))
 		return match
@@ -90,7 +90,7 @@ export function parseEntities(
 export function extractHashtags(text: string): string[] {
 	if (!text || typeof text !== 'string') return []
 
-	const hashtags = []
+	const hashtags: string[] = []
 	text.replace(ENTITY_REGEX, (match, _prefix, entity) => {
 		if (entity.startsWith('#')) {
 			hashtags.push(entity.toLowerCase())
@@ -107,7 +107,7 @@ export function extractHashtags(text: string): string[] {
 export function extractMentions(text: string): string[] {
 	if (!text || typeof text !== 'string') return []
 
-	const mentions = []
+	const mentions: string[] = []
 	text.replace(ENTITY_REGEX, (match, _prefix, entity) => {
 		if (entity.startsWith('@')) {
 			mentions.push(entity.toLowerCase())
@@ -123,7 +123,7 @@ export function extractMentions(text: string): string[] {
  * All frequency values are rounded to one decimal place.
  * Values are generated inside a given range.
  */
-export async function generateFrequency(channelName: string, channelSlug: string, minFreq: 80, maxFreq: 120) {
+export async function generateFrequency(channelName: string, channelSlug: string, minFreq: number, maxFreq: number) {
 	// Combine the channel name and slug
 	const inputString = channelName + channelSlug
 

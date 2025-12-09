@@ -1,5 +1,5 @@
 <script>
-	/** @type {{icon: string, title?: string, className?: string, size?: string |number, children?: any}} */
+	/** @type {{icon: string, title?: string, className?: string, size?: string | number, children?: any, [key: string]: any}} */
 	const {children, icon = '', title, className = '', size, ...rest} = $props()
 
 	function toImportName(str, prefix = 'Icon') {
@@ -11,25 +11,21 @@
 		return parts.join('')
 	}
 
+	/** @type {Promise<typeof import('obra-icons-svelte')>} */
+	const iconsModule = import('obra-icons-svelte')
+
+	/** @type {import('svelte').Component | null} */
 	let Icon = $state(null)
-	let currentIcon = $state('')
 
-	$effect(async () => {
-		if (icon === currentIcon) return
-		currentIcon = icon
-
+	$effect(() => {
 		if (!icon) {
 			Icon = null
 			return
 		}
-
-		try {
-			const iconName = toImportName(icon)
-			const module = await import('obra-icons-svelte')
-			Icon = module[iconName]
-		} catch {
-			Icon = null
-		}
+		const iconName = toImportName(icon)
+		iconsModule.then((module) => {
+			Icon = module[iconName] ?? null
+		})
 	})
 </script>
 
