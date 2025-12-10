@@ -66,11 +66,11 @@
 		showClearHistoryModal = false
 	}
 
-	/** Adapt history entry to Track structure for TrackCard
+	/** Adapt play history entry to Track structure for TrackCard
 	 * @param {import('$lib/types').PlayHistory} entry
 	 * @returns {import('$lib/types').Track}
 	 */
-	function historyToTrack(entry) {
+	function playHistoryToTrack(entry) {
 		return {
 			id: entry.track_id,
 			slug: entry.slug,
@@ -129,7 +129,7 @@
 			<ul class="list tracks">
 				{#each filteredPlayHistory as entry, index (entry.id)}
 					<li>
-						<TrackCard track={historyToTrack(entry)} {index}>
+						<TrackCard track={playHistoryToTrack(entry)} {index}>
 							<p class="history">
 								<small>
 									{relativeTime(entry.started_at)}
