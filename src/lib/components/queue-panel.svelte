@@ -66,25 +66,18 @@
 		showClearHistoryModal = false
 	}
 
-	/** Transform history entry to track-like shape for TrackCard
-	 * @param {import('$lib/types').PlayHistory & {title?: string, url?: string, slug?: string}} entry
+	/** Adapt history entry to Track structure for TrackCard
+	 * @param {import('$lib/types').PlayHistory} entry
 	 * @returns {import('$lib/types').Track}
 	 */
 	function historyToTrack(entry) {
 		return {
 			id: entry.track_id,
-			slug: entry.slug ?? null,
-			title: entry.title || '',
-			url: entry.url || '',
+			slug: entry.slug,
+			title: entry.title,
+			url: entry.url,
 			created_at: entry.started_at,
-			updated_at: entry.started_at,
-			description: null,
-			discogs_url: null,
-			duration: null,
-			fts: null,
-			mentions: null,
-			playback_error: null,
-			tags: null
+			updated_at: entry.started_at
 		}
 	}
 </script>

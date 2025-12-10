@@ -102,6 +102,9 @@ export interface BroadcastWithChannel extends Broadcast {
 export interface PlayHistory {
 	id: string
 	track_id: string
+	slug: string
+	title: string
+	url: string
 	started_at: string
 	ended_at?: string
 	ms_played: number
