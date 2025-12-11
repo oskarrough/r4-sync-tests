@@ -3,31 +3,13 @@
 List of possible improvements to the architecture, idea, cli and web application.
 Verify and evaluate todos before taking them on. They might be outdated or just not good ideas.
 
-## IN PROGRESS
-
-(nothing)
-
-## DONE
-
-### chunk-progress component (was batch-progress)
-
-Renamed to align with `mapChunked` terminology. Component at `src/lib/components/batch-progress.svelte`.
-
-**What it does:**
-
-- Pre-renders all chunk slots before running (based on `total` and `chunkSize`)
-- Shows `{total} items → {chunkCount} chunks of {chunkSize}` before run
-- Shows `{completedItems}/{total} items` during/after run
-- Done chunks show their item count (e.g. `20` or `10` for last chunk)
-- Spinners for fetching/saving, ✗ for errors
-- Abort button shows "Aborting..." immediately on click
-
-**Props:** `total`, `chunkSize`, `chunks`, `elapsed`, `running`, `onRun`, `onAbort`, `controls` (snippet)
-
-**Future:** Multi-phase operations (fetch then save) would need rethinking - currently one status per chunk
-
 ## BACKLOG
 
+- In the player, the loaded track title can be clicked to navigate to track, but the image can not. Make it so.
+- Make it possible to drag the width of the asidebar and store in appState somewhere
+- I clicked a track in the history sidebar, opened details, goes to https://pg.radio4000.com/rigo-capi/tracks/3700cda2-09ed-5854-bbb4-2a99fac8e300 but it says track not found. Which is very odd since I clicked the track to get there. "Track not found (tid: , slug: , tracks loaded: 184, first track id: 32884486-2ecb-50b1-be88-04cbf6bf4c2c)"
+- Global search doesn't always work. Sometimes renders no results, when there are results e.g. https://pg.radio4000.com/search?search=oskar doesn't show anything until you reload the page. All channels should be preloaded from layout.js already
+- Tracks inside <tracklist> aren't highlighted/marked when they are loaded in player? appState.playback_track === track.id?
 - Refine offline error handling: In `syncTracks` and `syncChannels`, use `NonRetriableError` from `@tanstack/offline-transactions` for server-side validation errors (e.g., HTTP 4xx) to prevent unnecessary retries.
 - add an url param to directly queueplay a track. maybe slug?play=trackid
 - implement password reset flow (supabase auth)
