@@ -278,6 +278,23 @@ collection.utils.writeBatch(() => {
 
 Use for: seeding on login, WebSocket updates, large dataset pagination.
 
+## Imperative Data Loading (workaround)
+
+Sometimes you need to ensure data is loaded outside a component (no `useLiveQuery`). This pattern works but feels like a hack - it creates a throwaway live query just to trigger the sync:
+
+```ts
+import {createLiveQueryCollection, eq} from '@tanstack/svelte-db'
+
+const query = createLiveQueryCollection({
+	query: (q) => q.from({tracks: tracksCollection}).where(({tracks}) => eq(tracks.slug, slug)),
+	startSync: true
+})
+await query.preload()
+// Data now in collection
+```
+
+We wrap this in `ensureTracksLoaded(slug)` for the common case of loading tracks before playback. Ideally TanStack DB would expose a cleaner imperative API.
+
 ## Status
 
 - [x] Read queries working (tracks by slug)

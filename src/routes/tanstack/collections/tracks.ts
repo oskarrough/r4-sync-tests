@@ -1,4 +1,4 @@
-import {createCollection} from '@tanstack/svelte-db'
+import {createCollection, createLiveQueryCollection, eq} from '@tanstack/svelte-db'
 import {queryCollectionOptions, parseLoadSubsetOptions} from '@tanstack/query-db-collection'
 import {NonRetriableError} from '@tanstack/offline-transactions'
 import {sdk} from '@radio4000/sdk'
@@ -308,4 +308,14 @@ export async function checkTracksFreshness(slug: string): Promise<boolean> {
 	}
 
 	return !!outdated
+}
+
+/** Ensure tracks for a slug are loaded into the collection */
+export async function ensureTracksLoaded(slug: string): Promise<void> {
+	const existing = [...tracksCollection.state.values()].filter((t) => t.slug === slug)
+	if (existing.length) return
+
+	// loadSubset creates a QueryObserver that populates the collection on success
+	const result = tracksCollection.loadSubset({filters: [{field: ['slug'], operator: 'eq', value: slug}]})
+	if (result instanceof Promise) await result
 }
