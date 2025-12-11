@@ -6,18 +6,18 @@ Every track played leaves a trace—a small record of the moment you pressed pla
 
 ```ts
 interface PlayHistoryEntry {
-  id: string
-  track_id: string
-  slug: string
-  title: string
-  url: string
-  started_at: string
-  ended_at?: string
-  ms_played: number
-  reason_start?: string
-  reason_end?: string
-  shuffle: boolean
-  skipped: boolean
+	id: string
+	track_id: string
+	slug: string
+	title: string
+	url: string
+	started_at: string
+	ended_at?: string
+	ms_played: number
+	reason_start?: string
+	reason_end?: string
+	shuffle: boolean
+	skipped: boolean
 }
 ```
 
