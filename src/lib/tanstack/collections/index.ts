@@ -36,4 +36,4 @@ export {
 export {getOfflineExecutor} from './offline-executor'
 
 // Demo collection for interactive guide
-export {demoCollection, demoAPI, type DemoTodo} from './demo'
+export {demoCollection, type DemoTodo} from './demo'
