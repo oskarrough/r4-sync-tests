@@ -3,7 +3,7 @@
 	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
 	import Icon from '$lib/components/icon.svelte'
 	import {formatDate} from '$lib/dates'
-	import {playHistoryCollection} from '../tanstack/collections'
+	import {playHistoryCollection} from '$lib/tanstack/collections'
 	import * as m from '$lib/paraglide/messages'
 
 	const historyQuery = useLiveQuery((q) =>

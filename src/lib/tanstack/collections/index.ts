@@ -28,8 +28,12 @@ export {
 	batchUpdateTracksUniform,
 	batchUpdateTracksIndividual,
 	batchDeleteTracks,
-	checkTracksFreshness
+	checkTracksFreshness,
+	ensureTracksLoaded
 } from './tracks'
 
 // Offline executor
 export {getOfflineExecutor} from './offline-executor'
+
+// Demo collection for interactive guide
+export {demoCollection, demoAPI, type DemoTodo} from './demo'

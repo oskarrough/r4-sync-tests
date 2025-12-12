@@ -1,18 +1,14 @@
 # Instructions for this project
 
-This file provides guidance to Claude and other LLM robots working with code in this repository.
-
-Humans also welcome.
+This file provides guidance to entities working with code in this repository.
 
 R5 is a prototype local-first music player for Radio4000. The name in dev is `r5`.
-SvelteKit + Svelte 5, @radio4000/sdk and Tanstack DB
-
-Currently we're in a branch refactoring AWAY from pglite and trying to use tanstack db instead. See docs/tanstack/.
+It uses primarily SvelteKit + Svelte 5, @radio4000/sdk and Tanstack DB.
 
 ## Documentation
 
-Read `docs/index.md` for more.
-Continously update `./docs/` folder with learnings, more complex features
+Read @docs/index.md for more.
+Continously update `./docs/` folder with learnings, more complex features.
 
 ## File overview
 
@@ -20,9 +16,9 @@ Continously update `./docs/` folder with learnings, more complex features
 /src/lib/types.ts      -- type definitions for the most important interfaces
 /src/lib/api.js        -- reusable data operations
 /src/lib/utils         -- the odd reusable function
-/src/routes/tanstack/collections         -- all our data collections
-/src/lib/dates         -- dates helpers
 /src/lib/components    -- where components go
+/src/routes
+/src/routes/tanstack/collections         -- all our data collections
 ```
 
 ## Database and state
@@ -41,7 +37,7 @@ tracks       -- music tracks (id, channel_id, url, title, description, ...)
 
 Database is state. Most application state (UI state, user preferences, everything) lives in the local `appState` module. Limited component state, avoid stores. App state is a local collection and stored in local storage.
 
-Read more in `docs/local-database.md`
+Read more in `docs/tanstack.md`
 
 ## Code Style
 
@@ -104,8 +100,21 @@ You can use the `r4` cli (separate project) to inspect data, pipe with jq etc. E
 
 ## @radio4000/components
 
-These are the custom elements used on radio4000.com and many also in this app.
+Custom elements used on radio4000.com and in this app. Source: https://github.com/radio4000/components
 
-- When you fetch tanstack documentation, suffix the url with .md to get raw markdown
-- LIMIT and OFFSET queries with tanstack require an ORDER BY clause to ensure deterministic results
-- when you fetch tanstack suffix urls with .md to get raw markdown
+## Tanstack notes
+
+- Suffix tanstack documentation urls with `.md` to get raw markdown
+- LIMIT and OFFSET queries require an ORDER BY clause for deterministic results
+
+## Writing style (guides, docs, explanations)
+
+Lead with the point. Skip preambles, start mid-thought when context is clear.
+
+Assume domain knowledge. Say "use debouncing" not "you might want to consider implementing a debouncing mechanism." Reference concepts directly without basic explanations.
+
+Natural prose over formatting tricks. Never do "**bold**: explanation" syntax. Prefer flowing paragraphs to numbered lists when the content permits. Sentence case for titles.
+
+Terse and precise. Expand reasoning only when asked. Point out flaws directly: "that breaks because..." not "one consideration might be..."
+
+Dry wit welcome. Channel the sensibility of someone who finds elegance in plain text and thinks most abstractions are premature. Occasional slang fine, sparingly.

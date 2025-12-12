@@ -17,7 +17,7 @@
 	import {getLocale, setLocale, locales, isLocale} from '$lib/paraglide/runtime'
 	import {QueryClientProvider} from '@tanstack/svelte-query'
 	import {SvelteQueryDevtools} from '@tanstack/svelte-query-devtools'
-	import {queryClient, channelsCollection} from './tanstack/collections'
+	import {queryClient, channelsCollection} from '$lib/tanstack/collections'
 	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
 
 	const log = logger.ns('layout').seal()
@@ -118,7 +118,11 @@
 			<KeyboardShortcuts />
 
 			{#key uiLocale}
-				<div class={['layout', {asideVisible: appState.queue_panel_visible}]} data-locale={uiLocale}>
+				<div
+					class={['layout', {asideVisible: appState.queue_panel_visible}]}
+					data-locale={uiLocale}
+					style:--queue-panel-width={appState.queue_panel_width ? `${appState.queue_panel_width}px` : null}
+				>
 					<LayoutHeader preloading={data.preloading} />
 
 					<div class="content">
@@ -147,8 +151,6 @@
 
 <style>
 	.layout {
-		--aside-width: 50vmin;
-
 		display: grid;
 		grid-template-rows: auto 1fr auto;
 		height: 100vh;
@@ -179,7 +181,13 @@
 			transition-duration: 100ms;
 			transition-timing-function: ease-in;
 			width: 100%;
-			max-width: var(--aside-width);
+			max-width: var(--queue-panel-width, 400px);
+		}
+	}
+
+	@media (max-width: 768px) {
+		.asideVisible .content > :global(aside) {
+			max-width: 100%;
 		}
 	}
 

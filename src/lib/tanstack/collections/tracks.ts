@@ -26,51 +26,45 @@ export const tracksCollection = createCollection<Track, string>(
 		staleTime: 24 * 60 * 60 * 1000, // 24h - freshness check triggers invalidation when remote has newer
 		queryFn: async (ctx) => {
 			const options = parseLoadSubsetOptions(ctx.meta?.loadSubsetOptions)
-			// log.debug('tracks queryFn', {filters: options.filters, limit: options.limit})
 			const slug = options.filters.find((f) => f.field[0] === 'slug' && f.operator === 'eq')?.value
 			const createdAfter = options.filters.find((f) => f.field[0] === 'created_at' && f.operator === 'gt')?.value
-
 			if (!slug) return []
-
-			// Lookup channel to route by source
-			const channel = [...channelsCollection.state.values()].find((ch) => ch.slug === slug)
-
-			if (channel?.source === 'v1') {
-				log.info('tracks fetch v1', {slug})
-				const {data, error} = await sdk.firebase.readTracks({slug})
-				if (error) throw error
-				return (data || []).map((t) => sdk.firebase.parseTrack(t, channel.id, slug))
-			}
-
-			// V2: use Supabase
-			log.info('tracks fetch v2', {slug, limit: options.limit, createdAfter})
-			let query = sdk.supabase
-				.from('channel_tracks')
-				.select('*')
-				.eq('slug', slug)
-				.order('created_at', {ascending: false})
-			if (options.limit) query = query.limit(options.limit)
-			if (createdAfter) query = query.gt('created_at', createdAfter)
-
-			const {data, error} = await query
-			if (error) throw error
-
-			// Fallback to v1 if v2 returns empty (race condition: channel not loaded yet)
-			if (!data?.length) {
-				const {data: v1Data, error: v1Error} = await sdk.firebase.readTracks({slug})
-				if (v1Error) throw v1Error
-				if (v1Data?.length) {
-					// Need channel id for parsing - look it up or generate deterministic one
-					const ch = [...channelsCollection.state.values()].find((c) => c.slug === slug)
-					const channelId = ch?.id || slug
-					return v1Data.map((t) => sdk.firebase.parseTrack(t, channelId, slug))
-				}
-			}
-
-			return data || []
+			return fetchTracksBySlug(slug, {limit: options.limit, createdAfter})
 		}
 	})
 )
+
+async function fetchTracksBySlug(slug: string, opts?: {limit?: number; createdAfter?: string}): Promise<Track[]> {
+	const channel = [...channelsCollection.state.values()].find((ch) => ch.slug === slug)
+
+	if (channel?.source === 'v1') {
+		log.info('tracks fetch v1', {slug})
+		const {data, error} = await sdk.firebase.readTracks({slug})
+		if (error) throw error
+		return (data || []).map((t) => sdk.firebase.parseTrack(t, channel.id, slug))
+	}
+
+	log.info('tracks fetch v2', {slug, limit: opts?.limit, createdAfter: opts?.createdAfter})
+	let query = sdk.supabase.from('channel_tracks').select('*').eq('slug', slug).order('created_at', {ascending: false})
+	if (opts?.limit) query = query.limit(opts.limit)
+	if (opts?.createdAfter) query = query.gt('created_at', opts.createdAfter)
+
+	const {data, error} = await query
+	if (error) throw error
+
+	// Fallback to v1 if v2 returns empty (race condition: channel not loaded yet)
+	if (!data?.length) {
+		const {data: v1Data, error: v1Error} = await sdk.firebase.readTracks({slug})
+		if (v1Error) throw v1Error
+		if (v1Data?.length) {
+			const ch = [...channelsCollection.state.values()].find((c) => c.slug === slug)
+			const channelId = ch?.id || slug
+			return v1Data.map((t) => sdk.firebase.parseTrack(t, channelId, slug))
+		}
+	}
+
+	return data || []
+}
 
 type MutationHandler = (mutation: PendingMutation, metadata: Record<string, unknown>) => Promise<void>
 
@@ -312,4 +306,21 @@ export async function checkTracksFreshness(slug: string): Promise<boolean> {
 	}
 
 	return !!outdated
+}
+
+/** Ensure tracks for a slug are loaded into the collection (imperative, non-reactive) */
+export async function ensureTracksLoaded(slug: string): Promise<void> {
+	const existing = [...tracksCollection.state.values()].filter((t) => t.slug === slug)
+	if (existing.length) return
+
+	const data = await queryClient.fetchQuery<Track[]>({
+		queryKey: ['tracks', slug],
+		queryFn: () => fetchTracksBySlug(slug)
+	})
+
+	tracksCollection.utils.writeBatch(() => {
+		for (const track of data) {
+			tracksCollection.utils.writeUpsert(track)
+		}
+	})
 }

@@ -2,7 +2,7 @@
 	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
 	import {eq} from '@tanstack/db'
 	import {page} from '$app/state'
-	import {channelsCollection, tracksCollection} from '../../tanstack/collections'
+	import {channelsCollection, tracksCollection} from '$lib/tanstack/collections'
 	import {extractHashtags} from '$lib/utils'
 	import InputRange from '$lib/components/input-range.svelte'
 	import * as m from '$lib/paraglide/messages'

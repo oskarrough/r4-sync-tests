@@ -3,31 +3,6 @@
 List of possible improvements to the architecture, idea, cli and web application.
 Verify and evaluate todos before taking them on. They might be outdated or just not good ideas.
 
-## IN PROGRESS
-
-(nothing)
-
-## DONE
-
-### chunk-progress component (was batch-progress)
-
-Renamed to align with `mapChunked` terminology. Component at `src/lib/components/batch-progress.svelte`.
-
-**What it does:**
-
-- Pre-renders all chunk slots before running (based on `total` and `chunkSize`)
-- Shows `{total} items → {chunkCount} chunks of {chunkSize}` before run
-- Shows `{completedItems}/{total} items` during/after run
-- Done chunks show their item count (e.g. `20` or `10` for last chunk)
-- Spinners for fetching/saving, ✗ for errors
-- Abort button shows "Aborting..." immediately on click
-
-**Props:** `total`, `chunkSize`, `chunks`, `elapsed`, `running`, `onRun`, `onAbort`, `controls` (snippet)
-
-**Future:** Multi-phase operations (fetch then save) would need rethinking - currently one status per chunk
-
-## BACKLOG
-
 ### track-card perf improvements
 
 Potential bottlenecks when rendering 3k+ tracks:
@@ -37,8 +12,30 @@ Potential bottlenecks when rendering 3k+ tracks:
 - **LinkEntities per description**: parses/transforms text for each track description. Could batch or cache.
 - **active state**: `appState.playlist_track` check runs on all cards when current track changes. Move check to parent, only pass boolean to playing track.
 
----
+### Test: Cross-collection querying with recent tracks
 
+Prove that TanStack DB enables querying across all loaded data (not just per-slug cache blobs).
+
+Create a test component at `/tanstack/recent-tracks/+page.svelte` that:
+
+1. Shows the 50 most recent tracks **across all loaded channels**
+2. Uses `useLiveQuery` with `gt(tracks.created_at, ...)` and `orderBy(..., 'desc')`
+3. Should work once multiple channels have been visited (their tracks loaded into collection)
+
+This demonstrates DB's value over Query alone: Query caches `['tracks', 'starttv']` and `['tracks', 'blink']` as separate blobs you can't query across. DB's collection lets you query all in-memory tracks with SQL-like syntax.
+
+```js
+const recentTracks = useLiveQuery((q) =>
+	q
+		.from({tracks: tracksCollection})
+		.orderBy(({tracks}) => tracks.created_at, 'desc')
+		.limit(50)
+)
+```
+
+## BACKLOG
+
+- Tracks inside <tracklist> aren't highlighted/marked when they are loaded in player? appState.playback_track === track.id?
 - Refine offline error handling: In `syncTracks` and `syncChannels`, use `NonRetriableError` from `@tanstack/offline-transactions` for server-side validation errors (e.g., HTTP 4xx) to prevent unnecessary retries.
 - add an url param to directly queueplay a track. maybe slug?play=trackid
 - implement password reset flow (supabase auth)

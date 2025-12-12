@@ -3,7 +3,7 @@
 	import ChannelCard from '$lib/components/channel-card.svelte'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
 	import * as m from '$lib/paraglide/messages'
-	import {followsCollection, channelsCollection} from '../tanstack/collections'
+	import {followsCollection, channelsCollection} from '$lib/tanstack/collections'
 
 	/** @type {import('$lib/types').Channel[]} */
 	let followings = $derived(

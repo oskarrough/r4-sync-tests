@@ -74,6 +74,7 @@ export interface AppState {
 	broadcasting_channel_id?: string
 	listening_to_channel_id?: string
 	queue_panel_visible: boolean
+	queue_panel_width?: number
 	show_video_player: boolean
 	player_expanded?: boolean
 	shortcuts: Record<string, string>
@@ -102,6 +103,9 @@ export interface BroadcastWithChannel extends Broadcast {
 export interface PlayHistory {
 	id: string
 	track_id: string
+	slug: string
+	title: string
+	url: string
 	started_at: string
 	ended_at?: string
 	ms_played: number

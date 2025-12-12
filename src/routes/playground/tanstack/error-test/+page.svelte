@@ -10,7 +10,7 @@
 	 * See: https://github.com/TanStack/db/issues/672
 	 */
 	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
-	import {channelsCollection, queryClient} from '../collections'
+	import {channelsCollection, queryClient} from '$lib/tanstack/collections'
 
 	const query = useLiveQuery((q) =>
 		q

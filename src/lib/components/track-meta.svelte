@@ -4,7 +4,7 @@
 	import {pull as insertMusicBrainzMeta} from '$lib/metadata/musicbrainz'
 	import {pullSingle as insertYouTubeMeta} from '$lib/metadata/youtube'
 	import {extractYouTubeId} from '$lib/utils.ts'
-	import {trackMetaCollection, updateTrack} from '../../routes/tanstack/collections'
+	import {trackMetaCollection, updateTrack} from '$lib/tanstack/collections'
 	import * as m from '$lib/paraglide/messages'
 
 	const log = logger.ns('track-meta').seal()

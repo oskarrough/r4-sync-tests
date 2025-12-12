@@ -43,8 +43,7 @@ stop:  stopBroadcast → delete remote
 Channel lookups use TanStack collections:
 
 ```js
-// From $lib files, use relative path until collections move to $lib
-import {channelsCollection, queryClient} from '../routes/tanstack/collections'
+import {channelsCollection, queryClient} from '$lib/tanstack/collections'
 
 // Lookup channel by id
 const channel = channelsCollection.get(channelId)

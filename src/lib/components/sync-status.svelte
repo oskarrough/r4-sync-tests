@@ -1,5 +1,5 @@
 <script lang="ts">
-	import {getOfflineExecutor} from './collections'
+	import {getOfflineExecutor} from '$lib/tanstack/collections'
 
 	interface PendingTransaction {
 		mutations?: Array<{type?: string; modified?: {title?: string}; original?: {title?: string}}>
