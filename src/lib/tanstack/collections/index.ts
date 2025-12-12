@@ -34,6 +34,3 @@ export {
 
 // Offline executor
 export {getOfflineExecutor} from './offline-executor'
-
-// Demo collection for interactive guide
-export {demoCollection, type DemoTodo} from './demo'

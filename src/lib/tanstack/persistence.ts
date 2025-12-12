@@ -50,7 +50,7 @@ const persistOptions = {
 			if (data.some((item) => item == null)) return false
 			// Don't persist demo queries
 			const key = query.queryKey?.[0]
-			if (key === 'todos-cached' || key === 'demo-todos') return false
+			if (key === 'todos-cached') return false
 			return true
 		}
 	}

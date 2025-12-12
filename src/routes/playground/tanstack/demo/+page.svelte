@@ -1,9 +1,8 @@
 <script>
-	import {demoCollection} from '$lib/tanstack/collections/demo'
 	import {createQuery} from '@tanstack/svelte-query'
 	import {queryClient} from '$lib/tanstack/collections/query-client'
 	import {browser} from '$app/environment'
-	import {demoStats, fakeAPI} from './demo-state.svelte'
+	import {demoCollection, demoState, fakeAPI} from './demo-state.svelte'
 	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
 
 	const QUERY_KEY = ['todos-cached']
@@ -43,7 +42,7 @@
 			staleTime: 60 * 1000
 		})
 
-		if (willHitCache) demoStats.cacheHits++
+		if (willHitCache) demoState.cacheHits++
 	}
 
 	// Section 3: Invalidation
@@ -129,7 +128,6 @@
 
 	// Section 7: Collections
 	let collectionItems = $derived([...demoCollection.state.values()].filter(Boolean))
-	$inspect('collectionItems', collectionItems)
 
 	async function populateCollection() {
 		let data = reactiveQuery.data
@@ -163,8 +161,8 @@
 
 	// Reset everything
 	function reset() {
-		demoStats.networkRequests = 0
-		demoStats.cacheHits = 0
+		demoState.networkRequests = 0
+		demoState.cacheHits = 0
 		fetchResult = null
 		cachedResult = null
 		cacheUpdated = false
@@ -200,15 +198,15 @@
 		</p>
 		<p>
 			<button onclick={justFetch} disabled={isFetching}>fetch('/todos')</button>
-			{#if demoStats.networkRequests > 0}
-				<mark>Network requests: {demoStats.networkRequests}</mark>
+			{#if demoState.networkRequests > 0}
+				<mark>Network requests: {demoState.networkRequests}</mark>
 				<button onclick={reset}>Reset</button>
 			{/if}
 		</p>
-		{#if isFetching && demoStats.networkRequests === 0}
+		{#if isFetching && demoState.networkRequests === 0}
 			<p>Loading...</p>
 		{/if}
-		{#if demoStats.networkRequests > 0 && fetchResult?.length}
+		{#if demoState.networkRequests > 0 && fetchResult?.length}
 			{@render todoBlocks(fetchResult)}
 		{/if}
 	</section>
@@ -221,8 +219,8 @@
 		</p>
 		<p>
 			<button onclick={fetchWithCache}>fetchQuery('/todos')</button>
-			{#if demoStats.cacheHits > 0}
-				<mark>Cache hits: {demoStats.cacheHits}</mark>
+			{#if demoState.cacheHits > 0}
+				<mark>Cache hits: {demoState.cacheHits}</mark>
 			{/if}
 		</p>
 		{#if cachedResult?.length}

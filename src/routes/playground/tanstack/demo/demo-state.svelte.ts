@@ -1,4 +1,6 @@
 /** Demo state: fake API with in-memory persistence + stats tracking */
+import {createCollection} from '@tanstack/svelte-db'
+import {localOnlyCollectionOptions} from '@tanstack/db'
 
 export type DemoTodo = {
 	id: number
@@ -6,6 +8,13 @@ export type DemoTodo = {
 	completed: boolean
 	userId: number
 }
+
+export const demoCollection = createCollection<DemoTodo, number>(
+	localOnlyCollectionOptions({
+		id: 'demo-todos',
+		getKey: (item) => item.id
+	})
+)
 
 const initialTodos: DemoTodo[] = [
 	{id: 1, todo: 'Buy groceries', completed: false, userId: 1},
@@ -19,13 +28,13 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 export const fakeAPI = {
 	async fetch(delay = 300): Promise<DemoTodo[]> {
-		demoStats.networkRequests++
+		demoState.networkRequests++
 		await sleep(delay)
 		return [...todos]
 	},
 
 	async add(todo: DemoTodo, delay = 200): Promise<DemoTodo> {
-		demoStats.networkRequests++
+		demoState.networkRequests++
 		await sleep(delay)
 		todos = [todo, ...todos]
 		return todo
@@ -36,7 +45,7 @@ export const fakeAPI = {
 	}
 }
 
-export const demoStats = $state({
+export const demoState = $state({
 	networkRequests: 0,
 	cacheHits: 0
 })
