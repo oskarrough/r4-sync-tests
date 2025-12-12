@@ -1,6 +1,6 @@
 <script>
-	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
-	import {demoCollection, demoAPI} from '$lib/tanstack/collections/demo'
+	import {demoAPI} from '$lib/tanstack/collections/demo'
+	import LiveQueryDemo from './live-query-demo.svelte'
 	/** @typedef {import('$lib/tanstack/collections/demo').DemoTodo} DemoTodo */
 
 	let step = $state(1)
@@ -9,14 +9,14 @@
 	let fetchCount = $state(0)
 	let liveQueryEnabled = $state(false)
 
-	// Always create the liveQuery - it handles disabled state internally
-	const liveQuery = useLiveQuery((/** @type {any} */ q) =>
-		liveQueryEnabled ? q.from({todos: demoCollection}).select((/** @type {any} */ t) => t.todos) : null
-	)
+	// Manual state refresh (intentionally not reactive to show the problem)
+	let cacheState = $state(demoAPI.getQueryCache())
+	let collectionState = $state(demoAPI.getCollectionState())
 
-	// Derive cache/collection state reactively instead of manual refresh
-	const cacheState = $derived(demoAPI.getQueryCache())
-	const collectionState = $derived(demoAPI.getCollectionState())
+	function refreshState() {
+		cacheState = demoAPI.getQueryCache()
+		collectionState = demoAPI.getCollectionState()
+	}
 
 	async function justFetch() {
 		fetchCount++
@@ -24,8 +24,22 @@
 	}
 
 	async function fetchWithCache() {
-		fetchCount++
+		const hadCache = cacheState.length > 0 && !cacheState[0]?.isStale
 		lastResult = await demoAPI.fetchQuery()
+		if (!hadCache) fetchCount++
+		refreshState()
+	}
+
+	async function fetchSecondBatch() {
+		fetchCount++
+		await demoAPI.fetchSecondBatch()
+		refreshState()
+	}
+
+	function populateCollection() {
+		const allCached = cacheState.flatMap((q) => q.data || [])
+		demoAPI.writeToCollection(allCached)
+		refreshState()
 	}
 
 	function nextStep() {
@@ -39,15 +53,16 @@
 		demoAPI.clearCache()
 		demoAPI.clearCollection()
 		lastResult = null
+		refreshState()
 	}
 </script>
 
 <article>
-	<h1>Why all these layers?</h1>
-	<p>An interactive exploration of state management evolution.</p>
+	<h1>The Evolution of State Management</h1>
+	<p>An interactive exploration. Why do all these layers exist?</p>
 
 	<nav>
-		<button onclick={reset}>Reset</button>
+		<button onclick={reset}>Reset demo</button>
 		<small>Network requests: {fetchCount}</small>
 	</nav>
 
@@ -55,10 +70,10 @@
 
 	<!-- Step 1: Just Fetch -->
 	<section data-active={step === 1}>
-		<h2>Step 1: Just fetch</h2>
-		<p>You fetch data from an API. You render it. That's it.</p>
+		<h2>1. Just fetch</h2>
+		<p>Fetch data from an API. Pass it to a template. Render HTML. That's it.</p>
 
-		<button onclick={justFetch}>Fetch 5 todos</button>
+		<button onclick={justFetch}>fetch('/todos')</button>
 
 		{#if lastResult?.length}
 			<ul>
@@ -66,46 +81,46 @@
 					<li>{todo.todo}</li>
 				{/each}
 			</ul>
-			<p>This works. Nothing wrong with it.</p>
-			<button onclick={nextStep}>But what if...</button>
+			<p><strong>This works.</strong> Not every app needs more.</p>
+			<button onclick={nextStep}>But what if... →</button>
 		{/if}
 	</section>
 
 	<!-- Step 2: The Problem -->
 	{#if step >= 2}
 		<section data-active={step === 2}>
-			<h2>Step 2: The problem</h2>
-			<p>Click fetch again. Pretend you navigated away and came back.</p>
+			<h2>2. The problem</h2>
+			<p>Go to another page and back. The fetch re-runs.</p>
 
-			<button onclick={justFetch}>Fetch again</button>
+			<button onclick={justFetch}>fetch('/todos') again</button>
 
 			<pre>Network requests: {fetchCount}</pre>
 
 			{#if fetchCount >= 2}
+				<p>We already had this data. Why fetch again?</p>
 				<p>
-					We already had this data. Why fetch again?
-					<br />
-					"Just fetch again" works until it doesn't.
+					<em>"Just fetch again"</em> works until it doesn't. On flaky networks, offline, or when you want snappy UX.
 				</p>
 				<button onclick={nextStep}>Enter caching →</button>
 			{/if}
 		</section>
 	{/if}
 
-	<!-- Step 3: Cache -->
+	<!-- Step 3: Client-side Cache -->
 	{#if step >= 3}
 		<section data-active={step === 3}>
-			<h2>Step 3: Cache it</h2>
-			<p><code>fetchQuery</code> caches the response. Click it twice:</p>
+			<h2>3. Client-side cache</h2>
+			<p>Store results locally. Return cached data if fresh.</p>
 
 			<button onclick={fetchWithCache}>fetchQuery (cached)</button>
+			<button onclick={fetchWithCache}>click again</button>
 
 			<pre>Network requests: {fetchCount}
 Cache: {cacheState.length ? `${cacheState[0]?.data?.length || 0} items` : 'empty'}</pre>
 
 			{#if cacheState.length > 0}
-				<p>Second click? No new request. Data came from cache.</p>
-				<p>But now we have <strong>two sources of truth</strong> - the API and our cache.</p>
+				<p>Second click? <strong>No new request.</strong> Data came from cache.</p>
+				<p>But now we duplicated the data! It lives in the API (source of truth) AND locally.</p>
 				<button onclick={nextStep}>When do we use which? →</button>
 			{/if}
 		</section>
@@ -114,42 +129,41 @@ Cache: {cacheState.length ? `${cacheState[0]?.data?.length || 0} items` : 'empty
 	<!-- Step 4: Stale Time -->
 	{#if step >= 4}
 		<section data-active={step === 4}>
-			<h2>Step 4: Stale time</h2>
-			<p>The cache decides: <strong>fresh?</strong> use it. <strong>stale?</strong> refetch.</p>
+			<h2>4. Cache invalidation</h2>
+			<p>Two settings control cache behavior:</p>
 
-			<pre>staleTime: 5 minutes (for this demo)
-gcTime: 24 hours</pre>
-
-			<p>This is controlled by two settings:</p>
 			<ul>
-				<li><strong>staleTime</strong> - how long before we consider data "old" and refetch</li>
-				<li><strong>gcTime</strong> - how long before we throw away cached data entirely</li>
+				<li><strong>staleTime</strong> — how long before data is "old" → refetch</li>
+				<li><strong>gcTime</strong> — how long before we throw away cached data</li>
 			</ul>
 
-			<p>Now reads automatically respect our preferences. But there's another problem...</p>
-			<button onclick={nextStep}>The cache is just blobs →</button>
+			<pre>staleTime: 5 minutes
+gcTime: 24 hours</pre>
+
+			<p>Now reads automatically respect our preferences. Fresh? Use cache. Stale? Refetch.</p>
+			<button onclick={nextStep}>But there's another problem →</button>
 		</section>
 	{/if}
 
 	<!-- Step 5: Blobs Problem -->
 	{#if step >= 5}
 		<section data-active={step === 5}>
-			<h2>Step 5: The cache is just blobs</h2>
-			<p>Load a second batch:</p>
+			<h2>5. The cache is just blobs</h2>
+			<p>Load a second batch of todos:</p>
 
-			<button onclick={() => demoAPI.fetchSecondBatch()}>Fetch batch 2 (items 11-20)</button>
+			<button onclick={fetchSecondBatch}>fetchQuery (batch 2)</button>
 
 			{#if cacheState.length > 1}
-				<pre>Cache:
+				<pre>Cache entries:
   ["demo-todos"]: {cacheState[0]?.data?.length || 0} items
   ["demo-todos","batch2"]: {cacheState[1]?.data?.length || 0} items</pre>
 
-				<p>Now try: "show all todos sorted by completion status"</p>
+				<p>Now try: "show ALL todos sorted by completion"</p>
 				<p>
-					You can't. Each query key is an opaque blob. The cache doesn't know what's inside, can't merge them, can't
-					filter across them. It's a key-value store, not a database.
+					<strong>You can't.</strong> Each query key is an opaque blob. The cache can't merge them, filter across them, or
+					sort them together. It's a key-value store, not a database.
 				</p>
-				<button onclick={nextStep}>→</button>
+				<button onclick={nextStep}>Enter collections →</button>
 			{/if}
 		</section>
 	{/if}
@@ -157,11 +171,27 @@ gcTime: 24 hours</pre>
 	<!-- Step 6: Collections -->
 	{#if step >= 6}
 		<section data-active={step === 6}>
-			<h2>Step 6: Collections</h2>
-			<p>
-				A collection is an in-memory Map you can query. <code>useLiveQuery</code> bridges cache → collection: it pulls cached
-				data in and keeps it reactive.
-			</p>
+			<h2>6. Collections</h2>
+			<p>A collection is an in-memory Map you can query. Merge all cached blobs into one store:</p>
+
+			<button onclick={populateCollection}>cache → collection</button>
+
+			<pre>Collection: {collectionState.size} items</pre>
+
+			{#if collectionState.size > 0}
+				<p><strong>{collectionState.size} items</strong>, queryable with SQL-like syntax:</p>
+				<code>q.from(todos).where(t =&gt; t.completed).orderBy('id')</code>
+				<p>But we did this manually. What keeps cache and collection in sync?</p>
+				<button onclick={nextStep}>→</button>
+			{/if}
+		</section>
+	{/if}
+
+	<!-- Step 7: useLiveQuery -->
+	{#if step >= 7}
+		<section data-active={step === 7}>
+			<h2>7. useLiveQuery</h2>
+			<p>Bridges cache → collection automatically. Fetches if stale, populates collection, re-renders on changes.</p>
 
 			<label>
 				<input type="checkbox" bind:checked={liveQueryEnabled} />
@@ -169,71 +199,66 @@ gcTime: 24 hours</pre>
 			</label>
 
 			{#if liveQueryEnabled}
-				<pre>Collection: {collectionState.size} items</pre>
-
-				<p>Both batches, one queryable store. Now you can:</p>
-				<code>q.from(todos).where(t =&gt; t.completed).orderBy(t =&gt; t.id)</code>
-				<button onclick={nextStep}>→</button>
+				<LiveQueryDemo>
+					<button onclick={nextStep}>→</button>
+				</LiveQueryDemo>
 			{/if}
 		</section>
 	{/if}
 
-	<!-- Step 7: Writes Problem -->
-	{#if step >= 7}
-		<section data-active={step === 7}>
-			<h2>Step 7: The writes problem</h2>
-			<p>Safest approach: 1) update via API (400ms) → 2) refetch (200ms)</p>
-			<p>That's two network requests. And you wait 600ms before seeing your change.</p>
+	<!-- Step 8: Writes Problem -->
+	{#if step >= 8}
+		<section data-active={step === 8}>
+			<h2>8. What about writes?</h2>
+			<p>Safest approach:</p>
+			<ol>
+				<li>Update via API (~400ms)</li>
+				<li>Refetch to update cache (~200ms)</li>
+			</ol>
+			<p>Two network requests. 600ms before you see your change. Not using the cache we built.</p>
 
 			<p>What if we could:</p>
-			<ol>
-				<li>Update locally (instant)</li>
+			<ul>
+				<li>Mutate locally (instant UI)</li>
 				<li>Sync to API in background</li>
 				<li>Rollback if rejected</li>
-			</ol>
+			</ul>
 
 			<button onclick={nextStep}>Optimistic mutations →</button>
 		</section>
 	{/if}
 
-	<!-- Step 8: Optimistic Mutations -->
-	{#if step >= 8}
-		<section data-active={step === 8}>
-			<h2>Step 8: Optimistic mutations</h2>
-			<p>Insert locally. UI updates instantly. Sync happens in background.</p>
+	<!-- Step 9: Optimistic Mutations -->
+	{#if step >= 9}
+		<section data-active={step === 9}>
+			<h2>9. Optimistic mutations</h2>
+			<p>Write locally first. Queue mutations. Process when online. Rollback if rejected.</p>
 
-			<button onclick={() => demoAPI.insertTodo({todo: 'New todo ' + Date.now(), completed: false, userId: 1})}>
-				Insert Todo (optimistic)
+			<button
+				onclick={() => {
+					demoAPI.insertTodo({todo: 'New todo ' + Date.now(), completed: false, userId: 1})
+					refreshState()
+				}}
+			>
+				Insert todo (optimistic)
 			</button>
 
 			<pre>Collection: {collectionState.size} items</pre>
 
-			{#if collectionState.size > 10}
-				<p>Item appeared instantly. In a real app, it syncs to the server in the background.</p>
-				<p>If the server rejects it? The mutation rolls back.</p>
+			{#if collectionState.size > 20}
+				<p><strong>Instant.</strong> In production, this syncs to the server in background.</p>
 				<button onclick={nextStep}>Summary →</button>
 			{/if}
 		</section>
 	{/if}
 
-	<!-- Step 9: Summary -->
-	{#if step >= 9}
-		<section data-active={step === 9}>
+	<!-- Step 10: Summary -->
+	{#if step >= 10}
+		<section data-active={step === 10}>
 			<h2>The full picture</h2>
 
-			<pre>
-Read:  cache → stale? → fetch → update cache
-Write: mutate locally → queue mutation → process when online → rollback if rejected
-			</pre>
-
-			<p>We needed:</p>
-			<ul>
-				<li><strong>Cache</strong> - avoid redundant fetches (TanStack Query)</li>
-				<li><strong>Collections</strong> - queryable, reactive store (TanStack DB)</li>
-				<li><strong>Mutation queue</strong> - offline-first writes (TanStack Offline)</li>
-			</ul>
-
-			<p>Each layer solves a real problem. No layer exists "just because".</p>
+			<pre>Read:  cache → stale? → fetch → update cache
+Write: mutate locally → queue → process online → rollback if rejected</pre>
 
 			<table>
 				<thead>
@@ -244,16 +269,20 @@ Write: mutate locally → queue mutation → process when online → rollback if
 				</thead>
 				<tbody>
 					<tr>
-						<td>Refetching data we already have</td>
+						<td>Refetching data we have</td>
 						<td>Cache</td>
 					</tr>
 					<tr>
-						<td>When to use cache vs API?</td>
-						<td>Stale time</td>
+						<td>When cache vs API?</td>
+						<td>staleTime / gcTime</td>
 					</tr>
 					<tr>
-						<td>Cache is just blobs</td>
+						<td>Cache is opaque blobs</td>
 						<td>Collections</td>
+					</tr>
+					<tr>
+						<td>Keeping them in sync</td>
+						<td>useLiveQuery</td>
 					</tr>
 					<tr>
 						<td>Writes are slow</td>
@@ -265,16 +294,17 @@ Write: mutate locally → queue mutation → process when online → rollback if
 					</tr>
 				</tbody>
 			</table>
+
+			<p>Each layer solves a real problem. No layer exists "just because".</p>
 		</section>
 	{/if}
 
 	<hr />
 
 	<details>
-		<summary>Debug</summary>
+		<summary>Debug state</summary>
 		<pre>Cache: {JSON.stringify(cacheState, null, 2)}</pre>
 		<pre>Collection: {JSON.stringify(collectionState, null, 2)}</pre>
-		<pre>LiveQuery: {liveQuery.status} ({liveQuery.data.length} items)</pre>
 	</details>
 </article>
 
