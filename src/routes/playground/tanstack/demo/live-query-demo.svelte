@@ -1,6 +1,6 @@
 <script>
 	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
-	import {demoCollection} from '$lib/tanstack/collections/demo'
+	import {demoCollection} from './demo-state.svelte'
 
 	const query = useLiveQuery((/** @type {any} */ q) =>
 		q.from({todos: demoCollection}).select((/** @type {any} */ t) => t.todos)

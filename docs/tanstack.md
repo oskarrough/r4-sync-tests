@@ -195,22 +195,30 @@ collection.utils.writeBatch(() => {
 
 Use for: seeding on login, WebSocket updates, pagination.
 
-## Performance: Cache-First Pattern
+## QueryClient Primitives
 
-`useLiveQuery` is slow (~400-600ms) because `createLiveQueryCollection` is expensive. For instant loads, bypass it when cache exists.
+The `queryClient` is a cache you can inspect and manipulate directly:
 
-**The race**: `cacheReady` populates `queryClient`, but collection hydration runs in a `.then()` microtask. Components mount before `collection.state` is populated.
+```js
+// Read from cache
+queryClient.getQueryData(['tracks', slug])
 
-**Solution**:
+// Write to cache
+queryClient.setQueryData(['tracks', slug], data)
 
-1. Check `queryClient.getQueryData(key)` directly (instant, guaranteed after `cacheReady`)
-2. Use cached data for display
-3. Defer `useLiveQuery` with `requestAnimationFrame` when not cached
-4. Query with empty slug when cached (fast no-op)
+// Mark stale, trigger refetch on next access
+queryClient.invalidateQueries({queryKey: ['tracks']})
 
-See `[slug]/+page.svelte` for implementation.
+// Clear from cache entirely
+queryClient.removeQueries({queryKey: ['tracks', slug]})
 
-**Also**: `checkTracksFreshness` must check `queryClient`, not `collection.state`.
+// Inspect all cached queries
+queryClient.getQueryCache().getAll()
+```
+
+Query keys are hierarchical - invalidate broadly (`['tracks']`) or precisely (`['tracks', 'starttv']`).
+
+**fetchQuery vs useQuery**: imperative (call when you want) vs declarative (reactive to component lifecycle).
 
 ## Caching
 
@@ -261,6 +269,7 @@ src/lib/components/
 └── sync-status.svelte
 
 src/routes/playground/tanstack/   - test pages
+├── demo/+page.svelte      - interactive fetch/cache/collection guide
 ├── tracks/+page.svelte
 └── channels/+page.svelte
 ```
