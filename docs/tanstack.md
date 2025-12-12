@@ -195,6 +195,31 @@ collection.utils.writeBatch(() => {
 
 Use for: seeding on login, WebSocket updates, pagination.
 
+## QueryClient Primitives
+
+The `queryClient` is a cache you can inspect and manipulate directly:
+
+```js
+// Read from cache
+queryClient.getQueryData(['tracks', slug])
+
+// Write to cache
+queryClient.setQueryData(['tracks', slug], data)
+
+// Mark stale, trigger refetch on next access
+queryClient.invalidateQueries({queryKey: ['tracks']})
+
+// Clear from cache entirely
+queryClient.removeQueries({queryKey: ['tracks', slug]})
+
+// Inspect all cached queries
+queryClient.getQueryCache().getAll()
+```
+
+Query keys are hierarchical - invalidate broadly (`['tracks']`) or precisely (`['tracks', 'starttv']`).
+
+**fetchQuery vs useQuery**: imperative (call when you want) vs declarative (reactive to component lifecycle).
+
 ## Caching
 
 | Setting     | Where             | Value | Purpose                          |
@@ -244,6 +269,7 @@ src/lib/components/
 └── sync-status.svelte
 
 src/routes/playground/tanstack/   - test pages
+├── demo/+page.svelte      - interactive fetch/cache/collection guide
 ├── tracks/+page.svelte
 └── channels/+page.svelte
 ```

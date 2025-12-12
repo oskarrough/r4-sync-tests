@@ -48,6 +48,9 @@ const persistOptions = {
 			if (!Array.isArray(data) || data.length === 0) return false
 			// Don't persist arrays containing null/undefined
 			if (data.some((item) => item == null)) return false
+			// Don't persist demo queries
+			const key = query.queryKey?.[0]
+			if (key === 'todos-cached' || key === 'demo-todos') return false
 			return true
 		}
 	}
