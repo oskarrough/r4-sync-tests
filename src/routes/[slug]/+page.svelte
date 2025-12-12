@@ -105,7 +105,7 @@
 
 		<section>
 			{#if tracks.length > 0}
-				<Tracklist {tracks} {canEdit} grouped={true} virtual={true} />
+				<Tracklist {tracks} {canEdit} grouped={true} virtual={false} />
 			{:else if (channel.track_count ?? 0) > 0}
 				<p style="margin-top:1rem; margin-left: 0.5rem;">{m.channel_loading_tracks()}</p>
 			{:else}
