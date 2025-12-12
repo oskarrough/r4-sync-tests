@@ -3,7 +3,14 @@
 List of possible improvements to the architecture, idea, cli and web application.
 Verify and evaluate todos before taking them on. They might be outdated or just not good ideas.
 
-## BACKLOG
+### track-card perf improvements
+
+Potential bottlenecks when rendering 3k+ tracks:
+
+- **extractYouTubeId per card**: regex parsing runs for each track. Consider caching results or moving to track sync time.
+- **PopoverMenu per card**: 3k popover instances in DOM even if not visible. Lazy-render only when opened?
+- **LinkEntities per description**: parses/transforms text for each track description. Could batch or cache.
+- **active state**: `appState.playlist_track` check runs on all cards when current track changes. Move check to parent, only pass boolean to playing track.
 
 ### Test: Cross-collection querying with recent tracks
 
@@ -26,7 +33,7 @@ const recentTracks = useLiveQuery((q) =>
 )
 ```
 
----
+## BACKLOG
 
 - Tracks inside <tracklist> aren't highlighted/marked when they are loaded in player? appState.playback_track === track.id?
 - Refine offline error handling: In `syncTracks` and `syncChannels`, use `NonRetriableError` from `@tanstack/offline-transactions` for server-side validation errors (e.g., HTTP 4xx) to prevent unnecessary retries.

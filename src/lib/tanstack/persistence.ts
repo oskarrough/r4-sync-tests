@@ -4,7 +4,7 @@ import {
 	type PersistedClient
 } from '@tanstack/query-persist-client-core'
 import {get, set, del} from 'idb-keyval'
-import {queryClient} from './collections'
+import {queryClient, tracksCollection, channelsCollection} from './collections'
 
 // JSON stringify that strips functions and handles circular refs
 // Required because syncMode: "on-demand" adds functions to query meta
@@ -56,7 +56,22 @@ const persistOptions = {
 // Restore cache from IDB - await this before prefetching
 export const cacheReady = persistQueryClientRestore(persistOptions)
 
-// Subscribe to changes after restore completes
+// Subscribe to changes after restore completes, and hydrate collections
 cacheReady.then(() => {
 	persistQueryClientSubscribe(persistOptions)
+
+	// Hydrate collection state from restored query cache
+	// This makes collection.state instant without needing a live query
+	const queries = queryClient.getQueryCache().getAll()
+	for (const query of queries) {
+		const data = query.state.data as Array<{id: string}> | undefined
+		if (!data?.length) continue
+
+		const [type] = query.queryKey as string[]
+		if (type === 'tracks') {
+			for (const track of data) tracksCollection.state.set(track.id, track)
+		} else if (type === 'channels') {
+			for (const channel of data) channelsCollection.state.set(channel.id, channel)
+		}
+	}
 })

@@ -195,6 +195,23 @@ collection.utils.writeBatch(() => {
 
 Use for: seeding on login, WebSocket updates, pagination.
 
+## Performance: Cache-First Pattern
+
+`useLiveQuery` is slow (~400-600ms) because `createLiveQueryCollection` is expensive. For instant loads, bypass it when cache exists.
+
+**The race**: `cacheReady` populates `queryClient`, but collection hydration runs in a `.then()` microtask. Components mount before `collection.state` is populated.
+
+**Solution**:
+
+1. Check `queryClient.getQueryData(key)` directly (instant, guaranteed after `cacheReady`)
+2. Use cached data for display
+3. Defer `useLiveQuery` with `requestAnimationFrame` when not cached
+4. Query with empty slug when cached (fast no-op)
+
+See `[slug]/+page.svelte` for implementation.
+
+**Also**: `checkTracksFreshness` must check `queryClient`, not `collection.state`.
+
 ## Caching
 
 | Setting     | Where             | Value | Purpose                          |

@@ -3,6 +3,7 @@
 	import {appState} from '$lib/app-state.svelte'
 	import Icon from '$lib/components/icon.svelte'
 	import Modal from '$lib/components/modal.svelte'
+	import TrackCreateForm from '$lib/components/track-create-form.svelte'
 	import {tooltip} from './tooltip-attachment'
 	import * as m from '$lib/paraglide/messages'
 
@@ -54,8 +55,9 @@
 		}
 	}
 
+	/** @param {{data: {url: string, title: string} | null, error: Error | null}} event */
 	function handleSubmit(event) {
-		const {data, error} = event.detail
+		const {data, error} = event
 		if (error || !data) return
 
 		recentTracks.unshift(data)
@@ -83,17 +85,16 @@
 		<h2>{m.track_add_title()}</h2>
 	{/snippet}
 
-	<r4-track-create channel_id={channel?.id} url={prefilledUrl} onsubmit={handleSubmit}></r4-track-create>
+	{#if channel}
+		<TrackCreateForm {channel} prefillUrl={prefilledUrl} onsubmit={handleSubmit} />
+	{/if}
 
 	{#if recentTracks.length > 0}
 		<div class="recent-tracks">
 			<h3>{m.track_recently_saved()}</h3>
-			{#each recentTracks as track (track.id || track.url)}
+			{#each recentTracks as track (track.url)}
 				<div>{track.title || track.url}</div>
 			{/each}
 		</div>
 	{/if}
 </Modal>
-
-<style>
-</style>

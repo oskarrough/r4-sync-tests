@@ -28,6 +28,7 @@
 			.limit(1)
 	)
 
+	// Live query triggers fetch on cache miss
 	const tracksQuery = useLiveQuery((q) =>
 		q
 			.from({tracks: tracksCollection})
@@ -35,8 +36,15 @@
 			.orderBy(({tracks}) => tracks.created_at, 'desc')
 	)
 
+	// Collection state (hydrated from cache) or live query data (after fetch)
+	const collectionTracks = $derived(
+		[...tracksCollection.state.values()]
+			.filter((t) => t.slug === slug)
+			.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))
+	)
+	let tracks = $derived(collectionTracks.length ? collectionTracks : tracksQuery.data || [])
+
 	let channel = $derived(channelQuery.data?.[0])
-	let tracks = $derived(tracksQuery.data || [])
 	let latestTrackDate = $derived(tracks[0]?.created_at)
 	let isSignedIn = $derived(!!appState.user)
 	let canEdit = $derived(isSignedIn && appState.channels?.includes(channel?.id))
@@ -97,8 +105,8 @@
 
 		<section>
 			{#if tracks.length > 0}
-				<Tracklist {tracks} {canEdit} grouped={true} />
-			{:else if tracksQuery.isLoading || (channel.track_count ?? 0) > 0}
+				<Tracklist {tracks} {canEdit} grouped={true} virtual={false} />
+			{:else if (channel.track_count ?? 0) > 0}
 				<p style="margin-top:1rem; margin-left: 0.5rem;">{m.channel_loading_tracks()}</p>
 			{:else}
 				<p style="margin-top:1rem; margin-left: 0.5rem;">No tracks yet</p>

@@ -74,14 +74,6 @@
 		margin-bottom: 0.5rem;
 	}
 
-	code {
-		display: block;
-		background: var(--gray-2);
-		padding: 0.5rem;
-		margin: 0.5rem 0;
-		border-radius: 4px;
-	}
-
 	ul {
 		margin: 0.5rem 0;
 		padding-left: 1.5rem;
