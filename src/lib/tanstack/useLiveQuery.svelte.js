@@ -8,7 +8,6 @@
 import {untrack, tick} from 'svelte'
 import {SvelteMap} from 'svelte/reactivity'
 import {BaseQueryBuilder, createLiveQueryCollection} from '@tanstack/db'
-import {queryClient} from '../../routes/tanstack/collections/query-client'
 
 function toValue(value) {
 	if (typeof value === `function`) {

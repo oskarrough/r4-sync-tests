@@ -1,9 +1,9 @@
 <script>
-	import {addTrack} from '../../routes/tanstack/collections/tracks'
+	import {addTrack} from '$lib/tanstack/collections/tracks'
 	import {fetchOEmbedTitle} from '$lib/utils/oembed'
 	import * as m from '$lib/paraglide/messages'
 
-	/** @type {{channel: import('../../routes/tanstack/collections/channels').Channel, prefillUrl?: string, onsubmit?: (event: {data: {url: string, title: string} | null, error: Error | null}) => void}} */
+	/** @type {{channel: import('$lib/tanstack/collections/channels').Channel, prefillUrl?: string, onsubmit?: (event: {data: {url: string, title: string} | null, error: Error | null}) => void}} */
 	let {channel, prefillUrl = '', onsubmit} = $props()
 
 	let url = $state(prefillUrl)
