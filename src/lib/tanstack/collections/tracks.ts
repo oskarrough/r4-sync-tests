@@ -159,7 +159,10 @@ export function getTrackWithMeta<T extends {url?: string}>(track: T): T & Partia
 }
 
 // Track actions
-export function addTrack(channel: Channel, input: {url: string; title: string; description?: string}) {
+export function addTrack(
+	channel: Channel,
+	input: {url: string; title: string; description?: string; discogs_url?: string}
+) {
 	const tx = getOfflineExecutor().createOfflineTransaction({
 		mutationFnName: 'syncTracks',
 		metadata: {channelId: channel.id, slug: channel.slug},
@@ -174,7 +177,7 @@ export function addTrack(channel: Channel, input: {url: string; title: string; d
 			slug: channel.slug,
 			created_at: new Date().toISOString(),
 			updated_at: new Date().toISOString(),
-			discogs_url: null,
+			discogs_url: input.discogs_url || null,
 			duration: null,
 			fts: null,
 			mentions: null,
@@ -275,9 +278,10 @@ export function batchDeleteTracks(channel: Channel, ids: string[]) {
 
 /** Check if remote has newer tracks than local. Invalidates cache if so. */
 export async function checkTracksFreshness(slug: string): Promise<boolean> {
-	const localTracks = [...tracksCollection.state.values()].filter((t) => t.slug === slug)
-	const localLatest = localTracks.reduce(
-		(max, t) => (!max || t.created_at > max ? t.created_at : max),
+	// Check queryClient cache (not collection state which may be empty)
+	const cachedTracks = (queryClient.getQueryData(['tracks', slug]) as Track[]) || []
+	const localLatest = cachedTracks.reduce(
+		(max: string | null, t: Track) => (!max || t.created_at > max ? t.created_at : max),
 		null as string | null
 	)
 

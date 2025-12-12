@@ -1,5 +1,8 @@
 import {createCollection} from '@tanstack/svelte-db'
 import {localStorageCollectionOptions} from '@tanstack/db'
+import {logger} from '$lib/logger'
+
+const log = logger.ns('history').seal()
 
 // Play history collection - local-only, persists to localStorage
 export interface PlayHistoryEntry {
@@ -29,41 +32,54 @@ export function addPlayHistoryEntry(
 	opts: {reason_start?: string; shuffle?: boolean}
 ) {
 	if (!track.slug) return
-	playHistoryCollection.insert({
-		id: crypto.randomUUID(),
-		track_id: track.id,
-		slug: track.slug,
-		title: track.title,
-		url: track.url,
-		started_at: new Date().toISOString(),
-		ms_played: 0,
-		reason_start: opts.reason_start,
-		shuffle: opts.shuffle ?? false,
-		skipped: false
-	})
+	try {
+		playHistoryCollection.insert({
+			id: crypto.randomUUID(),
+			track_id: track.id,
+			slug: track.slug,
+			title: track.title,
+			url: track.url,
+			started_at: new Date().toISOString(),
+			ms_played: 0,
+			reason_start: opts.reason_start,
+			shuffle: opts.shuffle ?? false,
+			skipped: false
+		})
+	} catch (error) {
+		log.error('Failed to add play history entry', {track: track.id, error})
+	}
 }
 
 export function endPlayHistoryEntry(
 	trackId: string,
 	opts: {ms_played: number; reason_end?: string; skipped?: boolean}
 ) {
-	const entries = [...playHistoryCollection.state.values()]
-	// Find most recent open entry for this track (handles repeat plays)
-	const entry = entries
-		.filter((e) => e.track_id === trackId && !e.ended_at)
-		.sort((a, b) => b.started_at.localeCompare(a.started_at))[0]
-	if (!entry) return
+	try {
+		const entries = [...playHistoryCollection.state.values()]
+		// Find most recent open entry for this track (handles repeat plays)
+		const entry = entries
+			.filter((e) => e.track_id === trackId && !e.ended_at)
+			.sort((a, b) => b.started_at.localeCompare(a.started_at))[0]
+		if (!entry) return
 
-	playHistoryCollection.update(entry.id, (draft) => {
-		draft.ended_at = new Date().toISOString()
-		draft.ms_played = opts.ms_played
-		draft.reason_end = opts.reason_end
-		draft.skipped = opts.skipped ?? false
-	})
+		playHistoryCollection.update(entry.id, (draft) => {
+			draft.ended_at = new Date().toISOString()
+			draft.ms_played = opts.ms_played
+			draft.reason_end = opts.reason_end
+			draft.skipped = opts.skipped ?? false
+		})
+	} catch (error) {
+		log.error('Failed to end play history entry', {track: trackId, error})
+	}
 }
 
 export function clearPlayHistory() {
-	for (const id of playHistoryCollection.state.keys()) {
-		playHistoryCollection.delete(id)
+	try {
+		for (const id of playHistoryCollection.state.keys()) {
+			playHistoryCollection.delete(id)
+		}
+		log.info('Play history cleared')
+	} catch (error) {
+		log.error('Failed to clear play history', {error})
 	}
 }

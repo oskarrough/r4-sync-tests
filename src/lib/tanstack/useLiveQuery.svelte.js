@@ -2,6 +2,8 @@
  * Patched version of @tanstack/svelte-db useLiveQuery
  * Fix: await tick() before state mutations in subscribeChanges callback
  * to avoid state_unsafe_mutation errors during render
+ *
+ * Also exports useCachedLiveQuery for cache-first pattern
  */
 import {untrack, tick} from 'svelte'
 import {SvelteMap} from 'svelte/reactivity'
@@ -62,7 +64,7 @@ export function useLiveQuery(configOrQueryOrCollection, deps = []) {
 
 	const state = new SvelteMap()
 	let internalData = $state([])
-	let status = $state(collection ? collection.status : `disabled`)
+	let status = $state(`disabled`)
 
 	const syncDataFromCollection = (currentCollection) => {
 		untrack(() => {

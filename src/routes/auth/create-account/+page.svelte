@@ -42,10 +42,6 @@
 		margin-top: 0.5rem;
 	}
 
-	header {
-		margin-bottom: 3vh;
-	}
-
 	h1 {
 		margin: 3vh auto;
 		font-size: var(--font-7);

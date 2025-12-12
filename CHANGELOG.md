@@ -2,6 +2,9 @@
 
 ## December 2025
 
+- Queue panel is now resizable by dragging its left edge (desktop only)
+- Fixed search not showing results on direct page load
+- Batch editing UI with shift-click selection and tooltips
 - Added `track.duration` + `track.playback_error` fields
 - Replaced pglite with tanstack db
 

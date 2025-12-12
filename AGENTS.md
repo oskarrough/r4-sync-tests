@@ -106,3 +106,15 @@ Custom elements used on radio4000.com and in this app. Source: https://github.co
 
 - Suffix tanstack documentation urls with `.md` to get raw markdown
 - LIMIT and OFFSET queries require an ORDER BY clause for deterministic results
+
+## Writing style (guides, docs, explanations)
+
+Lead with the point. Skip preambles, start mid-thought when context is clear.
+
+Assume domain knowledge. Say "use debouncing" not "you might want to consider implementing a debouncing mechanism." Reference concepts directly without basic explanations.
+
+Natural prose over formatting tricks. Never do "**bold**: explanation" syntax. Prefer flowing paragraphs to numbered lists when the content permits. Sentence case for titles.
+
+Terse and precise. Expand reasoning only when asked. Point out flaws directly: "that breaks because..." not "one consideration might be..."
+
+Dry wit welcome. Channel the sensibility of someone who finds elegance in plain text and thinks most abstractions are premature. Occasional slang fine, sparingly.

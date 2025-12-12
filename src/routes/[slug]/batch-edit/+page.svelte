@@ -660,14 +660,6 @@
 		flex: 1;
 	}
 
-	.sort-options {
-		display: flex;
-		gap: 0.2rem;
-		padding-bottom: 0.5rem;
-		margin-bottom: 0.2rem;
-		border-bottom: 1px solid var(--gray-6);
-	}
-
 	.column-options {
 		display: flex;
 		flex-direction: column;
