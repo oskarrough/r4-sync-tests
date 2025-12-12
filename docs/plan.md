@@ -5,10 +5,29 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 
 ## BACKLOG
 
-- In the player, the loaded track title can be clicked to navigate to track, but the image can not. Make it so.
-- Make it possible to drag the width of the asidebar and store in appState somewhere
-- I clicked a track in the history sidebar, opened details, goes to https://pg.radio4000.com/rigo-capi/tracks/3700cda2-09ed-5854-bbb4-2a99fac8e300 but it says track not found. Which is very odd since I clicked the track to get there. "Track not found (tid: , slug: , tracks loaded: 184, first track id: 32884486-2ecb-50b1-be88-04cbf6bf4c2c)"
-- Global search doesn't always work. Sometimes renders no results, when there are results e.g. https://pg.radio4000.com/search?search=oskar doesn't show anything until you reload the page. All channels should be preloaded from layout.js already
+### Test: Cross-collection querying with recent tracks
+
+Prove that TanStack DB enables querying across all loaded data (not just per-slug cache blobs).
+
+Create a test component at `/tanstack/recent-tracks/+page.svelte` that:
+
+1. Shows the 50 most recent tracks **across all loaded channels**
+2. Uses `useLiveQuery` with `gt(tracks.created_at, ...)` and `orderBy(..., 'desc')`
+3. Should work once multiple channels have been visited (their tracks loaded into collection)
+
+This demonstrates DB's value over Query alone: Query caches `['tracks', 'starttv']` and `['tracks', 'blink']` as separate blobs you can't query across. DB's collection lets you query all in-memory tracks with SQL-like syntax.
+
+```js
+const recentTracks = useLiveQuery((q) =>
+	q
+		.from({tracks: tracksCollection})
+		.orderBy(({tracks}) => tracks.created_at, 'desc')
+		.limit(50)
+)
+```
+
+---
+
 - Tracks inside <tracklist> aren't highlighted/marked when they are loaded in player? appState.playback_track === track.id?
 - Refine offline error handling: In `syncTracks` and `syncChannels`, use `NonRetriableError` from `@tanstack/offline-transactions` for server-side validation errors (e.g., HTTP 4xx) to prevent unnecessary retries.
 - add an url param to directly queueplay a track. maybe slug?play=trackid
