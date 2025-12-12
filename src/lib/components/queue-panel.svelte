@@ -16,6 +16,37 @@
 	let showClearHistoryModal = $state(false)
 	let searchQuery = $state('')
 
+	// Resize handle state
+	const MIN_WIDTH = 200
+	const MAX_WIDTH = 800
+	let isDragging = $state(false)
+
+	/** @param {PointerEvent} e */
+	function startDrag(e) {
+		if (window.matchMedia('(max-width: 768px)').matches) return
+		isDragging = true
+		document.body.style.cursor = 'ew-resize'
+		document.body.style.userSelect = 'none'
+		window.addEventListener('pointermove', onDrag)
+		window.addEventListener('pointerup', stopDrag)
+		e.preventDefault()
+	}
+
+	/** @param {PointerEvent} e */
+	function onDrag(e) {
+		if (!isDragging) return
+		const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, window.innerWidth - e.clientX))
+		appState.queue_panel_width = newWidth
+	}
+
+	function stopDrag() {
+		isDragging = false
+		document.body.style.cursor = ''
+		document.body.style.userSelect = ''
+		window.removeEventListener('pointermove', onDrag)
+		window.removeEventListener('pointerup', stopDrag)
+	}
+
 	/** @type {string[]} */
 	let trackIds = $derived(appState.playlist_tracks || [])
 
@@ -89,7 +120,8 @@
 	}
 </script>
 
-<aside>
+<aside class:dragging={isDragging}>
+	<div class="resize-handle" onpointerdown={startDrag} role="separator" aria-orientation="vertical"></div>
 	<header>
 		<menu>
 			<button onclick={() => (view = 'queue')} class:active={view === 'queue'}
@@ -178,6 +210,7 @@
 
 <style>
 	aside {
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		height: 100%;
@@ -186,6 +219,33 @@
 
 		/* perf trick! */
 		contain: layout size;
+	}
+
+	aside.dragging {
+		user-select: none;
+	}
+
+	.resize-handle {
+		position: absolute;
+		left: 0;
+		top: 0;
+		bottom: 0;
+		width: 6px;
+		cursor: ew-resize;
+		background: transparent;
+		z-index: 10;
+		touch-action: none;
+	}
+
+	.resize-handle:hover,
+	aside.dragging .resize-handle {
+		background: var(--accent-7);
+	}
+
+	@media (max-width: 768px) {
+		.resize-handle {
+			display: none;
+		}
 	}
 
 	header {
