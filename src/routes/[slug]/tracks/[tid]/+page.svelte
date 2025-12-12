@@ -2,7 +2,7 @@
 	import {page} from '$app/state'
 	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
 	import {eq} from '@tanstack/db'
-	import {tracksCollection, channelsCollection, trackMetaCollection} from '../../../tanstack/collections'
+	import {tracksCollection, channelsCollection, trackMetaCollection} from '$lib/tanstack/collections'
 	import {extractYouTubeId} from '$lib/utils'
 	import TrackCard from '$lib/components/track-card.svelte'
 	import TrackMeta from '$lib/components/track-meta.svelte'

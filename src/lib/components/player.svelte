@@ -11,7 +11,7 @@
 	import LinkEntities from '$lib/components/link-entities.svelte'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
 	import {logger} from '$lib/logger'
-	import {tracksCollection, channelsCollection, updateTrack} from '../../routes/tanstack/collections'
+	import {tracksCollection, channelsCollection, updateTrack} from '$lib/tanstack/collections'
 	import {extractYouTubeId, detectMediaProvider} from '$lib/utils.ts'
 	import * as m from '$lib/paraglide/messages'
 
@@ -280,13 +280,15 @@
 
 {#snippet trackContent()}
 	{#if channel && track}
-		{#if !appState.hide_track_artwork}<img class="artwork" src={trackImage} alt={track.title} />{/if}
+		{@const trackHref = `/${channel.slug}/tracks/${track.id}`}
+		{#if !appState.hide_track_artwork}<a href={trackHref}><img class="artwork" src={trackImage} alt={track.title} /></a
+			>{/if}
 		<div class="text">
 			<h3>
 				{#if isListeningToBroadcast}
 					<span class="broadcast-indicator">{m.player_live_indicator()}</span>
 				{/if}
-				<a href={`/${channel.slug}/tracks/${track.id}`}>{track.title}</a>
+				<a href={trackHref}>{track.title}</a>
 			</h3>
 			{#if track.description}
 				<p><small><LinkEntities text={track.description} slug={track.slug} /></small></p>

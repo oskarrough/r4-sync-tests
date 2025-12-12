@@ -1,31 +1,137 @@
 # TanStack DB
 
-Exploring TanStack DB as potential PGlite replacement. Goal: reactive collections with offline-first mutations + remote sync via @radio4000/sdk.
+Reactive collections with offline-first mutations + remote sync via @radio4000/sdk.
+
+## Why TanStack DB?
+
+TanStack Query alone: fetch, cache, persist. But data is **blobs per query key** - can't query across them.
+
+TanStack DB adds:
+
+- **Queryable in-memory store** with SQL-like syntax
+- **Live queries** that re-render on data changes
+- **Cross-collection queries** (query all tracks, not just per-slug)
+- **Optimistic mutations** with automatic rollback
+
+```js
+// Query cache has separate blobs: ['tracks', 'starttv'], ['tracks', 'blink']
+// Can't query across them with Query alone.
+
+// DB collection lets you query ALL loaded tracks:
+const recentTracks = useLiveQuery((q) =>
+	q
+		.from({tracks: tracksCollection})
+		.orderBy(({tracks}) => tracks.created_at, 'desc')
+		.limit(50)
+)
+```
+
+## The Three Layers
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Remote (Supabase)                                              │
+│    Source of truth. Fetched via sdk.                            │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼ fetchQuery / prefetchQuery / useLiveQuery
+┌─────────────────────────────────────────────────────────────────┐
+│  Query Cache (TanStack Query)                                   │
+│    Persisted to IndexedDB. Keyed by query key.                  │
+│    ['tracks', 'starttv'] → 263 items (blob)                     │
+│    ['tracks', 'blink'] → 340 items (blob)                       │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼ useLiveQuery (with queryCollectionOptions)
+┌─────────────────────────────────────────────────────────────────┐
+│  Collection (TanStack DB)                                       │
+│    In-memory Map. Queryable. Reactive.                          │
+│    tracksCollection.state → all tracks from active queries      │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### What touches what
+
+| Method                            | Remote           | Query Cache | Collection         | Returns  |
+| --------------------------------- | ---------------- | ----------- | ------------------ | -------- |
+| `fetchQuery`                      | fetch            | write       | -                  | data     |
+| `prefetchQuery`                   | fetch            | write       | -                  | void     |
+| `useLiveQuery`                    | fetch (if stale) | read/write  | write              | reactive |
+| `collection.get(id)`              | -                | -           | read               | item     |
+| `[...collection.state.values()]`  | -                | -           | read               | array    |
+| `collection.insert/update/delete` | -                | -           | write (optimistic) | -        |
+| `collection.utils.writeUpsert`    | -                | write       | write              | -        |
+
+**Key insight**: `fetchQuery`/`prefetchQuery` don't touch the collection. To get data into the collection, use `useLiveQuery` or `writeUpsert`.
+
+## One-Off Queries
+
+### From collection (if data already loaded)
+
+```js
+// Single item by ID
+const track = tracksCollection.get(id)
+
+// Query in-memory
+const channel = [...channelsCollection.state.values()].find((ch) => ch.slug === slug)
+const tracks = [...tracksCollection.state.values()].filter((t) => t.channel_id === id)
+```
+
+### From remote (one-time fetch)
+
+```js
+// Fetch and return data (updates query cache, not collection)
+const data = await queryClient.fetchQuery({
+	queryKey: ['tracks', slug],
+	queryFn: () => fetchTracksBySlug(slug)
+})
+
+// Fetch and cache for later (no return, silent errors)
+await queryClient.prefetchQuery({
+	queryKey: ['channels'],
+	queryFn: fetchAllChannels,
+	staleTime: 24 * 60 * 60 * 1000
+})
+```
+
+### Fetch + populate collection
+
+```js
+// Pattern from ensureTracksLoaded()
+const data = await queryClient.fetchQuery({...})
+tracksCollection.utils.writeBatch(() => {
+  for (const track of data) {
+    tracksCollection.utils.writeUpsert(track)
+  }
+})
+```
 
 ## Terminology
 
-Understanding what's from TanStack vs what we invented:
+| Term                               | Source   | What it is                                                        |
+| ---------------------------------- | -------- | ----------------------------------------------------------------- |
+| **Collection**                     | TanStack | Reactive data store (`tracksCollection`)                          |
+| **Mutation**                       | TanStack | Single change: `insert`, `update`, or `delete`                    |
+| **Transaction**                    | TanStack | Batch of mutations that commit together                           |
+| **Live Query**                     | TanStack | `useLiveQuery()` - reactive query that updates UI                 |
+| **Offline Transaction**            | TanStack | `createOfflineTransaction()` - persists to IndexedDB outbox first |
+| **Offline Executor**               | TanStack | `startOfflineExecutor()` - manages outbox, leader election, retry |
+| **mutationFn**                     | TanStack | Function that syncs a transaction to the server                   |
+| `syncTracks`                       | **Ours** | Our mutationFn name - dispatches to SDK by mutation type          |
+| `addTrack/updateTrack/deleteTrack` | **Ours** | Standalone functions that create offline transactions             |
 
-| Term                               | Source   | What it is                                                                 |
-| ---------------------------------- | -------- | -------------------------------------------------------------------------- |
-| **Collection**                     | TanStack | Reactive data store (`tracksCollection`)                                   |
-| **Mutation**                       | TanStack | Single change: `insert`, `update`, or `delete`                             |
-| **Transaction**                    | TanStack | Batch of mutations that commit together                                    |
-| **Live Query**                     | TanStack | `useLiveQuery()` - reactive query that updates UI                          |
-| **Operation Handler**              | TanStack | `onInsert/onUpdate/onDelete` on collection - auto-fires on mutations       |
-| **Optimistic Action**              | TanStack | `createOptimisticAction()` - named operation with optimistic update + sync |
-| **Manual Transaction**             | TanStack | `createTransaction()` - explicit commit control                            |
-| **Offline Transaction**            | TanStack | `createOfflineTransaction()` - persists to IndexedDB outbox first          |
-| **Offline Executor**               | TanStack | `startOfflineExecutor()` - manages outbox, leader election, retry          |
-| **mutationFn**                     | TanStack | Function that syncs a transaction to the server                            |
-| `syncTracks`                       | **Ours** | Our mutationFn name - dispatches to SDK by mutation type                   |
-| `addTrack/updateTrack/deleteTrack` | **Ours** | Standalone functions that create offline transactions                      |
+## Packages
 
-## Two mutation approaches in TanStack DB
+| Package                          | What it provides                                                  |
+| -------------------------------- | ----------------------------------------------------------------- |
+| `@tanstack/svelte-db`            | `createCollection()`, `useLiveQuery()`, `eq`                      |
+| `@tanstack/query-db-collection`  | `queryCollectionOptions()`, `parseLoadSubsetOptions()`            |
+| `@tanstack/svelte-query`         | `QueryClient`                                                     |
+| `@tanstack/offline-transactions` | `startOfflineExecutor()`, `IndexedDBAdapter`, `NonRetriableError` |
 
-### 1. Collection handlers (simple, not offline-safe)
+## Mutations
 
-Collections can have `onInsert/onUpdate/onDelete` that auto-fire:
+### Online-only (simple)
 
 ```ts
 const todoCollection = createCollection({
@@ -33,17 +139,10 @@ const todoCollection = createCollection({
 		await api.create(transaction.mutations[0].modified)
 	}
 })
-
-todoCollection.insert({id, text}) // fires onInsert automatically
+todoCollection.insert({id, text}) // fires onInsert
 ```
 
-Nicer API, but online-only. Mutations fail if offline.
-
-### 2. Offline transactions (what we use)
-
-More verbose, but works offline. We omit handlers on our collection and wrap all mutations in offline transactions.
-
-Wrap mutations in outbox pattern for offline-first:
+### Offline-first (what we use)
 
 ```ts
 const tx = executor.createOfflineTransaction({mutationFnName: 'syncTracks'})
@@ -51,73 +150,18 @@ tx.mutate(() => tracksCollection.insert(newTrack))
 await tx.commit()
 ```
 
-1. Persist to IndexedDB outbox first (durable)
+1. Persist to IndexedDB outbox (durable)
 2. Apply optimistic update to collection (instant UI)
 3. Sync to server when online (via mutationFn)
 4. Remove from outbox on success
 
-We chose this approach because r5 is offline-first.
-
-## How our pieces connect
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│  Component (tracks/+page.svelte)                                    │
-│    const tracks = useLiveQuery(...)      → reactive reads           │
-│    addTrack(channel, {url, title})       → writes                   │
-└─────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│  addTrack / updateTrack / deleteTrack (OURS)                        │
-│    Standalone functions that:                                       │
-│      1. Create offline transaction                                  │
-│      2. Call collection.insert/update/delete inside tx.mutate()     │
-│      3. Commit transaction                                          │
-└─────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│  offlineExecutor (TanStack)                                         │
-│    startOfflineExecutor({                                           │
-│      collections: {tracks: tracksCollection},                       │
-│      mutationFns: {syncTracks: ...},  ← name we chose               │
-│      storage: IndexedDBAdapter        ← outbox persistence          │
-│    })                                                               │
-│    - Queues transactions in IndexedDB                               │
-│    - Leader election (one tab syncs)                                │
-│    - Processes queue when online                                    │
-└─────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│  syncTracks (OURS - the mutationFn)                                 │
-│    Receives transaction with mutations array                        │
-│    Dispatches by mutation.type:                                     │
-│      insert → sdk.tracks.createTrack()                              │
-│      update → sdk.tracks.updateTrack()                              │
-│      delete → sdk.tracks.deleteTrack()                              │
-│    Invalidates query cache on success                               │
-└─────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│  @radio4000/sdk                                                     │
-│    Actual Supabase calls                                            │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-## Why standalone action functions
-
-TanStack gives us `createOfflineTransaction()` but it's low-level. We wrap it in simple functions:
+### Our wrapper functions
 
 ```ts
-// Our wrapper - addTrack(channel, input)
 export function addTrack(channel: {id: string; slug: string}, input: {url: string; title: string}) {
 	const tx = offlineExecutor.createOfflineTransaction({
 		mutationFnName: 'syncTracks',
-		metadata: {channelId: channel.id, slug: channel.slug},
-		autoCommit: false
+		metadata: {channelId: channel.id, slug: channel.slug}
 	})
 	tx.mutate(() => {
 		tracksCollection.insert({
@@ -131,124 +175,43 @@ export function addTrack(channel: {id: string; slug: string}, input: {url: strin
 	return tx.commit()
 }
 
-// Usage in component
+// Usage
 await addTrack(userChannel, {url, title})
 ```
 
-One call handles all three concerns:
+## Direct Writes (bypass sync)
 
-```
-addTrack(channel, {url, title})
-    │
-    ├─► tx.mutate(() => tracksCollection.insert(...))  ← optimistic (instant UI)
-    │
-    ├─► tx.commit()  ← persists to IndexedDB outbox (offline-safe)
-    │
-    └─► offlineExecutor processes queue
-            │
-            └─► syncTracks({transaction})  ← calls sdk.tracks.createTrack() (remote)
-```
-
-1. **Optimistic**: `tracksCollection.insert()` updates UI immediately
-2. **Offline**: Transaction queued in IndexedDB before anything else
-3. **Remote**: `syncTracks` dispatches to SDK when online
-
-## The mutationFn (syncTracks)
-
-This is the bridge between TanStack's transaction and our SDK:
+Write directly to collection + query cache. No optimistic layer, no remote sync.
 
 ```ts
-mutationFns: {
-  syncTracks: async ({transaction, idempotencyKey}) => {
-    for (const mutation of transaction.mutations) {
-      const channelId = transaction.metadata?.channelId
-      switch (mutation.type) {
-        case 'insert':
-          await sdk.tracks.createTrack(channelId, mutation.modified)
-          break
-        case 'update':
-          await sdk.tracks.updateTrack(mutation.modified.id, mutation.changes)
-          break
-        case 'delete':
-          await sdk.tracks.deleteTrack(mutation.original.id)
-          break
-      }
-    }
-    // Invalidate cache to refetch fresh data
-    await queryClient.invalidateQueries({queryKey: ['tracks', ...]})
-  }
-}
+collection.utils.writeInsert(item)
+collection.utils.writeUpsert(item) // insert or update
+collection.utils.writeUpdate(item)
+collection.utils.writeDelete(id)
+collection.utils.writeBatch(() => {
+	items.forEach((i) => collection.utils.writeUpsert(i))
+})
 ```
 
-The name `syncTracks` is arbitrary - we chose it. TanStack just needs a string key to look up the function.
-
-## Packages
-
-| Package                          | What it provides                                                  |
-| -------------------------------- | ----------------------------------------------------------------- |
-| `@tanstack/svelte-db`            | `createCollection()`, `useLiveQuery()`, `eq`                      |
-| `@tanstack/query-db-collection`  | `queryCollectionOptions()`, `parseLoadSubsetOptions()`            |
-| `@tanstack/svelte-query`         | `QueryClient`                                                     |
-| `@tanstack/offline-transactions` | `startOfflineExecutor()`, `IndexedDBAdapter`, `NonRetriableError` |
-
-## Query Cache vs Collection (important!)
-
-With `syncMode: 'on-demand'`, there are **two** places data lives:
-
-```
-Query Cache (IndexedDB)          Collection (in-memory Map)
-───────────────────────          ─────────────────────────
-tracks/starttv: 263 items        empty until queried
-tracks/blink: 340 items
-tracks/beatsfortheill: 128
-```
-
-**Query cache** = persisted API responses, keyed by query key (`['tracks', 'starttv']`)
-**Collection** = in-memory Map, populated when `useLiveQuery` runs
-
-The collection is **lazy**. Cached data sits in query cache until a live query pulls it in:
-
-```ts
-// This query populates the collection with starttv tracks
-const tracks = useLiveQuery((q) => q.from({tracks: tracksCollection}).where(({tracks}) => eq(tracks.slug, 'starttv')))
-// Now: tracksCollection.state.size === 263
-```
-
-Without an active query, `tracksCollection.state.size === 0` even if query cache has data.
-
-**Why this matters:**
-
-- Don't expect `collection.state` to have data on page load
-- Data loads when components with `useLiveQuery` mount
-- Query cache survives reload, collection rebuilds from queries
+Use for: seeding on login, WebSocket updates, pagination.
 
 ## Caching
 
-| Setting     | Where             | Value  | Purpose                             |
-| ----------- | ----------------- | ------ | ----------------------------------- |
-| `staleTime` | Collection        | 24h/1h | Background refetch threshold        |
-| `staleTime` | `prefetchQuery()` | 24h    | Must set explicitly (default 0!)    |
-| `gcTime`    | QueryClient       | 24h    | In-memory lifetime                  |
-| `maxAge`    | persistence       | 24h    | IDB lifetime (must be >= staleTime) |
+| Setting     | Where             | Value | Purpose                          |
+| ----------- | ----------------- | ----- | -------------------------------- |
+| `staleTime` | Collection        | 24h   | Background refetch threshold     |
+| `staleTime` | `prefetchQuery()` | 24h   | Must set explicitly (default 0!) |
+| `gcTime`    | QueryClient       | 24h   | In-memory lifetime               |
+| `maxAge`    | persistence       | 24h   | IDB lifetime (>= staleTime)      |
 
 ## Debugging
 
-Collections and queryClient exposed on `window.r5`:
-
 ```js
-// Collection state (only has data if useLiveQuery is active)
+// Collection (only has data if useLiveQuery active)
 r5.tracksCollection.state.size
 [...r5.tracksCollection.state.values()]
-[...new Set([...r5.tracksCollection.state.values()].map(t => t.slug))]  // slugs in memory
 
 // Query cache (persisted, has data even without active queries)
-r5.queryClient.getQueryCache().getAll().map(q => ({
-  key: q.queryKey,
-  count: q.state.data?.length ?? 0,
-  stale: q.isStale()
-}))
-
-// Filter to tracks only
 r5.queryClient.getQueryCache().getAll()
   .filter(q => q.queryKey[0] === 'tracks')
   .map(q => `${q.queryKey.join('/')}: ${q.state.data?.length ?? 0}`)
@@ -256,83 +219,40 @@ r5.queryClient.getQueryCache().getAll()
 
 ## Key behaviors
 
-- **Leader election**: Only one tab processes the outbox (prevents duplicate syncs)
+- **Leader election**: One tab processes outbox (prevents duplicate syncs)
 - **Retry with backoff**: Failed syncs retry automatically
-- **NonRetriableError**: Throw this for permanent failures (422, validation errors)
+- **NonRetriableError**: Throw for permanent failures (422, validation errors)
 - **Idempotency keys**: Prevent duplicate processing on reload
-
-## Direct Writes (seeding without sync)
-
-Bypass mutation handlers, write directly to synced data store. No optimistic mutations, no handler triggers.
-
-```ts
-collection.utils.writeInsert(item) // insert only
-collection.utils.writeUpsert(item) // insert or update
-collection.utils.writeUpdate(item) // update only
-collection.utils.writeDelete(id) // delete
-collection.utils.writeBatch(() => {
-	// atomic batch
-	items.forEach((i) => collection.utils.writeUpsert(i))
-})
-```
-
-Use for: seeding on login, WebSocket updates, large dataset pagination.
-
-## Imperative Data Loading (workaround)
-
-Sometimes you need to ensure data is loaded outside a component (no `useLiveQuery`). This pattern works but feels like a hack - it creates a throwaway live query just to trigger the sync:
-
-```ts
-import {createLiveQueryCollection, eq} from '@tanstack/svelte-db'
-
-const query = createLiveQueryCollection({
-	query: (q) => q.from({tracks: tracksCollection}).where(({tracks}) => eq(tracks.slug, slug)),
-	startSync: true
-})
-await query.preload()
-// Data now in collection
-```
-
-We wrap this in `ensureTracksLoaded(slug)` for the common case of loading tracks before playback. Ideally TanStack DB would expose a cleaner imperative API.
-
-## Status
-
-- [x] Read queries working (tracks by slug)
-- [x] On-demand sync mode with dynamic cache keys
-- [x] Offline mutations via @tanstack/offline-transactions
-- [x] Domain actions (`addTrack`, `updateTrack`, `deleteTrack`)
-- [x] Sync status component (pending transactions count)
-- [x] Channel collection + actions (`createChannel`, `updateChannel`, `deleteChannel`)
-- [x] IDB hydration for offline-first startup (query-persist-client-core)
 
 ## Files
 
 ```
-src/routes/tanstack/
+src/lib/tanstack/
 ├── collections/
-│   ├── index.ts           - re-exports everything
+│   ├── index.ts           - re-exports
 │   ├── query-client.ts    - QueryClient instance
-│   ├── tracks.ts          - tracksCollection + addTrack/updateTrack/deleteTrack
-│   ├── channels.ts        - channelsCollection + createChannel/updateChannel/deleteChannel
+│   ├── tracks.ts          - tracksCollection + actions
+│   ├── channels.ts        - channelsCollection + actions
 │   ├── follows.ts         - followsCollection (localStorage)
-│   ├── track-meta.ts      - trackMetaCollection (localStorage, YouTube/MusicBrainz cache)
+│   ├── track-meta.ts      - trackMetaCollection (localStorage)
 │   ├── play-history.ts    - playHistoryCollection (localStorage)
-│   ├── spam-decisions.ts  - spamDecisionsCollection (localStorage)
-│   ├── offline-executor.ts - offlineExecutor setup
-│   └── utils.ts           - logger, helpers
-├── persistence.ts         - query cache persistence to IndexedDB
-├── sync-status.svelte     - pending transactions UI
-├── tracks/+page.svelte    - tracks CRUD test page
-└── channels/+page.svelte  - channels CRUD test page
+│   ├── offline-executor.ts
+│   └── utils.ts
+├── persistence.ts         - query cache → IndexedDB
+
+src/lib/components/
+└── sync-status.svelte
+
+src/routes/playground/tanstack/   - test pages
+├── tracks/+page.svelte
+└── channels/+page.svelte
 ```
 
 ## References
 
-You can fetch these with .md suffix for pure markdown.
-http://localhost:5173/tanstack/channelaude
+Append `.md` for raw markdown.
 
-- https://tanstack.com/db/latest/docs/overview.md
-- https://tanstack.com/db/latest/docs/guides/mutations.md
-- https://github.com/TanStack/db/tree/main/packages/offline-transactions.md
-- https://tanstack.com/db/latest/docs/collections/query-collection.md
-- https://tanstack.com/query/latest/docs/framework/react/plugins/persistQueryClient.md
+- https://tanstack.com/db/latest/docs/overview
+- https://tanstack.com/db/latest/docs/guides/mutations
+- https://tanstack.com/db/latest/docs/collections/query-collection
+- https://tanstack.com/query/latest/docs/framework/react/plugins/persistQueryClient

@@ -1,5 +1,5 @@
 <script>
-	import {followsCollection, followChannel, unfollowChannel} from '../../routes/tanstack/collections'
+	import {followsCollection, followChannel, unfollowChannel} from '$lib/tanstack/collections'
 	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
 	import {eq} from '@tanstack/db'
 	import Icon from '$lib/components/icon.svelte'

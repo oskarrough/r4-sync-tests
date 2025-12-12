@@ -1,5 +1,5 @@
 <script>
-	import {batchUpdateTracksUniform, batchUpdateTracksIndividual, deleteTrackMeta} from '../../tanstack/collections'
+	import {batchUpdateTracksUniform, batchUpdateTracksIndividual, deleteTrackMeta} from '$lib/tanstack/collections'
 	import {extractYouTubeId} from '$lib/utils'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
 

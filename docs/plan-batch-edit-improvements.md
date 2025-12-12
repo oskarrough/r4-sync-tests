@@ -78,7 +78,7 @@ Could add later: find text in descriptions, replace with something else. Useful 
 Files:
 
 - +page.svelte - action bar component, batch handlers
-- src/routes/tanstack/collections/tracks.ts - batch update/delete functions
+- src/lib/tanstack/collections/tracks.ts - batch update/delete functions
 
 ---
 

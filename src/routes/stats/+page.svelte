@@ -9,8 +9,8 @@
 		trackMetaCollection,
 		followsCollection,
 		queryClient
-	} from '../tanstack/collections'
-	import SyncStatus from '../tanstack/sync-status.svelte'
+	} from '$lib/tanstack/collections'
+	import SyncStatus from '$lib/components/sync-status.svelte'
 
 	// Derive data reactively from collections
 	const plays = $derived([...playHistoryCollection.state.values()])

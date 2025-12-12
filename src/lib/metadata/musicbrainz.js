@@ -1,5 +1,5 @@
 import {logger} from '$lib/logger'
-import {trackMetaCollection} from '../../routes/tanstack/collections'
+import {trackMetaCollection} from '$lib/tanstack/collections'
 
 const log = logger.ns('metadata/musicbrainz').seal()
 

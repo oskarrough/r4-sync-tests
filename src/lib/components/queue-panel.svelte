@@ -5,7 +5,7 @@
 	import {appState} from '$lib/app-state.svelte'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
 	import {relativeTime} from '$lib/dates'
-	import {playHistoryCollection, clearPlayHistory, tracksCollection} from '../../routes/tanstack/collections'
+	import {playHistoryCollection, clearPlayHistory, tracksCollection} from '$lib/tanstack/collections'
 	import Modal from './modal.svelte'
 	import SearchInput from './search-input.svelte'
 	import TrackCard from './track-card.svelte'

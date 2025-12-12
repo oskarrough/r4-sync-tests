@@ -2,7 +2,7 @@ import {playTrack} from '$lib/api'
 import {appState} from '$lib/app-state.svelte'
 import {logger} from '$lib/logger'
 import {sdk} from '@radio4000/sdk'
-import {channelsCollection, queryClient} from '../routes/tanstack/collections'
+import {channelsCollection, queryClient} from '$lib/tanstack/collections'
 
 const log = logger.ns('broadcast').seal()
 

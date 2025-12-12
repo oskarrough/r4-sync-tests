@@ -10,7 +10,7 @@ import {
 	endPlayHistoryEntry,
 	pullFollows,
 	ensureTracksLoaded
-} from '../routes/tanstack/collections'
+} from '$lib/tanstack/collections'
 
 const log = logger.ns('api').seal()
 

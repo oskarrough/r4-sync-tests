@@ -7,7 +7,7 @@
 	import TrackCard from '$lib/components/track-card.svelte'
 	import {trap} from '$lib/focus'
 	import {searchAll} from '$lib/search'
-	import {channelsCollection} from '../tanstack/collections'
+	import {channelsCollection} from '$lib/tanstack/collections'
 	import * as m from '$lib/paraglide/messages'
 
 	// Trigger channels to load into collection state (needed for search on direct page load)
