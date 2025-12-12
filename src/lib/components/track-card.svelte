@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type {Snippet} from 'svelte'
 	import {playTrack} from '$lib/api'
-	import {deleteTrack, channelsCollection} from '../../routes/tanstack/collections'
+	import {deleteTrack, channelsCollection} from '$lib/tanstack/collections'
 	import {appState} from '$lib/app-state.svelte'
 	import type {Track} from '$lib/types'
 	import {extractYouTubeId} from '$lib/utils.ts'

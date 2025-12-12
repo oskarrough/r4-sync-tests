@@ -4,7 +4,7 @@
 	import {eq} from '@tanstack/db'
 	import {playTrack} from '$lib/api'
 	import CoverFlip from '$lib/components/cover-flip.svelte'
-	import {tracksCollection} from '../../tanstack/collections'
+	import {tracksCollection} from '$lib/tanstack/collections'
 	import {extractYouTubeId} from '$lib/utils.ts'
 	import * as m from '$lib/paraglide/messages'
 

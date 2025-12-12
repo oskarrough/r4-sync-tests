@@ -19,6 +19,7 @@ export const defaultAppState: AppState = {
 	channels_order_direction: 'desc',
 	channels_shuffled: true,
 	queue_panel_visible: false,
+	queue_panel_width: undefined,
 	show_video_player: true,
 	player_expanded: false,
 

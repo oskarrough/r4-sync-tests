@@ -4,7 +4,13 @@ import {leaveBroadcast, upsertRemoteBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
 import {sdk} from '@radio4000/sdk'
 import {shuffleArray} from '$lib/utils.ts'
-import {tracksCollection, addPlayHistoryEntry, endPlayHistoryEntry, pullFollows} from '../routes/tanstack/collections'
+import {
+	tracksCollection,
+	addPlayHistoryEntry,
+	endPlayHistoryEntry,
+	pullFollows,
+	ensureTracksLoaded
+} from '$lib/tanstack/collections'
 
 const log = logger.ns('api').seal()
 
@@ -116,6 +122,7 @@ export async function playTrack(id, endReason, startReason) {
 export async function playChannel({id, slug}, index = 0) {
 	log.log('play_channel', {id, slug})
 	leaveBroadcast()
+	await ensureTracksLoaded(slug)
 	const tracks = [...tracksCollection.state.values()]
 		.filter((t) => t.slug === slug)
 		.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())

@@ -7,7 +7,7 @@
 	import TrackCard from '$lib/components/track-card.svelte'
 	import {trap} from '$lib/focus'
 	import {searchAll} from '$lib/search'
-	import {channelsCollection} from '../tanstack/collections'
+	import {channelsCollection} from '$lib/tanstack/collections'
 	import * as m from '$lib/paraglide/messages'
 
 	// Trigger channels to load into collection state (needed for search on direct page load)
@@ -22,10 +22,12 @@
 	let searchQuery = $state('')
 	let isLoading = $state(false)
 
-	// Watch for URL changes and update search (wait for channels to load)
+	// Watch for URL changes and update search (wait for channels to load into collection)
 	$effect(() => {
 		const urlSearch = page.url.searchParams.get('search')
 		if (channelsQuery.isLoading) return
+		// Wait for channels to actually populate in collection (not just query status)
+		if (channelsCollection.state.size === 0) return
 		if (urlSearch && urlSearch !== searchQuery) {
 			searchQuery = urlSearch
 			search()

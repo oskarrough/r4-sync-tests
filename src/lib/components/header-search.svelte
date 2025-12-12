@@ -4,7 +4,7 @@
 	import {page} from '$app/state'
 	import {toggleQueuePanel, toggleTheme} from '$lib/api'
 	import SearchInput from '$lib/components/search-input.svelte'
-	import {channelsCollection} from '../../routes/tanstack/collections'
+	import {channelsCollection} from '$lib/tanstack/collections'
 	import * as m from '$lib/paraglide/messages'
 
 	let debounceTimer = $state()

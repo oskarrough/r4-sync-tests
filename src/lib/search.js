@@ -1,6 +1,6 @@
 import fuzzysort from 'fuzzysort'
 import {sdk} from '@radio4000/sdk'
-import {channelsCollection, tracksCollection} from '../routes/tanstack/collections'
+import {channelsCollection, tracksCollection} from '$lib/tanstack/collections'
 
 /**
  * Search channels and tracks using fuzzy matching on tanstack collections,

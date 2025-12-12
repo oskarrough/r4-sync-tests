@@ -2,8 +2,15 @@
 	import Menu from '../menu.svelte'
 	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
 	import {eq} from '@tanstack/db'
-	import {tracksCollection, addTrack, updateTrack, deleteTrack, queryClient} from '../collections'
-	import SyncStatus from '../sync-status.svelte'
+	import {
+		tracksCollection,
+		addTrack,
+		updateTrack,
+		deleteTrack,
+		queryClient,
+		ensureTracksLoaded
+	} from '$lib/tanstack/collections'
+	import SyncStatus from '$lib/components/sync-status.svelte'
 	import {appState} from '$lib/app-state.svelte'
 
 	let error = $state('')
@@ -69,6 +76,22 @@
 			error = (err as Error).message
 		}
 	}
+
+	// Test loading
+	let testSlug = $state('starttv')
+	let testResult = $state('')
+
+	async function testEnsureTracksLoaded() {
+		testResult = 'Loading...'
+		try {
+			const before = [...tracksCollection.state.values()].filter((t) => t.slug === testSlug).length
+			await ensureTracksLoaded(testSlug)
+			const after = [...tracksCollection.state.values()].filter((t) => t.slug === testSlug).length
+			testResult = `Before: ${before}, After: ${after} tracks for ${testSlug}`
+		} catch (err) {
+			testResult = `error: ${(err as Error).message}`
+		}
+	}
 </script>
 
 <div class="SmallContainer">
@@ -110,4 +133,9 @@
 	<pre>collection: {collectionSize} ({slugsInMemory.join(', ') || 'none'})
 cache:
 {cacheLines.join('\n')}</pre>
+
+	<h2>Test loading tracks</h2>
+	<input type="text" bind:value={testSlug} placeholder="slug to load" />
+	<button onclick={testEnsureTracksLoaded}>ensureTracksLoaded</button>
+	<pre>{testResult}</pre>
 </div>

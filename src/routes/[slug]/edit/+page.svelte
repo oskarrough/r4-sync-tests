@@ -3,7 +3,7 @@
 	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
 	import {eq} from '@tanstack/db'
 	import {appState} from '$lib/app-state.svelte'
-	import {channelsCollection} from '../../tanstack/collections'
+	import {channelsCollection} from '$lib/tanstack/collections'
 	import * as m from '$lib/paraglide/messages'
 
 	let {data} = $props()

@@ -2,7 +2,7 @@
 	import {getContext} from 'svelte'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import {analyzeChannel} from './spam-detector.js'
-	import {spamDecisionsCollection} from '../../tanstack/collections'
+	import {spamDecisionsCollection} from '$lib/tanstack/collections'
 
 	const getChannels = getContext('channels')
 	const allChannels = $derived(getChannels())

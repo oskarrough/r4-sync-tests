@@ -1,5 +1,5 @@
 import {logger} from '$lib/logger'
-import {trackMetaCollection, tracksCollection, updateTrack} from '../../routes/tanstack/collections'
+import {trackMetaCollection, tracksCollection, updateTrack} from '$lib/tanstack/collections'
 import {
 	parseDiscogsUrl,
 	fetchDiscogs,

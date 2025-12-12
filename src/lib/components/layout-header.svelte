@@ -10,7 +10,7 @@
 	import TestCounter from '$lib/components/test-counter.svelte'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
 	import * as m from '$lib/paraglide/messages'
-	import {channelsCollection} from '../../routes/tanstack/collections'
+	import {channelsCollection} from '$lib/tanstack/collections'
 
 	const {preloading} = $props()
 

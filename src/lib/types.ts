@@ -74,6 +74,7 @@ export interface AppState {
 	broadcasting_channel_id?: string
 	listening_to_channel_id?: string
 	queue_panel_visible: boolean
+	queue_panel_width?: number
 	show_video_player: boolean
 	player_expanded?: boolean
 	shortcuts: Record<string, string>
