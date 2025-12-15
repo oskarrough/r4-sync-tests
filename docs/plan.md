@@ -3,36 +3,6 @@
 List of possible improvements to the architecture, idea, cli and web application.
 Verify and evaluate todos before taking them on. They might be outdated or just not good ideas.
 
-### track-card perf improvements
-
-Potential bottlenecks when rendering 3k+ tracks:
-
-- **extractYouTubeId per card**: regex parsing runs for each track. Consider caching results or moving to track sync time.
-- **PopoverMenu per card**: 3k popover instances in DOM even if not visible. Lazy-render only when opened?
-- **LinkEntities per description**: parses/transforms text for each track description. Could batch or cache.
-- **active state**: `appState.playlist_track` check runs on all cards when current track changes. Move check to parent, only pass boolean to playing track.
-
-### Test: Cross-collection querying with recent tracks
-
-Prove that TanStack DB enables querying across all loaded data (not just per-slug cache blobs).
-
-Create a test component at `/tanstack/recent-tracks/+page.svelte` that:
-
-1. Shows the 50 most recent tracks **across all loaded channels**
-2. Uses `useLiveQuery` with `gt(tracks.created_at, ...)` and `orderBy(..., 'desc')`
-3. Should work once multiple channels have been visited (their tracks loaded into collection)
-
-This demonstrates DB's value over Query alone: Query caches `['tracks', 'starttv']` and `['tracks', 'blink']` as separate blobs you can't query across. DB's collection lets you query all in-memory tracks with SQL-like syntax.
-
-```js
-const recentTracks = useLiveQuery((q) =>
-	q
-		.from({tracks: tracksCollection})
-		.orderBy(({tracks}) => tracks.created_at, 'desc')
-		.limit(50)
-)
-```
-
 ## BACKLOG
 
 - Tracks inside <tracklist> aren't highlighted/marked when they are loaded in player? appState.playback_track === track.id?
@@ -88,3 +58,34 @@ _executor = startOfflineExecutor({
 1. Check Tanstack offline-transactions docs for replacement callback (maybe renamed?)
 2. Remove the logging callback if no equivalent exists
 3. Use a different hook point if available (e.g., wrap mutationFns)
+
+### track-card perf improvements
+
+Potential bottlenecks when rendering 3k+ tracks:
+
+- **extractYouTubeId per card**: regex parsing runs for each track. Consider caching results or moving to track sync time.
+- **PopoverMenu per card**: 3k popover instances in DOM even if not visible. Lazy-render only when opened?
+- **LinkEntities per description**: parses/transforms text for each track description. Could batch or cache.
+- **active state**: `appState.playlist_track` check runs on all cards when current track changes. Move check to parent, only pass boolean to playing track.
+
+### Test: Cross-collection querying with recent tracks
+
+Prove that TanStack DB enables querying across all loaded data (not just per-slug cache blobs).
+
+Create a test component at `/tanstack/recent-tracks/+page.svelte` that:
+
+1. Shows the 50 most recent tracks **across all loaded channels**
+2. Uses `useLiveQuery` with `gt(tracks.created_at, ...)` and `orderBy(..., 'desc')`
+3. Should work once multiple channels have been visited (their tracks loaded into collection)
+
+This demonstrates DB's value over Query alone: Query caches `['tracks', 'starttv']` and `['tracks', 'blink']` as separate blobs you can't query across. DB's collection lets you query all in-memory tracks with SQL-like syntax.
+
+```js
+const recentTracks = useLiveQuery((q) =>
+	q
+		.from({tracks: tracksCollection})
+		.orderBy(({tracks}) => tracks.created_at, 'desc')
+		.limit(50)
+)
+```
+
