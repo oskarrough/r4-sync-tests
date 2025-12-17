@@ -1,6 +1,5 @@
 <script>
 	import {appState} from '$lib/app-state.svelte'
-	import Icon from '$lib/components/icon.svelte'
 	import * as m from '$lib/paraglide/messages'
 
 	let isOnline = $state(navigator.onLine)

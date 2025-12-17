@@ -25,6 +25,7 @@ export async function searchChannels(query, options = {}) {
 	const channels = [...channelsCollection.state.values()]
 	const results = fuzzysort.go(query, channels, {
 		keys: ['name', 'slug', 'description'],
+		threshold: 0.5,
 		limit
 	})
 	return results.map((r) => r.obj)
@@ -55,6 +56,7 @@ export async function searchTracks(query, options = {}) {
 	}
 	const results = fuzzysort.go(query, tracks, {
 		keys: ['title', 'description'],
+		threshold: 0.5,
 		limit
 	})
 	return results.map((r) => r.obj)

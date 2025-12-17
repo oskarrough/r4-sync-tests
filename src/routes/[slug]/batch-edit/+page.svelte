@@ -266,7 +266,7 @@
 		if (search.trim().length >= 2) {
 			const results = fuzzysort.go(search, result, {
 				keys: ['title', 'description', 'url'],
-				threshold: -10000
+				threshold: 0.5
 			})
 			result = results.map((r) => r.obj)
 		}

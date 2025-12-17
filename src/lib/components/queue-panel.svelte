@@ -70,7 +70,7 @@
 			? fuzzysort
 					.go(searchQuery, queueTracks, {
 						keys: ['title', 'tags', 'channel_name'],
-						threshold: -10000
+						threshold: 0.5
 					})
 					.map((result) => result.obj)
 			: queueTracks
@@ -81,7 +81,7 @@
 			? fuzzysort
 					.go(searchQuery, playHistory, {
 						keys: ['title', 'slug'],
-						threshold: -10000
+						threshold: 0.5
 					})
 					.map((result) => result.obj)
 			: playHistory
