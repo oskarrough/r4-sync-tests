@@ -3,52 +3,48 @@
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import {analyzeChannel} from './spam-detector.js'
 	import {spamDecisionsCollection} from '$lib/tanstack/collections'
+	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
 
 	const getChannels = getContext('channels')
 	const allChannels = $derived(getChannels())
 
-	// Trigger reactivity when decisions change
-	let decisionVersion = $state(0)
+	const decisionsQuery = useLiveQuery((q) => q.from({d: spamDecisionsCollection}))
+	const decisions = $derived(decisionsQuery.data ?? [])
 
 	// Channels with 0 tracks AND spam signals, sorted by confidence (highest first)
-	const candidates = $derived.by(() => {
-		void decisionVersion // trigger reactivity
-		return allChannels
+	const candidates = $derived(
+		allChannels
 			.filter((ch) => (ch.track_count ?? 0) === 0)
-			.map((ch) => ({
-				...ch,
-				analysis: analyzeChannel(ch),
-				decision: spamDecisionsCollection.get(ch.id)?.spam
-			}))
+			.map((ch) => {
+				const decision = decisions.find((d) => d.channelId === ch.id)
+				return {
+					...ch,
+					analysis: analyzeChannel(ch),
+					decision: decision?.spam
+				}
+			})
 			.filter((ch) => ch.analysis.confidence > 0)
 			.sort((a, b) => b.analysis.confidence - a.analysis.confidence)
-	})
+	)
 
 	let expanded = $state(new Set())
 
-	function setDecision(id, spam) {
-		const existing = spamDecisionsCollection.get(id)
-		if (existing) {
-			spamDecisionsCollection.update(id, (draft) => {
-				draft.spam = spam
-			})
-		} else {
-			spamDecisionsCollection.insert({channelId: id, spam})
+	function setDecision(channelId, spam) {
+		if (spamDecisionsCollection.state.has(channelId)) {
+			spamDecisionsCollection.delete(channelId)
 		}
-		decisionVersion++
+		spamDecisionsCollection.insert({channelId, spam})
 	}
 
-	function undoDecision(id) {
-		spamDecisionsCollection.delete(id)
-		decisionVersion++
+	function undoDecision(channelId) {
+		spamDecisionsCollection.delete(channelId)
 	}
 
 	function clearAll() {
 		if (!confirm('Clear all decisions?')) return
-		for (const id of spamDecisionsCollection.state.keys()) {
-			spamDecisionsCollection.delete(id)
+		for (const key of spamDecisionsCollection.state.keys()) {
+			spamDecisionsCollection.delete(key)
 		}
-		decisionVersion++
 	}
 
 	function toggleExpand(id) {
@@ -57,7 +53,7 @@
 		} else {
 			expanded.add(id)
 		}
-		expanded = expanded // trigger reactivity
+		expanded = expanded
 	}
 
 	const undecided = $derived(candidates.filter((ch) => ch.decision === undefined))
@@ -72,6 +68,10 @@
 			)
 			.join('\n\n')
 	)
+
+	function copySQL() {
+		navigator.clipboard.writeText(sql)
+	}
 
 	function formatDate(dateStr) {
 		if (!dateStr) return '?'
@@ -94,108 +94,185 @@
 <main>
 	<header>
 		<h1>Spam Angel</h1>
-		<p>
-			<strong>{undecided.length}</strong> to review ·
-			<strong>{toDelete.length}</strong> to delete ·
-			<strong>{toKeep.length}</strong> kept
-		</p>
-		<menu>
-			<button onclick={() => navigator.clipboard.writeText(sql)} disabled={toDelete.length === 0}>
-				Copy SQL ({toDelete.length})
-			</button>
-			<button onclick={clearAll} disabled={toDelete.length === 0 && toKeep.length === 0}> Clear all </button>
-		</menu>
+		<button onclick={clearAll} disabled={toDelete.length === 0 && toKeep.length === 0}>Clear all</button>
 	</header>
 
-	<pre>{sql || '-- Mark channels for deletion'}</pre>
+	<div class="triage">
+		<!-- For Review (top, full width) -->
+		<section class="column" data-column="review">
+			<details open>
+				<summary>For Review ({undecided.length})</summary>
+				<ul class="list">
+					{#each undecided as channel (channel.id)}
+						{@const ev = channel.analysis.evidence}
+						{@const hasMusic = ev.musicTerms.length > 0}
+						{@const isExpanded = expanded.has(channel.id)}
+						<li>
+							<div class="main-row">
+								<button class="IconBtn" onclick={() => toggleExpand(channel.id)} title="Expand">
+									<ChannelAvatar id={channel.image} alt={channel.name} size={40} />
+								</button>
 
-	<ul class="list">
-		{#each undecided as channel (channel.id)}
-			{@const ev = channel.analysis.evidence}
-			{@const hasMusic = ev.musicTerms.length > 0}
-			{@const isExpanded = expanded.has(channel.id)}
-			<li>
-				<div class="main-row">
-					<button class="IconBtn" onclick={() => toggleExpand(channel.id)} title="Expand">
-						<ChannelAvatar id={channel.image} alt={channel.name} size={40} />
-					</button>
+								<div class="info">
+									<div class="title-row">
+										<h3>{channel.name}</h3>
+										<span class="meta">{channel.slug} · {formatDate(channel.created_at)}</span>
+									</div>
 
-					<div class="info">
-						<div class="title-row">
-							<h3>{channel.name}</h3>
-							<span class="meta">{channel.slug} · {formatDate(channel.created_at)}</span>
-						</div>
+									<div class="evidence">
+										{#if ev.keywords.length > 0}
+											<span class="tag" data-type="spam"
+												>{ev.keywords.slice(0, 4).join(', ')}{ev.keywords.length > 4 ? '…' : ''}</span
+											>
+										{/if}
+										{#if ev.phrases.length > 0}
+											<span class="tag" data-type="spam">"{ev.phrases[0]}"</span>
+										{/if}
+										{#if ev.locations.length > 0}
+											<span class="tag" data-type="location">{ev.locations.join(', ')}</span>
+										{/if}
+										{#if hasMusic}
+											<span class="tag" data-type="music">{ev.musicTerms.join(', ')}</span>
+										{/if}
+									</div>
+								</div>
 
-						<div class="evidence">
-							{#if ev.keywords.length > 0}
-								<span class="tag" data-type="spam"
-									>{ev.keywords.slice(0, 4).join(', ')}{ev.keywords.length > 4 ? '…' : ''}</span
-								>
+								<span class="score" style="color: {confidenceColor(channel.analysis.confidence)}">
+									{Math.round(channel.analysis.confidence * 100)}%
+								</span>
+
+								<div class="actions">
+									<button class="danger" onclick={() => setDecision(channel.id, true)}>Delete</button>
+									<button onclick={() => setDecision(channel.id, false)}>Keep</button>
+								</div>
+							</div>
+
+							{#if isExpanded || channel.description?.length > 100}
+								<div class="expanded" class:collapsed={!isExpanded && channel.description?.length > 100}>
+									<p class="desc" onclick={() => toggleExpand(channel.id)}>
+										{isExpanded ? channel.description : channel.description?.slice(0, 150)}
+										{#if !isExpanded && channel.description?.length > 150}…{/if}
+									</p>
+								</div>
 							{/if}
-							{#if ev.phrases.length > 0}
-								<span class="tag" data-type="spam">"{ev.phrases[0]}"</span>
-							{/if}
-							{#if ev.locations.length > 0}
-								<span class="tag" data-type="location">{ev.locations.join(', ')}</span>
-							{/if}
-							{#if hasMusic}
-								<span class="tag" data-type="music">{ev.musicTerms.join(', ')}</span>
-							{/if}
-						</div>
-					</div>
+						</li>
+					{/each}
+				</ul>
+			</details>
+		</section>
 
-					<span class="score" style="color: {confidenceColor(channel.analysis.confidence)}">
-						{Math.round(channel.analysis.confidence * 100)}%
-					</span>
+		<!-- Decisions row (bottom, 50/50) -->
+		<section class="column" data-column="delete">
+			<details open>
+				<summary>
+					<span>To Delete ({toDelete.length})</span>
+					<button onclick={copySQL} disabled={toDelete.length === 0}>Copy SQL</button>
+				</summary>
+				<ul class="list">
+					{#each toDelete as channel (channel.id)}
+						<li>
+							<span class="item-name">{channel.name}</span>
+							<span class="meta">@{channel.slug}</span>
+							<button onclick={() => undoDecision(channel.id)}>Undo</button>
+						</li>
+					{/each}
+				</ul>
+			</details>
+		</section>
 
-					<div class="actions">
-						<button onclick={() => setDecision(channel.id, false)}>Keep</button>
-						<button class="danger" onclick={() => setDecision(channel.id, true)}>Delete</button>
-					</div>
-				</div>
-
-				{#if isExpanded || channel.description?.length > 100}
-					<div class="expanded" class:collapsed={!isExpanded && channel.description?.length > 100}>
-						<p class="desc" onclick={() => toggleExpand(channel.id)}>
-							{isExpanded ? channel.description : channel.description?.slice(0, 150)}
-							{#if !isExpanded && channel.description?.length > 150}…{/if}
-						</p>
-					</div>
-				{/if}
-			</li>
-		{/each}
-	</ul>
-
-	{#if toDelete.length > 0}
-		<details>
-			<summary>Marked for deletion ({toDelete.length})</summary>
-			<ul class="list">
-				{#each toDelete as channel (channel.id)}
-					<li>
-						{channel.name} <span class="meta">@{channel.slug}</span>
-						<button onclick={() => undoDecision(channel.id)}>Undo</button>
-					</li>
-				{/each}
-			</ul>
-		</details>
-	{/if}
-
-	{#if toKeep.length > 0}
-		<details>
-			<summary>Marked to keep ({toKeep.length})</summary>
-			<ul class="list">
-				{#each toKeep as channel (channel.id)}
-					<li>
-						{channel.name} <span class="meta">@{channel.slug}</span>
-						<button onclick={() => undoDecision(channel.id)}>Undo</button>
-					</li>
-				{/each}
-			</ul>
-		</details>
-	{/if}
+		<section class="column" data-column="keep">
+			<details open>
+				<summary>To Keep ({toKeep.length})</summary>
+				<ul class="list">
+					{#each toKeep as channel (channel.id)}
+						<li>
+							<span class="item-name">{channel.name}</span>
+							<span class="meta">@{channel.slug}</span>
+							<button onclick={() => undoDecision(channel.id)}>Undo</button>
+						</li>
+					{/each}
+				</ul>
+			</details>
+		</section>
+	</div>
 </main>
 
 <style>
+	main {
+		margin: 0.5rem;
+	}
+	header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-bottom: 1rem;
+	}
+	header h1 {
+		margin: 0;
+	}
+
+	/* Triage layout: review on top, decisions 50/50 below */
+	.triage {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1rem;
+		align-items: start;
+	}
+
+	.column {
+		min-width: 0;
+	}
+
+	.column[data-column='review'] {
+		grid-column: 1 / -1;
+	}
+
+	.column summary {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		font-weight: 600;
+		cursor: pointer;
+		padding: 0.5rem;
+		background: var(--gray-2);
+		border-radius: var(--border-radius);
+	}
+
+	.column summary button {
+		font-size: var(--font-4);
+	}
+
+	.column[data-column='delete'] summary {
+		background: var(--red-2, #fee);
+	}
+	.column[data-column='keep'] summary {
+		background: var(--green-2, #efe);
+	}
+
+	.column .list {
+		max-height: 70vh;
+		overflow-y: auto;
+	}
+
+	/* Side column items (delete/keep) */
+	.column[data-column='delete'] li,
+	.column[data-column='keep'] li {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+	.item-name {
+		flex: 1;
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	/* Review column card styles */
 	h3 {
 		margin: 0;
 		font-weight: normal;
@@ -204,6 +281,9 @@
 		display: flex;
 		align-items: flex-start;
 		gap: 0.5rem;
+	}
+	.main-row :global(.placeholder) {
+		min-width: 40px;
 	}
 	.info {
 		flex: 1;
@@ -235,10 +315,10 @@
 		color: white;
 	}
 	.tag[data-type='location'] {
-		background: var(--orange-3);
+		background: orange;
 	}
 	.tag[data-type='music'] {
-		background: var(--green-3);
+		background: green;
 	}
 	.score {
 		min-width: 2.5rem;
@@ -262,8 +342,14 @@
 		white-space: pre-wrap;
 		word-break: break-word;
 	}
-	pre {
-		height: 3em;
-		overflow: auto;
+
+	/* Mobile: stack all vertically */
+	@media (max-width: 600px) {
+		.triage {
+			grid-template-columns: 1fr;
+		}
+		.column[data-column='review'] {
+			grid-column: 1;
+		}
 	}
 </style>
