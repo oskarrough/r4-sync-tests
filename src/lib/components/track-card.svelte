@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type {Snippet} from 'svelte'
 	import {playTrack} from '$lib/api'
-	import {deleteTrack} from '$lib/tanstack/collections'
+	import {deleteTrack, channelsCollection} from '$lib/tanstack/collections'
 	import {appState} from '$lib/app-state.svelte'
 	import type {Track} from '$lib/types'
 	import {extractYouTubeId} from '$lib/utils.ts'
@@ -54,17 +54,20 @@
 	}
 
 	let showDeleteConfirm = $state(false)
+	let menu = $state<{close: () => void}>()
 
 	async function handleDelete() {
-		if (!track.slug || !track.channel_id) return
-		await deleteTrack({id: track.channel_id, slug: track.slug}, track.id)
+		if (!track.slug) return
+		const channel = [...channelsCollection.state.values()].find((ch) => ch.slug === track.slug)
+		if (!channel) return
+		await deleteTrack({id: channel.id, slug: channel.slug}, track.id)
 		showDeleteConfirm = false
-		document.getElementById(menuId)?.hidePopover()
+		menu?.close()
 	}
 
 	function cancelDelete() {
 		showDeleteConfirm = false
-		document.getElementById(menuId)?.hidePopover()
+		menu?.close()
 	}
 </script>
 
@@ -95,28 +98,26 @@
 		</time>
 	</a>
 	<r4-actions>
-		<PopoverMenu id={menuId} closeOnClick={!showDeleteConfirm}>
+		<PopoverMenu id={menuId} bind:this={menu}>
 			{#snippet trigger()}
 				<Icon icon="options-horizontal" size={16} />
 			{/snippet}
 			{#if showDeleteConfirm}
 				<div class="delete-confirm">
 					<p>{m.track_delete_confirm({title: track.title})}</p>
-					<button type="button" class="danger" role="menuitem" onclick={handleDelete}>{m.common_confirm()}</button>
-					<button type="button" role="menuitem" onclick={cancelDelete}>{m.common_cancel()}</button>
+					<button type="button" class="danger" role="menuitem" data-no-close onclick={handleDelete}>{m.common_confirm()}</button>
+					<button type="button" role="menuitem" data-no-close onclick={cancelDelete}>{m.common_cancel()}</button>
 				</div>
 			{:else}
 				<a class="btn" href={permalink} role="menuitem">{m.common_details()}</a>
-				{#if canEdit}<button type="button" role="menuitem" onclick={editTrack}>{m.common_edit()}</button>{/if}
 				<button type="button" role="menuitem" onclick={addToRadio}>{m.common_add()}</button>
+				{#if canEdit}<button type="button" role="menuitem" onclick={editTrack}>{m.common_edit()}</button>{/if}
 				{#if canEdit}<button
 						type="button"
 						class="danger"
 						role="menuitem"
-						onclick={(e) => {
-							e.stopPropagation()
-							showDeleteConfirm = true
-						}}>{m.common_delete()}</button
+						data-no-close
+						onclick={() => showDeleteConfirm = true}>{m.common_delete()}</button
 					>{/if}
 			{/if}
 		</PopoverMenu>
