@@ -17,24 +17,12 @@
 	const userChannel = $derived(appState.channels?.[0] ? channelsCollection.get(appState.channels[0]) : null)
 
 	let broadcastCount = $state(0)
-	let editModalRef = $state()
 
 	const unsubscribe = watchBroadcasts((data) => {
 		broadcastCount = data.broadcasts.length
 	})
 
-	/** @param {CustomEvent<{track: import('$lib/types').Track}>} event */
-	function handleEditTrackEvent(event) {
-		editModalRef?.openWithTrack(event.detail.track)
-	}
-
 	$effect(() => unsubscribe)
-
-	$effect(() => {
-		// Custom event listener - cast to EventListener for type compatibility
-		window.addEventListener('r5:openEditModal', /** @type {EventListener} */ (handleEditTrackEvent))
-		return () => window.removeEventListener('r5:openEditModal', /** @type {EventListener} */ (handleEditTrackEvent))
-	})
 </script>
 
 <header>
@@ -50,7 +38,7 @@
 	<menu class="row right">
 		{#await preloading then}
 			<AddTrackModal />
-			<EditTrackModal bind:this={editModalRef} />
+			<EditTrackModal />
 			{#if userChannel}
 				<a href="/{userChannel.slug}" class="btn ChannelLinkButton" {@attach tooltip({content: 'Go to your channel'})}>
 					<ChannelAvatar id={userChannel.image} size={32} alt={userChannel.name} />

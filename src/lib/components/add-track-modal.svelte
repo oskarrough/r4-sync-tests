@@ -9,25 +9,38 @@
 
 	let showModal = $state(false)
 	let recentTracks = $state([])
-	let prefilledUrl = $state('')
+	let trackData = $state({url: '', title: '', description: ''})
 
-	export function openWithUrl(url) {
-		prefilledUrl = url
+	/** @param {{track?: import('$lib/types').Track, url?: string}} [data] */
+	function open(data = {}) {
+		if (!canAddTrack) {
+			goto('/auth')
+			return
+		}
+		const track = data.track
+		if (track) {
+			trackData = {
+				url: track.url,
+				title: track.title || '',
+				description: track.description
+					? track.slug
+						? `${track.description} via @${track.slug}`
+						: track.description
+					: track.slug
+						? `via @${track.slug}`
+						: ''
+			}
+		} else {
+			trackData = {url: data.url || '', title: '', description: ''}
+		}
 		showModal = true
 	}
 
-	/** @param {CustomEvent<{url: string}>} event */
-	function handleGlobalModalEvent(event) {
-		if (canAddTrack) {
-			openWithUrl(event.detail.url)
-		} else {
-			goto('/auth')
-		}
-	}
-
 	$effect(() => {
-		window.addEventListener('r5:openAddModal', /** @type {EventListener} */ (handleGlobalModalEvent))
-		return () => window.removeEventListener('r5:openAddModal', /** @type {EventListener} */ (handleGlobalModalEvent))
+		/** @param {Event} event */
+		const handler = (event) => open(/** @type {CustomEvent} */ (event).detail)
+		window.addEventListener('r5:openTrackCreateModal', handler)
+		return () => window.removeEventListener('r5:openTrackCreateModal', handler)
 	})
 
 	const channel = $derived(appState.channel)
@@ -39,19 +52,7 @@
 		const target = /** @type {HTMLElement | null} */ (event.target)
 		if (target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA') return
 		if (event.key === 'c' && !event.metaKey && !event.ctrlKey) {
-			if (canAddTrack) {
-				showModal = true
-			} else {
-				goto('/auth')
-			}
-		}
-	}
-
-	function handleAddTrackClick() {
-		if (canAddTrack) {
-			showModal = true
-		} else {
-			goto('/auth')
+			open()
 		}
 	}
 
@@ -63,7 +64,7 @@
 		recentTracks.unshift(data)
 		if (recentTracks.length > 3) recentTracks.pop()
 
-		prefilledUrl = ''
+		trackData = {url: '', title: '', description: ''}
 		showModal = false
 
 		document.dispatchEvent(
@@ -76,7 +77,7 @@
 
 <svelte:window onkeydown={handleKeyDown} />
 
-<button onclick={handleAddTrackClick} {@attach tooltip({content: m.track_add_title()})}>
+<button onclick={() => open()} {@attach tooltip({content: m.track_add_title()})}>
 	<Icon icon="add" size={20}></Icon>
 </button>
 
@@ -86,7 +87,13 @@
 	{/snippet}
 
 	{#if channel}
-		<TrackCreateForm {channel} prefillUrl={prefilledUrl} onsubmit={handleSubmit} />
+		<TrackCreateForm
+			{channel}
+			url={trackData.url}
+			title={trackData.title}
+			description={trackData.description}
+			onsubmit={handleSubmit}
+		/>
 	{/if}
 
 	{#if recentTracks.length > 0}

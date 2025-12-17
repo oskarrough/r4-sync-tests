@@ -5,20 +5,27 @@
 	let showModal = $state(false)
 
 	/** @type {import('$lib/types').Track | null} */
-	let currentTrack = $state(null)
+	let track = $state(null)
 
-	/** @param {object} track */
-	export function openWithTrack(track) {
-		currentTrack = track
+	/** @param {{track: import('$lib/types').Track}} data */
+	function open(data) {
+		track = data.track
 		showModal = true
 	}
+
+	$effect(() => {
+		/** @param {Event} event */
+		const handler = (event) => open(/** @type {CustomEvent} */ (event).detail)
+		window.addEventListener('r5:openTrackEditModal', handler)
+		return () => window.removeEventListener('r5:openTrackEditModal', handler)
+	})
 
 	function handleSubmit(event) {
 		if (event.detail?.error) return
 		showModal = false
 		document.dispatchEvent(
 			new CustomEvent('r5:trackUpdated', {
-				detail: {trackId: currentTrack?.id}
+				detail: {trackId: track?.id}
 			})
 		)
 	}
@@ -29,13 +36,13 @@
 		<h2>{m.track_edit_title()}</h2>
 	{/snippet}
 
-	{#key currentTrack?.id}
+	{#key track?.id}
 		<r4-track-update
-			id={currentTrack?.id}
-			url={currentTrack?.url}
-			title={currentTrack?.title}
-			description={currentTrack?.description}
-			discogs_url={currentTrack?.discogs_url}
+			id={track?.id}
+			url={track?.url}
+			title={track?.title}
+			description={track?.description}
+			discogs_url={track?.discogs_url}
 			onsubmit={handleSubmit}
 		></r4-track-update>
 	{/key}

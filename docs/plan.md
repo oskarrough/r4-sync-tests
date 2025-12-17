@@ -88,4 +88,3 @@ const recentTracks = useLiveQuery((q) =>
 		.limit(50)
 )
 ```
-

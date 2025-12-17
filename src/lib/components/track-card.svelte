@@ -21,6 +21,7 @@
 
 	let {track, index, showImage = true, showSlug = false, canEdit = false, children}: Props = $props()
 
+	const menuId = $props.id()
 	const permalink = $derived(`/${track?.slug}/tracks/${track?.id}`)
 	const active = $derived(track?.id === appState.playlist_track)
 	// Only extract YouTube ID when we need it for images
@@ -44,14 +45,12 @@
 	}
 	const doubleClick = () => playTrack(track.id, null, 'user_click_track')
 
-	const addToRadio = (url: string) => {
-		// Trigger global modal via custom event
-		window.dispatchEvent(new CustomEvent('r5:openAddModal', {detail: {url}}))
+	const addToRadio = () => {
+		window.dispatchEvent(new CustomEvent('r5:openTrackCreateModal', {detail: {track}}))
 	}
 
 	const editTrack = () => {
-		// Trigger global edit modal via custom event
-		window.dispatchEvent(new CustomEvent('r5:openEditModal', {detail: {track}}))
+		window.dispatchEvent(new CustomEvent('r5:openTrackEditModal', {detail: {track}}))
 	}
 
 	let showDeleteConfirm = $state(false)
@@ -60,6 +59,12 @@
 		if (!track.slug || !track.channel_id) return
 		await deleteTrack({id: track.channel_id, slug: track.slug}, track.id)
 		showDeleteConfirm = false
+		document.getElementById(menuId)?.hidePopover()
+	}
+
+	function cancelDelete() {
+		showDeleteConfirm = false
+		document.getElementById(menuId)?.hidePopover()
 	}
 </script>
 
@@ -90,7 +95,7 @@
 		</time>
 	</a>
 	<r4-actions>
-		<PopoverMenu id="menu-{track.id}" closeOnClick={false}>
+		<PopoverMenu id={menuId} closeOnClick={!showDeleteConfirm}>
 			{#snippet trigger()}
 				<Icon icon="options-horizontal" size={16} />
 			{/snippet}
@@ -98,14 +103,20 @@
 				<div class="delete-confirm">
 					<p>{m.track_delete_confirm({title: track.title})}</p>
 					<button type="button" class="danger" role="menuitem" onclick={handleDelete}>{m.common_confirm()}</button>
-					<button type="button" role="menuitem" onclick={() => (showDeleteConfirm = false)}>{m.common_cancel()}</button>
+					<button type="button" role="menuitem" onclick={cancelDelete}>{m.common_cancel()}</button>
 				</div>
 			{:else}
 				<a class="btn" href={permalink} role="menuitem">{m.common_details()}</a>
 				{#if canEdit}<button type="button" role="menuitem" onclick={editTrack}>{m.common_edit()}</button>{/if}
-				<button type="button" role="menuitem" onclick={() => addToRadio(track.url)}>{m.common_add()}</button>
-				{#if canEdit}<button type="button" class="danger" role="menuitem" onclick={() => (showDeleteConfirm = true)}
-						>{m.common_delete()}</button
+				<button type="button" role="menuitem" onclick={addToRadio}>{m.common_add()}</button>
+				{#if canEdit}<button
+						type="button"
+						class="danger"
+						role="menuitem"
+						onclick={(e) => {
+							e.stopPropagation()
+							showDeleteConfirm = true
+						}}>{m.common_delete()}</button
 					>{/if}
 			{/if}
 		</PopoverMenu>
