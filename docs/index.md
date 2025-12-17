@@ -20,4 +20,3 @@ We query from the local collections. Tanstack fires requests as needed to read a
 - [localization](localization.md) - internationalization and multi-language support
 - [styles](styles.md) - css architecture and design system
 - [learnings](learnings.md) - patterns and preferences discovered through building
-

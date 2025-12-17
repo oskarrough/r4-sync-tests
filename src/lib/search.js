@@ -1,77 +1,54 @@
 import fuzzysort from 'fuzzysort'
 import {sdk} from '@radio4000/sdk'
-import {channelsCollection, tracksCollection} from '$lib/tanstack/collections'
+import {channelsCollection} from '$lib/tanstack/collections'
 
 /**
- * Search channels and tracks using fuzzy matching on tanstack collections,
- * with optional remote search via Supabase FTS.
+ * Search channels and tracks using Supabase FTS with websearch syntax.
+ * Supports: "jazz house" (AND), "jazz or house" (OR), "jazz -disco" (exclude), "exact phrase" (quoted).
  */
 
 /**
- * Search channels by name, slug, description
- * @param {string} query - search query
- * @param {{remote?: boolean, limit?: number}} [options]
- * @returns {Promise<Array>} - matching channels sorted by relevance
+ * Search channels remotely
+ * @param {string} query
+ * @param {{limit?: number}} options
  */
-export async function searchChannels(query, options = {}) {
-	const {remote = false, limit = 100} = options
-
-	if (remote) {
-		const {data, error} = await sdk.supabase.from('channels').select().textSearch('fts', `'${query}':*`).limit(limit)
-		if (error) throw new Error(error.message)
-		return data
-	}
-
-	const channels = [...channelsCollection.state.values()]
-	const results = fuzzysort.go(query, channels, {
-		keys: ['name', 'slug', 'description'],
-		threshold: 0.5,
-		limit
-	})
-	return results.map((r) => r.obj)
+export async function searchChannels(query, {limit = 100} = {}) {
+	if (!query?.trim()) return []
+	const {data, error} = await sdk.supabase
+		.from('channels_with_tracks')
+		.select('*')
+		.textSearch('fts', query, {type: 'websearch'})
+		.limit(limit)
+	if (error) throw new Error(error.message)
+	return data ?? []
 }
 
 /**
- * Search tracks by title and description
- * @param {string} query - search query
- * @param {{remote?: boolean, limit?: number, channelSlug?: string}} [options]
- * @returns {Promise<Array>} - track results sorted by relevance
+ * Search tracks remotely, optionally scoped to a channel
+ * @param {string} query
+ * @param {{limit?: number, channelSlug?: string}} options
  */
-export async function searchTracks(query, options = {}) {
-	const {remote = false, limit = 100, channelSlug} = options
-
-	if (remote) {
-		let q = sdk.supabase.from('channel_tracks').select().textSearch('fts', `'${query}':*`).limit(limit)
-		if (channelSlug) {
-			q = q.eq('slug', channelSlug)
-		}
-		const {data, error} = await q
-		if (error) throw new Error(error.message)
-		return data
-	}
-
-	let tracks = [...tracksCollection.state.values()]
-	if (channelSlug) {
-		tracks = tracks.filter((t) => t.slug === channelSlug)
-	}
-	const results = fuzzysort.go(query, tracks, {
-		keys: ['title', 'description'],
-		threshold: 0.5,
-		limit
-	})
-	return results.map((r) => r.obj)
+export async function searchTracks(query, {limit = 100, channelSlug} = {}) {
+	if (!query?.trim()) return []
+	let q = sdk.supabase
+		.from('channel_tracks')
+		.select('*')
+		.textSearch('fts', query, {type: 'websearch'})
+		.limit(limit)
+	if (channelSlug) q = q.eq('slug', channelSlug)
+	const {data, error} = await q
+	if (error) throw new Error(error.message)
+	return data ?? []
 }
 
 /**
- * Parse mention search query like "@oskar dance" or "@ko002 @oskar house"
- * @param {string} searchQuery - the full search query with @mentions
- * @returns {{channelSlugs: string[], trackQuery: string}}
+ * Parse @mention syntax: "@ko002 jazz" or "@a @b house"
+ * @param {string} query
  */
-export function parseMentionQuery(searchQuery) {
-	const parts = searchQuery.trim().split(/\s+/)
+export function parseMentionQuery(query) {
+	const parts = query.trim().split(/\s+/)
 	const channelSlugs = []
-	let trackQueryParts = []
-
+	const trackQueryParts = []
 	for (const part of parts) {
 		if (part.startsWith('@')) {
 			channelSlugs.push(part.slice(1))
@@ -79,66 +56,68 @@ export function parseMentionQuery(searchQuery) {
 			trackQueryParts.push(part)
 		}
 	}
-
-	return {
-		channelSlugs,
-		trackQuery: trackQueryParts.join(' ')
-	}
+	return {channelSlugs, trackQuery: trackQueryParts.join(' ')}
 }
 
 /**
- * Find channel by slug from collection
+ * Find channel by slug from local collection
  * @param {string} slug
- * @returns {object|undefined}
  */
 function findChannelBySlug(slug) {
-	return [...channelsCollection.state.values()].find((ch) => ch.slug === slug)
+	return [...channelsCollection.state.values()].find((c) => c.slug === slug)
 }
 
 /**
- * Search channels and tracks
- * @param {string} searchQuery - search query (may start with @slug or @slug1 @slug2)
- * @param {{remote?: boolean, limit?: number}} [options]
- * @returns {Promise<{channels: Array, tracks: Array}>}
+ * Main search - remote only
+ * @param {string} query
+ * @param {{limit?: number}} options
  */
-export async function searchAll(searchQuery, options = {}) {
-	const {remote = false, limit = 100} = options
+export async function searchAll(query, {limit = 100} = {}) {
+	if (query.trim().length < 2) return {channels: [], tracks: []}
 
-	if (searchQuery.trim().length < 2) {
-		return {channels: [], tracks: []}
-	}
-
-	// "@channel-slug query" or "@slug1 @slug2 query" syntax
-	// "@good-time-radio 80s" returns that channel + tracks matching "80s"
-	// "@ko002 @oskar house" returns both channels + tracks matching "house" in either
-	const isMention = searchQuery.includes('@')
-	if (isMention) {
-		const {channelSlugs, trackQuery} = parseMentionQuery(searchQuery)
-
-		// Find all mentioned channels
+	if (query.includes('@')) {
+		const {channelSlugs, trackQuery} = parseMentionQuery(query)
 		const channels = channelSlugs.map(findChannelBySlug).filter(Boolean)
-
-		// Search tracks across all mentioned channels
-		let tracks = []
-		if (trackQuery) {
-			const results = await Promise.all(
-				channelSlugs.map((slug) => searchTracks(trackQuery, {remote, limit, channelSlug: slug}))
-			)
-			tracks = results.flat()
-		}
-
-		return {channels, tracks}
+		if (!trackQuery) return {channels, tracks: []}
+		const results = await Promise.all(
+			channelSlugs.map((slug) => searchTracks(trackQuery, {limit, channelSlug: slug}))
+		)
+		return {channels, tracks: results.flat()}
 	}
 
 	const [channels, tracks] = await Promise.all([
-		searchChannels(searchQuery, {remote, limit}),
-		searchTracks(searchQuery, {remote, limit})
+		searchChannels(query, {limit}),
+		searchTracks(query, {limit})
 	])
 	return {channels, tracks}
+}
+
+// Local fuzzy search utils (pure functions for potential reuse)
+
+/**
+ * Fuzzy search tracks locally
+ * @param {string} query
+ * @param {Array} tracks
+ * @param {{limit?: number}} options
+ */
+export function searchTracksLocal(query, tracks, {limit = 100} = {}) {
+	return fuzzysort.go(query, tracks, {keys: ['title', 'description'], limit}).map((r) => r.obj)
+}
+
+/**
+ * Fuzzy search channels locally
+ * @param {string} query
+ * @param {Array} channels
+ * @param {{limit?: number}} options
+ */
+export function searchChannelsLocal(query, channels, {limit = 100} = {}) {
+	return fuzzysort.go(query, channels, {keys: ['name', 'slug', 'description'], limit}).map((r) => r.obj)
 }
 
 export default {
 	all: searchAll,
 	channels: searchChannels,
-	tracks: searchTracks
+	tracks: searchTracks,
+	tracksLocal: searchTracksLocal,
+	channelsLocal: searchChannelsLocal
 }

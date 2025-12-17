@@ -66,8 +66,8 @@ tracks    -- music tracks (id, url, title, description, ...)
 
 Use $derived liberally. $derived can be mutated!
 `await` can be used inside components' `<script>`, `$derived()`and markup.
-Use `bind:this` to get a reference to a DOM element. You can even export methods on it.
-import `page` from `$app/state` (and not `$app/stores`)
+Use `bind:this`to get a reference to a DOM element. You can even export methods on it.
+import`page`from`$app/state` (and not `$app/stores`)
 Snippets can be used for reusable "mini" components, when a file is too much https://svelte.dev/docs/svelte/snippet.
 Attachments can be used for reusable behaviours/effects on elements https://svelte.dev/docs/svelte/@attach.
 
@@ -81,7 +81,7 @@ When searching for text or files, prefer using `rg` or `rg --files` respectively
 
 ## CLI
 
-You can use the @radio4000/cli (`r4`, separate project) to inspect data, pipe with jq etc. Explore the help commands as needed. 
+You can use the @radio4000/cli (`r4`, separate project) to inspect data, pipe with jq etc. Explore the help commands as needed.
 
 ## @radio4000/components
 

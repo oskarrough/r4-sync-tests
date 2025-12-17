@@ -60,7 +60,7 @@ const recentTracks = useLiveQuery((q) =>
 Potential bottlenecks when rendering 3k+ tracks:
 
 - extractYouTubeId per card: regex parsing runs for each track. Consider caching results or moving to track sync time. We really should set this whenever URL is updated server-side.
-- **LinkEntities per description: parses/transforms text for each track description. Could batch or cache.
+- \*\*LinkEntities per description: parses/transforms text for each track description. Could batch or cache.
 - PopoverMenu per card: 3k popover instances in DOM even if not visible. Lazy-render only when opened? Maybe fine as is, since its native
 - active state: `appState.playlist_track` check runs on all cards when current track changes. Move check to parent, only pass boolean to playing track.
 
@@ -84,4 +84,3 @@ const recentTracks = useLiveQuery((q) =>
 		.limit(50)
 )
 ```
-

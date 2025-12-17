@@ -69,4 +69,3 @@ When a broadcaster (user with `broadcasting_channel_id` set) changes tracks:
 5. Listeners receive update and play the new track via `playBroadcastTrack()`
 
 This ensures broadcasts stay in sync automatically without manual intervention.
-
