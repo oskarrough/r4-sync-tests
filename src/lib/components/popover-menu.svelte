@@ -25,23 +25,23 @@
 			el.style.left = `${Math.max(8, left)}px`
 		}
 
-	const handleClick = (e) => {
-		if (!closeOnClick) return
-		
-		const target = e.target
-		// Don't close if this is the trigger button
-		if (target.hasAttribute('popovertarget')) return
-		
-		// Find the clicked interactive element
-		const clickedElement = target.closest('button, a')
-		if (!clickedElement) return
-		
-		// Don't close if the element has data-no-close attribute
-		if (clickedElement.hasAttribute('data-no-close')) return
-		
-		// Close the popover when clicking buttons/links inside
-		el.hidePopover()
-	}
+		const handleClick = (e) => {
+			if (!closeOnClick) return
+
+			const target = e.target
+			// Don't close if this is the trigger button
+			if (target.hasAttribute('popovertarget')) return
+
+			// Find the clicked interactive element
+			const clickedElement = target.closest('button, a')
+			if (!clickedElement) return
+
+			// Don't close if the element has data-no-close attribute
+			if (clickedElement.hasAttribute('data-no-close')) return
+
+			// Close the popover when clicking buttons/links inside
+			el.hidePopover()
+		}
 
 		el.addEventListener('toggle', handleToggle)
 		el.addEventListener('click', handleClick)

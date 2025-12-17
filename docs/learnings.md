@@ -12,7 +12,9 @@ let url = $derived(initialUrl)
 
 // over this
 let url = $state(initialUrl)
-$effect(() => { url = initialUrl })
+$effect(() => {
+	url = initialUrl
+})
 ```
 
 Same behavior, less code, more intentional. Works because Svelte 5 deriveds are mutable.
@@ -24,9 +26,9 @@ Components that appear once at app level (modals, toasts, drawers) should listen
 ```js
 // inside the singleton component
 $effect(() => {
-    const handler = (e) => open(e.detail)
-    window.addEventListener('r5:openSomething', handler)
-    return () => window.removeEventListener('r5:openSomething', handler)
+	const handler = (e) => open(e.detail)
+	window.addEventListener('r5:openSomething', handler)
+	return () => window.removeEventListener('r5:openSomething', handler)
 })
 
 // anywhere else

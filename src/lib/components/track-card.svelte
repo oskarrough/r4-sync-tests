@@ -105,7 +105,9 @@
 			{#if showDeleteConfirm}
 				<div class="delete-confirm">
 					<p>{m.track_delete_confirm({title: track.title})}</p>
-					<button type="button" class="danger" role="menuitem" data-no-close onclick={handleDelete}>{m.common_confirm()}</button>
+					<button type="button" class="danger" role="menuitem" data-no-close onclick={handleDelete}
+						>{m.common_confirm()}</button
+					>
 					<button type="button" role="menuitem" data-no-close onclick={cancelDelete}>{m.common_cancel()}</button>
 				</div>
 			{:else}
@@ -117,7 +119,7 @@
 						class="danger"
 						role="menuitem"
 						data-no-close
-						onclick={() => showDeleteConfirm = true}>{m.common_delete()}</button
+						onclick={() => (showDeleteConfirm = true)}>{m.common_delete()}</button
 					>{/if}
 			{/if}
 		</PopoverMenu>
