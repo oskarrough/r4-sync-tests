@@ -65,7 +65,8 @@ r4-sign-in,
 r4-sign-out,
 r4-channel-create,
 r4-track-create,
-r4-track-update {
+r4-track-update,
+r4-discogs-resource {
 	form,
 	fieldset {
 		display: flex;
@@ -83,5 +84,8 @@ r4-track-update {
 		&[hidden] {
 			display: none;
 		}
+	}
+	legend {
+		padding: 0;
 	}
 }

@@ -119,7 +119,7 @@
 	form {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-s);
+		gap: var(--space-2);
 	}
 	fieldset {
 		display: contents;
@@ -127,6 +127,21 @@
 	label {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-3xs);
+		gap: var(--space-1);
+	}
+	r4-discogs-resource {
+		display: block;
+		padding-left: 0.5rem;
+		min-height: 6rem;
+		font-size: var(--font-4);
+		font-style: italic;
+
+		:global(fieldset) {
+			flex-flow: row wrap;
+			font-style: normal;
+		}
+		:global(legend) {
+			float: left;
+		}
 	}
 </style>
