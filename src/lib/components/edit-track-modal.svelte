@@ -1,5 +1,6 @@
 <script>
 	import Modal from '$lib/components/modal.svelte'
+	import TrackForm from '$lib/components/track-form.svelte'
 	import * as m from '$lib/paraglide/messages'
 
 	let showModal = $state(false)
@@ -21,7 +22,7 @@
 	})
 
 	function handleSubmit(event) {
-		if (event.detail?.error) return
+		if (event.error) return
 		showModal = false
 		document.dispatchEvent(
 			new CustomEvent('r5:trackUpdated', {
@@ -36,14 +37,16 @@
 		<h2>{m.track_edit_title()}</h2>
 	{/snippet}
 
-	{#key track?.id}
-		<r4-track-update
-			id={track?.id}
-			url={track?.url}
-			title={track?.title}
-			description={track?.description}
-			discogs_url={track?.discogs_url}
+	{#if showModal && track}
+		<TrackForm
+			mode="edit"
+			channel={{id: track.channel_id, slug: track.slug}}
+			trackId={track.id}
+			url={track.url}
+			title={track.title}
+			description={track.description}
+			discogs_url={track.discogs_url}
 			onsubmit={handleSubmit}
-		></r4-track-update>
-	{/key}
+		/>
+	{/if}
 </Modal>

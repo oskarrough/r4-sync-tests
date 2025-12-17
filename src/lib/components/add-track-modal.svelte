@@ -3,7 +3,7 @@
 	import {appState} from '$lib/app-state.svelte'
 	import Icon from '$lib/components/icon.svelte'
 	import Modal from '$lib/components/modal.svelte'
-	import TrackCreateForm from '$lib/components/track-create-form.svelte'
+	import TrackForm from '$lib/components/track-form.svelte'
 	import {tooltip} from './tooltip-attachment'
 	import * as m from '$lib/paraglide/messages'
 
@@ -87,7 +87,8 @@
 	{/snippet}
 
 	{#if channel}
-		<TrackCreateForm
+		<TrackForm
+			mode="create"
 			{channel}
 			url={trackData.url}
 			title={trackData.title}

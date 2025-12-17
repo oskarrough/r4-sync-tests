@@ -1,21 +1,24 @@
 <script>
-	import {addTrack} from '$lib/tanstack/collections/tracks'
+	import {addTrack, updateTrack} from '$lib/tanstack/collections/tracks'
 	import {fetchOEmbedTitle} from '$lib/utils/oembed'
 	import * as m from '$lib/paraglide/messages'
 
-	/** @type {{channel: import('$lib/tanstack/collections/channels').Channel, url?: string, title?: string, description?: string, onsubmit?: (event: {data: {url: string, title: string} | null, error: Error | null}) => void}} */
+	/** @type {{mode: 'create', channel: import('$lib/tanstack/collections/channels').Channel, trackId?: string, url?: string, title?: string, description?: string, discogs_url?: string, onsubmit?: (event: {data: {url: string, title: string} | null, error: Error | null}) => void} | {mode: 'edit', channel: {id: string, slug: string}, trackId: string, url?: string, title?: string, description?: string, discogs_url?: string, onsubmit?: (event: {data: {url: string, title: string} | null, error: Error | null}) => void}} */
 	let {
+		mode,
 		channel,
+		trackId,
 		url: initialUrl = '',
 		title: initialTitle = '',
 		description: initialDescription = '',
+		discogs_url: initialDiscogsUrl = '',
 		onsubmit
 	} = $props()
 
 	let url = $derived(initialUrl)
 	let title = $derived(initialTitle)
 	let description = $derived(initialDescription)
-	let discogs_url = $state('')
+	let discogs_url = $derived(initialDiscogsUrl)
 	let submitting = $state(false)
 	let fetchingTitle = $state(false)
 
@@ -53,14 +56,24 @@
 
 		submitting = true
 		try {
-			await addTrack(channel, {
-				url,
-				title,
-				description: description || undefined,
-				discogs_url: discogs_url || undefined
-			})
+			if (mode === 'create') {
+				await addTrack(channel, {
+					url,
+					title,
+					description: description || undefined,
+					discogs_url: discogs_url || undefined
+				})
+			} else {
+				if (!trackId) throw new Error('Track ID required for update')
+				await updateTrack(channel, trackId, {
+					url,
+					title,
+					description: description || undefined,
+					discogs_url: discogs_url || undefined
+				})
+			}
 			onsubmit?.({data: {url, title}, error: null})
-			reset()
+			if (mode === 'create') reset()
 		} catch (error) {
 			onsubmit?.({data: null, error: /** @type {Error} */ (error)})
 		} finally {
@@ -97,7 +110,7 @@
 		{/if}
 
 		<button type="submit" disabled={!url || !title || submitting}>
-			{submitting ? m.common_save() + '...' : m.track_add_title()}
+			{submitting ? m.common_save() + '...' : mode === 'create' ? m.track_add_title() : m.common_save()}
 		</button>
 	</fieldset>
 </form>
