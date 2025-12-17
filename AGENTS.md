@@ -5,10 +5,16 @@ This file provides guidance to entities working with code in this repository.
 R5 is a prototype local-first music player for Radio4000. The name in dev is `r5`.
 It uses primarily SvelteKit + Svelte 5, @radio4000/sdk and Tanstack DB.
 
+## Task-based agent approach
+
+1. Operate on tasks with @docs/plan.md as your scratchpad
+2. Research, ask user for guidance when things aren't clear, or strategically important
+3. Review research, create a plan
+4. Implement plan
+
 ## Documentation
 
-Read @docs/index.md for more.
-Continously update `./docs/` folder with learnings, more complex features.
+Read the @docs folder for more. Continously update our documentation as we go and learn.
 
 ## File overview
 
@@ -16,28 +22,22 @@ Continously update `./docs/` folder with learnings, more complex features.
 /src/lib/types.ts      -- type definitions for the most important interfaces
 /src/lib/api.js        -- reusable data operations
 /src/lib/utils         -- the odd reusable function
+/src/lib/tanstack      -- data and state
 /src/lib/components    -- where components go
-/src/routes
-/src/routes/tanstack/collections         -- all our data collections
+/src/routes            -- our pages
 ```
 
 ## Database and state
 
-The app works with three sources:
+The app orchestrates data between our local, client-side memory in the browser and and the remote PostgreSQL database. Database is state. Most application state (UI state, user preferences etc.) lives in the local `appState` object. We limit component state, avoid multiple stores. Read more in `docs/tanstack.md`
 
-1. Our local "tanstack collections"
-2. Our locally exported v1 firebase json export (channels_v1.json)
-3. Remote PostgreSQL (radio4000/Supabase) - public reads, authenticated writes
+We're usually dealing with one of three "tables":
 
 ```sql
-appState    -- single row with id 1, all application state
-channels     -- radio channels (id, name, slug, description, image)
-tracks       -- music tracks (id, channel_id, url, title, description, ...)
+appState  -- global application state
+channels  -- radio channels (id, slug, name, description, ...)
+tracks    -- music tracks (id, url, title, description, ...)
 ```
-
-Database is state. Most application state (UI state, user preferences, everything) lives in the local `appState` module. Limited component state, avoid stores. App state is a local collection and stored in local storage.
-
-Read more in `docs/tanstack.md`
 
 ## Code Style
 
@@ -62,20 +62,12 @@ Read more in `docs/tanstack.md`
 - Use CSS custom property variables from variables.css (colors, font-sizing)
 - Right semantic elements (`<section>`, `<article>`, `<figure>`). No unnecessary container `<div>`s. Write HTML/CSS without classes by default. Use semantic elements, ARIA roles, data-\* attributes, and custom elements to express state/variants. Style via structure and modern selectors (:has, :where, :is), not class soup. Only introduce a class for 3rd-party hooks or proven reuse. Don't add arbitrary spacing or typography changes unless requested. Let browser defaults handle spacing, typography and most layout. Focus on styles critical for functionality. Reuse CSS custom property variables.
 
-## Svelte 5 syntax
-
-```js
-let items = $state([])
-let filtered = $derived(items.filter((item) => !item.hidden))
-$effect(() => {
-	items.push({hidden: false})
-})
-```
+## Svelte 5 tips
 
 Use $derived liberally. $derived can be mutated!
 `await` can be used inside components' `<script>`, `$derived()`and markup.
-import `page`from`$app/state` (and not`$app/stores`)
-Use `bind:this` to get a reference to the element. You can even export methods on it.
+Use `bind:this` to get a reference to a DOM element. You can even export methods on it.
+import `page` from `$app/state` (and not `$app/stores`)
 Snippets can be used for reusable "mini" components, when a file is too much https://svelte.dev/docs/svelte/snippet.
 Attachments can be used for reusable behaviours/effects on elements https://svelte.dev/docs/svelte/@attach.
 
@@ -89,14 +81,7 @@ When searching for text or files, prefer using `rg` or `rg --files` respectively
 
 ## CLI
 
-You can use the `r4` cli (separate project) to inspect data, pipe with jq etc. Explore the help commands as needed.
-
-## Task-based agent approach
-
-1. Operate on tasks with `plan.md` as your scratchpad
-2. Research, ask user for guidance when things aren't clear, or strategically important
-3. Review research, create a plan
-4. Implement plan
+You can use the @radio4000/cli (`r4`, separate project) to inspect data, pipe with jq etc. Explore the help commands as needed. 
 
 ## @radio4000/components
 

@@ -70,15 +70,3 @@ When a broadcaster (user with `broadcasting_channel_id` set) changes tracks:
 
 This ensures broadcasts stay in sync automatically without manual intervention.
 
-## Migration notes (PGlite → TanStack)
-
-Previous PGlite patterns and their TanStack equivalents:
-
-| PGlite                                                 | TanStack                                                      |
-| ------------------------------------------------------ | ------------------------------------------------------------- |
-| `pg.sql\`SELECT \* FROM channels WHERE id = ${id}\``   | `channelsCollection.get(id)`                                  |
-| `pg.sql\`SELECT slug FROM channels WHERE id = ${id}\`` | `channelsCollection.get(id)?.slug`                            |
-| `r5.pull(slug)`                                        | `queryClient.invalidateQueries({queryKey: ['tracks', slug]})` |
-| `trackIdToSlug(trackId)`                               | `tracksCollection.get(trackId)?.slug`                         |
-
-The `startBroadcast` function needs channel source check - use `channelsCollection.get(channelId)?.source` instead of SQL query.

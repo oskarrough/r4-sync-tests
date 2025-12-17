@@ -25,40 +25,6 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 - find a way to share `track_meta` data between users. push it remote, how? security?
 - improve broadcast feature
 
-### Error: useLiveQueryPatched.svelte.ts
-
-Tanstack DB API changed between versions. The patched hook was written for an older API.
-
-| Line          | Error                                                               |
-| ------------- | ------------------------------------------------------------------- |
-| 11            | `LiveQueryCollection` not exported (now `LiveQueryCollectionUtils`) |
-| 27, 28, 45-47 | `Type 'T' does not satisfy constraint 'object'`                     |
-| 36            | `Type 'unknown' is not assignable`                                  |
-| 66            | `createLiveQueryCollection` signature changed                       |
-
-**Fix options:**
-
-1. Update generics to `T extends object` and fix imports to match current Tanstack API
-2. Pin to older Tanstack version (not recommended)
-3. Remove patch if upstream fixed the `state_unsafe_mutation` issue — check if still needed
-
----
-
-### Error: offline-executor.ts
-
-`onTransactionComplete` callback was removed from Tanstack's `OfflineConfig` type.
-
-```ts
-_executor = startOfflineExecutor({
-  onTransactionComplete: (tx) => offlineLog.info('complete', ...),  // ← doesn't exist
-```
-
-**Fix options:**
-
-1. Check Tanstack offline-transactions docs for replacement callback (maybe renamed?)
-2. Remove the logging callback if no equivalent exists
-3. Use a different hook point if available (e.g., wrap mutationFns)
-
 ### track-card perf improvements
 
 Potential bottlenecks when rendering 3k+ tracks:
@@ -68,7 +34,7 @@ Potential bottlenecks when rendering 3k+ tracks:
 - **LinkEntities per description**: parses/transforms text for each track description. Could batch or cache.
 - **active state**: `appState.playlist_track` check runs on all cards when current track changes. Move check to parent, only pass boolean to playing track.
 
-### Test: Cross-collection querying with recent tracks
+### Test cross-collection querying with recent tracks
 
 Prove that TanStack DB enables querying across all loaded data (not just per-slug cache blobs).
 
@@ -88,3 +54,34 @@ const recentTracks = useLiveQuery((q) =>
 		.limit(50)
 )
 ```
+
+### track-card perf improvements
+
+Potential bottlenecks when rendering 3k+ tracks:
+
+- extractYouTubeId per card: regex parsing runs for each track. Consider caching results or moving to track sync time. We really should set this whenever URL is updated server-side.
+- **LinkEntities per description: parses/transforms text for each track description. Could batch or cache.
+- PopoverMenu per card: 3k popover instances in DOM even if not visible. Lazy-render only when opened? Maybe fine as is, since its native
+- active state: `appState.playlist_track` check runs on all cards when current track changes. Move check to parent, only pass boolean to playing track.
+
+### Test cross-collection querying with recent tracks
+
+Prove that TanStack DB enables querying across all loaded data (not just per-slug cache blobs).
+
+Create a test component at `/tanstack/recent-tracks/+page.svelte` that:
+
+1. Shows the 50 most recent tracks **across all loaded channels**
+2. Uses `useLiveQuery` with `gt(tracks.created_at, ...)` and `orderBy(..., 'desc')`
+3. Should work once multiple channels have been visited (their tracks loaded into collection)
+
+This demonstrates DB's value over Query alone: Query caches `['tracks', 'starttv']` and `['tracks', 'blink']` as separate blobs you can't query across. DB's collection lets you query all in-memory tracks with SQL-like syntax.
+
+```js
+const recentTracks = useLiveQuery((q) =>
+	q
+		.from({tracks: tracksCollection})
+		.orderBy(({tracks}) => tracks.created_at, 'desc')
+		.limit(50)
+)
+```
+
