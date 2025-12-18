@@ -15,7 +15,7 @@
 
 	let limit = $state(16)
 	let perPage = $state(100)
-	let filter = $derived(appState.channels_filter || '20+')
+	let filter = $derived(appState.channels_filter || '10+')
 	let shuffled = $derived(appState.channels_shuffled ?? true)
 	let order = $derived(appState.channels_order)
 	let orderDirection = $derived(appState.channels_order_direction)
@@ -34,7 +34,7 @@
 			if (filter === 'v1') return c.source === 'v1'
 			if (filter === 'v2') return c.source !== 'v1'
 			if (filter === 'artwork' && !c.image) return false
-			if (filter === '20+' && (!c.track_count || c.track_count < 20)) return false
+			if (filter === '10+' && (!c.track_count || c.track_count < 10)) return false
 			if (filter === '100+' && (!c.track_count || c.track_count < 100)) return false
 			if (filter === '1000+' && (!c.track_count || c.track_count < 1000)) return false
 			return true
@@ -126,7 +126,7 @@
 
 	const filterLabelMap = {
 		all: () => m.channels_filter_option_all(),
-		'20+': () => m.channels_filter_option_20(),
+		'10+': () => m.channels_filter_option_10(),
 		'100+': () => m.channels_filter_option_100(),
 		'1000+': () => m.channels_filter_option_1000(),
 		artwork: () => m.channels_filter_option_artwork(),
