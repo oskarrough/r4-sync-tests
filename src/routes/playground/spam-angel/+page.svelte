@@ -109,14 +109,17 @@
 						{@const isExpanded = expanded.has(channel.id)}
 						<li>
 							<div class="main-row">
-								<button class="IconBtn" onclick={() => toggleExpand(channel.id)} title="Expand">
+								<a href="/{channel.slug}" class="avatar-link">
 									<ChannelAvatar id={channel.image} alt={channel.name} size={40} />
-								</button>
+								</a>
 
 								<div class="info">
 									<div class="title-row">
-										<h3>{channel.name}</h3>
-										<span class="meta">{channel.slug} · {formatDate(channel.created_at)}</span>
+										<h3><a href="/{channel.slug}">{channel.name}</a></h3>
+										<span class="meta"
+											>{channel.slug} · {formatDate(channel.created_at)}{#if channel.source === 'v1'}
+												· <span class="tag" data-type="v1">v1</span>{/if}</span
+										>
 									</div>
 
 									<div class="evidence">
@@ -244,11 +247,11 @@
 		font-size: var(--font-4);
 	}
 
-	.column[data-column='delete'] summary {
-		background: var(--red-2, #fee);
+	.column[data-column='delete'] summary::before {
+		content: '×';
 	}
-	.column[data-column='keep'] summary {
-		background: var(--green-2, #efe);
+	.column[data-column='keep'] summary::before {
+		content: '✓';
 	}
 
 	.column .list {
@@ -276,6 +279,16 @@
 	h3 {
 		margin: 0;
 		font-weight: normal;
+	}
+	h3 a {
+		color: inherit;
+		text-decoration: none;
+	}
+	h3 a:hover {
+		text-decoration: underline;
+	}
+	.avatar-link {
+		flex-shrink: 0;
 	}
 	.main-row {
 		display: flex;
@@ -311,14 +324,16 @@
 		border-radius: var(--border-radius);
 	}
 	.tag[data-type='spam'] {
-		background: var(--color-red);
-		color: white;
+		background: light-dark(hsl(0 70% 90%), hsl(0 40% 25%));
 	}
 	.tag[data-type='location'] {
-		background: orange;
+		background: light-dark(hsl(30 70% 90%), hsl(30 40% 25%));
 	}
 	.tag[data-type='music'] {
-		background: green;
+		background: light-dark(hsl(120 50% 90%), hsl(120 30% 25%));
+	}
+	.tag[data-type='v1'] {
+		background: light-dark(hsl(220 50% 90%), hsl(220 30% 25%));
 	}
 	.score {
 		min-width: 2.5rem;
