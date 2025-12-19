@@ -140,7 +140,7 @@
 		<PopoverMenu id="channels-filter">
 			{#snippet trigger()}<Icon icon="filter-alt" size="20" /> {filterLabelMap[filter]()}{/snippet}
 			<button class:active={filter === 'all'} onclick={() => setFilter('all')}>{m.channels_filter_option_all()}</button>
-			<button class:active={filter === '20+'} onclick={() => setFilter('20+')}>{m.channels_filter_option_20()}</button>
+			<button class:active={filter === '10+'} onclick={() => setFilter('10+')}>{m.channels_filter_option_10()}</button>
 			<button class:active={filter === '100+'} onclick={() => setFilter('100+')}
 				>{m.channels_filter_option_100()}</button
 			>

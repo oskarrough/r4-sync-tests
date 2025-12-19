@@ -14,7 +14,7 @@ export const defaultAppState: AppState = {
 	shortcuts: {},
 
 	channels_display: 'grid',
-	channels_filter: '20+',
+	channels_filter: '10+',
 	channels_order: 'updated',
 	channels_order_direction: 'desc',
 	channels_shuffled: true,
