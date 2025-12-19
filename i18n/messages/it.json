@@ -285,7 +285,7 @@
 	"status_live_short": "LIVE",
 	"channels_filter_label": "Filtro canali",
 	"channels_filter_option_all": "Tutti",
-	"channels_filter_option_20": "20+ tracce",
+	"channels_filter_option_10": "10+ tracce",
 	"channels_filter_option_100": "100+ tracce",
 	"channels_filter_option_1000": "1000+ tracce",
 	"channels_filter_option_artwork": "Con artwork",

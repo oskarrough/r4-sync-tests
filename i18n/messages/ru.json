@@ -285,7 +285,7 @@
 	"status_live_short": "LIVE",
 	"channels_filter_label": "Фильтр каналов",
 	"channels_filter_option_all": "Все",
-	"channels_filter_option_20": "20+ треков",
+	"channels_filter_option_10": "10+ треков",
 	"channels_filter_option_100": "100+ треков",
 	"channels_filter_option_1000": "1000+ треков",
 	"channels_filter_option_artwork": "Есть обложка",

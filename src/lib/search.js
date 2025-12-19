@@ -30,11 +30,7 @@ export async function searchChannels(query, {limit = 100} = {}) {
  */
 export async function searchTracks(query, {limit = 100, channelSlug} = {}) {
 	if (!query?.trim()) return []
-	let q = sdk.supabase
-		.from('channel_tracks')
-		.select('*')
-		.textSearch('fts', query, {type: 'websearch'})
-		.limit(limit)
+	let q = sdk.supabase.from('channel_tracks').select('*').textSearch('fts', query, {type: 'websearch'}).limit(limit)
 	if (channelSlug) q = q.eq('slug', channelSlug)
 	const {data, error} = await q
 	if (error) throw new Error(error.message)
@@ -79,16 +75,11 @@ export async function searchAll(query, {limit = 100} = {}) {
 		const {channelSlugs, trackQuery} = parseMentionQuery(query)
 		const channels = channelSlugs.map(findChannelBySlug).filter(Boolean)
 		if (!trackQuery) return {channels, tracks: []}
-		const results = await Promise.all(
-			channelSlugs.map((slug) => searchTracks(trackQuery, {limit, channelSlug: slug}))
-		)
+		const results = await Promise.all(channelSlugs.map((slug) => searchTracks(trackQuery, {limit, channelSlug: slug})))
 		return {channels, tracks: results.flat()}
 	}
 
-	const [channels, tracks] = await Promise.all([
-		searchChannels(query, {limit}),
-		searchTracks(query, {limit})
-	])
+	const [channels, tracks] = await Promise.all([searchChannels(query, {limit}), searchTracks(query, {limit})])
 	return {channels, tracks}
 }
 

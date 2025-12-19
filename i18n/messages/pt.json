@@ -285,7 +285,7 @@
 	"status_live_short": "AO VIVO",
 	"channels_filter_label": "Filtro de canais",
 	"channels_filter_option_all": "Todos",
-	"channels_filter_option_20": "20+ faixas",
+	"channels_filter_option_10": "10+ faixas",
 	"channels_filter_option_100": "100+ faixas",
 	"channels_filter_option_1000": "1000+ faixas",
 	"channels_filter_option_artwork": "Tem arte",

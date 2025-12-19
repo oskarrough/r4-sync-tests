@@ -285,7 +285,7 @@
 	"status_live_short": "ライブ",
 	"channels_filter_label": "チャンネルフィルター",
 	"channels_filter_option_all": "すべて",
-	"channels_filter_option_20": "20以上のトラック",
+	"channels_filter_option_10": "10以上のトラック",
 	"channels_filter_option_100": "100以上のトラック",
 	"channels_filter_option_1000": "1000以上のトラック",
 	"channels_filter_option_artwork": "アートワークあり",

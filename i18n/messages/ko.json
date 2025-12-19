@@ -285,7 +285,7 @@
 	"status_live_short": "LIVE",
 	"channels_filter_label": "채널 필터",
 	"channels_filter_option_all": "모두",
-	"channels_filter_option_20": "트랙 20+",
+	"channels_filter_option_10": "트랙 10+",
 	"channels_filter_option_100": "트랙 100+",
 	"channels_filter_option_1000": "트랙 1000+",
 	"channels_filter_option_artwork": "아트워크 있음",
