@@ -24,6 +24,7 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 - create standardized loading/error boundaries for async operations in ui
 - find a way to share `track_meta` data between users. push it remote, how? security?
 - improve broadcast feature
+- rethink channel date display: replace "341 days ago" with value-neutral presentation. Old channels aren't stale - they're archives, curated collections. Consider: just showing the year ("2019"), hiding time entirely and only surfacing recency in discovery contexts ("new this week" in feeds), or seasonal labels. The date is provenance, not a freshness indicator. Some of the best mixtapes are old.
 
 ### track-card perf improvements
 
