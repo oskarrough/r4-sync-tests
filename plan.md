@@ -25,6 +25,7 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 - find a way to share `track_meta` data between users. push it remote, how? security?
 - improve broadcast feature
 - rethink channel date display: replace "341 days ago" with value-neutral presentation. Old channels aren't stale - they're archives, curated collections. Consider: just showing the year ("2019"), hiding time entirely and only surfacing recency in discovery contexts ("new this week" in feeds), or seasonal labels. The date is provenance, not a freshness indicator. Some of the best mixtapes are old.
+- if you visit a channel and thereby load its tracks, then mutate a track outside of the app (e.g. in another browser, device), the cached tracks won't necessarily update afaik. how to deal with this? 
 
 ### track-card perf improvements
 
