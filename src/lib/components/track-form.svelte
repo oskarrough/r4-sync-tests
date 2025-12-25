@@ -22,7 +22,7 @@
 	let submitting = $state(false)
 	let fetchingTitle = $state(false)
 
-	const isValidDiscogsUrl = $derived(discogs_url.includes('discogs.com'))
+	const isValidDiscogsUrl = $derived(discogs_url?.includes('discogs.com'))
 
 	async function handleUrlBlur() {
 		if (!url || title) return

@@ -1,8 +1,8 @@
 <script>
 	import {untrack} from 'svelte'
 
-	/** @type {{id: string, children?: import('svelte').Snippet, trigger?: import('svelte').Snippet, class?: string, closeOnClick?: boolean, [key: string]: any}} */
-	let {id, children, trigger, class: className = '', closeOnClick = true, ...rest} = $props()
+	/** @type {{id: string, children?: import('svelte').Snippet, trigger?: import('svelte').Snippet, class?: string, closeOnClick?: boolean, onclose?: () => void, [key: string]: any}} */
+	let {id, children, trigger, class: className = '', closeOnClick = true, onclose, ...rest} = $props()
 
 	let buttonEl = $state()
 	let popoverEl = $state()
@@ -16,8 +16,12 @@
 		if (!popoverEl) return
 		const el = untrack(() => popoverEl)
 
-		const handleToggle = () => {
-			if (!el.matches(':popover-open') || !buttonEl) return
+		const handleToggle = (e) => {
+			if (e.newState === 'closed') {
+				onclose?.()
+				return
+			}
+			if (!buttonEl) return
 			const rect = buttonEl.getBoundingClientRect()
 			const popoverRect = el.getBoundingClientRect()
 			const left = Math.min(rect.left, window.innerWidth - popoverRect.width - 8)

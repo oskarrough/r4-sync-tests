@@ -33,12 +33,17 @@
 	const imageSrc = $derived(ytid ? `https://i.ytimg.com/vi/${ytid}/mqdefault.jpg` : null)
 
 	const click = (event: MouseEvent) => {
-		const el = event.target as HTMLElement
+		const target = event.target as HTMLElement
+		const currentTarget = event.currentTarget as HTMLElement
 
-		if (el.closest('time')) return
+		// Only handle clicks within the link itself (excludes sibling PopoverMenu)
+		if (!currentTarget.contains(target)) return
+
+		// Let time element clicks through (they have their own behavior)
+		if (target.closest('time')) return
 
 		// Let hashtag/mention links through
-		if (el instanceof HTMLAnchorElement && el.href.includes('search=')) return
+		if (target instanceof HTMLAnchorElement && target.href.includes('search=')) return
 
 		event.preventDefault()
 		//playTrack(track.id, '', 'user_click_track')
@@ -61,12 +66,6 @@
 		const channel = [...channelsCollection.state.values()].find((ch) => ch.slug === track.slug)
 		if (!channel) return
 		await deleteTrack({id: channel.id, slug: channel.slug}, track.id)
-		showDeleteConfirm = false
-		menu?.close()
-	}
-
-	function cancelDelete() {
-		showDeleteConfirm = false
 		menu?.close()
 	}
 </script>
@@ -97,33 +96,29 @@
 			{#if showSlug}<small>@{track.slug}</small>{/if}
 		</time>
 	</a>
-	<r4-actions>
-		<PopoverMenu id={menuId} bind:this={menu}>
-			{#snippet trigger()}
-				<Icon icon="options-horizontal" size={16} />
-			{/snippet}
-			{#if showDeleteConfirm}
-				<div class="delete-confirm">
-					<p>{m.track_delete_confirm({title: track.title})}</p>
-					<button type="button" class="danger" role="menuitem" data-no-close onclick={handleDelete}
-						>{m.common_confirm()}</button
-					>
-					<button type="button" role="menuitem" data-no-close onclick={cancelDelete}>{m.common_cancel()}</button>
-				</div>
-			{:else}
-				<a class="btn" href={permalink} role="menuitem">{m.common_details()}</a>
-				<button type="button" role="menuitem" onclick={addToRadio}>{m.common_add()}</button>
-				{#if canEdit}<button type="button" role="menuitem" onclick={editTrack}>{m.common_edit()}</button>{/if}
-				{#if canEdit}<button
-						type="button"
-						class="danger"
-						role="menuitem"
-						data-no-close
-						onclick={() => (showDeleteConfirm = true)}>{m.common_delete()}</button
-					>{/if}
-			{/if}
-		</PopoverMenu>
-	</r4-actions>
+	<PopoverMenu id={menuId} bind:this={menu} onclose={() => (showDeleteConfirm = false)}>
+		{#snippet trigger()}
+			<Icon icon="options-horizontal" size={16} />
+		{/snippet}
+		{#if showDeleteConfirm}
+			<p>{m.track_delete_confirm({title: track.title})}</p>
+			<button type="button" class="danger" role="menuitem" data-no-close onclick={handleDelete}
+				>{m.common_confirm()}</button
+			>
+			<button type="button" role="menuitem" onclick={() => menu?.close()}>{m.common_cancel()}</button>
+		{:else}
+			<a class="btn" href={permalink} role="menuitem">{m.common_details()}</a>
+			<button type="button" role="menuitem" onclick={addToRadio}>{m.common_add()}</button>
+			{#if canEdit}<button type="button" role="menuitem" onclick={editTrack}>{m.common_edit()}</button>{/if}
+			{#if canEdit}<button
+					type="button"
+					class="danger"
+					role="menuitem"
+					data-no-close
+					onclick={() => (showDeleteConfirm = true)}>{m.common_delete()}</button
+				>{/if}
+		{/if}
+	</PopoverMenu>
 	{@render children?.(track)}
 </article>
 
@@ -209,12 +204,12 @@
 	article {
 		position: relative;
 		/* container-type: inline-size; */
-	}
 
-	r4-actions {
-		position: absolute;
-		top: 0;
-		right: 0;
-		height: 100%;
+		:global(.popover-menu) {
+			position: absolute;
+			top: 0;
+			right: 0;
+			height: 100%;
+		}
 	}
 </style>
