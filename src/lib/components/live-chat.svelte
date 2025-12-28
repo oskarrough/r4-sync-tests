@@ -2,6 +2,9 @@
 	import {sdk} from '@radio4000/sdk'
 	import {onMount} from 'svelte'
 	import * as m from '$lib/paraglide/messages'
+	import {logger} from '$lib/logger'
+
+	const log = logger.ns('chat').seal()
 
 	let message = $state('')
 	/** @type {{text: string, username: string, timestamp: string}[]} */
@@ -21,7 +24,7 @@
 			})
 			.subscribe((status) => {
 				if (status === 'SUBSCRIBED') {
-					console.log('chat:subscribed')
+					log.debug('subscribed')
 				}
 			})
 

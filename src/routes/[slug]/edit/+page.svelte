@@ -5,6 +5,9 @@
 	import {appState} from '$lib/app-state.svelte'
 	import {channelsCollection} from '$lib/tanstack/collections'
 	import * as m from '$lib/paraglide/messages'
+	import {logger} from '$lib/logger'
+
+	const log = logger.ns('channel').seal()
 
 	let {data} = $props()
 
@@ -44,7 +47,7 @@
 				goto(`/${data.slug}`)
 			}, 1500)
 		} catch (err) {
-			console.error('Failed to update channel:', err)
+			log.error('update channel failed', {id: channel.id, err})
 			error = err.message || 'Failed to update channel'
 		}
 	}

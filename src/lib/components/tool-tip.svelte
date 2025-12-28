@@ -1,5 +1,8 @@
 <script>
 	/* eslint svelte/no-at-html-tags: "off" */
+	import {logger} from '$lib/logger'
+
+	const log = logger.ns('tooltip').seal()
 
 	/** @type {{targetId: string, content: string, position?: string}} */
 	const {targetId, content = '', position = 'bottom'} = $props()
@@ -14,7 +17,7 @@
 		targetElement = document.getElementById(targetId)
 
 		if (!targetElement) {
-			console.warn(`Tooltip target element with id "${targetId}" not found`)
+			log.warn('target element not found', {targetId})
 			return
 		}
 
@@ -25,7 +28,7 @@
 		}
 
 		if (!tooltipElement) {
-			console.warn(`Tooltip element with id "${id}" not found`)
+			log.warn('tooltip element not found', {id})
 			return
 		}
 

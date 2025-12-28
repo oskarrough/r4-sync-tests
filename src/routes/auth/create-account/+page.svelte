@@ -1,13 +1,16 @@
 <script>
 	// import {page} from '$app/state'
 	import * as m from '$lib/paraglide/messages'
+	import {logger} from '$lib/logger'
+
+	const log = logger.ns('auth').seal()
 
 	let didSubmit = $state(false)
 	// const redirect = page.url.searchParams.get('redirect')
 	// const redirectParam = redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''
 
 	function onSubmit(event) {
-		console.log(event, event.detail)
+		log.debug('create-account submit', event.detail)
 		didSubmit = true
 	}
 </script>

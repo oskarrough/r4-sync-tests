@@ -2,6 +2,9 @@
 	import {goto} from '$app/navigation'
 	import {page} from '$app/state'
 	import * as m from '$lib/paraglide/messages'
+	import {logger} from '$lib/logger'
+
+	const log = logger.ns('auth').seal()
 
 	function onSubmit(event) {
 		const error = event.detail.error
@@ -11,7 +14,7 @@
 			const redirect = page.url.searchParams.get('redirect') || '/settings'
 			goto(redirect)
 		} else {
-			console.error('signinerror', {user, error})
+			log.error('signin failed', {user, error})
 			throw new Error('Failed to sign in')
 		}
 	}
