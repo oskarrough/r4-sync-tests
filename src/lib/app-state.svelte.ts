@@ -1,4 +1,7 @@
 import type {AppState} from './types.ts'
+import {logger} from '$lib/logger'
+
+const log = logger.ns('appstate').seal()
 
 /** The "app state" is a global, single reactive object shared across the app. Can be freely mutated anywhere directly. It persists to local storage automatically. */
 
@@ -52,7 +55,7 @@ function loadState(): AppState {
 			return {...defaultAppState, ...parsed}
 		}
 	} catch (err) {
-		console.warn('Failed to load app state:', err)
+		log.warn('Failed to load app state:', err)
 	}
 	return {...defaultAppState}
 }

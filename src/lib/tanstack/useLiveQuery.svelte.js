@@ -6,6 +6,9 @@
  * Also exports useCachedLiveQuery for cache-first pattern
  */
 import {untrack, tick} from 'svelte'
+import {logger} from '$lib/logger'
+
+const log = logger.ns('livequery').seal()
 import {SvelteMap} from 'svelte/reactivity'
 import {BaseQueryBuilder, createLiveQueryCollection} from '@tanstack/db'
 
@@ -142,7 +145,7 @@ export function useLiveQuery(configOrQueryOrCollection, deps = []) {
 		currentUnsubscribe = subscription.unsubscribe.bind(subscription)
 
 		if (currentCollection.status === `idle`) {
-			currentCollection.preload().catch(console.error)
+			currentCollection.preload().catch((err) => log.error('preload failed', err))
 		}
 
 		return () => {

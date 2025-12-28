@@ -1,6 +1,9 @@
 import gsap from 'gsap'
 import {Draggable} from 'gsap/Draggable'
 import {InertiaPlugin} from 'gsap/InertiaPlugin'
+import {logger} from '$lib/logger'
+
+const log = logger.ns('vertical-loop').seal()
 
 gsap.registerPlugin(Draggable, InertiaPlugin)
 
@@ -299,7 +302,7 @@ function setupDraggable(
 	setIndexIsDirty
 ) {
 	if (typeof InertiaPlugin === 'undefined') {
-		console.warn('InertiaPlugin required for momentum-based scrolling and snapping. https://greensock.com/club')
+		log.warn('InertiaPlugin required for momentum-based scrolling and snapping', {url: 'https://greensock.com/club'})
 	}
 
 	const proxy = document.createElement('div')

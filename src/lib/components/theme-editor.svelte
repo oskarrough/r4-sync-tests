@@ -5,6 +5,9 @@
 	import InputRange from '$lib/components/input-range.svelte'
 	import ThemeToggle from '$lib/components/theme-toggle.svelte'
 	import * as m from '$lib/paraglide/messages'
+	import {logger} from '$lib/logger'
+
+	const log = logger.ns('theme').seal()
 
 	const uid = $props.id()
 
@@ -146,7 +149,7 @@
 			applyCustomCssVariables($state.snapshot(appState.custom_css_variables))
 			importText = ''
 		} catch (error) {
-			console.error('Failed to import theme:', error)
+			log.error('import theme failed', {error})
 		}
 	}
 
