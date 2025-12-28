@@ -10,7 +10,7 @@ async function loadV1Channels(): Promise<ChannelFirebase[]> {
 	if (v1ChannelsCache) return v1ChannelsCache
 	const response = await fetch('/channels_v1.json')
 	v1ChannelsCache = await response.json()
-	return v1ChannelsCache!
+	return v1ChannelsCache as ChannelFirebase[]
 }
 
 // Fetch a single channel by slug (v2 first, fallback to v1)

@@ -42,7 +42,9 @@ export function useLiveQuery(configOrQueryOrCollection, deps = []) {
 			return unwrappedParam
 		}
 
-		deps.forEach((dep) => toValue(dep))
+		deps.forEach((dep) => {
+			toValue(dep)
+		})
 
 		if (typeof unwrappedParam === `function`) {
 			const queryBuilder = new BaseQueryBuilder()
