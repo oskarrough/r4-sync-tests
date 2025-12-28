@@ -1,13 +1,10 @@
-# Instructions for this project
+# R5
 
-This file provides guidance to entities working with code in this repository.
-
-R5 is a prototype local-first music player for Radio4000. The name in dev is `r5`.
-It uses primarily SvelteKit + Svelte 5, @radio4000/sdk and Tanstack DB.
+Prototype local-first music player for Radio4000. SvelteKit + Svelte 5, @radio4000/sdk, Tanstack DB.
 
 ## Task-based agent approach
 
-1. Operate on tasks with @docs/plan.md as your scratchpad
+1. Operate on tasks with @plan.md as your scratchpad
 2. Research, ask user for guidance when things aren't clear, or strategically important
 3. Review research, create a plan
 4. Implement plan
@@ -29,7 +26,9 @@ Read the @docs folder for more. Continously update our documentation as we go an
 
 ## Database and state
 
-The app orchestrates data between our local, client-side memory in the browser and and the remote PostgreSQL database. Database is state. Most application state (UI state, user preferences etc.) lives in the local `appState` object. We limit component state, avoid multiple stores. Read more in `docs/tanstack.md`
+The app orchestrates data between local browser memory and the remote PostgreSQL database. Database is state. We limit component state, avoid multiple stores. Read more in `docs/tanstack.md`
+
+`appState` (src/lib/app-state.svelte.ts) is a global reactive object for UI state - player, queue, theme, user preferences. Auto-persists to localStorage. Debug at /debug/appstate.
 
 We're usually dealing with one of three "tables":
 
@@ -73,24 +72,26 @@ Attachments can be used for reusable behaviours/effects on elements https://svel
 
 ## Debug Tricks
 
-You can't run queries on the in-browse storage. BUT, you can ask me to run them for you:: `channels = [...window.r5.channelsCollections.state.values()]; channels.map(...`
+`window.r5` exposes sdk, appState, queryClient, tracksCollection, channelsCollection. Example: `[...window.r5.channelsCollection.state.values()].map(...`
 Format and lint the code using `bun run lint`. Or use the claude code command /lint-test.
 When valuable, we can write tests using vitest. Put them next to the original file and name them xxx.test.js. Run tests with: `bun test [optional-name]`
 There is no need to start a dev server, as the user does it.
 When searching for text or files, prefer using `rg` or `rg --files` respectively because `rg` is much faster than alternatives like `grep`.
 
-## CLI
+## Key packages
 
-You can use the @radio4000/cli (`r4`, separate project) to inspect data, pipe with jq etc. Explore the help commands as needed.
+- @radio4000/sdk - docs/radio4000-sdk.md
+- @radio4000/components - https://github.com/radio4000/components
 
-## @radio4000/components
+## r4 CLI
 
-Custom elements used on radio4000.com and in this app. Source: https://github.com/radio4000/components
+Separate project for inspecting remote data. Explore the `--help` commands as needed.
 
 ## Tanstack notes
 
 - Suffix tanstack documentation urls with `.md` to get raw markdown
 - LIMIT and OFFSET queries require an ORDER BY clause for deterministic results
+- @docs/tanstack.md
 
 ## Writing style (guides, docs, explanations)
 
