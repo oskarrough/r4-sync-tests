@@ -11,7 +11,6 @@ import {log, txLog, getErrorMessage} from './utils'
 import {getOfflineExecutor} from './offline-executor'
 import type {Track} from '$lib/types'
 
-// Tracks collection - NO mutation hooks, mutations go through offline actions
 export const tracksCollection = createCollection<Track, string>(
 	queryCollectionOptions({
 		queryKey: (opts) => {
@@ -23,7 +22,7 @@ export const tracksCollection = createCollection<Track, string>(
 		syncMode: 'on-demand',
 		queryClient,
 		getKey: (item) => item.id,
-		staleTime: 24 * 60 * 60 * 1000, // 24h - freshness check triggers invalidation when remote has newer
+		staleTime: 24 * 60 * 60 * 1000,
 		queryFn: async (ctx) => {
 			const options = parseLoadSubsetOptions(ctx.meta?.loadSubsetOptions)
 			const slug = options.filters.find((f) => f.field[0] === 'slug' && f.operator === 'eq')?.value
@@ -66,53 +65,36 @@ async function fetchTracksBySlug(slug: string, opts?: {limit?: number; createdAf
 	return data || []
 }
 
-type MutationHandler = (mutation: PendingMutation, metadata: Record<string, unknown>) => Promise<void>
+async function handleTrackInsert(mutation: PendingMutation, metadata: Record<string, unknown>): Promise<void> {
+	const track = mutation.modified as {id: string; url: string; title: string}
+	const channelId = metadata?.channelId as string
+	if (!channelId) throw new NonRetriableError('channelId required in transaction metadata')
+	log.info('insert_start', {clientId: track.id, title: track.title, channelId})
+	const {data, error} = await sdk.tracks.createTrack(channelId, track)
+	log.info('insert_done', {clientId: track.id, serverId: data?.id, match: track.id === data?.id, error})
+	if (error) throw new NonRetriableError(getErrorMessage(error))
+}
 
-const mutationHandlers: Record<string, MutationHandler> = {
-	insert: async (mutation, metadata) => {
-		const track = mutation.modified as {id: string; url: string; title: string}
-		const channelId = metadata?.channelId as string
-		if (!channelId) throw new NonRetriableError('channelId required in transaction metadata')
-		log.info('insert_start', {clientId: track.id, title: track.title, channelId})
-		try {
-			const {data, error} = await sdk.tracks.createTrack(channelId, track)
-			log.info('insert_done', {clientId: track.id, serverId: data?.id, match: track.id === data?.id, error})
-			if (error) throw new NonRetriableError(getErrorMessage(error))
-		} catch (err) {
-			if (err instanceof NonRetriableError) throw err
-			throw new NonRetriableError(getErrorMessage(err))
-		}
-	},
-	update: async (mutation) => {
-		const track = mutation.modified as {id: string}
-		const changes = mutation.changes as Record<string, unknown>
-		log.info('update_start', {id: track.id, title: changes.title})
-		try {
-			const response = await sdk.tracks.updateTrack(track.id, changes)
-			log.info('update_done', {
-				id: track.id,
-				rowsAffected: response.data?.length,
-				status: response.status,
-				error: response.error
-			})
-			if (response.error) throw new NonRetriableError(getErrorMessage(response.error))
-		} catch (err) {
-			if (err instanceof NonRetriableError) throw err
-			throw new NonRetriableError(getErrorMessage(err))
-		}
-	},
-	delete: async (mutation) => {
-		const track = mutation.original as {id: string}
-		log.info('delete_start', {id: track.id})
-		try {
-			const response = await sdk.tracks.deleteTrack(track.id)
-			log.info('delete_done', {id: track.id, status: response.status, error: response.error})
-			if (response.error) throw new NonRetriableError(getErrorMessage(response.error))
-		} catch (err) {
-			if (err instanceof NonRetriableError) throw err
-			throw new NonRetriableError(getErrorMessage(err))
-		}
-	}
+async function handleTrackUpdate(mutation: PendingMutation): Promise<void> {
+	const track = mutation.modified as {id: string}
+	const changes = mutation.changes as Record<string, unknown>
+	log.info('update_start', {id: track.id, title: changes.title})
+	const response = await sdk.tracks.updateTrack(track.id, changes)
+	log.info('update_done', {
+		id: track.id,
+		rowsAffected: response.data?.length,
+		status: response.status,
+		error: response.error
+	})
+	if (response.error) throw new NonRetriableError(getErrorMessage(response.error))
+}
+
+async function handleTrackDelete(mutation: PendingMutation): Promise<void> {
+	const track = mutation.original as {id: string}
+	log.info('delete_start', {id: track.id})
+	const response = await sdk.tracks.deleteTrack(track.id)
+	log.info('delete_done', {id: track.id, status: response.status, error: response.error})
+	if (response.error) throw new NonRetriableError(getErrorMessage(response.error))
 }
 
 export const tracksAPI = {
@@ -124,18 +106,16 @@ export const tracksAPI = {
 		idempotencyKey: string
 	}) {
 		const slug = transaction.metadata?.slug as string
+		const metadata = transaction.metadata || {}
 		for (const mutation of transaction.mutations) {
 			txLog.info('tracks', {type: mutation.type, slug, key: idempotencyKey.slice(0, 8)})
-			const handler = mutationHandlers[mutation.type]
-			if (handler) {
-				await handler(mutation, transaction.metadata || {})
-			} else {
-				txLog.warn('tracks unhandled type', {type: mutation.type})
-			}
+			if (mutation.type === 'insert') await handleTrackInsert(mutation, metadata)
+			else if (mutation.type === 'update') await handleTrackUpdate(mutation)
+			else if (mutation.type === 'delete') await handleTrackDelete(mutation)
+			else txLog.warn('tracks unhandled type', {type: mutation.type})
 		}
 		log.info('tx_complete', {idempotencyKey: idempotencyKey.slice(0, 8), slug})
 
-		// Invalidate to sync state after all mutations
 		if (slug) {
 			log.info('invalidate', {slug})
 			await queryClient.invalidateQueries({queryKey: ['tracks', slug]})
@@ -151,7 +131,6 @@ export function getTrackWithMeta<T extends {url?: string}>(track: T): T & Partia
 	return {...track, ...meta}
 }
 
-// Track actions
 export function addTrack(
 	channel: Channel,
 	input: {url: string; title: string; description?: string; discogs_url?: string}
@@ -269,7 +248,6 @@ export function batchDeleteTracks(channel: Channel, ids: string[]) {
 	return tx.commit()
 }
 
-/** Check if remote has newer tracks than local. Invalidates cache if so. */
 export async function checkTracksFreshness(slug: string): Promise<boolean> {
 	// Check queryClient cache (not collection state which may be empty)
 	const cachedTracks = (queryClient.getQueryData(['tracks', slug]) as Track[]) || []
@@ -301,7 +279,6 @@ export async function checkTracksFreshness(slug: string): Promise<boolean> {
 	return !!outdated
 }
 
-/** Ensure tracks for a slug are loaded into the collection (imperative, non-reactive) */
 export async function ensureTracksLoaded(slug: string): Promise<void> {
 	const existing = [...tracksCollection.state.values()].filter((t) => t.slug === slug)
 	if (existing.length) return

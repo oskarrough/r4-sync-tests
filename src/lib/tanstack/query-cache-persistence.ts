@@ -1,3 +1,4 @@
+/** TanStack Query cache persistence to IndexedDB. */
 import {
 	persistQueryClientRestore,
 	persistQueryClientSubscribe,
@@ -6,9 +7,8 @@ import {
 import {get, set, del} from 'idb-keyval'
 import {queryClient} from './collections'
 
-// JSON stringify that strips functions and handles circular refs
-// Required because syncMode: "on-demand" adds functions to query meta
-// See https://github.com/TanStack/db/issues/901
+const IDB_KEY = 'r5-query-cache'
+
 function serialize(client: PersistedClient): string {
 	const seen = new WeakSet()
 	return JSON.stringify(client, (_key, value) => {
@@ -21,51 +21,45 @@ function serialize(client: PersistedClient): string {
 	})
 }
 
-// IDB persister for query cache
 const idbPersister = {
 	persistClient: async (client: PersistedClient) => {
-		await set('r5-query-cache', serialize(client))
+		await set(IDB_KEY, serialize(client))
 	},
 	restoreClient: async () => {
-		const data = await get<string>('r5-query-cache')
+		const data = await get<string>(IDB_KEY)
 		return data ? JSON.parse(data) : undefined
 	},
 	removeClient: async () => {
-		await del('r5-query-cache')
+		await del(IDB_KEY)
 	}
+}
+
+function shouldDehydrateQuery(query: {queryKey: unknown[]; state: {status: string; data: unknown}}): boolean {
+	if (query.state.status !== 'success') return false
+
+	const data = query.state.data
+	if (!Array.isArray(data) || data.length === 0) return false
+	if (data.some((item) => item == null)) return false
+
+	const key = query.queryKey?.[0]
+	if (key === 'todos-cached') return false
+
+	// Subset queries have functions in meta that break serialization
+	if ((key === 'channels' || key === 'tracks') && query.queryKey.length > 1) return false
+
+	return true
 }
 
 const persistOptions = {
 	queryClient,
 	persister: idbPersister,
-	maxAge: 24 * 60 * 60 * 1000, // 24h - match gcTime
-	buster: '4', // increment on breaking schema changes (4: don't persist subset queries)
-	dehydrateOptions: {
-		shouldDehydrateQuery: (query) => {
-			// Only persist successful queries with actual data (not empty/null arrays)
-			if (query.state.status !== 'success') return false
-			const data = query.state.data
-			if (!Array.isArray(data) || data.length === 0) return false
-			// Don't persist arrays containing null/undefined
-			if (data.some((item) => item == null)) return false
-			// Don't persist demo queries
-			const key = query.queryKey?.[0]
-			if (key === 'todos-cached') return false
-			// Don't persist on-demand subset queries (e.g. ['channels', 'slug'] or ['tracks', 'slug'])
-			// These have functions in meta that can't be serialized - causes preload() to hang on restore
-			// See plan-data-flow-bug.md for details
-			if ((key === 'channels' || key === 'tracks') && query.queryKey.length > 1) {
-				return false
-			}
-			return true
-		}
-	}
+	maxAge: 24 * 60 * 60 * 1000,
+	buster: '4',
+	dehydrateOptions: {shouldDehydrateQuery}
 }
 
-// Restore cache from IDB - await this before prefetching
 export const cacheReady = persistQueryClientRestore(persistOptions)
 
-// Subscribe to changes after restore completes
 cacheReady.then(() => {
 	persistQueryClientSubscribe(persistOptions)
 })

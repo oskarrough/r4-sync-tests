@@ -7,8 +7,7 @@ import type {PendingMutation} from '@tanstack/db'
 import {log, txLog, getErrorMessage} from './utils'
 import {getOfflineExecutor} from './offline-executor'
 
-// Follows collection - local-first with offline sync to r4
-// Uses localStorage to preserve v1 follows (can't sync to remote due to FK constraint)
+// v1 follows can't sync to remote due to FK constraint - stored locally only
 export interface Follow {
 	channelId: string
 	createdAt: string
@@ -22,34 +21,24 @@ export const followsCollection = createCollection<Follow, string>(
 	})
 )
 
-// Follows mutation handlers - v1 and anonymous users are local-only
-const shouldSyncFollow = (follow: Follow) => follow.source !== 'v1' && appState.channels?.[0]
+function shouldSyncFollow(follow: Follow): string | false {
+	return (follow.source !== 'v1' && appState.channels?.[0]) || false
+}
 
-type MutationHandler = (mutation: PendingMutation, metadata: Record<string, unknown>) => Promise<void>
+async function handleFollowInsert(mutation: PendingMutation): Promise<void> {
+	const follow = mutation.modified as unknown as Follow
+	const userChannelId = shouldSyncFollow(follow)
+	if (!userChannelId) return
+	const {error} = await sdk.channels.followChannel(userChannelId, follow.channelId)
+	if (error) throw new NonRetriableError(getErrorMessage(error))
+}
 
-const followsMutationHandlers: Record<string, MutationHandler> = {
-	insert: async (mutation) => {
-		const follow = mutation.modified as unknown as Follow
-		const userChannelId = shouldSyncFollow(follow)
-		if (!userChannelId) return
-
-		try {
-			await sdk.channels.followChannel(userChannelId, follow.channelId)
-		} catch (err) {
-			throw new NonRetriableError(getErrorMessage(err))
-		}
-	},
-	delete: async (mutation) => {
-		const follow = mutation.original as unknown as Follow
-		const userChannelId = shouldSyncFollow(follow)
-		if (!userChannelId) return
-
-		try {
-			await sdk.channels.unfollowChannel(userChannelId, follow.channelId)
-		} catch (err) {
-			throw new NonRetriableError(getErrorMessage(err))
-		}
-	}
+async function handleFollowDelete(mutation: PendingMutation): Promise<void> {
+	const follow = mutation.original as unknown as Follow
+	const userChannelId = shouldSyncFollow(follow)
+	if (!userChannelId) return
+	const {error} = await sdk.channels.unfollowChannel(userChannelId, follow.channelId)
+	if (error) throw new NonRetriableError(getErrorMessage(error))
 }
 
 export const followsAPI = {
@@ -62,32 +51,27 @@ export const followsAPI = {
 	}) {
 		for (const mutation of transaction.mutations) {
 			txLog.info('follows', {type: mutation.type, key: idempotencyKey.slice(0, 8)})
-			const handler = followsMutationHandlers[mutation.type]
-			if (handler) {
-				await handler(mutation, transaction.metadata || {})
-			} else {
-				txLog.warn('follows unhandled type', {type: mutation.type})
-			}
+			if (mutation.type === 'insert') await handleFollowInsert(mutation)
+			else if (mutation.type === 'delete') await handleFollowDelete(mutation)
+			else txLog.warn('follows unhandled type', {type: mutation.type})
 		}
 		log.info('follows_tx_complete', {idempotencyKey: idempotencyKey.slice(0, 8)})
 	}
 }
 
-/** Pull follows from remote, merge into local (preserves v1 follows) */
 export async function pullFollows(userChannelId: string) {
-	try {
-		const {data} = await sdk.channels.readFollowings(userChannelId)
-		for (const ch of data || []) {
-			if (!followsCollection.state.has(ch.id)) {
-				followsCollection.insert({channelId: ch.id, createdAt: ch.created_at, source: 'v2'})
-			}
+	const {data, error} = await sdk.channels.readFollowings(userChannelId)
+	if (error) {
+		log.error('pull_follows_error', {userChannelId, error})
+		return
+	}
+	for (const ch of data || []) {
+		if (!followsCollection.state.has(ch.id)) {
+			followsCollection.insert({channelId: ch.id, createdAt: ch.created_at, source: 'v2'})
 		}
-	} catch (err) {
-		log.error('pull_follows_error', {userChannelId, err})
 	}
 }
 
-// Follow actions
 export function followChannel(channel: {id: string; source?: 'v1' | 'v2'}) {
 	if (followsCollection.state.has(channel.id)) return Promise.resolve()
 

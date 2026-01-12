@@ -12,7 +12,6 @@ import type {Channel} from '$lib/types'
 
 export type {Channel}
 
-// Channels collection - on-demand: queries dictate what gets fetched
 export const channelsCollection = createCollection<Channel, string>(
 	queryCollectionOptions({
 		queryKey: (opts) => {
@@ -23,7 +22,7 @@ export const channelsCollection = createCollection<Channel, string>(
 		syncMode: 'on-demand',
 		queryClient,
 		getKey: (item) => item.id,
-		staleTime: 24 * 60 * 60 * 1000, // 24h - channels rarely change
+		staleTime: 24 * 60 * 60 * 1000,
 		queryFn: async (ctx) => {
 			const options = parseLoadSubsetOptions(ctx.meta?.loadSubsetOptions)
 			const slug = options.filters.find((f) => f.field[0] === 'slug' && f.operator === 'eq')?.value
@@ -40,61 +39,44 @@ export const channelsCollection = createCollection<Channel, string>(
 	})
 )
 
-type MutationHandler = (mutation: PendingMutation, metadata: Record<string, unknown>) => Promise<void>
-
-const channelMutationHandlers: Record<string, MutationHandler> = {
-	insert: async (mutation, metadata) => {
-		const channel = mutation.modified as {id: string; name: string; slug: string}
-		const userId = metadata.userId as string
-		if (!channel) throw new NonRetriableError('Invalid mutation: missing modified data')
-		if (!userId) throw new NonRetriableError('userId required in transaction metadata')
-		log.info('channel_insert_start', {id: channel.id, name: channel.name})
-		try {
-			const response = await sdk.channels.createChannel({
-				id: channel.id,
-				name: channel.name,
-				slug: channel.slug,
-				userId
-			})
-			if ('error' in response && response.error) {
-				log.info('channel_insert_done', {clientId: channel.id, error: response.error})
-				throw new NonRetriableError(getErrorMessage(response.error))
-			}
-			const data = 'data' in response ? (response.data as {id: string} | null) : null
-			log.info('channel_insert_done', {clientId: channel.id, serverId: data?.id})
-			if (data?.id) {
-				appState.channels = [...(appState.channels || []), data.id]
-			}
-		} catch (err) {
-			if (err instanceof NonRetriableError) throw err
-			throw new NonRetriableError(getErrorMessage(err))
-		}
-	},
-	update: async (mutation) => {
-		const channel = mutation.modified as {id: string}
-		const changes = mutation.changes as Record<string, unknown>
-		log.info('channel_update_start', {id: channel.id, changes})
-		try {
-			const response = await sdk.channels.updateChannel(channel.id, changes)
-			log.info('channel_update_done', {id: channel.id, error: response.error})
-			if (response.error) throw new NonRetriableError(getErrorMessage(response.error))
-		} catch (err) {
-			if (err instanceof NonRetriableError) throw err
-			throw new NonRetriableError(getErrorMessage(err))
-		}
-	},
-	delete: async (mutation) => {
-		const channel = mutation.original as {id: string}
-		log.info('channel_delete_start', {id: channel.id})
-		try {
-			const response = await sdk.channels.deleteChannel(channel.id)
-			log.info('channel_delete_done', {id: channel.id, error: response.error})
-			if (response.error) throw new NonRetriableError(getErrorMessage(response.error))
-		} catch (err) {
-			if (err instanceof NonRetriableError) throw err
-			throw new NonRetriableError(getErrorMessage(err))
-		}
+async function handleChannelInsert(mutation: PendingMutation, metadata: Record<string, unknown>): Promise<void> {
+	const channel = mutation.modified as {id: string; name: string; slug: string}
+	const userId = metadata.userId as string
+	if (!channel) throw new NonRetriableError('Invalid mutation: missing modified data')
+	if (!userId) throw new NonRetriableError('userId required in transaction metadata')
+	log.info('channel_insert_start', {id: channel.id, name: channel.name})
+	const response = await sdk.channels.createChannel({
+		id: channel.id,
+		name: channel.name,
+		slug: channel.slug,
+		userId
+	})
+	if ('error' in response && response.error) {
+		log.info('channel_insert_done', {clientId: channel.id, error: response.error})
+		throw new NonRetriableError(getErrorMessage(response.error))
 	}
+	const data = 'data' in response ? (response.data as {id: string} | null) : null
+	log.info('channel_insert_done', {clientId: channel.id, serverId: data?.id})
+	if (data?.id) {
+		appState.channels = [...(appState.channels || []), data.id]
+	}
+}
+
+async function handleChannelUpdate(mutation: PendingMutation): Promise<void> {
+	const channel = mutation.modified as {id: string}
+	const changes = mutation.changes as Record<string, unknown>
+	log.info('channel_update_start', {id: channel.id, changes})
+	const response = await sdk.channels.updateChannel(channel.id, changes)
+	log.info('channel_update_done', {id: channel.id, error: response.error})
+	if (response.error) throw new NonRetriableError(getErrorMessage(response.error))
+}
+
+async function handleChannelDelete(mutation: PendingMutation): Promise<void> {
+	const channel = mutation.original as {id: string}
+	log.info('channel_delete_start', {id: channel.id})
+	const response = await sdk.channels.deleteChannel(channel.id)
+	log.info('channel_delete_done', {id: channel.id, error: response.error})
+	if (response.error) throw new NonRetriableError(getErrorMessage(response.error))
 }
 
 export const channelsAPI = {
@@ -105,14 +87,13 @@ export const channelsAPI = {
 		transaction: {mutations: Array<PendingMutation>; metadata?: Record<string, unknown>}
 		idempotencyKey: string
 	}) {
+		const metadata = transaction.metadata || {}
 		for (const mutation of transaction.mutations) {
 			txLog.info('channels', {type: mutation.type, key: idempotencyKey.slice(0, 8)})
-			const handler = channelMutationHandlers[mutation.type]
-			if (handler) {
-				await handler(mutation, transaction.metadata || {})
-			} else {
-				txLog.warn('channels unhandled type', {type: mutation.type})
-			}
+			if (mutation.type === 'insert') await handleChannelInsert(mutation, metadata)
+			else if (mutation.type === 'update') await handleChannelUpdate(mutation)
+			else if (mutation.type === 'delete') await handleChannelDelete(mutation)
+			else txLog.warn('channels unhandled type', {type: mutation.type})
 		}
 		log.info('channel_tx_complete', {idempotencyKey: idempotencyKey.slice(0, 8)})
 
@@ -120,7 +101,6 @@ export const channelsAPI = {
 	}
 }
 
-// Channel actions
 export function createChannel(input: {name: string; slug: string; description?: string}) {
 	const userId = appState.user?.id
 	if (!userId) throw new Error('Must be signed in to create a channel')
