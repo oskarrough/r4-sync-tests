@@ -81,8 +81,7 @@ export function next(track, activeQueue, endReason) {
 	const next = activeQueue[idx + 1]
 	if (next) {
 		/** @type {PlayStartReason} */
-		const startReason =
-			endReason === 'track_completed' ? 'auto_next' : endReason === 'youtube_error' ? 'track_error' : 'auto_next'
+		const startReason = endReason === 'youtube_error' ? 'track_error' : 'auto_next'
 		playTrack(next, endReason, startReason)
 	} else {
 		log.info('No next track available')
@@ -92,7 +91,7 @@ export function next(track, activeQueue, endReason) {
 /**
  * @param {Track | undefined} track
  * @param {string[]} activeQueue
- * @param {PlayEndReason} endReason - why the current track is ending
+ * @param {PlayEndReason} endReason
  */
 export function previous(track, activeQueue, endReason) {
 	if (!track?.id) {
@@ -103,25 +102,19 @@ export function previous(track, activeQueue, endReason) {
 		log.warn('No active queue')
 		return
 	}
-
 	const idx = activeQueue.indexOf(track.id)
-	const prev = activeQueue[idx - 1]
-	if (prev) {
-		playTrack(prev, endReason, 'user_prev')
+	const prevId = activeQueue[idx - 1]
+	if (prevId) {
+		playTrack(prevId, endReason, 'user_prev')
 	} else {
 		log.info('No previous track available')
 	}
 }
 
 export function toggleShuffle() {
-	const newShuffleState = !appState.shuffle
-	if (newShuffleState) {
-		// Generate fresh shuffle from current playlist
+	appState.shuffle = !appState.shuffle
+	if (appState.shuffle) {
 		appState.playlist_tracks_shuffled = shuffleArray(appState.playlist_tracks || [])
-		appState.shuffle = true
-	} else {
-		// Just toggle off, keep shuffled array for next time
-		appState.shuffle = false
 	}
 }
 

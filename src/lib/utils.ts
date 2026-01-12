@@ -1,11 +1,9 @@
 export function uuid() {
-	return self.crypto.randomUUID()
+	return crypto.randomUUID()
 }
 
-export async function delay(ms: number) {
-	return new Promise((resolve) => {
-		setTimeout(resolve, ms)
-	})
+export function delay(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 export function trimWithEllipsis(text?: string | null, maxLength: number = 267) {
@@ -39,22 +37,13 @@ export function detectMediaProvider(url: string): 'youtube' | 'soundcloud' | nul
 	return null
 }
 
-/** Takes an array and returns a shuffled version.Uses http://bost.ocks.org/mike/shuffle/ */
-export function shuffleArray<T>(arr: Array<T>) {
-	// Return a new array.
+/** Fisher-Yates shuffle http://bost.ocks.org/mike/shuffle/ */
+export function shuffleArray<T>(arr: Array<T>): Array<T> {
 	const array = arr.slice()
-
 	let m = array.length
-	let t: T
-	let i: number
-
-	// While there remain elements to shuffle…
 	while (m) {
-		// Pick a remaining element…
-		i = Math.floor(Math.random() * m--)
-
-		// And swap it with the current element.
-		t = array[m]
+		const i = Math.floor(Math.random() * m--)
+		const t = array[m]
 		array[m] = array[i]
 		array[i] = t
 	}

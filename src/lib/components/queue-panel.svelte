@@ -141,11 +141,6 @@
 		{#if view === 'queue'}
 			{#if filteredQueueTracks.length > 0}
 				<Tracklist tracks={filteredQueueTracks} />
-			{:else if trackIds.length > 0 && searchQuery}
-				<div class="empty-state">
-					<p>{m.queue_empty()}</p>
-					<p><small>{m.search_no_results()} "{searchQuery}"</small></p>
-				</div>
 			{:else if trackIds.length === 0}
 				<div class="empty-state">
 					<p>{m.queue_no_tracks()}</p>
@@ -176,15 +171,15 @@
 					</li>
 				{/each}
 			</ul>
-		{:else if playHistory.length > 0 && searchQuery}
-			<div class="empty-state">
-				<p>{m.queue_no_history()}</p>
-				<p><small>{m.search_no_results()} "{searchQuery}"</small></p>
-			</div>
-		{:else}
+		{:else if playHistory.length === 0}
 			<div class="empty-state">
 				<p>{m.queue_no_play_history()}</p>
 				<p><small>{m.queue_history_hint()}</small></p>
+			</div>
+		{:else}
+			<div class="empty-state">
+				<p>{m.queue_no_history()}</p>
+				<p><small>{m.search_no_results()} "{searchQuery}"</small></p>
 			</div>
 		{/if}
 	</main>

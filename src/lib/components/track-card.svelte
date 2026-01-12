@@ -34,19 +34,10 @@
 
 	const click = (event: MouseEvent) => {
 		const target = event.target as HTMLElement
-		const currentTarget = event.currentTarget as HTMLElement
-
-		// Only handle clicks within the link itself (excludes sibling PopoverMenu)
-		if (!currentTarget.contains(target)) return
-
-		// Let time element clicks through (they have their own behavior)
+		// Let time element and hashtag/mention links navigate normally
 		if (target.closest('time')) return
-
-		// Let hashtag/mention links through
 		if (target instanceof HTMLAnchorElement && target.href.includes('search=')) return
-
 		event.preventDefault()
-		//playTrack(track.id, '', 'user_click_track')
 	}
 	const doubleClick = () => playTrack(track.id, null, 'user_click_track')
 

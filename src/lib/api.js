@@ -136,36 +136,29 @@ export async function playChannel({id, slug}, index = 0) {
 }
 
 /** @param {string[]} trackIds */
-export async function setPlaylist(trackIds) {
+export function setPlaylist(trackIds) {
 	appState.playlist_tracks = trackIds
 	appState.playlist_tracks_shuffled = shuffleArray(trackIds)
 }
 
 /** @param {string[]} trackIds */
-export async function addToPlaylist(trackIds) {
+export function addToPlaylist(trackIds) {
 	const currentTracks = appState.playlist_tracks || []
 	appState.playlist_tracks = [...currentTracks, ...trackIds]
 
-	// If shuffle is on, regenerate the shuffled playlist
 	if (appState.shuffle) {
 		appState.playlist_tracks_shuffled = shuffleArray(appState.playlist_tracks)
 	}
 }
 
-export async function toggleTheme() {
-	const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light'
-	const newTheme = currentTheme === 'light' ? 'dark' : 'light'
-	if (newTheme === 'dark') {
-		document.documentElement.classList.remove('light')
-		document.documentElement.classList.add('dark')
-	} else {
-		document.documentElement.classList.remove('dark')
-		document.documentElement.classList.add('light')
-	}
-	appState.theme = newTheme
+export function toggleTheme() {
+	const isDark = document.documentElement.classList.contains('dark')
+	document.documentElement.classList.toggle('dark', !isDark)
+	document.documentElement.classList.toggle('light', isDark)
+	appState.theme = isDark ? 'light' : 'dark'
 }
 
-export async function toggleQueuePanel() {
+export function toggleQueuePanel() {
 	appState.queue_panel_visible = !appState.queue_panel_visible
 }
 
@@ -175,13 +168,10 @@ export function togglePlayerExpanded() {
 }
 
 export function openSearch() {
-	//goto('/search').then(() => {
-	// Focus the search input after navigation
 	setTimeout(() => {
 		const searchInput = document.querySelector('header input[type="search"]')
 		if (searchInput instanceof HTMLInputElement) searchInput.focus()
 	}, 0)
-	//})
 }
 
 export function togglePlayPause() {
