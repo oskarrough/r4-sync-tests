@@ -7,7 +7,7 @@ import {extractYouTubeId} from '$lib/utils'
 import {queryClient} from './query-client'
 import {channelsCollection, type Channel} from './channels'
 import {trackMetaCollection, type TrackMeta} from './track-meta'
-import {log, txLog, completedIdempotencyKeys, getErrorMessage} from './utils'
+import {log, txLog, getErrorMessage} from './utils'
 import {getOfflineExecutor} from './offline-executor'
 import type {Track} from '$lib/types'
 
@@ -123,11 +123,6 @@ export const tracksAPI = {
 		transaction: {mutations: Array<PendingMutation>; metadata?: Record<string, unknown>}
 		idempotencyKey: string
 	}) {
-		if (completedIdempotencyKeys.has(idempotencyKey)) {
-			txLog.info('tracks skip duplicate', {key: idempotencyKey.slice(0, 8)})
-			return
-		}
-
 		const slug = transaction.metadata?.slug as string
 		for (const mutation of transaction.mutations) {
 			txLog.info('tracks', {type: mutation.type, slug, key: idempotencyKey.slice(0, 8)})
@@ -138,8 +133,6 @@ export const tracksAPI = {
 				txLog.warn('tracks unhandled type', {type: mutation.type})
 			}
 		}
-		// Mark as completed only after all mutations succeeded
-		completedIdempotencyKeys.add(idempotencyKey)
 		log.info('tx_complete', {idempotencyKey: idempotencyKey.slice(0, 8), slug})
 
 		// Invalidate to sync state after all mutations

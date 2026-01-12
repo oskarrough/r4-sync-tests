@@ -4,7 +4,7 @@ import {NonRetriableError} from '@tanstack/offline-transactions'
 import {sdk} from '@radio4000/sdk'
 import {appState} from '$lib/app-state.svelte'
 import type {PendingMutation} from '@tanstack/db'
-import {log, txLog, completedIdempotencyKeys, getErrorMessage} from './utils'
+import {log, txLog, getErrorMessage} from './utils'
 import {getOfflineExecutor} from './offline-executor'
 
 // Follows collection - local-first with offline sync to r4
@@ -60,11 +60,6 @@ export const followsAPI = {
 		transaction: {mutations: Array<PendingMutation>; metadata?: Record<string, unknown>}
 		idempotencyKey: string
 	}) {
-		if (completedIdempotencyKeys.has(idempotencyKey)) {
-			txLog.debug('follows skip duplicate', {key: idempotencyKey.slice(0, 8)})
-			return
-		}
-
 		for (const mutation of transaction.mutations) {
 			txLog.info('follows', {type: mutation.type, key: idempotencyKey.slice(0, 8)})
 			const handler = followsMutationHandlers[mutation.type]
@@ -74,7 +69,6 @@ export const followsAPI = {
 				txLog.warn('follows unhandled type', {type: mutation.type})
 			}
 		}
-		completedIdempotencyKeys.add(idempotencyKey)
 		log.info('follows_tx_complete', {idempotencyKey: idempotencyKey.slice(0, 8)})
 	}
 }

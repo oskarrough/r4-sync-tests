@@ -69,7 +69,7 @@ export function useLiveQuery(configOrQueryOrCollection, deps = []) {
 
 	const state = new SvelteMap()
 	let internalData = $state([])
-	let status = $state(`disabled`)
+	let status = $state(collection ? collection.status : `disabled`)
 
 	const syncDataFromCollection = (currentCollection) => {
 		untrack(() => {
@@ -116,9 +116,9 @@ export function useLiveQuery(configOrQueryOrCollection, deps = []) {
 		})
 
 		const subscription = currentCollection.subscribeChanges(
-			async (changes) => {
+			(changes) => {
 				// Wait for current render to complete before mutating state
-				await tick()
+				// await tick()  // Commented out to test if still needed after deps update
 
 				untrack(() => {
 					for (const change of changes) {

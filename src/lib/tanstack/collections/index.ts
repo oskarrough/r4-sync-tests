@@ -2,7 +2,7 @@
 
 // Shared utilities
 export {queryClient} from './query-client'
-export {log, txLog, offlineLog, completedIdempotencyKeys, getErrorMessage} from './utils'
+export {log, txLog, offlineLog, getErrorMessage} from './utils'
 
 // Local-only collections (localStorage)
 export {trackMetaCollection, deleteTrackMeta, type TrackMeta} from './track-meta'
