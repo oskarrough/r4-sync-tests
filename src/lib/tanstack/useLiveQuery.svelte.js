@@ -69,7 +69,7 @@ export function useLiveQuery(configOrQueryOrCollection, deps = []) {
 
 	const state = new SvelteMap()
 	let internalData = $state([])
-	let status = $state(`disabled`)
+	let status = $state(collection ? collection.status : `disabled`)
 
 	const syncDataFromCollection = (currentCollection) => {
 		untrack(() => {
@@ -96,6 +96,7 @@ export function useLiveQuery(configOrQueryOrCollection, deps = []) {
 			return
 		}
 
+		log.debug('effect run', {collectionStatus: currentCollection.status, collectionId: currentCollection.id})
 		status = currentCollection.status
 
 		if (currentUnsubscribe) {
@@ -116,9 +117,9 @@ export function useLiveQuery(configOrQueryOrCollection, deps = []) {
 		})
 
 		const subscription = currentCollection.subscribeChanges(
-			async (changes) => {
+			(changes) => {
 				// Wait for current render to complete before mutating state
-				await tick()
+				// await tick()  // Commented out to test if still needed after deps update
 
 				untrack(() => {
 					for (const change of changes) {
@@ -144,8 +145,17 @@ export function useLiveQuery(configOrQueryOrCollection, deps = []) {
 
 		currentUnsubscribe = subscription.unsubscribe.bind(subscription)
 
-		if (currentCollection.status === `idle`) {
-			currentCollection.preload().catch((err) => log.error('preload failed', err))
+		if (currentCollection.status === `idle` || currentCollection.status === `loading`) {
+			log.debug('calling preload', {
+				status: currentCollection.status,
+				id: currentCollection.id,
+				config: currentCollection.config,
+				isLoadingSubset: currentCollection.isLoadingSubset
+			})
+			currentCollection
+				.preload()
+				.then(() => log.debug('preload resolved', {status: currentCollection.status, id: currentCollection.id}))
+				.catch((err) => log.error('preload failed', err))
 		}
 
 		return () => {
@@ -161,6 +171,13 @@ export function useLiveQuery(configOrQueryOrCollection, deps = []) {
 			return state
 		},
 		get data() {
+			const currentCollection = collection
+			if (currentCollection) {
+				const config = currentCollection.config
+				if (config.singleResult) {
+					return internalData[0]
+				}
+			}
 			return internalData
 		},
 		get collection() {

@@ -6,7 +6,7 @@ import {appState} from '$lib/app-state.svelte'
 import type {PendingMutation} from '@tanstack/db'
 import {fetchAllChannels, fetchChannelBySlug} from '$lib/api/fetch-channels'
 import {queryClient} from './query-client'
-import {log, txLog, completedIdempotencyKeys, getErrorMessage} from './utils'
+import {log, txLog, getErrorMessage} from './utils'
 import {getOfflineExecutor} from './offline-executor'
 import type {Channel} from '$lib/types'
 
@@ -105,11 +105,6 @@ export const channelsAPI = {
 		transaction: {mutations: Array<PendingMutation>; metadata?: Record<string, unknown>}
 		idempotencyKey: string
 	}) {
-		if (completedIdempotencyKeys.has(idempotencyKey)) {
-			txLog.debug('channels skip duplicate', {key: idempotencyKey.slice(0, 8)})
-			return
-		}
-
 		for (const mutation of transaction.mutations) {
 			txLog.info('channels', {type: mutation.type, key: idempotencyKey.slice(0, 8)})
 			const handler = channelMutationHandlers[mutation.type]
@@ -119,7 +114,6 @@ export const channelsAPI = {
 				txLog.warn('channels unhandled type', {type: mutation.type})
 			}
 		}
-		completedIdempotencyKeys.add(idempotencyKey)
 		log.info('channel_tx_complete', {idempotencyKey: idempotencyKey.slice(0, 8)})
 
 		await queryClient.invalidateQueries({queryKey: ['channels']})

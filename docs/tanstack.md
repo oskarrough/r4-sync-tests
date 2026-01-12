@@ -263,7 +263,8 @@ src/lib/tanstack/
 │   ├── play-history.ts    - playHistoryCollection (localStorage)
 │   ├── offline-executor.ts
 │   └── utils.ts
-├── persistence.ts         - query cache → IndexedDB
+├── query-cache-persistence.ts  - query cache → IndexedDB
+├── collection-persistence.ts   - collection state → IndexedDB (interim, see plan-data-flow-bug.md)
 
 src/lib/components/
 └── sync-status.svelte

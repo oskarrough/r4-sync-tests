@@ -9,6 +9,7 @@
 	 * Workaround: Subscribe to queryClient cache to trigger reactivity
 	 * See: https://github.com/TanStack/db/issues/672
 	 */
+	import Menu from '../menu.svelte'
 	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
 	import {channelsCollection, queryClient} from '$lib/tanstack/collections'
 
@@ -30,14 +31,29 @@
 	let isError = $derived.by(() => (void cacheVersion, channelsCollection.utils.isError))
 </script>
 
-<h1>TanStack Error Handling Test</h1>
+<div class="SmallContainer">
+	<Menu />
+	<h1>Error Handling</h1>
 
-<h2>useLiveQuery (doesn't work for errors)</h2>
-query.isError: {query.isError}<br />
+	<p>
+		<code>useLiveQuery.isError</code> doesn't reflect source collection errors. Workaround: subscribe to queryClient
+		cache to trigger reactivity.
+		<a href="https://github.com/TanStack/db/issues/672">Issue #672</a>
+	</p>
 
-<h2>Source collection (not reactive without workaround)</h2>
-channelsCollection.utils.lastError: {channelsCollection.utils.lastError ?? 'null'}<br />
+	<section>
+		<h2>useLiveQuery (broken)</h2>
+		<p>query.isError: {query.isError}</p>
+	</section>
 
-<h2>With cache subscription workaround (reactive)</h2>
-lastError: {lastError?.message ?? 'null'}<br />
-isError: {isError}<br />
+	<section>
+		<h2>Source collection (not reactive)</h2>
+		<p>channelsCollection.utils.lastError: {channelsCollection.utils.lastError ?? 'null'}</p>
+	</section>
+
+	<section>
+		<h2>With cache subscription workaround</h2>
+		<p>lastError: {lastError?.message ?? 'null'}</p>
+		<p>isError: {isError}</p>
+	</section>
+</div>

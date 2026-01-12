@@ -3,7 +3,8 @@ import {validateListeningState} from '$lib/broadcast.js'
 import {logger} from '$lib/logger'
 import {sdk} from '@radio4000/sdk'
 import {queryClient, tracksCollection, channelsCollection, spamDecisionsCollection} from '$lib/tanstack/collections'
-import {cacheReady} from '$lib/tanstack/persistence'
+import {cacheReady} from '$lib/tanstack/query-cache-persistence'
+import {collectionsHydrated} from '$lib/tanstack/collection-persistence'
 import {fetchAllChannels} from '$lib/api/fetch-channels'
 import {appState} from '$lib/app-state.svelte'
 
@@ -14,9 +15,12 @@ const log = logger.ns('layout').seal()
 
 /** @type {import('./$types').LayoutLoad} */
 export async function load() {
-	// Wait for cache restore before component mounts - prevents state_unsafe_mutation
-	// when useLiveQuery subscriptions fire during hydration
-	if (browser) await cacheReady
+	// Hydrate collections from IDB BEFORE cache restore to avoid on-demand sync bug
+	// See plan-data-flow-bug.md for details
+	if (browser) {
+		await collectionsHydrated
+		await cacheReady
+	}
 
 	return {
 		preloading: preload(),
