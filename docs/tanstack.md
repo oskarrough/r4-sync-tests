@@ -279,7 +279,11 @@ src/routes/playground/tanstack/   - test pages
 
 Append `.md` for raw markdown.
 
-- https://tanstack.com/db/latest/docs/overview
-- https://tanstack.com/db/latest/docs/guides/mutations
-- https://tanstack.com/db/latest/docs/collections/query-collection
-- https://tanstack.com/query/latest/docs/framework/react/plugins/persistQueryClient
+- https://tanstack.com/db/latest/docs/overview.md
+- https://tanstack.com/db/latest/docs/guides/mutations.md
+- https://tanstack.com/db/latest/docs/collections/query-collection.md
+- https://tanstack.com/query/latest/docs/framework/react/plugins/persistQueryClient.md
+
+## Tips
+
+LIMIT and OFFSET queries require an ORDER BY clause for deterministic results

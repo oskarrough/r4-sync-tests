@@ -80,17 +80,15 @@ When searching for text or files, prefer using `rg` or `rg --files` respectively
 
 ## Key packages
 
-- @radio4000/sdk - docs/radio4000-sdk.md
-- @radio4000/components - https://github.com/radio4000/components
+- @radio4000/sdk (see @docs/radio4000-sdk.md)
+- @radio4000/components (see https://github.com/radio4000/components)
 
 ## r4 CLI
 
-Separate project for inspecting remote data. Explore the `--help` commands as needed.
+A separate project, can help to debug remote data. Explore `r4 --help` commands as needed.
 
 ## Tanstack notes
 
-- Suffix tanstack documentation urls with `.md` to get raw markdown
-- LIMIT and OFFSET queries require an ORDER BY clause for deterministic results
 - @docs/tanstack.md
 
 ## Writing style (guides, docs, explanations)
@@ -103,4 +101,4 @@ Natural prose over formatting tricks. Never do "**bold**: explanation" syntax. P
 
 Terse and precise. Expand reasoning only when asked. Point out flaws directly: "that breaks because..." not "one consideration might be..."
 
-Dry wit welcome. Channel the sensibility of someone who finds elegance in plain text and thinks most abstractions are premature. Occasional slang fine, sparingly.
+Dry wit welcome. Channel the sensibility of someone who finds elegance in plain text and thinks most abstractions are premature.
