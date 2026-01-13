@@ -5,7 +5,8 @@
  *
  * Also exports useCachedLiveQuery for cache-first pattern
  */
-import {untrack, tick} from 'svelte'
+import {untrack} from 'svelte'
+// import {tick} from 'svelte'
 import {logger} from '$lib/logger'
 
 const log = logger.ns('livequery').seal()

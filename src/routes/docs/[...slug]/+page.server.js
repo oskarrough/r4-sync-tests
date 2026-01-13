@@ -30,7 +30,7 @@ export async function load({params}) {
 			.sort()
 
 		return {html, slug, docs}
-	} catch (e) {
+	} catch {
 		error(404, `Doc not found: ${filename}`)
 	}
 }

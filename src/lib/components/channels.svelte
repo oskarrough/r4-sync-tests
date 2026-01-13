@@ -139,32 +139,86 @@
 <div class={`layout layout--${display}`}>
 	<menu class="filtermenu">
 		<PopoverMenu id="channels-filter">
-			{#snippet trigger()}<button {@attach tooltip({content: m.channels_filter_label()})}><Icon icon="filter-alt" size="20" /> {filterLabelMap[filter]()}</button>{/snippet}
-			<button class:active={filter === 'all'} onclick={() => setFilter('all')} {@attach tooltip({content: m.channels_filter_tooltip_all(), position: 'right'})}>{m.channels_filter_option_all()}</button>
-			<button class:active={filter === '10+'} onclick={() => setFilter('10+')} {@attach tooltip({content: m.channels_filter_tooltip_10(), position: 'right'})}>{m.channels_filter_option_10()}</button>
-			<button class:active={filter === '100+'} onclick={() => setFilter('100+')} {@attach tooltip({content: m.channels_filter_tooltip_100(), position: 'right'})}>{m.channels_filter_option_100()}</button>
-			<button class:active={filter === '1000+'} onclick={() => setFilter('1000+')} {@attach tooltip({content: m.channels_filter_tooltip_1000(), position: 'right'})}>{m.channels_filter_option_1000()}</button>
-			<button class:active={filter === 'artwork'} onclick={() => setFilter('artwork')} {@attach tooltip({content: m.channels_filter_tooltip_artwork(), position: 'right'})}>{m.channels_filter_option_artwork()}</button>
-			<button class:active={filter === 'v1'} onclick={() => setFilter('v1')} {@attach tooltip({content: m.channels_filter_tooltip_v1(), position: 'right'})}>{m.channels_filter_option_v1()}</button>
-			<button class:active={filter === 'v2'} onclick={() => setFilter('v2')} {@attach tooltip({content: m.channels_filter_tooltip_v2(), position: 'right'})}>{m.channels_filter_option_v2()}</button>
+			{#snippet trigger()}<button {@attach tooltip({content: m.channels_filter_label()})}
+					><Icon icon="filter-alt" size="20" /> {filterLabelMap[filter]()}</button
+				>{/snippet}
+			<button
+				class:active={filter === 'all'}
+				onclick={() => setFilter('all')}
+				{@attach tooltip({content: m.channels_filter_tooltip_all(), position: 'right'})}
+				>{m.channels_filter_option_all()}</button
+			>
+			<button
+				class:active={filter === '10+'}
+				onclick={() => setFilter('10+')}
+				{@attach tooltip({content: m.channels_filter_tooltip_10(), position: 'right'})}
+				>{m.channels_filter_option_10()}</button
+			>
+			<button
+				class:active={filter === '100+'}
+				onclick={() => setFilter('100+')}
+				{@attach tooltip({content: m.channels_filter_tooltip_100(), position: 'right'})}
+				>{m.channels_filter_option_100()}</button
+			>
+			<button
+				class:active={filter === '1000+'}
+				onclick={() => setFilter('1000+')}
+				{@attach tooltip({content: m.channels_filter_tooltip_1000(), position: 'right'})}
+				>{m.channels_filter_option_1000()}</button
+			>
+			<button
+				class:active={filter === 'artwork'}
+				onclick={() => setFilter('artwork')}
+				{@attach tooltip({content: m.channels_filter_tooltip_artwork(), position: 'right'})}
+				>{m.channels_filter_option_artwork()}</button
+			>
+			<button
+				class:active={filter === 'v1'}
+				onclick={() => setFilter('v1')}
+				{@attach tooltip({content: m.channels_filter_tooltip_v1(), position: 'right'})}
+				>{m.channels_filter_option_v1()}</button
+			>
+			<button
+				class:active={filter === 'v2'}
+				onclick={() => setFilter('v2')}
+				{@attach tooltip({content: m.channels_filter_tooltip_v2(), position: 'right'})}
+				>{m.channels_filter_option_v2()}</button
+			>
 		</PopoverMenu>
 
 		<PopoverMenu id="channels-display" closeOnClick={false} style="margin-left: auto;">
-			{#snippet trigger()}<button {@attach tooltip({content: m.channels_view_mode({mode: viewLabelMap[display]()})})}><Icon icon="grid" size="20" /> {viewLabelMap[display]()}</button>{/snippet}
+			{#snippet trigger()}<button {@attach tooltip({content: m.channels_view_mode({mode: viewLabelMap[display]()})})}
+					><Icon icon="grid" size="20" /> {viewLabelMap[display]()}</button
+				>{/snippet}
 			<div class="view-modes">
-				<button class:active={display === 'grid'} onclick={() => setDisplay('grid')} {@attach tooltip({content: m.channels_tooltip_grid()})}
+				<button
+					class:active={display === 'grid'}
+					onclick={() => setDisplay('grid')}
+					{@attach tooltip({content: m.channels_tooltip_grid()})}
 					><Icon icon="grid" size="20" /><small>{m.channels_view_label_grid()}</small></button
 				>
-				<button class:active={display === 'list'} onclick={() => setDisplay('list')} {@attach tooltip({content: m.channels_tooltip_list()})}
+				<button
+					class:active={display === 'list'}
+					onclick={() => setDisplay('list')}
+					{@attach tooltip({content: m.channels_tooltip_list()})}
 					><Icon icon="unordered-list" size="20" /><small>{m.channels_view_label_list()}</small></button
 				>
-				<button class:active={display === 'map'} onclick={() => setDisplay('map')} {@attach tooltip({content: m.channels_tooltip_map()})}
+				<button
+					class:active={display === 'map'}
+					onclick={() => setDisplay('map')}
+					{@attach tooltip({content: m.channels_tooltip_map()})}
 					><Icon icon="map" size="20" /><small>{m.channels_view_label_map()}</small></button
 				>
-				<button class:active={display === 'tuner'} onclick={() => setDisplay('tuner')} {@attach tooltip({content: m.channels_tooltip_tuner()})}
+				<button
+					class:active={display === 'tuner'}
+					onclick={() => setDisplay('tuner')}
+					{@attach tooltip({content: m.channels_tooltip_tuner()})}
 					><Icon icon="radio" size="20" /><small>{m.channels_view_label_tuner()}</small></button
 				>
-				<button class:active={display === 'infinite'} onclick={() => setDisplay('infinite')} {@attach tooltip({content: m.channels_tooltip_infinite()})}
+				<button
+					class:active={display === 'infinite'}
+					onclick={() => setDisplay('infinite')}
+					{@attach tooltip({content: m.channels_tooltip_infinite()})}
 					><Icon icon="infinite" size="20" /><small>{m.channels_view_label_infinite()}</small></button
 				>
 			</div>
@@ -175,10 +229,19 @@
 					<option value="name">{m.channels_order_name()}</option>
 					<option value="tracks">{m.channels_order_tracks()}</option>
 				</select>
-				<button onclick={toggleOrderDirection} {@attach tooltip({content: orderDirection === 'asc' ? m.channels_tooltip_sort_asc() : m.channels_tooltip_sort_desc()})}>
+				<button
+					onclick={toggleOrderDirection}
+					{@attach tooltip({
+						content: orderDirection === 'asc' ? m.channels_tooltip_sort_asc() : m.channels_tooltip_sort_desc()
+					})}
+				>
 					<Icon icon={orderDirection === 'asc' ? 'arrow-up' : 'arrow-down'} size="20" />
 				</button>
-				<button class:active={appState.channels_shuffled} onclick={toggleShuffle} {@attach tooltip({content: m.channels_tooltip_shuffle()})}>
+				<button
+					class:active={appState.channels_shuffled}
+					onclick={toggleShuffle}
+					{@attach tooltip({content: m.channels_tooltip_shuffle()})}
+				>
 					<Icon icon="shuffle" size="20" />
 				</button>
 			</div>

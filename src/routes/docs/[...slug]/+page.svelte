@@ -8,11 +8,12 @@
 
 <nav>
 	<a href="/docs">index</a>
-	{#each data.docs.filter((d) => d !== 'index') as doc}
+	{#each data.docs.filter((d) => d !== 'index') as doc (doc)}
 		<a href="/docs/{doc}">{doc}</a>
 	{/each}
 </nav>
 
+<!-- eslint-disable svelte/no-at-html-tags -->
 <article>
 	{@html data.html}
 </article>

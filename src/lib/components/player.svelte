@@ -210,19 +210,33 @@
 </div>
 
 {#snippet btnPrev()}
-	<button onclick={() => previous(track, activeQueue, 'user_prev')} class="prev" {@attach tooltip({content: m.player_tooltip_prev()})}>
+	<button
+		onclick={() => previous(track, activeQueue, 'user_prev')}
+		class="prev"
+		{@attach tooltip({content: m.player_tooltip_prev()})}
+	>
 		<Icon icon="previous-fill" />
 	</button>
 {/snippet}
 
 {#snippet btnNext()}
-	<button onclick={() => next(track, activeQueue, 'user_next')} disabled={!canPlay} class="next" {@attach tooltip({content: m.player_tooltip_next()})}>
+	<button
+		onclick={() => next(track, activeQueue, 'user_next')}
+		disabled={!canPlay}
+		class="next"
+		{@attach tooltip({content: m.player_tooltip_next()})}
+	>
 		<Icon icon="next-fill" />
 	</button>
 {/snippet}
 
 {#snippet btnPlay()}
-	<button onclick={() => togglePlay(mediaElement)} disabled={!canPlay} class="play" {@attach tooltip({content: appState.is_playing ? m.player_tooltip_pause() : m.player_tooltip_play()})}>
+	<button
+		onclick={() => togglePlay(mediaElement)}
+		disabled={!canPlay}
+		class="play"
+		{@attach tooltip({content: appState.is_playing ? m.player_tooltip_pause() : m.player_tooltip_play()})}
+	>
 		<Icon icon={appState.is_playing ? 'pause' : 'play-fill'} />
 	</button>
 {/snippet}

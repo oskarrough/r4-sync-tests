@@ -18,7 +18,7 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 - improve broadcast feature
 - rethink channel date display: replace "341 days ago" with value-neutral presentation. Old channels aren't stale - they're archives, curated collections. Consider: just showing the year ("2019"), hiding time entirely and only surfacing recency in discovery contexts ("new this week" in feeds), or seasonal labels. The date is provenance, not a freshness indicator. Some of the best mixtapes are old.
 
-## Questionable backlog 
+## Questionable backlog
 
 - allow users to mark a musicbrainz or discogs meta track data as wrong. Since we auto-match on the track title, there's a relatively high chance it's wrong. If it's wrong, users can delete the meta data for that track. But then it'd just match it again on reload. How do we deal with this, do we spend effort on this?
 - local file player for mp3/m4a uploads
