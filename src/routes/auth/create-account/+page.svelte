@@ -1,12 +1,10 @@
 <script>
+	import {page} from '$app/state'
 	import * as m from '$lib/paraglide/messages'
 	import AuthSignup from '$lib/components/auth-signup.svelte'
+	import IconR4 from '$lib/icon-r4.svelte'
 
-	let didSignUp = $state(false)
-
-	function handleSuccess() {
-		didSignUp = true
-	}
+	const redirect = $derived(page.url.searchParams.get('redirect') || '/settings')
 </script>
 
 <svelte:head>
@@ -14,25 +12,17 @@
 </svelte:head>
 
 <article class="MiniContainer">
-	{#if didSignUp}
-		<h1>{m.auth_welcome_almost_done()}</h1>
-		<p>{m.auth_check_email()}</p>
-		<p>{m.auth_click_link()}</p>
-	{:else}
-		<h1>{m.auth_create_account_title()}</h1>
-		<AuthSignup onSuccess={handleSuccess} />
-		<footer>
-			<p>{m.auth_already_have_account_intro()} <a href="/auth/login">{m.auth_card_login_title()}</a></p>
-			<p>
-				<small>
-					{m.auth_reset_help_intro()}
-					<a href="https://matrix.to/#/#radio4000:matrix.org" target="_blank" rel="noopener">Matrix</a>
-					{m.common_or()}
-					<a href="mailto:contact@radio4000.com">contact@radio4000.com</a>.
-				</small>
-			</p>
-		</footer>
-	{/if}
+	<figure class="logo">
+		<IconR4 />
+	</figure>
+
+	<h1>{m.auth_create_account_title()}</h1>
+
+	<AuthSignup {redirect} />
+
+	<footer>
+		<p>{m.auth_already_have_account_intro()} <a href="/auth/login">{m.auth_card_login_title()}</a></p>
+	</footer>
 </article>
 
 <style>
@@ -40,8 +30,18 @@
 		margin-top: 0.5rem;
 	}
 
+	.logo {
+		display: block;
+		text-align: center;
+		margin: 5vh 0 3vh;
+		:global(svg) {
+			width: 4rem;
+			height: auto;
+		}
+	}
+
 	h1 {
-		margin: 3vh auto;
+		margin: 0 auto 2rem;
 		font-size: var(--font-7);
 		text-align: center;
 	}
@@ -49,5 +49,6 @@
 	footer {
 		margin-top: 3rem;
 		text-align: center;
+		color: var(--gray-9);
 	}
 </style>

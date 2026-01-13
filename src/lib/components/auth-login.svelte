@@ -1,51 +1,103 @@
 <script>
 	import {sdk} from '@radio4000/sdk'
 	import AuthProviders from './auth-providers.svelte'
+	import * as m from '$lib/paraglide/messages'
 
 	let {onSuccess, redirect = '/settings'} = $props()
 
-	let showEmailForm = $state(false)
+	let step = $state('providers') // 'providers' | 'email' | 'password' | 'linkSent'
+	let email = $state('')
+	let password = $state('')
 	let error = $state(null)
 	let loading = $state(false)
 
-	async function handleSubmit(event) {
-		event.preventDefault()
-		error = null
+	async function sendMagicLink() {
 		loading = true
+		error = null
+		const {error: authError} = await sdk.supabase.auth.signInWithOtp({
+			email,
+			options: {
+				emailRedirectTo: window.location.origin + redirect
+			}
+		})
+		loading = false
+		if (authError) {
+			error = authError.message
+		} else {
+			step = 'linkSent'
+		}
+	}
 
-		const formData = new FormData(event.target)
-		const email = formData.get('email')
-		const password = formData.get('password')
-
+	async function signInWithPassword() {
+		loading = true
+		error = null
 		const {data, error: authError} = await sdk.auth.signIn({email, password})
 		loading = false
-
 		if (authError) {
 			error = authError.message
 		} else if (data?.user) {
 			onSuccess?.(data.user)
 		}
 	}
+
+	function handleEmailContinue() {
+		step = 'email'
+	}
 </script>
 
-{#if showEmailForm}
-	<form onsubmit={handleSubmit}>
+{#if step === 'linkSent'}
+	<section>
+		<h2>{m.auth_check_email()}</h2>
+		<p>{m.auth_magic_link_sent({email})}</p>
+		<menu>
+			<button type="button" onclick={() => sendMagicLink()} disabled={loading}>
+				{loading ? m.common_sending() : m.auth_resend()}
+			</button>
+			<button type="button" onclick={() => (step = 'email')}>{m.auth_use_different_email()}</button>
+		</menu>
+	</section>
+{:else if step === 'password'}
+	<form
+		onsubmit={(e) => {
+			e.preventDefault()
+			signInWithPassword()
+		}}
+	>
+		<p>{email}</p>
 		<label>
-			Email
-			<input type="email" name="email" required autocomplete="email" />
-		</label>
-		<label>
-			Password
-			<input type="password" name="password" required autocomplete="current-password" />
+			{m.auth_password()}
+			<input type="password" bind:value={password} required autocomplete="current-password" />
 		</label>
 		{#if error}
 			<p role="alert">{error}</p>
 		{/if}
-		<button type="submit" disabled={loading}>{loading ? 'Logging in...' : 'Log in'}</button>
+		<button type="submit" class="primary" disabled={loading}>
+			{loading ? m.auth_logging_in() : m.auth_log_in()}
+		</button>
 	</form>
-	<p><button type="button" onclick={() => (showEmailForm = false)}>Back</button></p>
+	<button type="button" onclick={() => (step = 'email')}>{m.auth_use_magic_link()}</button>
+{:else if step === 'email'}
+	<form
+		onsubmit={(e) => {
+			e.preventDefault()
+			sendMagicLink()
+		}}
+	>
+		<label>
+			{m.auth_email()}
+			<input type="email" bind:value={email} required autocomplete="email" />
+		</label>
+		{#if error}
+			<p role="alert">{error}</p>
+		{/if}
+		<button type="submit" class="primary" disabled={loading}>
+			{loading ? m.common_sending() : m.auth_continue_with_email()}
+		</button>
+	</form>
+	<button type="button" onclick={() => (step = 'password')}>{m.auth_have_password()}</button>
+	<button type="button" onclick={() => (step = 'providers')}>{m.common_back()}</button>
 {:else}
-	<AuthProviders onEmailClick={() => (showEmailForm = true)} {redirect} />
+	<AuthProviders onEmailClick={handleEmailContinue} {redirect} />
 {/if}
 
 <style>
@@ -59,5 +111,16 @@
 	}
 	label {
 		gap: 0.2rem;
+	}
+	menu {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+	section {
+		text-align: center;
+	}
+	h2 {
+		font-size: var(--font-7);
 	}
 </style>

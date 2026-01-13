@@ -145,3 +145,9 @@ dl.meta {
 	overflow: hidden;
 	background: var(--gray-2);
 }
+
+.center-page {
+	display: grid;
+	place-items: center;
+	min-height: 80dvh;
+}
