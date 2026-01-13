@@ -1,11 +1,19 @@
 import {readFile, readdir} from 'node:fs/promises'
+
+export const prerender = true
+
+export async function entries() {
+	const files = await readdir('docs')
+	return files.filter((f) => f.endsWith('.md')).map((f) => ({slug: f.replace('.md', '')}))
+}
+
 import {Marked} from 'marked'
 import {error} from '@sveltejs/kit'
 
 const renderer = {
 	link({href, title, text}) {
 		if (href?.endsWith('.md')) {
-			href = '/docs/' + href.replace('.md', '')
+			href = `/docs/${href.replace('.md', '')}`
 		}
 		const titleAttr = title ? ` title="${title}"` : ''
 		return `<a href="${href}"${titleAttr}>${text}</a>`
