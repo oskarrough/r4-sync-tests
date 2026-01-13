@@ -210,19 +210,19 @@
 </div>
 
 {#snippet btnPrev()}
-	<button onclick={() => previous(track, activeQueue, 'user_prev')} class="prev">
+	<button onclick={() => previous(track, activeQueue, 'user_prev')} class="prev" {@attach tooltip({content: m.player_tooltip_prev()})}>
 		<Icon icon="previous-fill" />
 	</button>
 {/snippet}
 
 {#snippet btnNext()}
-	<button onclick={() => next(track, activeQueue, 'user_next')} disabled={!canPlay} class="next">
+	<button onclick={() => next(track, activeQueue, 'user_next')} disabled={!canPlay} class="next" {@attach tooltip({content: m.player_tooltip_next()})}>
 		<Icon icon="next-fill" />
 	</button>
 {/snippet}
 
 {#snippet btnPlay()}
-	<button onclick={() => togglePlay(mediaElement)} disabled={!canPlay} class="play">
+	<button onclick={() => togglePlay(mediaElement)} disabled={!canPlay} class="play" {@attach tooltip({content: appState.is_playing ? m.player_tooltip_pause() : m.player_tooltip_play()})}>
 		<Icon icon={appState.is_playing ? 'pause' : 'play-fill'} />
 	</button>
 {/snippet}
@@ -235,6 +235,7 @@
 			toggleShuffle()
 		}}
 		class={['shuffle', {active: appState.shuffle}]}
+		{@attach tooltip({content: m.player_tooltip_shuffle()})}
 	>
 		<Icon icon="shuffle" />
 	</button>
@@ -250,7 +251,7 @@
 	<button
 		onclick={toggleQueuePanel}
 		class:active={appState.queue_panel_visible}
-		{@attach tooltip({content: m.button_queue()})}
+		{@attach tooltip({content: m.player_tooltip_queue()})}
 	>
 		<Icon icon="sidebar-fill-right" size={20} />
 	</button>
@@ -260,10 +261,9 @@
 	<button
 		onclick={() => togglePlayerExpanded()}
 		class="expand"
-		{@attach tooltip({content: 'Toggle expanded player', position: 'top'})}
+		{@attach tooltip({content: m.player_tooltip_expand(), position: 'top'})}
 	>
 		<Icon icon="fullscreen" />
-		<!-- <Icon icon="video" /> -->
 	</button>
 {/snippet}
 
