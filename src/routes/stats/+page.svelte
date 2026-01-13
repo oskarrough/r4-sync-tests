@@ -38,14 +38,16 @@
 	/** @type {{usage?: number, quota?: number} | null} */
 	let storageEstimate = $state(null)
 	$effect(() => {
-		navigator.storage?.estimate?.().then((est) => (storageEstimate = est))
+		navigator.storage?.estimate?.().then((est) => {
+			storageEstimate = est
+		})
 	})
 
 	/** @param {number} bytes */
 	function formatBytes(bytes) {
-		if (bytes < 1024) return bytes + ' B'
-		if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
-		return (bytes / 1024 / 1024).toFixed(1) + ' MB'
+		if (bytes < 1024) return `${bytes} B`
+		if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+		return `${(bytes / 1024 / 1024).toFixed(1)} MB`
 	}
 
 	// Build lookup maps

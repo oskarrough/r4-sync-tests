@@ -69,6 +69,15 @@
 		}
 	}
 
+	h3 {
+		font-weight: normal;
+	}
+	h3,
+	p {
+		margin: 0;
+		line-height: 1.2;
+	}
+
 	article > a:hover h3 {
 		color: var(--accent-9);
 		text-decoration-line: underline;
@@ -91,15 +100,6 @@
 		border-radius: var(--border-radius);
 		/* for channels with no image */
 		min-height: 2rem;
-	}
-
-	h3 {
-		font-weight: normal;
-	}
-	h3,
-	p {
-		margin: 0;
-		line-height: 1.2;
 	}
 	h3 + p {
 		color: var(--gray-10);

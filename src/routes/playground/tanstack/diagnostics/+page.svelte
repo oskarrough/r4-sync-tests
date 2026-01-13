@@ -68,7 +68,9 @@
 
 	let persistenceReady = $state(false)
 	$effect(() => {
-		cacheReady.then(() => (persistenceReady = true))
+		cacheReady.then(() => {
+			persistenceReady = true
+		})
 	})
 
 	async function invalidateAll() {

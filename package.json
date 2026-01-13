@@ -7,6 +7,7 @@
 		"build": "vite build",
 		"preview": "vite preview",
 		"format": "prettier --write . --log-level=warn",
+		"biome": "biome check --write .",
 		"lint": "eslint .",
 		"check": "bun run format && bun run lint",
 		"types": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
