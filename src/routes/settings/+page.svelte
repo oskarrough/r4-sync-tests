@@ -51,7 +51,10 @@
 			margin-bottom: 1rem;
 		}
 	}
+	menu:first-of-type {
+		margin-top: 1rem;
+	}
 	menu {
-		margin: 0 0 0.5rem;
+		margin: 0 0 1rem;
 	}
 </style>

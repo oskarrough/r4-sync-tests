@@ -21,15 +21,12 @@
 	<title>{m.auth_page_title()}</title>
 </svelte:head>
 
-<article class="SmallContainer">
+<article class="SmallContainer center-page">
 	<figure class="logo">
 		<IconR4 />
 	</figure>
 
 	{#if appState.user}
-		<p>{m.auth_signed_in_as({email: appState.user.email})}</p>
-		<p><button type="button" onclick={() => sdk.auth.signOut()}>{m.auth_log_out()}</button></p>
-
 		{#if userChannelsQuery.isLoading}
 			<p>{m.auth_loading_channels()}</p>
 		{:else if userChannelsQuery.isError}
@@ -50,9 +47,12 @@
 				{/each}
 			</div>
 		{:else}
-			<br />
 			<p><a href="/create-channel">{m.auth_create_radio_cta()}</a></p>
 		{/if}
+		<br/>
+		<p><small>{m.auth_signed_in_as({email: appState.user.email})}</small></p>
+		<p><button type="button" onclick={() => sdk.auth.signOut()}>{m.auth_log_out()}</button></p>
+
 	{:else}
 		<menu class="options">
 			<a href="/auth/create-account{redirectParam}">

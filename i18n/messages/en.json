@@ -27,7 +27,7 @@
 	"app_loading": "Preparing R5…",
 	"app_name": "R5",
 	"auth_loading_channels": "Loading your channels...",
-	"auth_create_radio_cta": "Let's create your radio channel.",
+	"auth_create_radio_cta": "Create your radio channel",
 	"auth_error_loading_channels": "Error loading channels: {message}",
 	"auth_page_title": "Auth - R5",
 	"auth_login_page_title": "Sign in - R5",
