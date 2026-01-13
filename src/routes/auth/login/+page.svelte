@@ -2,21 +2,12 @@
 	import {goto} from '$app/navigation'
 	import {page} from '$app/state'
 	import * as m from '$lib/paraglide/messages'
-	import {logger} from '$lib/logger'
+	import AuthLogin from '$lib/components/auth-login.svelte'
 
-	const log = logger.ns('auth').seal()
+	const redirect = $derived(page.url.searchParams.get('redirect') || '/settings')
 
-	function onSubmit(event) {
-		const error = event.detail.error
-		const user = event.detail.data.user
-		if (error) throw new Error(error)
-		if (user) {
-			const redirect = page.url.searchParams.get('redirect') || '/settings'
-			goto(redirect)
-		} else {
-			log.error('signin failed', {user, error})
-			throw new Error('Failed to sign in')
-		}
+	function handleSuccess() {
+		goto(redirect)
 	}
 </script>
 
@@ -26,7 +17,7 @@
 
 <article class="MiniContainer">
 	<h1>{m.auth_login_title()}</h1>
-	<r4-sign-in onsubmit={onSubmit}></r4-sign-in>
+	<AuthLogin onSuccess={handleSuccess} {redirect} />
 
 	<footer>
 		<p>{m.auth_new_to_r4_intro()} <a href="/auth/create-account">{m.auth_card_create_title()}</a></p>

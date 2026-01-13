@@ -1,17 +1,11 @@
 <script>
-	// import {page} from '$app/state'
 	import * as m from '$lib/paraglide/messages'
-	import {logger} from '$lib/logger'
+	import AuthSignup from '$lib/components/auth-signup.svelte'
 
-	const log = logger.ns('auth').seal()
+	let didSignUp = $state(false)
 
-	let didSubmit = $state(false)
-	// const redirect = page.url.searchParams.get('redirect')
-	// const redirectParam = redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''
-
-	function onSubmit(event) {
-		log.debug('create-account submit', event.detail)
-		didSubmit = true
+	function handleSuccess() {
+		didSignUp = true
 	}
 </script>
 
@@ -20,9 +14,13 @@
 </svelte:head>
 
 <article class="MiniContainer">
-	{#if !didSubmit}
+	{#if didSignUp}
+		<h1>{m.auth_welcome_almost_done()}</h1>
+		<p>{m.auth_check_email()}</p>
+		<p>{m.auth_click_link()}</p>
+	{:else}
 		<h1>{m.auth_create_account_title()}</h1>
-		<r4-sign-up onsubmit={onSubmit}></r4-sign-up>
+		<AuthSignup onSuccess={handleSuccess} />
 		<footer>
 			<p>{m.auth_already_have_account_intro()} <a href="/auth/login">{m.auth_card_login_title()}</a></p>
 			<p>
@@ -34,9 +32,6 @@
 				</small>
 			</p>
 		</footer>
-	{:else}
-		<h1>{m.auth_welcome_almost_done()}</h1>
-		<p>{m.auth_check_email()}<br /><br />{m.auth_click_link()}</p>
 	{/if}
 </article>
 
