@@ -63,7 +63,6 @@
 	.tooltip {
 		position: absolute;
 		margin: 0;
-		border: none;
 		padding: 0.2rem 0.5rem;
 		font-size: var(--font-3);
 		color: var(--gray-11);

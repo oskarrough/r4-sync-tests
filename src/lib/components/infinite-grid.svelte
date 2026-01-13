@@ -129,7 +129,6 @@
 		height: 320px;
 
 		display: flex;
-		place-items: center;
 		justify-content: center;
 		flex-flow: column;
 		place-items: center;

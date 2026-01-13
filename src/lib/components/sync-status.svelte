@@ -11,8 +11,12 @@
 	let pendingTransactions = $state<PendingTransaction[]>([])
 
 	$effect(() => {
-		const onOnline = () => (isOnline = true)
-		const onOffline = () => (isOnline = false)
+		const onOnline = () => {
+			isOnline = true
+		}
+		const onOffline = () => {
+			isOnline = false
+		}
 		window.addEventListener('online', onOnline)
 		window.addEventListener('offline', onOffline)
 		return () => {

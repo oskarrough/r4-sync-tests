@@ -94,9 +94,6 @@
 	}
 
 	.current {
-		background: var(--test-fl-blue);
-		color: var(--test-fl-cyan);
-
 		background: var(--test-fl-orange);
 		color: var(--test-fl-yellow);
 
