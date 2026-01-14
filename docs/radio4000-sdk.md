@@ -11,4 +11,3 @@ import {sdk} from '@radio4000/sdk'
 
 const {data: channels, error} = await sdk.channels.readChannels()
 ```
-

@@ -4,10 +4,8 @@ import {
 	queuePrev,
 	queueInsertManyAfter,
 	queueRemove,
-	queueShuffle,
 	queueShuffleKeepCurrent,
 	queueRotate,
-	queuePosition,
 	queueUnique,
 	queueRepeat,
 	queueInterleave,
@@ -28,12 +26,6 @@ describe('queue navigation', () => {
 		expect(queuePrev(queue, 'a')).toBeNull()
 		expect(queuePrev(queue, 'x')).toBeNull()
 	})
-
-	it('queuePosition returns 1-indexed position', () => {
-		expect(queuePosition(queue, 'a')).toBe(1)
-		expect(queuePosition(queue, 'c')).toBe(3)
-		expect(queuePosition(queue, 'x')).toBe(0)
-	})
 })
 
 describe('queue insertion', () => {
@@ -51,12 +43,6 @@ describe('queue removal', () => {
 })
 
 describe('queue shuffle', () => {
-	it('queueShuffle returns same length', () => {
-		const shuffled = queueShuffle(queue)
-		expect(shuffled.length).toBe(queue.length)
-		expect(shuffled.sort()).toEqual([...queue].sort())
-	})
-
 	it('queueShuffleKeepCurrent keeps current at front', () => {
 		const shuffled = queueShuffleKeepCurrent(queue, 'c')
 		expect(shuffled[0]).toBe('c')

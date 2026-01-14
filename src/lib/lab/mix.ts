@@ -13,7 +13,8 @@
 import {tracksCollection} from '$lib/tanstack/collections'
 import {appState} from '$lib/app-state.svelte'
 import {playTrack, setPlaylist} from '$lib/api'
-import {queueShuffle, queueUnique, queueInterleave, queueConcat, queueRepeat} from '$lib/player/queue'
+import {queueUnique, queueInterleave, queueConcat, queueRepeat} from '$lib/player/queue'
+import {shuffleArray} from '$lib/utils'
 import {searchTracks} from '$lib/search'
 
 type Track = {
@@ -93,8 +94,7 @@ function createMix(initial: Track[] = []): Mix {
 		},
 
 		shuffle() {
-			const ids = queueShuffle(tracks.map((t) => t.id))
-			tracks = ids.map((id) => tracks.find((t) => t.id === id)!).filter(Boolean)
+			tracks = shuffleArray(tracks)
 			return self
 		},
 

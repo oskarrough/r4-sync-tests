@@ -286,13 +286,7 @@
 
 	.queue-actions {
 		display: flex;
-		gap: 0.125rem;
-
-		button {
-			padding: 0.25rem 0.5rem;
-			font-size: 1rem;
-			line-height: 1;
-		}
+		gap: var(--space-1);
 	}
 
 	.tracks :global(.slug),

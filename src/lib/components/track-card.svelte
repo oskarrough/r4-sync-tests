@@ -176,7 +176,7 @@
 		.active & {
 			background: var(--accent-9);
 			color: var(--gray-1);
-			padding-inline: 0.25rem;
+			padding-inline: var(--space-1);
 			border-radius: 2px;
 		}
 	}

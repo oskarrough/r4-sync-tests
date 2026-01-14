@@ -9,7 +9,6 @@ import {fetchAllChannels} from '$lib/api/fetch-channels'
 import {appState} from '$lib/app-state.svelte'
 import * as api from '$lib/api'
 import * as queue from '$lib/player/queue'
-import {mix, mixFrom, mixIds, mixCurrent, mixAll, mixRemaining, mixSearch} from '$lib/lab/mix'
 
 // Disable SSR
 export const ssr = false
@@ -59,14 +58,7 @@ async function preload() {
 			channelsCollection,
 			spamDecisionsCollection,
 			queue,
-			api,
-			mix,
-			mixFrom,
-			mixIds,
-			mixCurrent,
-			mixAll,
-			mixRemaining,
-			mixSearch
+			api
 		}
 	} catch (err) {
 		log.error('preloading_error', err)
