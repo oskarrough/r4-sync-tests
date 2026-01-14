@@ -69,3 +69,53 @@ export function relativeTime(dateInput) {
 		hour12: false
 	})
 }
+
+/** Value-neutral: just the year - archives aren't stale
+ * @param {string | null | undefined} dateString */
+export function dateYear(dateString) {
+	if (!dateString) return ''
+	return new Date(dateString).getFullYear().toString()
+}
+
+/** Value-neutral: month and year (e.g., "Mar 2019")
+ * @param {string | null | undefined} dateString */
+export function dateMonthYear(dateString) {
+	if (!dateString) return ''
+	const date = new Date(dateString)
+	return date.toLocaleDateString('en-US', {month: 'short', year: 'numeric'})
+}
+
+/** Value-neutral: season and year (e.g., "Spring 2019")
+ * @param {string | null | undefined} dateString */
+export function dateSeason(dateString) {
+	if (!dateString) return ''
+	const date = new Date(dateString)
+	const month = date.getMonth()
+	const year = date.getFullYear()
+	const seasons = [
+		'Winter',
+		'Winter',
+		'Spring',
+		'Spring',
+		'Spring',
+		'Summer',
+		'Summer',
+		'Summer',
+		'Autumn',
+		'Autumn',
+		'Autumn',
+		'Winter'
+	]
+	return `${seasons[month]} ${year}`
+}
+
+/** Smart date: recent shows relative time, older shows just year
+ * @param {string | null | undefined} dateString */
+export function dateProvenance(dateString) {
+	if (!dateString) return ''
+	const days = differenceInDays(dateString)
+	if (days < 7) return 'this week'
+	if (days < 30) return 'this month'
+	if (days < 90) return 'recent'
+	return dateYear(dateString)
+}
