@@ -2,7 +2,6 @@ import {playTrack} from '$lib/api'
 import {appState} from '$lib/app-state.svelte'
 import {logger} from '$lib/logger'
 import {queueNext, queuePrev} from '$lib/player/queue'
-import {shuffleArray} from '$lib/utils.ts'
 
 /** @typedef {import('$lib/types').AppState} AppState */
 /** @typedef {import('$lib/types').Track} Track */
@@ -83,6 +82,9 @@ export function next(track, activeQueue, endReason) {
 		/** @type {PlayStartReason} */
 		const startReason = endReason === 'youtube_error' ? 'track_error' : 'auto_next'
 		playTrack(nextId, endReason, startReason)
+	} else if (activeQueue.length > 0) {
+		log.info('Queue ended: looping to start')
+		playTrack(activeQueue[0], endReason, 'auto_next')
 	} else {
 		log.info('No next track available')
 	}
@@ -107,13 +109,6 @@ export function previous(track, activeQueue, endReason) {
 		playTrack(prevId, endReason, 'user_prev')
 	} else {
 		log.info('No previous track available')
-	}
-}
-
-export function toggleShuffle() {
-	appState.shuffle = !appState.shuffle
-	if (appState.shuffle) {
-		appState.playlist_tracks_shuffled = shuffleArray(appState.playlist_tracks || [])
 	}
 }
 
