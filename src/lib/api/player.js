@@ -1,6 +1,7 @@
 import {playTrack} from '$lib/api'
 import {appState} from '$lib/app-state.svelte'
 import {logger} from '$lib/logger'
+import {queueNext, queuePrev} from '$lib/player/queue'
 import {shuffleArray} from '$lib/utils.ts'
 
 /** @typedef {import('$lib/types').AppState} AppState */
@@ -77,12 +78,11 @@ export function next(track, activeQueue, endReason) {
 		log.warn('No active queue')
 		return
 	}
-	const idx = activeQueue.indexOf(track.id)
-	const next = activeQueue[idx + 1]
-	if (next) {
+	const nextId = queueNext(activeQueue, track.id)
+	if (nextId) {
 		/** @type {PlayStartReason} */
 		const startReason = endReason === 'youtube_error' ? 'track_error' : 'auto_next'
-		playTrack(next, endReason, startReason)
+		playTrack(nextId, endReason, startReason)
 	} else {
 		log.info('No next track available')
 	}
@@ -102,8 +102,7 @@ export function previous(track, activeQueue, endReason) {
 		log.warn('No active queue')
 		return
 	}
-	const idx = activeQueue.indexOf(track.id)
-	const prevId = activeQueue[idx - 1]
+	const prevId = queuePrev(activeQueue, track.id)
 	if (prevId) {
 		playTrack(prevId, endReason, 'user_prev')
 	} else {
