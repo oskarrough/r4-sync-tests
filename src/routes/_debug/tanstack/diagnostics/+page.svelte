@@ -160,14 +160,14 @@
 	</section>
 </div>
 
-	<style>
+<style>
 	thead {
 		text-align: left;
 	}
 	th {
 		border-bottom: 1px solid;
 	}
-section {
+	section {
 		margin-block-start: 2rem;
 	}
-	</style>
+</style>
