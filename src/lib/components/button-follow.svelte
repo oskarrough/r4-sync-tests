@@ -1,15 +1,12 @@
 <script>
 	import {followsCollection, followChannel, unfollowChannel} from '$lib/tanstack/collections'
-	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
-	import {eq} from '@tanstack/db'
 	import Icon from '$lib/components/icon.svelte'
 	import * as m from '$lib/paraglide/messages'
 
 	/** @type {{channel: import('$lib/types').Channel, label?: string, class?: string}} */
 	let {channel, label, ...rest} = $props()
 
-	const query = useLiveQuery((q) => q.from({f: followsCollection}).where(({f}) => eq(f.channelId, channel.id)))
-	let following = $derived(query.data?.length > 0)
+	let following = $derived([...followsCollection.state.values()].some((f) => f.channelId === channel.id))
 
 	const toggle = (e) => {
 		e.stopPropagation()

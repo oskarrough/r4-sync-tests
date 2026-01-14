@@ -34,7 +34,7 @@ function persistCollection<T extends {id: string}>(collection: CollectionLike<T>
 	const save = () => {
 		const data = [...collection.state.values()]
 		if (data.length === 0) return
-		log.debug('persist', {key: idbKey, count: data.length})
+		log.info('persist', {key: idbKey, count: data.length})
 		set(idbKey, data).catch((err) => log.warn('persist error', {key: idbKey, error: err}))
 	}
 
@@ -59,19 +59,22 @@ function persistCollection<T extends {id: string}>(collection: CollectionLike<T>
 	}, 5000)
 }
 
-export const collectionsHydrated: Promise<void> = browser
-	? (async () => {
-			const [tracksCount, channelsCount] = await Promise.all([
-				hydrateCollection(tracksCollection, IDB_KEY_TRACKS),
-				hydrateCollection(channelsCollection, IDB_KEY_CHANNELS)
-			]).catch((err) => {
-				log.warn('hydration error', {error: err})
-				return [0, 0]
-			})
+// TEMP DISABLED - debugging navigation/data issues
+export const collectionsHydrated: Promise<void> = Promise.resolve()
 
-			log.info('hydrated', {tracks: tracksCount, channels: channelsCount})
-
-			persistCollection(tracksCollection, IDB_KEY_TRACKS)
-			persistCollection(channelsCollection, IDB_KEY_CHANNELS)
-		})()
-	: Promise.resolve()
+// export const collectionsHydrated: Promise<void> = browser
+// 	? (async () => {
+// 			const [tracksCount, channelsCount] = await Promise.all([
+// 				hydrateCollection(tracksCollection, IDB_KEY_TRACKS),
+// 				hydrateCollection(channelsCollection, IDB_KEY_CHANNELS)
+// 			]).catch((err) => {
+// 				log.warn('hydration error', {error: err})
+// 				return [0, 0]
+// 			})
+//
+// 			log.info('hydrated', {tracks: tracksCount, channels: channelsCount})
+//
+// 			persistCollection(tracksCollection, IDB_KEY_TRACKS)
+// 			persistCollection(channelsCollection, IDB_KEY_CHANNELS)
+// 		})()
+// 	: Promise.resolve()

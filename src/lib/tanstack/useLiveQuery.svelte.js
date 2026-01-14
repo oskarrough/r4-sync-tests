@@ -5,8 +5,7 @@
  *
  * Also exports useCachedLiveQuery for cache-first pattern
  */
-import {untrack} from 'svelte'
-// import {tick} from 'svelte'
+import {untrack, tick} from 'svelte'
 import {logger} from '$lib/logger'
 
 const log = logger.ns('livequery').seal()
@@ -97,7 +96,7 @@ export function useLiveQuery(configOrQueryOrCollection, deps = []) {
 			return
 		}
 
-		log.debug('effect run', {collectionStatus: currentCollection.status, collectionId: currentCollection.id})
+		log.info('effect run', {collectionStatus: currentCollection.status, collectionId: currentCollection.id})
 		status = currentCollection.status
 
 		if (currentUnsubscribe) {
@@ -118,9 +117,9 @@ export function useLiveQuery(configOrQueryOrCollection, deps = []) {
 		})
 
 		const subscription = currentCollection.subscribeChanges(
-			(changes) => {
+			async (changes) => {
 				// Wait for current render to complete before mutating state
-				// await tick()  // Commented out to test if still needed after deps update
+				await tick()
 
 				untrack(() => {
 					for (const change of changes) {
@@ -146,8 +145,14 @@ export function useLiveQuery(configOrQueryOrCollection, deps = []) {
 
 		currentUnsubscribe = subscription.unsubscribe.bind(subscription)
 
+		// Sync status immediately in case collection is already ready
+		// (onFirstReady won't fire if already ready, includeInitialState might not either)
+		if (currentCollection.status === `ready`) {
+			status = currentCollection.status
+		}
+
 		if (currentCollection.status === `idle` || currentCollection.status === `loading`) {
-			log.debug('calling preload', {
+			log.info('calling preload', {
 				status: currentCollection.status,
 				id: currentCollection.id,
 				config: currentCollection.config,
@@ -155,7 +160,7 @@ export function useLiveQuery(configOrQueryOrCollection, deps = []) {
 			})
 			currentCollection
 				.preload()
-				.then(() => log.debug('preload resolved', {status: currentCollection.status, id: currentCollection.id}))
+				.then(() => log.info('preload resolved', {status: currentCollection.status, id: currentCollection.id}))
 				.catch((err) => log.error('preload failed', err))
 		}
 
