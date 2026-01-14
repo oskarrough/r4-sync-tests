@@ -192,6 +192,26 @@
 		{"name": "generateFrequency(name, slug, min, max)", "desc": "Deterministic frequency from string."},
 		{"name": "timeAgo(dateString)", "desc": "Relative time string."}
 	],
+	"src/lib/components": [
+		{"name": "Player", "desc": "YouTube/SoundCloud player with controls, volume, autoplay."},
+		{"name": "QueuePanel", "desc": "Sidebar with queue/history tabs, search, resize handle."},
+		{"name": "Tracklist", "desc": "Track list with optional date grouping, virtual scroll."},
+		{"name": "TrackCard", "desc": "Single track with artwork, play/edit/delete menu."},
+		{"name": "ChannelCard", "desc": "Channel preview with avatar, description, live dot."},
+		{"name": "Channels", "desc": "Grid/list/map/tuner views with filter, sort, shuffle."},
+		{"name": "AddTrackModal", "desc": "Create track modal, 'c' keyboard shortcut."},
+		{"name": "EditTrackModal", "desc": "Edit existing track."},
+		{"name": "TrackForm", "desc": "URL/title/description form fields."},
+		{"name": "Modal", "desc": "Generic dialog wrapper with header/children snippets."},
+		{"name": "BroadcastControls", "desc": "Start/stop live broadcast."},
+		{"name": "SyncStatus", "desc": "Shows offline queue pending transactions."},
+		{"name": "KeyboardShortcuts", "desc": "Initializes global keyboard handling."},
+		{"name": "HeaderSearch", "desc": "Global search with debounce, @mention autocomplete."},
+		{"name": "LinkEntities", "desc": "Parses #tags @mentions into search links."},
+		{"name": "Icon", "desc": "Iconify icon wrapper."},
+		{"name": "ButtonPlay", "desc": "Channel play button."},
+		{"name": "ButtonFollow", "desc": "Follow/unfollow button."}
+	],
 	"@radio4000/sdk": [
 		{"name": "sdk.auth.signUp({email, password, options?})", "desc": "Create account."},
 		{"name": "sdk.auth.signIn({email, password, options?})", "desc": "Sign in with password."},
