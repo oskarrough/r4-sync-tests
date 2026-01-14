@@ -1,9 +1,5 @@
-<script>
-	import * as m from '$lib/paraglide/messages'
-</script>
-
 <svelte:head>
-	<title>{m.page_title_playground()}</title>
+	<title>Debug</title>
 </svelte:head>
 
 <div class="SmallContainer">

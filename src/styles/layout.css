@@ -99,6 +99,7 @@ menu[data-vertical] {
 
 menu.grouped {
 	display: inline-flex;
+	gap: 0;
 	padding: 0;
 	margin: 0 0 1rem;
 	border: 1px solid var(--gray-6);
@@ -118,6 +119,9 @@ menu.grouped {
 	}
 	a:hover {
 		background: var(--gray-4);
+	}
+	a[aria-current='page'] {
+		background: var(--accent-3);
 	}
 }
 
