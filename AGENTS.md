@@ -6,8 +6,8 @@ Prototype local-first music player for Radio4000. SvelteKit + Svelte 5, @radio40
 
 1. Operate on tasks with @plan.md as your scratchpad
 2. Research, ask user for guidance when things aren't clear, or strategically important
-3. Review research, create a plan
-4. Implement plan
+3. Review research, update @plan.md
+4. Implement
 
 ## Documentation
 
@@ -30,13 +30,40 @@ The app orchestrates data between local browser memory and the remote PostgreSQL
 
 `appState` (src/lib/app-state.svelte.ts) is a global reactive object for UI state - player, queue, theme, user preferences. Auto-persists to localStorage. Debug at /debug/appstate.
 
-We're usually dealing with one of three "tables":
+We're usually dealing with one of three collections
 
 ```sql
 appState  -- global application state
 channels  -- radio channels (id, slug, name, description, ...)
 tracks    -- music tracks (id, url, title, description, ...)
 ```
+
+## Debug Tricks
+
+`window.r5` exposes sdk, appState, queryClient, tracksCollection, channelsCollection. Example: `[...window.r5.channelsCollection.state.values()].map(...`
+Format and lint the code using `bun run lint`. Or use the claude code command /lint-test.
+When valuable, we can write tests using vitest. Put them next to the original file and name them xxx.test.js. Run tests with: `bun test [optional-name]`
+There is no need to start a dev server, as the user does it.
+When searching for text or files, prefer using `rg` or `rg --files` respectively because `rg` is much faster than alternatives like `grep`.
+
+## Key packages
+
+- @radio4000/sdk (see @docs/radio4000-sdk.md)
+- @radio4000/components (see https://github.com/radio4000/components)
+- @radio4000/cli (see `r4 --help`)
+- @docs/tanstack.md
+
+## Writing style (guides, docs, explanations)
+
+Lead with the point. Skip preambles, start mid-thought when context is clear.
+
+Assume domain knowledge. Say "use debouncing" not "you might want to consider implementing a debouncing mechanism." Reference concepts directly without basic explanations.
+
+Natural prose over formatting tricks. Never do "**bold**: explanation" syntax. Prefer flowing paragraphs to numbered lists when the content permits. Sentence case for titles.
+
+Terse and precise. Expand reasoning only when asked. Point out flaws directly: "that breaks because..." not "one consideration might be..."
+
+Dry wit welcome. Channel the sensibility of someone who finds elegance in plain text and thinks most abstractions are premature.
 
 ## Code Style
 
@@ -69,36 +96,3 @@ Use `bind:this`to get a reference to a DOM element. You can even export methods 
 import`page`from`$app/state` (and not `$app/stores`)
 Snippets can be used for reusable "mini" components, when a file is too much https://svelte.dev/docs/svelte/snippet.
 Attachments can be used for reusable behaviours/effects on elements https://svelte.dev/docs/svelte/@attach.
-
-## Debug Tricks
-
-`window.r5` exposes sdk, appState, queryClient, tracksCollection, channelsCollection. Example: `[...window.r5.channelsCollection.state.values()].map(...`
-Format and lint the code using `bun run lint`. Or use the claude code command /lint-test.
-When valuable, we can write tests using vitest. Put them next to the original file and name them xxx.test.js. Run tests with: `bun test [optional-name]`
-There is no need to start a dev server, as the user does it.
-When searching for text or files, prefer using `rg` or `rg --files` respectively because `rg` is much faster than alternatives like `grep`.
-
-## Key packages
-
-- @radio4000/sdk (see @docs/radio4000-sdk.md)
-- @radio4000/components (see https://github.com/radio4000/components)
-
-## r4 CLI
-
-A separate project, can help to debug remote data. Explore `r4 --help` commands as needed.
-
-## Tanstack notes
-
-- @docs/tanstack.md
-
-## Writing style (guides, docs, explanations)
-
-Lead with the point. Skip preambles, start mid-thought when context is clear.
-
-Assume domain knowledge. Say "use debouncing" not "you might want to consider implementing a debouncing mechanism." Reference concepts directly without basic explanations.
-
-Natural prose over formatting tricks. Never do "**bold**: explanation" syntax. Prefer flowing paragraphs to numbered lists when the content permits. Sentence case for titles.
-
-Terse and precise. Expand reasoning only when asked. Point out flaws directly: "that breaks because..." not "one consideration might be..."
-
-Dry wit welcome. Channel the sensibility of someone who finds elegance in plain text and thinks most abstractions are premature.

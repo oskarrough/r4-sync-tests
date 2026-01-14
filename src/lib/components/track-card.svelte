@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type {Snippet} from 'svelte'
-	import {playTrack} from '$lib/api'
+	import {playTrack, playNext, playFromHere} from '$lib/api'
 	import {deleteTrack, channelsCollection} from '$lib/tanstack/collections'
 	import {appState} from '$lib/app-state.svelte'
 	import type {Track} from '$lib/types'
@@ -102,6 +102,22 @@
 			<button type="button" role="menuitem" onclick={() => menu?.close()}>{m.common_cancel()}</button>
 		{:else}
 			<a class="btn" href={permalink} role="menuitem">{m.common_details()}</a>
+			<button
+				type="button"
+				role="menuitem"
+				onclick={() => {
+					playFromHere(track.id)
+					menu?.close()
+				}}>{m.track_play_from_here()}</button
+			>
+			<button
+				type="button"
+				role="menuitem"
+				onclick={() => {
+					playNext(track.id)
+					menu?.close()
+				}}>{m.track_play_next()}</button
+			>
 			<button type="button" role="menuitem" onclick={addToRadio}>{m.common_add()}</button>
 			{#if canEdit}<button type="button" role="menuitem" onclick={editTrack}>{m.common_edit()}</button>{/if}
 			{#if canEdit}<button
@@ -160,7 +176,13 @@
 		.active & {
 			background: var(--accent-9);
 			color: var(--gray-1);
+			padding-inline: var(--space-1);
+			border-radius: 2px;
 		}
+	}
+
+	.active {
+		background: var(--accent-2);
 	}
 
 	p {

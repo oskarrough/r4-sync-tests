@@ -8,6 +8,7 @@ We query from the local collections. Tanstack fires requests as needed to read a
 
 ## Overview
 
+- [API overview](overview.md) - all exported functions (lib, sdk, utils)
 - [tanstack](tanstack.md) - unified api for local/remote data access
 - [v1 data](v1-data.md) - how we deal with firebase v1 data
 - [metadata](metadata.md) - track enrichment via youtube, musicbrainz, discogs etc

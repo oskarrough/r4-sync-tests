@@ -4,6 +4,7 @@ import {leaveBroadcast, upsertRemoteBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
 import {sdk} from '@radio4000/sdk'
 import {shuffleArray} from '$lib/utils.ts'
+import {queueInsertManyAfter, queueRemove, queueShuffleKeepCurrent, queueRotate} from '$lib/player/queue'
 import {
 	tracksCollection,
 	addPlayHistoryEntry,
@@ -135,6 +136,23 @@ export async function playChannel({id, slug}, index = 0) {
 	await playTrack(tracks[index].id, null, 'play_channel')
 }
 
+/** Play channel starting from random track with shuffle enabled */
+export async function shufflePlayChannel({id, slug}) {
+	log.log('shuffle_play_channel', {id, slug})
+	leaveBroadcast()
+	await ensureTracksLoaded(slug)
+	const tracks = [...tracksCollection.state.values()].filter((t) => t.slug === slug)
+	if (!tracks.length) {
+		log.warn('shuffle_play_no_tracks', {slug})
+		return
+	}
+	const ids = tracks.map((t) => t.id)
+	const randomIndex = Math.floor(Math.random() * ids.length)
+	await setPlaylist(ids)
+	appState.shuffle = true
+	await playTrack(ids[randomIndex], null, 'play_channel')
+}
+
 /** @param {string[]} trackIds */
 export function setPlaylist(trackIds) {
 	appState.playlist_tracks = trackIds
@@ -149,6 +167,30 @@ export function addToPlaylist(trackIds) {
 	if (appState.shuffle) {
 		appState.playlist_tracks_shuffled = shuffleArray(appState.playlist_tracks)
 	}
+}
+
+/** Queue track(s) to play after the current track */
+export function playNext(trackIds) {
+	const ids = Array.isArray(trackIds) ? trackIds : [trackIds]
+	const currentId = appState.playlist_track
+	if (!currentId) {
+		appState.playlist_tracks = ids
+		return
+	}
+	appState.playlist_tracks = queueInsertManyAfter(appState.playlist_tracks, currentId, ids)
+	if (appState.shuffle) {
+		appState.playlist_tracks_shuffled = queueInsertManyAfter(appState.playlist_tracks_shuffled, currentId, ids)
+	}
+	log.log('play_next', {ids, after: currentId})
+}
+
+/** Remove track from queue */
+export function removeFromQueue(trackId) {
+	appState.playlist_tracks = queueRemove(appState.playlist_tracks, trackId)
+	if (appState.shuffle) {
+		appState.playlist_tracks_shuffled = queueRemove(appState.playlist_tracks_shuffled, trackId)
+	}
+	log.log('remove_from_queue', {trackId})
 }
 
 export function toggleTheme() {
@@ -184,4 +226,58 @@ export function togglePlayPause() {
 			ytPlayer.pause()
 		}
 	}
+}
+
+/** Play from this track to end of list (useful for "play from here" action) */
+export function playFromHere(trackId) {
+	const idx = appState.playlist_tracks.indexOf(trackId)
+	if (idx === -1) return
+	const fromHere = appState.playlist_tracks.slice(idx)
+	appState.playlist_tracks = fromHere
+	appState.playlist_tracks_shuffled = shuffleArray(fromHere)
+	playTrack(trackId, null, 'user_click_track')
+	log.log('play_from_here', {trackId, remaining: fromHere.length})
+}
+
+/** Clear the queue but keep current track */
+export function clearQueue() {
+	const current = appState.playlist_track
+	if (current) {
+		appState.playlist_tracks = [current]
+		appState.playlist_tracks_shuffled = [current]
+	} else {
+		appState.playlist_tracks = []
+		appState.playlist_tracks_shuffled = []
+	}
+	log.log('clear_queue', {kept: current})
+}
+
+/** Toggle shuffle mode on/off. Switches between original order and a pre-shuffled order.
+ * The two orderings stay fixed - toggling just switches which one is active. */
+export function toggleShuffle() {
+	appState.shuffle = !appState.shuffle
+	if (appState.shuffle) {
+		appState.playlist_tracks_shuffled = shuffleArray(appState.playlist_tracks || [])
+	}
+}
+
+/** Shuffle remaining tracks in place. Keeps current track, randomizes what comes next.
+ * Unlike toggleShuffle, this is destructive - it changes the actual queue order. */
+export function shuffleRemaining() {
+	const current = appState.playlist_track
+	if (!current) return
+	appState.playlist_tracks = queueShuffleKeepCurrent(appState.playlist_tracks, current)
+	appState.playlist_tracks_shuffled = queueShuffleKeepCurrent(appState.playlist_tracks_shuffled, current)
+	log.log('shuffle_remaining', {current})
+}
+
+/** Rotate queue: move played tracks to end (radio-like infinite play) */
+export function rotateQueue() {
+	const current = appState.playlist_track
+	if (!current) return
+	appState.playlist_tracks = queueRotate(appState.playlist_tracks, current)
+	if (appState.shuffle) {
+		appState.playlist_tracks_shuffled = queueRotate(appState.playlist_tracks_shuffled, current)
+	}
+	log.log('rotate_queue', {current})
 }

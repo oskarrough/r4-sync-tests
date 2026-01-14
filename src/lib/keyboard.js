@@ -1,7 +1,13 @@
 import {createKeybindingsHandler} from 'tinykeys'
 import {goto} from '$app/navigation'
-import {toggleShuffle} from '$lib/api/player.js'
-import {togglePlayerExpanded, openSearch, togglePlayPause, toggleQueuePanel} from '$lib/api.js'
+import {
+	togglePlayerExpanded,
+	openSearch,
+	togglePlayPause,
+	toggleQueuePanel,
+	clearQueue,
+	toggleShuffle
+} from '$lib/api.js'
 import {appState} from '$lib/app-state.svelte'
 
 /** Maps keybinding to functions from api.js */
@@ -25,6 +31,7 @@ export function initializeKeyboardShortcuts() {
 		openSearch,
 		togglePlayPause,
 		toggleQueuePanel,
+		clearQueue,
 		gotoSettings: () => goto('/settings')
 	}
 
