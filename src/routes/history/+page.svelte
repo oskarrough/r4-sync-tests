@@ -41,7 +41,11 @@
 	{:else}
 		<ul class="list">
 			{#each history as play (play.id)}
-				<li>
+				<li
+					data-skipped={(play.ms_played != null && play.ms_played < 3000) || null}
+					data-start-reason={play.reason_start || null}
+					data-end-reason={play.reason_end || null}
+				>
 					{@render playRecord(play)}
 				</li>
 			{/each}
@@ -107,5 +111,10 @@
 
 	.reasons {
 		color: var(--gray-11);
+	}
+
+	li[data-skipped] {
+		opacity: 0.4;
+		font-size: var(--font-2);
 	}
 </style>

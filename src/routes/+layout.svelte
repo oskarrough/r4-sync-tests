@@ -157,11 +157,7 @@
 	}
 
 	.content {
-		/*display: grid;*/
-		/*grid-template-columns: 1fr;*/
-		/*overflow: hidden;*/
-		/*height: 100%;*/
-		/*position: relative;*/
+		position: relative;
 
 		> :global(aside) {
 			position: absolute;

@@ -155,18 +155,20 @@
 		{:else if filteredPlayHistory.length > 0}
 			<ul class="list tracks">
 				{#each filteredPlayHistory as entry, index (entry.id)}
-					<li>
+					<li
+						data-skipped={(entry.ms_played != null && entry.ms_played < 3000) || null}
+						data-start-reason={entry.reason_start || null}
+						data-end-reason={entry.reason_end || null}
+					>
 						<TrackCard track={playHistoryToTrack(entry)} {index}>
-							<p class="history">
-								<small>
-									{relativeTime(entry.started_at)}
-									{#if entry.reason_start}• {entry.reason_start}{/if}
-									{#if entry.reason_end}→ {entry.reason_end}{/if}
-									{#if entry.ms_played}
-										• {m.queue_seconds_suffix({seconds: Math.round(entry.ms_played / 1000)})}
-									{/if}
-								</small>
-							</p>
+							{#snippet description()}
+								{relativeTime(entry.started_at)}
+								{#if entry.reason_start}• {entry.reason_start}{/if}
+								{#if entry.reason_end}→ {entry.reason_end}{/if}
+								{#if entry.ms_played}
+									• {m.queue_seconds_suffix({seconds: Math.round(entry.ms_played / 1000)})}
+								{/if}
+							{/snippet}
 						</TrackCard>
 					</li>
 				{/each}
@@ -245,10 +247,6 @@
 		border-bottom: 1px solid var(--gray-5);
 	}
 
-	p.history {
-		margin: 0 0 0 0.5rem;
-	}
-
 	main {
 		flex: 1;
 		padding-bottom: var(--player-compact-size);
@@ -277,7 +275,19 @@
 		justify-content: space-between;
 	}
 
-	.tracks :global(.slug) {
+	.tracks :global(.slug),
+	main :global(.index) {
 		display: none;
+	}
+
+	li[data-skipped] {
+		opacity: 0.6;
+		:global(a) {
+			padding-top: 0.2rem;
+			padding-bottom: 0.2rem;
+		}
+		:global(.artwork) {
+			display: none;
+		}
 	}
 </style>

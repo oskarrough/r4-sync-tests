@@ -17,9 +17,10 @@
 		showSlug?: boolean
 		canEdit?: boolean
 		children?: Snippet<[Track]>
+		description?: Snippet
 	}
 
-	let {track, index, showImage = true, showSlug = false, canEdit = false, children}: Props = $props()
+	let {track, index, showImage = true, showSlug = false, canEdit = false, children, description}: Props = $props()
 
 	const menuId = $props.id()
 	const permalink = $derived(`/${track?.slug}/tracks/${track?.id}`)
@@ -72,7 +73,9 @@
 			/>{/if}
 		<div class="text">
 			<h3 class="title">{track.title}</h3>
-			{#if track.description}
+			{#if description}
+				<p class="description"><small>{@render description()}</small></p>
+			{:else if track.description}
 				<p class="description">
 					<small>
 						<LinkEntities slug={track.slug} text={track.description} />
@@ -139,8 +142,8 @@
 	}
 
 	.artwork {
-		width: 2rem;
-		height: 2rem;
+		width: 2.3rem;
+		height: 2.3rem;
 		object-fit: cover;
 		object-position: center;
 		align-self: center;
