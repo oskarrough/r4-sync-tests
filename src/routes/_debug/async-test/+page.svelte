@@ -122,6 +122,10 @@
 </svelte:head>
 
 <div class="SmallContainer">
+	<menu class="grouped">
+		<a href="/_debug">&larr;</a>
+	</menu>
+	<h1>Async Test</h1>
 	<BatchProgress total={trackCount} {chunkSize} chunks={batches} {elapsed} {running} onRun={runTest} onAbort={abort}>
 		{#snippet controls()}
 			<label>
@@ -151,6 +155,3 @@
 		{/snippet}
 	</BatchProgress>
 </div>
-
-<style>
-</style>

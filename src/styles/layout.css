@@ -97,6 +97,30 @@ menu[data-vertical] {
 	}
 }
 
+menu.grouped {
+	display: inline-flex;
+	padding: 0;
+	margin: 0 0 1rem;
+	border: 1px solid var(--gray-6);
+	border-radius: var(--border-radius);
+
+	a {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.3rem 0.5rem 0.2rem;
+		min-height: 2rem;
+		text-decoration: none;
+		font-size: var(--font-4);
+		border-right: 1px solid var(--gray-6);
+	}
+	a:last-child {
+		border-right: none;
+	}
+	a:hover {
+		background: var(--gray-4);
+	}
+}
+
 dl.meta {
 	display: grid;
 	grid-template-columns: max-content 1fr;

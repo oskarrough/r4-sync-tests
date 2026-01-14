@@ -442,7 +442,7 @@ demoCollection.state.get(id)</pre>
 		<p>
 			TanStack DB bundles the last few layers: collections with persistence, optimistic mutations with auto-rollback,
 			and live queries. The boilerplate from section 6 disappears. See
-			<a href="/playground/tanstack">the other demos</a> or
+			<a href="/_debug/tanstack">the other demos</a> or
 			<a href="https://tanstack.com/db/latest/docs/overview">the official docs</a>.
 		</p>
 	</section>

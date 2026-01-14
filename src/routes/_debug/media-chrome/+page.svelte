@@ -3,7 +3,6 @@
 	import '$lib/youtube-video-custom-element.js'
 	import '$lib/soundcloud-player-custom-element.js'
 	import {detectMediaProvider} from '$lib/utils.ts'
-	import * as m from '$lib/paraglide/messages'
 
 	const testUrls = [
 		{
@@ -34,7 +33,6 @@
 	let trackType = $derived(detectMediaProvider(currentUrl))
 	let mediaElement = $derived(trackType === 'youtube' ? youtubePlayer : soundcloudPlayer)
 
-	// Player state tracking
 	let paused = $state(true)
 	let currentTime = $state(0)
 	let duration = $state(0)
@@ -105,15 +103,14 @@
 	}
 </script>
 
-<svelte:head>
-	<title>{m.page_title_media_chrome()}</title>
-</svelte:head>
-
-<div class="playground">
-	<h1>{m.media_chrome_heading()}</h1>
+<div class="SmallContainer">
+	<menu class="grouped">
+		<a href="/_debug">&larr;</a>
+	</menu>
+	<h1>Media Chrome</h1>
 
 	<section class="controls">
-		<h2>{m.media_chrome_test_urls()}</h2>
+		<h2>Test URLs</h2>
 		<ul>
 			{#each testUrls as test (test.url)}
 				<li>
@@ -126,43 +123,43 @@
 
 		<label>
 			<input type="checkbox" bind:checked={autoplay} />
-			{m.media_chrome_autoplay()}
+			Autoplay
 		</label>
 
-		<h3>{m.media_chrome_manual_controls()}</h3>
-		<button onclick={testTogglePlay}>{m.media_chrome_toggle_js()}</button>
-		<button onclick={seekToStart}>{m.media_chrome_seek_start()}</button>
-		<button onclick={seekTo30}>{m.media_chrome_seek_30()}</button>
-		<button onclick={() => setVolume(0.5)}>{m.media_chrome_volume_50()}</button>
-		<button onclick={() => setVolume(1)}>{m.media_chrome_volume_100()}</button>
-		<button onclick={() => setMuted(true)}>{m.media_chrome_mute()}</button>
-		<button onclick={() => setMuted(false)}>{m.media_chrome_unmute()}</button>
+		<h3>Manual Controls</h3>
+		<button onclick={testTogglePlay}>Toggle (JS)</button>
+		<button onclick={seekToStart}>Seek 0</button>
+		<button onclick={seekTo30}>Seek 30</button>
+		<button onclick={() => setVolume(0.5)}>Vol 50%</button>
+		<button onclick={() => setVolume(1)}>Vol 100%</button>
+		<button onclick={() => setMuted(true)}>Mute</button>
+		<button onclick={() => setMuted(false)}>Unmute</button>
 	</section>
 
 	<section class="player-info">
-		<h2>{m.media_chrome_current_state()}</h2>
+		<h2>Current State</h2>
 		<dl>
-			<dt>{m.media_chrome_label_url()}</dt>
+			<dt>URL</dt>
 			<dd><code>{currentUrl}</code></dd>
-			<dt>{m.media_chrome_label_provider()}</dt>
+			<dt>Provider</dt>
 			<dd>{trackType}</dd>
-			<dt>{m.media_chrome_label_user_played()}</dt>
+			<dt>User played</dt>
 			<dd>{userHasPlayed}</dd>
-			<dt>{m.media_chrome_label_autoplay()}</dt>
+			<dt>Autoplay</dt>
 			<dd>{autoplay}</dd>
-			<dt>{m.media_chrome_label_paused()}</dt>
+			<dt>Paused</dt>
 			<dd>{paused}</dd>
-			<dt>{m.media_chrome_label_current_time()}</dt>
-			<dd>{m.queue_seconds_suffix({seconds: currentTime.toFixed(2)})}</dd>
-			<dt>{m.media_chrome_label_duration()}</dt>
-			<dd>{m.queue_seconds_suffix({seconds: duration.toFixed(2)})}</dd>
-			<dt>{m.media_chrome_label_volume()}</dt>
+			<dt>Current time</dt>
+			<dd>{currentTime.toFixed(2)}s</dd>
+			<dt>Duration</dt>
+			<dd>{duration.toFixed(2)}s</dd>
+			<dt>Volume</dt>
 			<dd>{volume.toFixed(2)}</dd>
 		</dl>
 	</section>
 
 	<section class="player-section">
-		<h2>{m.media_chrome_player_heading()}</h2>
+		<h2>Player</h2>
 		<media-controller>
 			{#if trackType === 'youtube'}
 				<youtube-video

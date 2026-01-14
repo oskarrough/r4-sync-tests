@@ -24,11 +24,6 @@
 	/** @type {'grid' | 'list' | 'map' | 'tuner' | 'infinite'}*/
 	let display = $derived(appState.channels_display || initialDisplay || 'grid')
 
-	/*
-	const channelsPromise = $derived.by(
-		async () => (await pg.sql`SELECT * FROM channels ORDER BY created_at DESC`).rows
-	)*/
-
 	const filteredChannels = $derived(
 		channels.filter((c) => {
 			if (filter === 'all') return true

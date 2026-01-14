@@ -269,7 +269,7 @@ src/lib/tanstack/
 src/lib/components/
 └── sync-status.svelte
 
-src/routes/playground/tanstack/   - test pages
+src/routes/_debug/tanstack/   - test pages
 ├── demo/+page.svelte      - interactive fetch/cache/collection guide
 ├── tracks/+page.svelte
 └── channels/+page.svelte

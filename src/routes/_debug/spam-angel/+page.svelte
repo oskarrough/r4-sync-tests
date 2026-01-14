@@ -93,6 +93,9 @@
 
 <main>
 	<header>
+		<menu class="grouped">
+			<a href="/_debug">&larr;</a>
+		</menu>
 		<h1>Spam Angel</h1>
 		<button onclick={clearAll} disabled={toDelete.length === 0 && toKeep.length === 0}>Clear all</button>
 	</header>

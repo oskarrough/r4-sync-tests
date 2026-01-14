@@ -93,7 +93,6 @@
 
 <div class="SmallContainer">
 	<Menu />
-	<h1>Diagnostics</h1>
 
 	<menu>
 		<button onclick={refresh}>Refresh</button>
@@ -103,23 +102,14 @@
 	</menu>
 
 	<section>
-		<h2>Status</h2>
-		<p>Persistence: {persistenceReady ? 'Ready (restored from IDB)' : 'Loading...'}</p>
+		<h1>Diagnostics</h1>
+		<p>{persistenceReady ? 'Persistence ready (restored from IDB)' : 'Loading...'}</p>
 	</section>
 
 	<section>
-		<h2>Collections vs Cache</h2>
-		<p>
-			<strong>Collection</strong> = in-memory, only holds data for active queries (on-demand sync).<br />
-			<strong>Cache</strong> = all fetched data, persists to IDB.
-		</p>
-		<p>
-			If collection shows 0 but cache has items, that's normal — no active <code>useLiveQuery</code> on this page. Visit a
-			channel page to populate the collection.
-		</p>
 		<table>
 			<thead>
-				<tr><th>Name</th><th>Collection</th><th>Cache</th></tr>
+				<tr><th>Collection</th><th>Memory</th><th>Cache</th></tr>
 			</thead>
 			<tbody>
 				{#each collections as col (col.name)}
@@ -168,18 +158,16 @@
 			<p>Empty</p>
 		{/if}
 	</section>
-
-	<section>
-		<h2>Persistence</h2>
-		<p>Query cache persists to IndexedDB. On reload, it restores and hydrates collections.</p>
-		<p>
-			<strong>Known issue:</strong> On-demand subset queries (<code>['tracks', slug]</code>) break on restore because
-			their meta contains functions that can't be serialized. We skip persisting these — they refetch on demand. See
-			<code>plan-data-flow-bug.md</code>.
-		</p>
-		<p>
-			<strong>Test:</strong> Visit a channel, check that <code>channels</code> shows "Persist: yes" above, reload, verify
-			collection size is restored.
-		</p>
-	</section>
 </div>
+
+	<style>
+	thead {
+		text-align: left;
+	}
+	th {
+		border-bottom: 1px solid;
+	}
+section {
+		margin-block-start: 2rem;
+	}
+	</style>
