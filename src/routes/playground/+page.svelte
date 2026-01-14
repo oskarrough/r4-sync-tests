@@ -31,6 +31,7 @@
 		<li><a href="/playground/async-test">async-test</a></li>
 		<li><a href="/playground/media-chrome">media-chrome</a></li>
 		<li><a href="/playground/spam-angel">spam-angel</a></li>
+		<li><a href="/playground/tanstack">tanstack</a></li>
 		<li><a href="/playground/tooltips">tooltips</a></li>
 	</menu>
 </nav>

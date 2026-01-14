@@ -64,7 +64,13 @@
 	<button type="button" onclick={() => (step = 'providers')}>{m.common_back()}</button>
 {:else}
 	<AuthProviders onEmailClick={handleEmailContinue} {redirect} />
-	<p><small>{m.auth_terms_prefix()} <a href="https://legal.radio4000.com/terms-of-service" target="_blank" rel="noopener">{m.auth_terms_link()}</a>.</small></p>
+	<p>
+		<small
+			>{m.auth_terms_prefix()}
+			<a href="https://legal.radio4000.com/terms-of-service" target="_blank" rel="noopener">{m.auth_terms_link()}</a
+			>.</small
+		>
+	</p>
 {/if}
 
 <style>
