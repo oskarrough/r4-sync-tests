@@ -14,7 +14,7 @@ export const defaultAppState: AppState = {
 	channels: [],
 	channel: undefined,
 	custom_css_variables: {},
-	shortcuts: {},
+	shortcuts: undefined,
 
 	channels_display: 'grid',
 	channels_filter: '10+',
