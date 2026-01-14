@@ -1,2 +1,5 @@
-// internal mindmap of available actions across the app
-// bird's eye view for opportunities in more elegant pipes and designs
+/**
+ * R5 API - core operations for channels, tracks, and playback.
+ */
+
+export {appState} from './app-state.svelte'

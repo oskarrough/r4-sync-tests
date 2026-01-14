@@ -5,10 +5,9 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 
 ## BACKLOG
 
+- Get an overview of the methods we have in lib, api, sdk (the sdk's readme has a good overview for it) and add one to our @docs folder so its easy to get an overview of methods, their args maybe, returns too. to consider naming, api design from high level
 - implement password reset flow (supabase auth)
-- tracks inside <tracklist> aren't highlighted/marked when they are loaded in player? appState.playback_track === track.id?
 - refine offline error handling: In `syncTracks` and `syncChannels`, use `NonRetriableError` from `@tanstack/offline-transactions` for server-side validation errors (e.g., HTTP 4xx) to prevent unnecessary retries.
-- add an url param to directly queueplay a track. maybe slug?play=trackid
 - share buttons/embeds (evaluate if needed)
 - add validation layer at sync boundaries (remote->local) using lib like zod 4 shared types from sdk?
 - run `bun run check` and slowly get rid of these warnings - tidy codebase

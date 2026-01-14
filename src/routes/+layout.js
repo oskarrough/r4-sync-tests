@@ -7,6 +7,9 @@ import {cacheReady} from '$lib/tanstack/query-cache-persistence'
 import {collectionsHydrated} from '$lib/tanstack/collection-persistence'
 import {fetchAllChannels} from '$lib/api/fetch-channels'
 import {appState} from '$lib/app-state.svelte'
+import * as api from '$lib/api'
+import * as queue from '$lib/player/queue'
+import {mix, mixFrom, mixIds, mixCurrent, mixAll, mixRemaining, mixSearch} from '$lib/lab/mix'
 
 // Disable SSR
 export const ssr = false
@@ -46,9 +49,25 @@ async function preload() {
 
 		validateListeningState().catch((err) => log.error('validate_listening_state_error', err))
 
-		// For debugging
+		// For debugging and console experimentation
 		// @ts-expect-error debugging
-		window.r5 = {sdk, appState, queryClient, tracksCollection, channelsCollection, spamDecisionsCollection}
+		window.r5 = {
+			sdk,
+			appState,
+			queryClient,
+			tracksCollection,
+			channelsCollection,
+			spamDecisionsCollection,
+			queue,
+			api,
+			mix,
+			mixFrom,
+			mixIds,
+			mixCurrent,
+			mixAll,
+			mixRemaining,
+			mixSearch
+		}
 	} catch (err) {
 		log.error('preloading_error', err)
 	} finally {
