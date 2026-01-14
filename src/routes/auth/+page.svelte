@@ -49,10 +49,9 @@
 		{:else}
 			<p><a href="/create-channel">{m.auth_create_radio_cta()}</a></p>
 		{/if}
-		<br/>
+		<br />
 		<p><small>{m.auth_signed_in_as({email: appState.user.email})}</small></p>
 		<p><button type="button" onclick={() => sdk.auth.signOut()}>{m.auth_log_out()}</button></p>
-
 	{:else}
 		<menu class="options">
 			<a href="/auth/create-account{redirectParam}">

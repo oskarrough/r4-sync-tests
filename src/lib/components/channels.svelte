@@ -138,10 +138,8 @@
 
 <div class={`layout layout--${display}`}>
 	<menu class="filtermenu">
-		<PopoverMenu id="channels-filter">
-			{#snippet trigger()}<button {@attach tooltip({content: m.channels_filter_label()})}
-					><Icon icon="filter-alt" size="20" /> {filterLabelMap[filter]()}</button
-				>{/snippet}
+		<PopoverMenu id="channels-filter" triggerAttachment={tooltip({content: m.channels_filter_label()})}>
+			{#snippet trigger()}<Icon icon="filter-alt" size="20" /> {filterLabelMap[filter]()}{/snippet}
 			<button
 				class:active={filter === 'all'}
 				onclick={() => setFilter('all')}
@@ -186,10 +184,13 @@
 			>
 		</PopoverMenu>
 
-		<PopoverMenu id="channels-display" closeOnClick={false} style="margin-left: auto;">
-			{#snippet trigger()}<button {@attach tooltip({content: m.channels_view_mode({mode: viewLabelMap[display]()})})}
-					><Icon icon="grid" size="20" /> {viewLabelMap[display]()}</button
-				>{/snippet}
+		<PopoverMenu
+			id="channels-display"
+			closeOnClick={false}
+			style="margin-left: auto;"
+			triggerAttachment={tooltip({content: m.channels_view_mode({mode: viewLabelMap[display]()})})}
+		>
+			{#snippet trigger()}<Icon icon="grid" size="20" /> {viewLabelMap[display]()}{/snippet}
 			<div class="view-modes">
 				<button
 					class:active={display === 'grid'}
@@ -336,7 +337,7 @@
 			flex-direction: column;
 			gap: 0.2rem;
 			padding: 0.2rem;
-			min-width: 3.2rem;
+			min-width: 3.5rem;
 
 			small {
 				color: inherit;

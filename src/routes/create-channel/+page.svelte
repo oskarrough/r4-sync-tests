@@ -16,7 +16,7 @@
 		<p>
 			<a href="/auth?redirect=/create-channel">{m.auth_create_or_signin()}</a>
 		</p>
-			<p>{m.auth_sign_in_to_create()}</p>
+		<p>{m.auth_sign_in_to_create()}</p>
 	{:else if appState.channels?.length}
 		<p>{m.channel_you_have()} <a href="/{userChannelSlug}">{userChannelSlug}</a></p>
 	{:else}
