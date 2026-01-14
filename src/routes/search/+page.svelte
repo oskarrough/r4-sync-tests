@@ -7,7 +7,7 @@
 	import TrackCard from '$lib/components/track-card.svelte'
 	import {trap} from '$lib/focus'
 	import {searchAll} from '$lib/search'
-	import {channelsCollection} from '$lib/tanstack/collections'
+	import {channelsCollection, tracksCollection} from '$lib/tanstack/collections'
 	import * as m from '$lib/paraglide/messages'
 
 	// Trigger channels to load into collection state (needed for search on direct page load)
@@ -52,10 +52,26 @@
 		isLoading = false
 	}
 
+	function writeTracksToCollection() {
+		tracksCollection.utils.writeBatch(() => {
+			for (const track of tracks) {
+				tracksCollection.utils.writeUpsert(track)
+			}
+		})
+	}
+
 	async function playSearchResults() {
+		if (!tracks.length) return
+		writeTracksToCollection()
 		const ids = tracks.map((t) => t.id)
-		await setPlaylist(ids)
-		await playTrack(ids[0], null, 'play_search')
+		setPlaylist(ids)
+		playTrack(ids[0], null, 'play_search')
+	}
+
+	function queueSearchResults() {
+		if (!tracks.length) return
+		writeTracksToCollection()
+		addToPlaylist(tracks.map((t) => t.id))
 	}
 </script>
 
@@ -67,7 +83,7 @@
 	<menu>
 		{#if searchQuery && !isLoading && tracks.length > 0}
 			<button type="button" onclick={playSearchResults}>{m.search_play_all()}</button>
-			<button type="button" onclick={() => addToPlaylist(tracks.map((t) => t.id))}>{m.search_queue_all()}</button>
+			<button type="button" onclick={queueSearchResults}>{m.search_queue_all()}</button>
 		{/if}
 		<SearchStatus {searchQuery} channelCount={channels.length} trackCount={tracks.length} />
 	</menu>
