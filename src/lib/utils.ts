@@ -2,10 +2,6 @@ export function uuid() {
 	return crypto.randomUUID()
 }
 
-export function delay(ms: number): Promise<void> {
-	return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
 export function trimWithEllipsis(text?: string | null, maxLength: number = 267) {
 	return !text || text.length <= maxLength ? text || '' : `${text.substring(0, maxLength)}…`
 }
@@ -159,4 +155,25 @@ export function delayWithJitter(base: number, jitter: number = 0.2): Promise<voi
 	const variance = base * jitter
 	const ms = base + (Math.random() * 2 - 1) * variance
 	return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+const oembedProviders: Record<string, string> = {
+	'youtube.com': 'https://www.youtube.com/oembed',
+	'youtu.be': 'https://www.youtube.com/oembed',
+	'soundcloud.com': 'https://soundcloud.com/oembed',
+	'vimeo.com': 'https://vimeo.com/api/oembed.json'
+}
+
+export async function fetchOEmbedTitle(mediaUrl: string): Promise<string | null> {
+	try {
+		const hostname = new URL(mediaUrl).hostname.replace('www.', '')
+		const endpoint = oembedProviders[hostname]
+		if (!endpoint) return null
+		const res = await fetch(`${endpoint}?url=${encodeURIComponent(mediaUrl)}&format=json`)
+		if (!res.ok) return null
+		const data = await res.json()
+		return data.title || null
+	} catch {
+		return null
+	}
 }

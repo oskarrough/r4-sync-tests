@@ -3,7 +3,7 @@ import {queryCollectionOptions, parseLoadSubsetOptions} from '@tanstack/query-db
 import {NonRetriableError} from '@tanstack/offline-transactions'
 import {sdk} from '@radio4000/sdk'
 import type {PendingMutation} from '@tanstack/db'
-import {extractYouTubeId} from '$lib/utils'
+import {extractYouTubeId, uuid} from '$lib/utils'
 import {queryClient} from './query-client'
 import {channelsCollection, type Channel} from './channels'
 import {trackMetaCollection, type TrackMeta} from './track-meta'
@@ -142,7 +142,7 @@ export function addTrack(
 	})
 	tx.mutate(() => {
 		tracksCollection.insert({
-			id: crypto.randomUUID(),
+			id: uuid(),
 			url: input.url,
 			title: input.title,
 			description: input.description || '',

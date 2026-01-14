@@ -5,6 +5,7 @@ import {sdk} from '@radio4000/sdk'
 import {appState} from '$lib/app-state.svelte'
 import type {PendingMutation} from '@tanstack/db'
 import {fetchAllChannels, fetchChannelBySlug} from '$lib/api/fetch-channels'
+import {uuid} from '$lib/utils'
 import {queryClient} from './query-client'
 import {log, txLog, getErrorMessage} from './utils'
 import {getOfflineExecutor} from './offline-executor'
@@ -110,7 +111,7 @@ export function createChannel(input: {name: string; slug: string; description?: 
 		metadata: {userId},
 		autoCommit: false
 	})
-	const id = crypto.randomUUID()
+	const id = uuid()
 	tx.mutate(() => {
 		channelsCollection.insert({
 			id,

@@ -6,7 +6,7 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 ## BACKLOG
 
 - implement password reset flow (supabase auth)
-- tracks inside <tracklist> aren't highlighted/marked when they are loaded in player? appState.playback_track === track.id?
+- tracks inside <tracklist> aren't highlighted/marked when they are loaded in player? appState.playlist_track === track.id?
 - refine offline error handling: In `syncTracks` and `syncChannels`, use `NonRetriableError` from `@tanstack/offline-transactions` for server-side validation errors (e.g., HTTP 4xx) to prevent unnecessary retries.
 - add an url param to directly queueplay a track. maybe slug?play=trackid
 - share buttons/embeds (evaluate if needed)
@@ -18,18 +18,22 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 - improve broadcast feature
 - rethink channel date display: replace "341 days ago" with value-neutral presentation. Old channels aren't stale - they're archives, curated collections. Consider: just showing the year ("2019"), hiding time entirely and only surfacing recency in discovery contexts ("new this week" in feeds), or seasonal labels. The date is provenance, not a freshness indicator. Some of the best mixtapes are old.
 
+## Parked features
+
+- direct IDB collection persistence: bypasses TanStack Query cache to avoid "cache restore overwrites optimistic updates" issue. Disabled due to performance problems. See `collection-persistence.ts` (commented out) and `docs/plan-tanstack-collection-idb-idea.md` for design.
+
+## Performance
+
+### track-card bottlenecks (3k+ tracks)
+
+- extractYouTubeId per card: regex parsing runs for each track. Consider caching results or moving to track sync time. We really should set this whenever URL is updated server-side.
+- LinkEntities per description: parses/transforms text for each track description. Could batch or cache.
+- PopoverMenu per card: 3k popover instances in DOM even if not visible. Lazy-render only when opened? Maybe fine as is, since its native
+- active state: `appState.playlist_track` check runs on all cards when current track changes. Move check to parent, only pass boolean to playing track.
+
 ## Questionable backlog
 
 - allow users to mark a musicbrainz or discogs meta track data as wrong. Since we auto-match on the track title, there's a relatively high chance it's wrong. If it's wrong, users can delete the meta data for that track. But then it'd just match it again on reload. How do we deal with this, do we spend effort on this?
 - local file player for mp3/m4a uploads
 - find a way to share `track_meta` data between users. push it remote, how? security?
 - consider integrating "bandsintown" as a third-party API similar to musicbrainz, youtube meta - rich data connections
-
-### track-card perf improvements
-
-Potential bottlenecks when rendering 3k+ tracks:
-
-- extractYouTubeId per card: regex parsing runs for each track. Consider caching results or moving to track sync time. We really should set this whenever URL is updated server-side.
-- LinkEntities per description: parses/transforms text for each track description. Could batch or cache.
-- PopoverMenu per card: 3k popover instances in DOM even if not visible. Lazy-render only when opened? Maybe fine as is, since its native
-- active state: `appState.playlist_track` check runs on all cards when current track changes. Move check to parent, only pass boolean to playing track.

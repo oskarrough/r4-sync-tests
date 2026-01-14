@@ -1,6 +1,6 @@
 <script>
 	import {addTrack, updateTrack} from '$lib/tanstack/collections/tracks'
-	import {fetchOEmbedTitle} from '$lib/utils/oembed'
+	import {fetchOEmbedTitle} from '$lib/utils'
 	import * as m from '$lib/paraglide/messages'
 
 	/** @type {{mode: 'create', channel: import('$lib/tanstack/collections/channels').Channel, trackId?: string, url?: string, title?: string, description?: string, discogs_url?: string, onsubmit?: (event: {data: {url: string, title: string} | null, error: Error | null}) => void} | {mode: 'edit', channel: {id: string, slug: string}, trackId: string, url?: string, title?: string, description?: string, discogs_url?: string, onsubmit?: (event: {data: {url: string, title: string} | null, error: Error | null}) => void}} */
