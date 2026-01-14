@@ -151,7 +151,12 @@ dl.meta {
 	place-content: center;
 	place-items: normal;
 	min-height: 50dvh;
-	text-align: center;
+
+	h1,
+	h2,
+	p {
+		text-align: center;
+	}
 
 	> header {
 		margin-block-end: 2rem;

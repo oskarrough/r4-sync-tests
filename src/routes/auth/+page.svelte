@@ -38,8 +38,9 @@
 							: 'Sync failed'
 				})}
 			</p>
-			<br />
-			<p><a href="/create-channel">{m.auth_create_radio_cta()}</a></p>
+			<menu class="options single">
+				<a href="/create-channel">{m.auth_create_radio_cta()}</a>
+			</menu>
 		{:else if userChannelsQuery.data?.length}
 			<div class="channels-grid">
 				{#each userChannelsQuery.data as channel (channel.id)}
@@ -47,9 +48,10 @@
 				{/each}
 			</div>
 		{:else}
-			<p><a href="/create-channel">{m.auth_create_radio_cta()}</a></p>
+			<menu class="options single">
+				<a href="/create-channel">{m.auth_create_radio_cta()}</a>
+			</menu>
 		{/if}
-		<br />
 		<p><small>{m.auth_signed_in_as({email: appState.user.email})}</small></p>
 		<p><button type="button" onclick={() => sdk.auth.signOut()}>{m.auth_log_out()}</button></p>
 	{:else}
@@ -95,6 +97,11 @@
 		margin-top: 2rem;
 		text-align: center;
 		font-size: var(--font-6);
+
+		&.single {
+			grid-template-columns: 1fr;
+			margin-block-end: 1rem;
+		}
 
 		> a {
 			text-decoration: none;
