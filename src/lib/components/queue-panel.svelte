@@ -6,6 +6,7 @@
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
 	import {relativeTime} from '$lib/dates'
 	import {playHistoryCollection, clearPlayHistory, tracksCollection} from '$lib/tanstack/collections'
+	import {shuffleRemaining} from '$lib/api'
 	import Modal from './modal.svelte'
 	import SearchInput from './search-input.svelte'
 	import TrackCard from './track-card.svelte'
@@ -128,8 +129,15 @@
 
 	<div class="search-container">
 		<SearchInput bind:value={searchQuery} placeholder={m.search_placeholder()} />
-		{#if view === 'queue' && trackIds.length > 0}
-			<button onclick={clearQueue} {@attach tooltip({content: m.queue_no_tracks()})}>{m.common_clear()}</button>
+		{#if view === 'queue' && trackIds.length > 1}
+			<menu class="queue-actions">
+				<button
+					onclick={shuffleRemaining}
+					{@attach tooltip({content: m.queue_shuffle_remaining()})}
+					title={m.queue_shuffle_remaining()}>⤮</button
+				>
+				<button onclick={clearQueue} {@attach tooltip({content: m.common_clear()})} title={m.common_clear()}>✕</button>
+			</menu>
 		{:else if view === 'history' && playHistory.length > 0}
 			<button onclick={() => (showClearHistoryModal = true)} {@attach tooltip({content: m.queue_no_history()})}
 				>{m.common_clear()}</button
@@ -273,6 +281,18 @@
 		padding: 0.5rem;
 		border-bottom: 1px solid var(--gray-5);
 		justify-content: space-between;
+		gap: 0.25rem;
+	}
+
+	.queue-actions {
+		display: flex;
+		gap: 0.125rem;
+
+		button {
+			padding: 0.25rem 0.5rem;
+			font-size: 1rem;
+			line-height: 1;
+		}
 	}
 
 	.tracks :global(.slug),
