@@ -1,7 +1,5 @@
 <script>
-	import gsap from 'gsap'
-	import {Draggable} from 'gsap/Draggable'
-	import {InertiaPlugin} from 'gsap/InertiaPlugin'
+	import {gsap, Draggable, InertiaPlugin} from '$lib/animations.js'
 	import ButtonPlay from '$lib/components/button-play.svelte'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import {InfiniteGrid, throttle} from '$lib/infinite-grid.js'
