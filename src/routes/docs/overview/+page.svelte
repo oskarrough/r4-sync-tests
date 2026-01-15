@@ -51,15 +51,23 @@
 </script>
 
 <svelte:head>
-	<title>overview.json - r5 docs</title>
+	<title>overview - r5 docs</title>
 </svelte:head>
+
+<menu class="grouped">
+	<a href="/docs">index</a>
+	<a href="/docs/overview">overview</a>
+	{#each data.docs.filter((d) => d !== 'index' && d !== 'overview') as doc (doc)}
+		<a href="/docs/{doc}">{doc}</a>
+	{/each}
+</menu>
 
 <article>
 	<header>
-		<h1>overview.json</h1>
+		<h1>OVERVIEW</h1>
 		<p>
-			Generated from <code>docs/overview.json</code>. See
-			<a href="/docs/overview">overview.md</a> for the long form.
+			.. of our primary modules and their functions. Generated from <code>docs/overview.json</code> which is created manually,
+			well, by another robot, but still.
 		</p>
 		<button onclick={toggleAll}>{allExpanded ? 'Collapse all' : 'Expand all'}</button>
 	</header>
@@ -92,45 +100,44 @@
 </article>
 
 <style>
+	header {
+		margin-left: 0.5rem;
+		margin-right: 0.5rem;
+		margin-bottom: var(--space-3);
+	}
+
 	details.group {
-		margin-block-end: var(--space-3);
-		> summary {
-			h2 {
-				display: inline;
-			}
+		margin-left: 0.5rem;
+		margin-right: 0.5rem;
+		margin-block-start: var(--space-3);
+
+		> summary h2 {
+			display: inline;
+			color: var(--accent-9);
 		}
 	}
 	details:not(.group) {
 		margin-left: 0.5rem;
-		margin-block-end: var(--space-2);
-	}
-	summary {
-		cursor: pointer;
-		font-weight: 500;
-		code {
-			font-size: 1em;
-		}
-		small {
-			opacity: 0.6;
+
+		> summary code {
+			color: var(--accent-11);
 		}
 	}
 	ul {
-		margin: 0;
 		padding: 0;
 		list-style: none;
 	}
 	li {
+		padding-inline-start: 1rem;
 		display: flex;
 		gap: 1rem;
-		padding-inline-start: 1rem;
 	}
 	.name {
 		font-family: monospace;
-		min-width: 45ch;
+		min-width: 40ch;
 		flex-shrink: 0;
 	}
 	.desc {
 		font-style: italic;
-		opacity: 0.8;
 	}
 </style>

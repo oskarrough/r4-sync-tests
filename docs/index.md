@@ -1,4 +1,6 @@
-r5 is a local-first music player prototype.
+# DOCS
+
+This is a local-first music player prototype.
 
 - pulls data from Radio4000 v1 (firebase) and v2 (r4 postgres)
 - queries and caches it in your browser storage
