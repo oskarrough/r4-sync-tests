@@ -27,7 +27,7 @@
 	"auth_card_create_description": "I'm new to Radio4000",
 	"auth_card_create_title": "Create account",
 	"auth_card_login_description": "I already have a channel",
-	"auth_card_login_title": "Sign in",
+	"auth_card_login_title": "Log in",
 	"auth_check_email": "Check your email",
 	"auth_click_link": "Click the link in the email to finish creating your account.",
 	"auth_continue_with_email": "Continue with email",
