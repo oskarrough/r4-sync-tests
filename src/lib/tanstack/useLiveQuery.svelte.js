@@ -96,7 +96,7 @@ export function useLiveQuery(configOrQueryOrCollection, deps = []) {
 			return
 		}
 
-		log.info('effect run', {collectionStatus: currentCollection.status, collectionId: currentCollection.id})
+		log.debug('effect run', {collectionStatus: currentCollection.status, collectionId: currentCollection.id})
 		status = currentCollection.status
 
 		if (currentUnsubscribe) {
