@@ -8,7 +8,7 @@
 	let step = $state('providers') // 'providers' | 'email' | 'password' | 'linkSent'
 	let email = $state('')
 	let password = $state('')
-	let error = $state(null)
+	let error = $state(/** @type {string | null} */ (null))
 	let loading = $state(false)
 
 	async function sendMagicLink() {

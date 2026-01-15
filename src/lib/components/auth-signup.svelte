@@ -7,7 +7,7 @@
 
 	let step = $state('providers') // 'providers' | 'email' | 'linkSent'
 	let email = $state('')
-	let error = $state(null)
+	let error = $state(/** @type {string | null} */ (null))
 	let loading = $state(false)
 
 	async function sendMagicLink() {
