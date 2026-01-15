@@ -5,15 +5,23 @@
 	let {label, value = $bindable('#000000'), oninput, onchange, disabled} = $props()
 
 	const handleInput = (event) => {
+		if (disabled) return
 		value = event.hex
 		oninput?.({target: {value: event.hex}})
 		onchange?.({target: {value: event.hex}})
 	}
 </script>
 
-<ColorPicker {label} bind:hex={value} onInput={handleInput} isDialog={true} {disabled} />
+<div class:disabled>
+	<ColorPicker {label} bind:hex={value} onInput={handleInput} isDialog={true} />
+</div>
 
 <style>
+	.disabled {
+		opacity: 0.5;
+		pointer-events: none;
+	}
+
 	:root {
 		--picker-z-index: 3;
 		/*

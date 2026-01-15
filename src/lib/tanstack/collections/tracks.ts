@@ -127,7 +127,7 @@ export function getTrackWithMeta<T extends {url?: string}>(track: T): T & Partia
 }
 
 export function addTrack(
-	channel: Channel,
+	channel: {id: string; slug: string},
 	input: {url: string; title: string; description?: string; discogs_url?: string}
 ) {
 	const tx = getOfflineExecutor().createOfflineTransaction({

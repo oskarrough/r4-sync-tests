@@ -34,7 +34,7 @@ const idbPersister = {
 	}
 }
 
-function shouldDehydrateQuery(query: {queryKey: unknown[]; state: {status: string; data: unknown}}): boolean {
+function shouldDehydrateQuery(query: {queryKey: readonly unknown[]; state: {status: string; data: unknown}}): boolean {
 	if (query.state.status !== 'success') return false
 
 	const data = query.state.data

@@ -60,7 +60,9 @@
 		void tick
 		const slugs: Record<string, number> = {}
 		for (const track of tracksCollection.state.values()) {
-			slugs[track.slug] = (slugs[track.slug] || 0) + 1
+			if (track.slug) {
+				slugs[track.slug] = (slugs[track.slug] || 0) + 1
+			}
 		}
 		return Object.entries(slugs).sort((a, b) => b[1] - a[1])
 	})

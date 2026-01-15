@@ -37,15 +37,15 @@
 		<h2>{m.track_edit_title()}</h2>
 	{/snippet}
 
-	{#if showModal && track}
+	{#if showModal && track && track.channel_id && track.slug}
 		<TrackForm
 			mode="edit"
 			channel={{id: track.channel_id, slug: track.slug}}
 			trackId={track.id}
 			url={track.url}
 			title={track.title}
-			description={track.description}
-			discogs_url={track.discogs_url}
+			description={track.description ?? undefined}
+			discogs_url={track.discogs_url ?? undefined}
 			onsubmit={handleSubmit}
 		/>
 	{/if}

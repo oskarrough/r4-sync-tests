@@ -28,20 +28,21 @@
 		}
 	}
 
+	/** @param {KeyboardEvent} e */
 	function handleKeydown(e) {
+		const input = /** @type {HTMLInputElement} */ (e.target)
 		if (e.key === 'Enter') {
 			e.preventDefault()
-			commitEdit(e.target.value)
+			commitEdit(input.value)
 		} else if (e.key === 'Escape') {
 			e.preventDefault()
 			stopEdit()
 		} else if (e.key === 'Tab') {
 			e.preventDefault()
-			commitEdit(e.target.value)
+			commitEdit(input.value)
 			onTab?.(e.shiftKey ? -1 : 1)
 		}
 	}
-
 </script>
 
 {#if isEditing}
@@ -49,9 +50,12 @@
 		type="text"
 		{value}
 		class="inline-input"
-		onblur={(e) => commitEdit(e.target.value)}
+		onblur={(e) => commitEdit(/** @type {HTMLInputElement} */ (e.target).value)}
 		onkeydown={handleKeydown}
-		{@attach (el) => { el.focus(); el.select() }}
+		{@attach (el) => {
+			el.focus()
+			el.select()
+		}}
 	/>
 {:else}
 	<span class="editable" class:readonly={!canEdit} ondblclick={startEdit}>

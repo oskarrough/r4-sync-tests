@@ -109,7 +109,15 @@
 			title: entry.title,
 			url: entry.url,
 			created_at: entry.started_at,
-			updated_at: entry.started_at
+			updated_at: entry.started_at,
+			channel_id: undefined,
+			description: null,
+			discogs_url: null,
+			duration: null,
+			fts: null,
+			mentions: null,
+			playback_error: null,
+			tags: null
 		}
 	}
 </script>

@@ -224,6 +224,7 @@
 					label={variable.label()}
 					value={getCurrentValue(variable)}
 					onchange={(e) => updateVariable(variable.name, e.target.value)}
+					disabled={!getCurrentValue(variable)}
 				/>
 				<input
 					hidden
