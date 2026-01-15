@@ -42,10 +42,6 @@
 		}
 	}
 
-	function focus(element) {
-		element?.focus()
-		element?.select()
-	}
 </script>
 
 {#if isEditing}
@@ -55,7 +51,7 @@
 		class="inline-input"
 		onblur={(e) => commitEdit(e.target.value)}
 		onkeydown={handleKeydown}
-		use:focus
+		{@attach (el) => { el.focus(); el.select() }}
 	/>
 {:else}
 	<span class="editable" class:readonly={!canEdit} ondblclick={startEdit}>
