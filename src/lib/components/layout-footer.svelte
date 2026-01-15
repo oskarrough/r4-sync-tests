@@ -1,8 +1,6 @@
 <script>
 	import {page} from '$app/state'
-	import gsap from 'gsap'
-	import {Draggable} from 'gsap/Draggable'
-	import {InertiaPlugin} from 'gsap/InertiaPlugin'
+	import {gsap, Draggable, InertiaPlugin} from '$lib/animations.js'
 	import {appState} from '$lib/app-state.svelte'
 	import Player from '$lib/components/player.svelte'
 

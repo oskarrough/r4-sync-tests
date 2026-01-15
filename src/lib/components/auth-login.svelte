@@ -8,7 +8,7 @@
 	let step = $state('providers') // 'providers' | 'email' | 'password' | 'linkSent'
 	let email = $state('')
 	let password = $state('')
-	let error = $state(null)
+	let error = $state(/** @type {string | null} */ (null))
 	let loading = $state(false)
 
 	async function sendMagicLink() {
@@ -63,10 +63,19 @@
 			signInWithPassword()
 		}}
 	>
-		<p>{email}</p>
+		<label>
+			{m.auth_email()}
+			<input type="email" bind:value={email} required autocomplete="email" placeholder="Enter your email address…" />
+		</label>
 		<label>
 			{m.auth_password()}
-			<input type="password" bind:value={password} required autocomplete="current-password" />
+			<input
+				type="password"
+				bind:value={password}
+				required
+				autocomplete="current-password"
+				placeholder="Enter your password…"
+			/>
 		</label>
 		{#if error}
 			<p role="alert">{error}</p>
@@ -75,7 +84,9 @@
 			{loading ? m.auth_logging_in() : m.auth_log_in()}
 		</button>
 	</form>
-	<button type="button" onclick={() => (step = 'email')}>{m.auth_use_magic_link()}</button>
+	<menu>
+		<button type="button" onclick={() => (step = 'email')}>← {m.auth_use_magic_link()}</button>
+	</menu>
 {:else if step === 'email'}
 	<form
 		onsubmit={(e) => {
@@ -85,7 +96,7 @@
 	>
 		<label>
 			{m.auth_email()}
-			<input type="email" bind:value={email} required autocomplete="email" />
+			<input type="email" bind:value={email} required autocomplete="email" placeholder="Enter your email address…" />
 		</label>
 		{#if error}
 			<p role="alert">{error}</p>
@@ -94,8 +105,10 @@
 			{loading ? m.common_sending() : m.auth_continue_with_email()}
 		</button>
 	</form>
-	<button type="button" onclick={() => (step = 'password')}>{m.auth_have_password()}</button>
-	<button type="button" onclick={() => (step = 'providers')}>{m.common_back()}</button>
+	<menu>
+		<button type="button" onclick={() => (step = 'password')}>{m.auth_have_password()}</button>
+		<button type="button" onclick={() => (step = 'providers')}>← {m.common_back()}</button>
+	</menu>
 {:else}
 	<AuthProviders onEmailClick={handleEmailContinue} {redirect} />
 {/if}
@@ -116,6 +129,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
+		margin-top: 1rem;
 	}
 	section {
 		text-align: center;

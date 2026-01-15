@@ -6,6 +6,7 @@
 	import SearchStatus from '$lib/components/search-status.svelte'
 	import TrackCard from '$lib/components/track-card.svelte'
 	import {trap} from '$lib/focus'
+	import {fromAction} from 'svelte/attachments'
 	import {searchAll} from '$lib/search'
 	import {channelsCollection, tracksCollection} from '$lib/tanstack/collections'
 	import * as m from '$lib/paraglide/messages'
@@ -79,7 +80,7 @@
 	<title>{m.search_title()}</title>
 </svelte:head>
 
-<article use:trap>
+<article {@attach fromAction(trap)}>
 	<menu>
 		{#if searchQuery && !isLoading && tracks.length > 0}
 			<button type="button" onclick={playSearchResults}>{m.search_play_all()}</button>

@@ -87,28 +87,28 @@
 <aside>
 	<span class="count">Selected: {selectedIds.length}</span>
 
-	<button onclick={() => (showAppend = true)} use:tooltip={{content: 'Add text or tags to track descriptions'}}
+	<button onclick={() => (showAppend = true)} {@attach tooltip({content: 'Add text or tags to track descriptions'})}
 		>Append...</button
 	>
 	<button
 		onclick={() => (showRemoveTag = true)}
 		disabled={selectedTracksTags.length === 0}
-		use:tooltip={{content: 'Remove a specific tag from all selected tracks'}}>Remove tag...</button
+		{@attach tooltip({content: 'Remove a specific tag from all selected tracks'})}>Remove tag...</button
 	>
 	{#if tracksWithMetaDuration.length > 0}
-		<button onclick={copyDurationFromMeta} use:tooltip={{content: 'Copy duration from YouTube metadata to track'}}
+		<button onclick={copyDurationFromMeta} {@attach tooltip({content: 'Copy duration from YouTube metadata to track'})}
 			>Copy duration ({tracksWithMetaDuration.length})</button
 		>
 	{/if}
-	<button onclick={removeDuration} use:tooltip={{content: 'Clear the duration field from selected tracks'}}
+	<button onclick={removeDuration} {@attach tooltip({content: 'Clear the duration field from selected tracks'})}
 		>Remove duration</button
 	>
 	{#if tracksWithMeta.length > 0}
-		<button onclick={removeMeta} use:tooltip={{content: 'Delete cached YouTube/MusicBrainz/Discogs metadata'}}
+		<button onclick={removeMeta} {@attach tooltip({content: 'Delete cached YouTube/MusicBrainz/Discogs metadata'})}
 			>Remove meta ({tracksWithMeta.length})</button
 		>
 	{/if}
-	<button onclick={onClear} use:tooltip={{content: 'Deselect all tracks'}}>Clear</button>
+	<button onclick={onClear} {@attach tooltip({content: 'Deselect all tracks'})}>Clear</button>
 </aside>
 
 {#if showAppend}

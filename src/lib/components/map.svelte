@@ -92,13 +92,10 @@
 			mapState.isProgrammaticChange = false
 		}, 200)
 
-		return {
-			destroy() {
-				map.remove()
-				// Clear any pending debounced calls
-				if (mapState.debounceTimer) {
-					clearTimeout(mapState.debounceTimer)
-				}
+		return () => {
+			map.remove()
+			if (mapState.debounceTimer) {
+				clearTimeout(mapState.debounceTimer)
 			}
 		}
 	}
@@ -213,7 +210,7 @@
 	}
 </script>
 
-<div id={mapId} class="Map" use:setup></div>
+<div id={mapId} class="Map" {@attach setup}></div>
 
 <style>
 	.Map {

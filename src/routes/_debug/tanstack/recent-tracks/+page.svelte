@@ -26,7 +26,9 @@
 	const slugsLoaded = $derived(() => {
 		const slugs: Record<string, true> = {}
 		for (const track of tracksCollection.state.values()) {
-			slugs[track.slug] = true
+			if (track.slug) {
+				slugs[track.slug] = true
+			}
 		}
 		return Object.keys(slugs).sort()
 	})

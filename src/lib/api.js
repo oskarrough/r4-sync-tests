@@ -39,7 +39,7 @@ export async function checkUser() {
 
 		// Store IDs - collection handles fetching when needed
 		appState.channels = channels.map((c) => c.id)
-		appState.channel = channels[0] || undefined
+		appState.channel = /** @type {import('$lib/types').Channel | undefined} */ (channels[0])
 
 		// Pull follows when user signs in (not on every check)
 		if (wasSignedOut && appState.channels.length) {
