@@ -1,41 +1,51 @@
 {
 	"src/lib/app-state.svelte.ts": [
 		{"name": "appState", "desc": "Reactive UI state, persisted to localStorage."},
+		{"name": "defaultAppState", "desc": "Default values for appState."},
+
 		{"name": "appState.user", "desc": "Current authenticated user."},
 		{"name": "appState.channel", "desc": "Selected channel."},
 		{"name": "appState.channels", "desc": "Loaded channels list."},
+
 		{"name": "appState.playlist_track", "desc": "Current playing track ID."},
 		{"name": "appState.playlist_tracks", "desc": "Queue (original order)."},
 		{"name": "appState.playlist_tracks_shuffled", "desc": "Queue (shuffled order)."},
 		{"name": "appState.is_playing", "desc": "Playback state."},
 		{"name": "appState.shuffle", "desc": "Shuffle enabled."},
 		{"name": "appState.volume", "desc": "Volume 0-1."},
+
 		{"name": "appState.show_video_player", "desc": "Show/hide video."},
 		{"name": "appState.player_expanded", "desc": "Expanded player view."},
 		{"name": "appState.queue_panel_visible", "desc": "Sidebar open."},
 		{"name": "appState.queue_panel_width", "desc": "Sidebar width."},
+
 		{"name": "appState.channels_display", "desc": "'grid' | 'list'."},
 		{"name": "appState.channels_filter", "desc": "Track count filter."},
 		{"name": "appState.channels_order", "desc": "Sort field."},
 		{"name": "appState.channels_order_direction", "desc": "'asc' | 'desc'."},
 		{"name": "appState.channels_shuffled", "desc": "Randomize order."},
+
 		{"name": "appState.broadcasting_channel_id", "desc": "Channel we're broadcasting."},
 		{"name": "appState.listening_to_channel_id", "desc": "Channel we're listening to."},
+
 		{"name": "appState.theme", "desc": "Light/dark."},
 		{"name": "appState.language", "desc": "Locale."},
 		{"name": "appState.shortcuts", "desc": "Custom keybindings."},
 		{"name": "appState.custom_css_variables", "desc": "Theme overrides."},
-		{"name": "appState.hide_track_artwork", "desc": "Hide album art."},
-		{"name": "defaultAppState", "desc": "Default values for appState."}
+		{"name": "appState.hide_track_artwork", "desc": "Hide album art."}
 	],
+
 	"src/lib/tanstack/collections": [
 		{"name": "queryClient", "desc": "TanStack Query client."},
+		{"name": "getOfflineExecutor()", "desc": "Get offline transaction executor."},
+
 		{"name": "tracksCollection", "desc": "Tracks data."},
 		{"name": "channelsCollection", "desc": "Channels data."},
 		{"name": "followsCollection", "desc": "Followed channels (synced)."},
 		{"name": "trackMetaCollection", "desc": "YouTube/MusicBrainz metadata (localStorage)."},
 		{"name": "playHistoryCollection", "desc": "Listening history (localStorage)."},
 		{"name": "spamDecisionsCollection", "desc": "Spam decisions (localStorage)."},
+
 		{"name": "addTrack(channel, {url, title, ...})", "desc": "Create track with offline support."},
 		{"name": "updateTrack(id, changes)", "desc": "Update a track."},
 		{"name": "deleteTrack(id)", "desc": "Delete a track."},
@@ -45,38 +55,46 @@
 		{"name": "getTrackWithMeta(id)", "desc": "Track with YouTube/MusicBrainz meta."},
 		{"name": "ensureTracksLoaded(slug)", "desc": "Fetch if not cached."},
 		{"name": "checkTracksFreshness(slug)", "desc": "Check if tracks need refresh."},
+
 		{"name": "createChannel({name, slug, ...})", "desc": "Create a channel."},
 		{"name": "updateChannel(id, changes)", "desc": "Update a channel."},
 		{"name": "deleteChannel(id)", "desc": "Delete a channel."},
+
 		{"name": "followChannel(followerId, channelId)", "desc": "Follow a channel."},
 		{"name": "unfollowChannel(followerId, channelId)", "desc": "Unfollow a channel."},
 		{"name": "pullFollows(channelId)", "desc": "Sync follows from remote."},
+
 		{"name": "deleteTrackMeta(id)", "desc": "Delete cached track metadata."},
+
 		{"name": "addPlayHistoryEntry(track, options)", "desc": "Record play start."},
 		{"name": "endPlayHistoryEntry(id, options)", "desc": "Record play end."},
-		{"name": "clearPlayHistory()", "desc": "Clear all play history."},
-		{"name": "getOfflineExecutor()", "desc": "Get offline transaction executor."}
+		{"name": "clearPlayHistory()", "desc": "Clear all play history."}
 	],
+
 	"src/lib/api.js": [
 		{"name": "checkUser()", "desc": "Verify auth state, update appState.channels."},
+
 		{"name": "playTrack(id, endReason, startReason)", "desc": "Start playback of a track."},
 		{"name": "playChannel({id, slug}, index?)", "desc": "Play a channel from optional index."},
 		{"name": "shufflePlayChannel({id, slug})", "desc": "Random start plus shuffle."},
+		{"name": "togglePlayPause()", "desc": "Toggle YouTube player play/pause."},
+		{"name": "playFromHere(trackId)", "desc": "Play from track to end."},
+
 		{"name": "setPlaylist(trackIds)", "desc": "Set queue to track IDs."},
 		{"name": "addToPlaylist(trackIds)", "desc": "Append track IDs to queue."},
 		{"name": "playNext(trackIds)", "desc": "Insert after current track."},
 		{"name": "removeFromQueue(trackId)", "desc": "Remove track from queue."},
-		{"name": "toggleTheme()", "desc": "Light/dark mode."},
-		{"name": "toggleQueuePanel()", "desc": "Show/hide queue sidebar."},
-		{"name": "togglePlayerExpanded()", "desc": "Expand/collapse player + video."},
-		{"name": "openSearch()", "desc": "Focus search input."},
-		{"name": "togglePlayPause()", "desc": "Toggle YouTube player play/pause."},
-		{"name": "playFromHere(trackId)", "desc": "Play from track to end."},
 		{"name": "clearQueue()", "desc": "Keep current track, clear the rest."},
 		{"name": "shuffleRemaining()", "desc": "Shuffle remaining tracks."},
 		{"name": "rotateQueue()", "desc": "Move played to end."},
-		{"name": "toggleShuffle()", "desc": "Toggle shuffle mode (switch between original/shuffled order)."}
+		{"name": "toggleShuffle()", "desc": "Toggle shuffle mode (switch between original/shuffled order)."},
+
+		{"name": "toggleTheme()", "desc": "Light/dark mode."},
+		{"name": "toggleQueuePanel()", "desc": "Show/hide queue sidebar."},
+		{"name": "togglePlayerExpanded()", "desc": "Expand/collapse player + video."},
+		{"name": "openSearch()", "desc": "Focus search input."}
 	],
+
 	"src/lib/api/player.js": [
 		{"name": "play(player?)", "desc": "Resume playback."},
 		{"name": "pause(player)", "desc": "Pause playback."},
@@ -86,20 +104,24 @@
 		{"name": "toggleVideo()", "desc": "Toggle video player visibility."},
 		{"name": "eject()", "desc": "Clear player state."}
 	],
+
 	"src/lib/player/queue.ts": [
 		{"name": "queueNext(queue, currentId)", "desc": "Return next ID or null."},
 		{"name": "queuePrev(queue, currentId)", "desc": "Return previous ID or null."},
+		{"name": "queuePosition(queue, currentId)", "desc": "Position of current ID."},
+
 		{"name": "queueInsertManyAfter(queue, currentId, insertIds)", "desc": "Insert many after current ID."},
 		{"name": "queueRemove(queue, id)", "desc": "Remove ID."},
+
 		{"name": "queueShuffle(queue)", "desc": "Shuffle queue."},
 		{"name": "queueShuffleKeepCurrent(queue, currentId)", "desc": "Shuffle but keep current first."},
 		{"name": "queueRotate(queue, currentId)", "desc": "Rotate queue from current."},
-		{"name": "queuePosition(queue, currentId)", "desc": "Position of current ID."},
 		{"name": "queueUnique(queue)", "desc": "Remove duplicates."},
 		{"name": "queueRepeat(queue, times)", "desc": "Repeat queue n times."},
 		{"name": "queueInterleave(a, b)", "desc": "Interleave two queues."},
 		{"name": "queueConcat(...queues)", "desc": "Concatenate queues."}
 	],
+
 	"src/lib/lab/mix.ts": [
 		{"name": "mix()", "desc": "Empty mix."},
 		{"name": "mixFrom(slug)", "desc": "Mix from channel."},
@@ -108,18 +130,22 @@
 		{"name": "mixAll()", "desc": "Mix from all loaded tracks."},
 		{"name": "mixRemaining()", "desc": "Mix from remaining queue."},
 		{"name": "mixSearch(query, options?)", "desc": "Create mix from search."},
+
 		{"name": "mix.from(slug)", "desc": "Add channel tracks."},
 		{"name": "mix.add(...trackIds)", "desc": "Add specific tracks."},
+		{"name": "mix.concat(otherMix)", "desc": "Concat another mix."},
+		{"name": "mix.interleave(otherMix)", "desc": "Interleave with another mix."},
+
 		{"name": "mix.shuffle()", "desc": "Shuffle tracks."},
 		{"name": "mix.reverse()", "desc": "Reverse order."},
-		{"name": "mix.unique()", "desc": "Remove duplicates."},
-		{"name": "mix.take(n)", "desc": "Take first n."},
-		{"name": "mix.skip(n)", "desc": "Skip first n."},
-		{"name": "mix.repeat(times)", "desc": "Repeat mix."},
-		{"name": "mix.interleave(otherMix)", "desc": "Interleave with another mix."},
-		{"name": "mix.concat(otherMix)", "desc": "Concat another mix."},
 		{"name": "mix.sortNewest()", "desc": "Sort by newest."},
 		{"name": "mix.sortOldest()", "desc": "Sort by oldest."},
+
+		{"name": "mix.take(n)", "desc": "Take first n."},
+		{"name": "mix.skip(n)", "desc": "Skip first n."},
+		{"name": "mix.unique()", "desc": "Remove duplicates."},
+		{"name": "mix.repeat(times)", "desc": "Repeat mix."},
+
 		{"name": "mix.where(predicate)", "desc": "Custom filter."},
 		{"name": "mix.withoutErrors()", "desc": "Filter out errors."},
 		{"name": "mix.youtube()", "desc": "Filter YouTube tracks."},
@@ -127,11 +153,13 @@
 		{"name": "mix.recent(days)", "desc": "Filter by recent days."},
 		{"name": "mix.withTag(tag)", "desc": "Filter by tag."},
 		{"name": "mix.withMention(mention)", "desc": "Filter by mention."},
+
 		{"name": "mix.when(condition, action)", "desc": "Conditional action."},
 		{"name": "mix.unless(condition, action)", "desc": "Conditional action unless."},
 		{"name": "mix.tap(fn)", "desc": "Side effect."},
 		{"name": "mix.log(label?)", "desc": "Debug log."},
 		{"name": "mix.clone()", "desc": "Fork mix for variations."},
+
 		{"name": "mix.ids()", "desc": "Return track IDs."},
 		{"name": "mix.tracks()", "desc": "Return track objects."},
 		{"name": "mix.count()", "desc": "Count tracks."},
@@ -139,16 +167,18 @@
 		{"name": "mix.queue()", "desc": "Set as playlist."},
 		{"name": "mix.queueNext()", "desc": "Insert after current track."}
 	],
+
 	"src/lib/lab/selectors.ts": [
-		{"name": "pipe(value, ...fns)", "desc": "Left-to-right composition."},
-		{"name": "compose(...fns)", "desc": "Right-to-left composition."},
 		{"name": "identity(x)", "desc": "Return input."},
 		{"name": "constant(x)", "desc": "Return function that yields x."},
-		{"name": "pickRandom(arr)", "desc": "Pick one random item."},
-		{"name": "pickRandomN(n)", "desc": "Pick n random items."},
+		{"name": "pipe(value, ...fns)", "desc": "Left-to-right composition."},
+		{"name": "compose(...fns)", "desc": "Right-to-left composition."},
 		{"name": "tap(fn)", "desc": "Side effect helper."},
-		{"name": "when(predicate, transform)", "desc": "Conditional transform."}
+		{"name": "when(predicate, transform)", "desc": "Conditional transform."},
+		{"name": "pickRandom(arr)", "desc": "Pick one random item."},
+		{"name": "pickRandomN(n)", "desc": "Pick n random items."}
 	],
+
 	"src/lib/search.js": [
 		{"name": "searchChannels(query, {limit?})", "desc": "Search channels remotely."},
 		{"name": "searchTracks(query, {limit?, channelSlug?})", "desc": "Search tracks remotely."},
@@ -157,6 +187,7 @@
 		{"name": "searchChannelsLocal(query, channels, {limit?})", "desc": "Local channels search."},
 		{"name": "parseMentionQuery(query)", "desc": "Parse @mention query."}
 	],
+
 	"src/lib/broadcast.js": [
 		{"name": "startBroadcast(channelId, trackId?)", "desc": "Start broadcasting."},
 		{"name": "stopBroadcast(channelId)", "desc": "Stop broadcasting."},
@@ -167,97 +198,112 @@
 		{"name": "playBroadcastTrack(broadcast)", "desc": "Play broadcaster's current track."},
 		{"name": "validateListeningState()", "desc": "Verify listening state."}
 	],
+
 	"src/lib/dates.js": [
 		{"name": "formatDate(date)", "desc": "Format date using Intl.DateTimeFormat."},
-		{"name": "relativeDate(dateString)", "desc": "Returns 'X days ago'."},
-		{"name": "relativeDateSolar(dateString)", "desc": "Cosmic time: sun orbits + earth rotations."},
-		{"name": "relativeDateDetailed(dateString)", "desc": "Days/months/years ago."},
-		{"name": "relativeTime(dateInput)", "desc": "Recent: relative. Older: date+time."},
 		{"name": "dateYear(dateString)", "desc": "Just the year."},
-		{"name": "dateProvenance(dateString)", "desc": "Smart: 'this week'/'this month'/'recent'/year."}
+		{"name": "dateProvenance(dateString)", "desc": "Smart: 'this week'/'this month'/'recent'/year."},
+		{"name": "relativeDate(dateString)", "desc": "Returns 'X days ago'."},
+		{"name": "relativeDateDetailed(dateString)", "desc": "Days/months/years ago."},
+		{"name": "relativeDateSolar(dateString)", "desc": "Cosmic time: sun orbits + earth rotations."},
+		{"name": "relativeTime(dateInput)", "desc": "Recent: relative. Older: date+time."},
+		{"name": "timeAgo(dateString)", "desc": "Relative time string."}
 	],
+
 	"src/lib/utils.ts": [
 		{"name": "uuid()", "desc": "Generate UUID."},
 		{"name": "delay(ms)", "desc": "Promise resolved after ms."},
 		{"name": "delayRandom(min, max)", "desc": "Random delay in range."},
 		{"name": "delayWithJitter(base, jitter?)", "desc": "Delay with jitter."},
-		{"name": "trimWithEllipsis(text, maxLength?)", "desc": "Truncate with ellipsis."},
-		{"name": "parseSearchTokens(query)", "desc": "Tokenize search query."},
+
 		{"name": "extractYouTubeId(url)", "desc": "Extract YouTube video ID."},
 		{"name": "detectMediaProvider(url)", "desc": "Detect media provider."},
-		{"name": "shuffleArray(arr)", "desc": "Fisher-Yates shuffle."},
+
+		{"name": "parseSearchTokens(query)", "desc": "Tokenize search query."},
 		{"name": "parseEntities(text)", "desc": "Extract #tags and @mentions."},
 		{"name": "extractHashtags(text)", "desc": "Extract hashtags only."},
 		{"name": "extractMentions(text)", "desc": "Extract mentions only."},
-		{"name": "generateFrequency(name, slug, min, max)", "desc": "Deterministic frequency from string."},
-		{"name": "timeAgo(dateString)", "desc": "Relative time string."}
+
+		{"name": "trimWithEllipsis(text, maxLength?)", "desc": "Truncate with ellipsis."},
+		{"name": "shuffleArray(arr)", "desc": "Fisher-Yates shuffle."},
+		{"name": "generateFrequency(name, slug, min, max)", "desc": "Deterministic frequency from string."}
 	],
+
 	"src/lib/components": [
 		{"name": "Player", "desc": "YouTube/SoundCloud player with controls, volume, autoplay."},
 		{"name": "QueuePanel", "desc": "Sidebar with queue/history tabs, search, resize handle."},
+
 		{"name": "Tracklist", "desc": "Track list with optional date grouping, virtual scroll."},
 		{"name": "TrackCard", "desc": "Single track with artwork, play/edit/delete menu."},
-		{"name": "ChannelCard", "desc": "Channel preview with avatar, description, live dot."},
-		{"name": "Channels", "desc": "Grid/list/map/tuner views with filter, sort, shuffle."},
+		{"name": "TrackForm", "desc": "URL/title/description form fields."},
 		{"name": "AddTrackModal", "desc": "Create track modal, 'c' keyboard shortcut."},
 		{"name": "EditTrackModal", "desc": "Edit existing track."},
-		{"name": "TrackForm", "desc": "URL/title/description form fields."},
+
+		{"name": "Channels", "desc": "Grid/list/map/tuner views with filter, sort, shuffle."},
+		{"name": "ChannelCard", "desc": "Channel preview with avatar, description, live dot."},
+
 		{"name": "Modal", "desc": "Generic dialog wrapper with header/children snippets."},
-		{"name": "BroadcastControls", "desc": "Start/stop live broadcast."},
-		{"name": "SyncStatus", "desc": "Shows offline queue pending transactions."},
-		{"name": "KeyboardShortcuts", "desc": "Initializes global keyboard handling."},
-		{"name": "HeaderSearch", "desc": "Global search with debounce, @mention autocomplete."},
-		{"name": "LinkEntities", "desc": "Parses #tags @mentions into search links."},
 		{"name": "Icon", "desc": "Iconify icon wrapper."},
+		{"name": "LinkEntities", "desc": "Parses #tags @mentions into search links."},
+
 		{"name": "ButtonPlay", "desc": "Channel play button."},
-		{"name": "ButtonFollow", "desc": "Follow/unfollow button."}
+		{"name": "ButtonFollow", "desc": "Follow/unfollow button."},
+		{"name": "BroadcastControls", "desc": "Start/stop live broadcast."},
+
+		{"name": "HeaderSearch", "desc": "Global search with debounce, @mention autocomplete."},
+		{"name": "KeyboardShortcuts", "desc": "Initializes global keyboard handling."},
+		{"name": "SyncStatus", "desc": "Shows offline queue pending transactions."}
 	],
+
 	"@radio4000/sdk": [
+		{"name": "sdk.supabase", "desc": "Direct Supabase client access."},
+
 		{"name": "sdk.auth.signUp({email, password, options?})", "desc": "Create account."},
 		{"name": "sdk.auth.signIn({email, password, options?})", "desc": "Sign in with password."},
 		{"name": "sdk.auth.signOut()", "desc": "Sign out."},
 		{"name": "sdk.supabase.auth.signInWithOtp({email})", "desc": "Magic link login."},
 		{"name": "sdk.supabase.auth.signInWithOAuth({provider})", "desc": "OAuth login."},
+
 		{"name": "sdk.users.readUser()", "desc": "Read current user."},
 		{"name": "sdk.users.deleteUser()", "desc": "Delete current user."},
+
 		{"name": "sdk.channels.createChannel({id?, name, slug, userId?})", "desc": "Create channel."},
-		{"name": "sdk.channels.updateChannel(id, changes)", "desc": "Update channel."},
-		{"name": "sdk.channels.deleteChannel(id)", "desc": "Delete channel."},
 		{"name": "sdk.channels.readChannel(slug)", "desc": "Read channel by slug."},
 		{"name": "sdk.channels.readChannels(limit?)", "desc": "Read channels list."},
-		{"name": "sdk.channels.readChannelTracks(slug, limit?)", "desc": "Read channel tracks."},
 		{"name": "sdk.channels.readUserChannels()", "desc": "Read user's channels."},
+		{"name": "sdk.channels.updateChannel(id, changes)", "desc": "Update channel."},
+		{"name": "sdk.channels.deleteChannel(id)", "desc": "Delete channel."},
 		{"name": "sdk.channels.canEditChannel(slug)", "desc": "Check edit permission."},
 		{"name": "sdk.channels.createImage(file, tags?)", "desc": "Upload channel image."},
+		{"name": "sdk.channels.readChannelTracks(slug, limit?)", "desc": "Read channel tracks."},
 		{"name": "sdk.channels.followChannel(followerId, channelId)", "desc": "Follow channel."},
 		{"name": "sdk.channels.unfollowChannel(followerId, channelId)", "desc": "Unfollow channel."},
 		{"name": "sdk.channels.readFollowers(channelId)", "desc": "Read channel followers."},
 		{"name": "sdk.channels.readFollowings(channelId)", "desc": "Read channel followings."},
-		{
-			"name": "sdk.tracks.createTrack(channelId, {url, title, description?, discogs_url?, id?})",
-			"desc": "Create track."
-		},
+
+		{"name": "sdk.tracks.createTrack(channelId, {url, title, description?, discogs_url?, id?})", "desc": "Create track."},
+		{"name": "sdk.tracks.readTrack(id)", "desc": "Read track."},
 		{"name": "sdk.tracks.updateTrack(id, changes)", "desc": "Update track."},
 		{"name": "sdk.tracks.deleteTrack(id)", "desc": "Delete track."},
-		{"name": "sdk.tracks.readTrack(id)", "desc": "Read track."},
 		{"name": "sdk.tracks.canEditTrack(track_id)", "desc": "Check edit permission."},
+
+		{"name": "sdk.search.searchChannels(query, {limit?})", "desc": "Search channels."},
+		{"name": "sdk.search.searchTracks(query, {limit?})", "desc": "Search tracks."},
+		{"name": "sdk.search.searchAll(query, {limit?})", "desc": "Search all."},
+
+		{"name": "sdk.browse.query({page?, limit?, table?, select?, orderBy?, orderConfig?, filters?})", "desc": "Generic browse query."},
+		{"name": "sdk.browse.supabaseOperators", "desc": "Supported operators."},
+		{"name": "sdk.browse.supabaseOperatorsTable", "desc": "Operators metadata."},
+
 		{"name": "sdk.firebase.readChannel(slug)", "desc": "Read v1 channel."},
 		{"name": "sdk.firebase.readChannels({limit?})", "desc": "Read v1 channels."},
 		{"name": "sdk.firebase.readTracks({channelId?, slug?})", "desc": "Read v1 tracks."},
 		{"name": "sdk.firebase.parseChannel(rawChannel)", "desc": "Parse v1 channel to v2."},
 		{"name": "sdk.firebase.parseTrack(rawTrack, channelId, channelSlug)", "desc": "Parse v1 track to v2."},
-		{"name": "sdk.search.searchChannels(query, {limit?})", "desc": "Search channels."},
-		{"name": "sdk.search.searchTracks(query, {limit?})", "desc": "Search tracks."},
-		{"name": "sdk.search.searchAll(query, {limit?})", "desc": "Search all."},
-		{
-			"name": "sdk.browse.query({page?, limit?, table?, select?, orderBy?, orderConfig?, filters?})",
-			"desc": "Generic browse query."
-		},
-		{"name": "sdk.browse.supabaseOperators", "desc": "Supported operators."},
-		{"name": "sdk.browse.supabaseOperatorsTable", "desc": "Operators metadata."},
-		{"name": "sdk.utils.extractTokens(str)", "desc": "Extract mentions and tags."},
-		{"name": "sdk.supabase", "desc": "Direct Supabase client access."}
+
+		{"name": "sdk.utils.extractTokens(str)", "desc": "Extract mentions and tags."}
 	],
+
 	"@radio4000/components": [
 		{"name": "r4-sign-in", "desc": "Auth component."},
 		{"name": "r4-sign-up", "desc": "Auth component."},
@@ -266,10 +312,12 @@
 		{"name": "r4-password-update", "desc": "Auth component."},
 		{"name": "r4-email-update", "desc": "Auth component."},
 		{"name": "r4-auth-status", "desc": "Auth component."},
+
 		{"name": "r4-user", "desc": "User component."},
 		{"name": "r4-user-account", "desc": "User component."},
 		{"name": "r4-user-delete", "desc": "User component."},
 		{"name": "r4-user-channels-select", "desc": "User component."},
+
 		{"name": "r4-channel", "desc": "Channel component."},
 		{"name": "r4-channel-card", "desc": "Channel component."},
 		{"name": "r4-channel-create", "desc": "Channel component."},
@@ -277,22 +325,27 @@
 		{"name": "r4-channel-delete", "desc": "Channel component."},
 		{"name": "r4-button-follow", "desc": "Channel component."},
 		{"name": "r4-share-channel", "desc": "Channel component."},
+
 		{"name": "r4-track", "desc": "Track component."},
 		{"name": "r4-track-create", "desc": "Track component."},
 		{"name": "r4-track-update", "desc": "Track component."},
 		{"name": "r4-track-delete", "desc": "Track component."},
 		{"name": "r4-share-track", "desc": "Track component."},
+
 		{"name": "r4-player", "desc": "Player component."},
 		{"name": "r4-button-play", "desc": "Player component."},
 		{"name": "r4-tuner", "desc": "Player component."},
+
 		{"name": "r4-avatar", "desc": "Avatar component."},
 		{"name": "r4-avatar-update", "desc": "Avatar component."},
 		{"name": "r4-avatar-upload", "desc": "Avatar component."},
+
 		{"name": "r4-query", "desc": "Data/query component."},
 		{"name": "r4-supabase-query", "desc": "Data/query component."},
 		{"name": "r4-supabase-filters", "desc": "Data/query component."},
 		{"name": "r4-supabase-filter-search", "desc": "Data/query component."},
 		{"name": "r4-pagination", "desc": "Data/query component."},
+
 		{"name": "r4-app", "desc": "UI component."},
 		{"name": "r4-layout", "desc": "UI component."},
 		{"name": "r4-page", "desc": "UI component."},
@@ -313,30 +366,39 @@
 		{"name": "r4-discogs-resource", "desc": "UI component."},
 		{"name": "r4-admin", "desc": "UI component."}
 	],
+
 	"@radio4000/cli": [
+		{"name": "r4 help", "desc": "Show help."},
+		{"name": "r4 version", "desc": "Print version."},
+		{"name": "r4 schema", "desc": "Output SQL CREATE TABLE."},
+
+		{"name": "r4 auth login", "desc": "Authenticate via email OTP."},
+		{"name": "r4 auth logout", "desc": "Clear session."},
+		{"name": "r4 auth whoami", "desc": "Show current session."},
+
 		{"name": "r4 channel list [--limit n]", "desc": "List channels."},
 		{"name": "r4 channel view <slug> [slug...]", "desc": "View channel details."},
 		{"name": "r4 channel create <slug> --name \"...\"", "desc": "Create channel."},
 		{"name": "r4 channel update <slug> [--name]", "desc": "Update channel."},
 		{"name": "r4 channel delete <slug> [slug...]", "desc": "Delete channels."},
+
 		{"name": "r4 track list [--channel slug]", "desc": "List tracks."},
 		{"name": "r4 track view <id> [id...]", "desc": "View track details."},
 		{"name": "r4 track create --url \"...\" --title \"...\" --channel slug", "desc": "Create track."},
 		{"name": "r4 track update <id> [--title] [--url]", "desc": "Update track."},
 		{"name": "r4 track delete <id> [id...]", "desc": "Delete tracks."},
+
 		{"name": "r4 search <query> [--channels] [--tracks] [--limit n]", "desc": "Search channels and tracks."},
+
 		{"name": "r4 tags list --channel <slug>", "desc": "List tags from channel."},
 		{"name": "r4 tags generate", "desc": "Generate tag folders with symlinks."},
+
 		{"name": "r4 download <slug> [options]", "desc": "Download channel tracks."},
-		{"name": "r4 auth login", "desc": "Authenticate via email OTP."},
-		{"name": "r4 auth logout", "desc": "Clear session."},
-		{"name": "r4 auth whoami", "desc": "Show current session."},
-		{"name": "r4 schema", "desc": "Output SQL CREATE TABLE."},
-		{"name": "r4 version", "desc": "Print version."},
-		{"name": "r4 help", "desc": "Show help."},
+
 		{"name": "--limit <n>", "desc": "Limit results."},
 		{"name": "--format <type>", "desc": "text, json, sql."},
 		{"name": "--channel <slug>", "desc": "Filter by channel."},
+
 		{"name": "example: r4 channel list --limit 100", "desc": "List channels."},
 		{"name": "example: r4 track list --channel ko002 | jq '.[] | .title'", "desc": "List track titles."},
 		{"name": "example: r4 search \"jazz fusion\"", "desc": "Search."},
@@ -344,24 +406,25 @@
 		{"name": "example: r4 schema | sqlite3 channels.db", "desc": "Create schema."},
 		{"name": "example: r4 channel list --format sql | sqlite3 channels.db", "desc": "Seed SQLite from SQL output."}
 	],
+
 	"window.r5": [
 		{"name": "r5.appState", "desc": "Global app state."},
+		{"name": "r5.queryClient", "desc": "Query client."},
 		{"name": "r5.tracksCollection", "desc": "Tracks collection."},
 		{"name": "r5.channelsCollection", "desc": "Channels collection."},
-		{"name": "r5.queryClient", "desc": "Query client."},
 		{"name": "r5.sdk", "desc": "SDK instance."},
+
 		{"name": "r5.mix", "desc": "Mix builder."},
 		{"name": "r5.mixFrom", "desc": "Mix from channel."},
 		{"name": "r5.mixSearch", "desc": "Mix from search."},
+
 		{"name": "r5.queue.*", "desc": "Queue helpers."},
 		{"name": "r5.pipe", "desc": "Pipe helper."},
 		{"name": "r5.tap", "desc": "Tap helper."},
 		{"name": "r5.when", "desc": "When helper."},
+
 		{"name": "example: r5.mixFrom('starttv').shuffle().play()", "desc": "Example mix play."},
 		{"name": "example: r5.mixFrom('ch1').from('ch2').unique().take(50).play()", "desc": "Example mix play."},
-		{
-			"name": "example: [...r5.tracksCollection.state.values()].filter(t => t.slug === 'x')",
-			"desc": "Example collection query."
-		}
+		{"name": "example: [...r5.tracksCollection.state.values()].filter(t => t.slug === 'x')", "desc": "Example collection query."}
 	]
 }
