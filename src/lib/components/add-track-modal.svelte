@@ -11,6 +11,10 @@
 	let recentTracks = $state([])
 	let trackData = $state({url: '', title: '', description: ''})
 
+	const channel = $derived(appState.channel)
+	const isSignedIn = $derived(!!appState.user)
+	const canAddTrack = $derived(isSignedIn && channel)
+
 	/** @param {{track?: import('$lib/types').Track, url?: string}} [data] */
 	function open(data = {}) {
 		if (!canAddTrack) {
@@ -42,10 +46,6 @@
 		window.addEventListener('r5:openTrackCreateModal', handler)
 		return () => window.removeEventListener('r5:openTrackCreateModal', handler)
 	})
-
-	const channel = $derived(appState.channel)
-	const isSignedIn = $derived(!!appState.user)
-	const canAddTrack = $derived(isSignedIn && channel)
 
 	/** @param {KeyboardEvent} event */
 	function handleKeyDown(event) {

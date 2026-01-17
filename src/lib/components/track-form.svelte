@@ -15,21 +15,24 @@
 		onsubmit
 	} = $props()
 
-	let url = $derived(initialUrl)
-	let title = $derived(initialTitle)
-	let description = $derived(initialDescription)
-	let discogs_url = $derived(initialDiscogsUrl)
+	let error = $state('')
 	let submitting = $state(false)
 	let fetchingTitle = $state(false)
 
-	const isValidDiscogsUrl = $derived(discogs_url?.includes('discogs.com'))
+	/** @type {HTMLInputElement | undefined} */
+	let titleInput = $state()
+	/** @type {HTMLTextAreaElement | undefined} */
+	let descriptionInput = $state()
 
-	async function handleUrlBlur() {
-		if (!url || title) return
+	async function handleUrlInput(event) {
+		const input = /** @type {HTMLInputElement} */ (event.target)
+		if (!input.validity.valid || !input.value || titleInput?.value) return
 		fetchingTitle = true
 		try {
-			const fetched = await fetchOEmbedTitle(url)
-			if (fetched && !title) title = fetched
+			const fetched = await fetchOEmbedTitle(input.value)
+			if (fetched && titleInput && !titleInput.value) {
+				titleInput.value = fetched
+			}
 		} finally {
 			fetchingTitle = false
 		}
@@ -39,22 +42,27 @@
 	function handleDiscogsSuggestion(event) {
 		const tags = /** @type {CustomEvent<string[]>} */ (event).detail
 		const hashtags = tags.map((t) => `#${t}`).join(' ')
-		description = description ? `${description} ${hashtags}` : hashtags
-	}
-
-	function reset() {
-		url = ''
-		title = ''
-		description = ''
-		discogs_url = ''
+		if (descriptionInput) {
+			descriptionInput.value = descriptionInput.value ? `${descriptionInput.value} ${hashtags}` : hashtags
+		}
 	}
 
 	/** @param {SubmitEvent} event */
 	async function handleSubmit(event) {
 		event.preventDefault()
-		if (!url || !title || submitting) return
+		if (submitting) return
 
+		const formData = new FormData(/** @type {HTMLFormElement} */ (event.target))
+		const url = /** @type {string} */ (formData.get('url'))
+		const title = /** @type {string} */ (formData.get('title'))
+		const description = /** @type {string} */ (formData.get('description'))
+		const discogs_url = /** @type {string} */ (formData.get('discogs_url'))
+
+		if (!url || !title) return
+
+		error = ''
 		submitting = true
+
 		try {
 			if (mode === 'create') {
 				await addTrack(channel, {
@@ -73,62 +81,85 @@
 				})
 			}
 			onsubmit?.({data: {url, title}, error: null})
-			if (mode === 'create') reset()
-		} catch (error) {
-			onsubmit?.({data: null, error: /** @type {Error} */ (error)})
+			if (mode === 'create') {
+				/** @type {HTMLFormElement} */ event.target.reset()
+			}
+		} catch (err) {
+			error = /** @type {Error} */ (err).message || 'Failed to save track'
+			onsubmit?.({data: null, error: /** @type {Error} */ (err)})
 		} finally {
 			submitting = false
 		}
 	}
+
+	const discogsUrl = $derived(initialDiscogsUrl)
+	const isValidDiscogsUrl = $derived(discogsUrl?.includes('discogs.com'))
 </script>
 
-<form onsubmit={handleSubmit}>
-	<fieldset disabled={submitting}>
-		<label>
-			<span>URL</span>
-			<input type="url" bind:value={url} onblur={handleUrlBlur} required placeholder="https://..." />
-		</label>
+{#if error}
+	<p class="error">{m.common_error()}: {error}</p>
+{/if}
 
-		<label>
-			<span>Title {fetchingTitle ? '...' : ''}</span>
-			<input type="text" bind:value={title} required placeholder="Track title" />
-		</label>
-
-		<label>
-			<span>Description</span>
-			<textarea bind:value={description} rows="2" placeholder="Optional description"></textarea>
-		</label>
-
-		<label>
-			<span>Discogs URL</span>
-			<input type="url" bind:value={discogs_url} placeholder="https://discogs.com/release/..." />
-		</label>
-
-		{#if isValidDiscogsUrl}
-			<r4-discogs-resource url={discogs_url} suggestions="true" onsuggestion={handleDiscogsSuggestion}
-			></r4-discogs-resource>
-		{/if}
-
-		<button type="submit" disabled={!url || !title || submitting}>
-			{submitting ? m.common_save() + '...' : mode === 'create' ? m.track_add_title() : m.common_save()}
-		</button>
+<form class="form" onsubmit={handleSubmit} disabled={submitting}>
+	<fieldset>
+		<legend><label for="url">URL</label></legend>
+		<input
+			id="url"
+			name="url"
+			type="url"
+			value={initialUrl}
+			oninput={handleUrlInput}
+			required
+			placeholder="https://..."
+		/>
 	</fieldset>
+
+	<fieldset>
+		<legend><label for="title">Title {fetchingTitle ? '...' : ''}</label></legend>
+		<input
+			bind:this={titleInput}
+			id="title"
+			name="title"
+			type="text"
+			value={initialTitle}
+			required
+			placeholder="Track title"
+		/>
+	</fieldset>
+
+	<fieldset>
+		<legend><label for="description">Description</label></legend>
+		<textarea
+			bind:this={descriptionInput}
+			id="description"
+			name="description"
+			rows="2"
+			placeholder="Optional description">{initialDescription}</textarea
+		>
+	</fieldset>
+
+	<fieldset>
+		<legend><label for="discogs_url">Discogs URL</label></legend>
+		<input
+			id="discogs_url"
+			name="discogs_url"
+			type="url"
+			value={initialDiscogsUrl}
+			placeholder="https://discogs.com/release/..."
+		/>
+	</fieldset>
+
+	{#if isValidDiscogsUrl}
+		<r4-discogs-resource url={discogsUrl} suggestions="true" onsuggestion={handleDiscogsSuggestion}
+		></r4-discogs-resource>
+	{/if}
+
+	<button type="submit" disabled={submitting}>
+		{submitting ? m.common_save() + '...' : mode === 'create' ? m.track_add_title() : m.common_save()}
+	</button>
 </form>
 
 <style>
-	form {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-2);
-	}
-	fieldset {
-		display: contents;
-	}
-	label {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-1);
-	}
 	r4-discogs-resource {
 		display: block;
 		padding-left: 0.5rem;
