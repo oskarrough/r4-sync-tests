@@ -63,7 +63,7 @@
 		<p>This cannot be undone.</p>
 
 		{#if error}
-			<p class="error">{error}</p>
+			<p role="alert">{error}</p>
 		{/if}
 
 		<form class="form" onsubmit={handleDelete} disabled={deleting}>

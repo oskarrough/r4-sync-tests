@@ -126,8 +126,13 @@ figure {
 	margin: 0;
 }
 
+[role='alert'],
 .error {
 	color: var(--color-error);
+}
+
+.warning {
+	color: var(--color-warning);
 }
 
 .success {

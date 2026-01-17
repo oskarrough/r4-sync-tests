@@ -7,4 +7,5 @@
 
 	--color-red: hsl(11, 78%, 38%);
 	--color-error: var(--color-red, red); /* r4-components var */
+	--color-warning: hsl(38, 92%, 40%);
 }
