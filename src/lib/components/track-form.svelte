@@ -3,6 +3,8 @@
 	import {fetchOEmbedTitle} from '$lib/utils/oembed'
 	import * as m from '$lib/paraglide/messages'
 
+	const uid = $props.id()
+
 	/** @type {{mode: 'create', channel: import('$lib/tanstack/collections/channels').Channel, trackId?: string, url?: string, title?: string, description?: string, discogs_url?: string, onsubmit?: (event: {data: {url: string, title: string} | null, error: Error | null}) => void} | {mode: 'edit', channel: {id: string, slug: string}, trackId: string, url?: string, title?: string, description?: string, discogs_url?: string, onsubmit?: (event: {data: {url: string, title: string} | null, error: Error | null}) => void}} */
 	let {
 		mode,
@@ -105,9 +107,9 @@
 
 <form class="form" onsubmit={handleSubmit} disabled={submitting}>
 	<fieldset>
-		<legend><label for="url">URL</label></legend>
+		<legend><label for="{uid}-url">URL</label></legend>
 		<input
-			id="url"
+			id="{uid}-url"
 			name="url"
 			type="url"
 			value={initialUrl}
@@ -118,10 +120,10 @@
 	</fieldset>
 
 	<fieldset>
-		<legend><label for="title">Title {fetchingTitle ? '...' : ''}</label></legend>
+		<legend><label for="{uid}-title">Title {fetchingTitle ? '...' : ''}</label></legend>
 		<input
 			bind:this={titleInput}
-			id="title"
+			id="{uid}-title"
 			name="title"
 			type="text"
 			value={initialTitle}
@@ -131,10 +133,10 @@
 	</fieldset>
 
 	<fieldset>
-		<legend><label for="description">Description</label></legend>
+		<legend><label for="{uid}-description">Description</label></legend>
 		<textarea
 			bind:this={descriptionInput}
-			id="description"
+			id="{uid}-description"
 			name="description"
 			rows="2"
 			placeholder="Optional description">{initialDescription}</textarea
@@ -142,9 +144,9 @@
 	</fieldset>
 
 	<fieldset>
-		<legend><label for="discogs_url">Discogs URL</label></legend>
+		<legend><label for="{uid}-discogs_url">Discogs URL</label></legend>
 		<input
-			id="discogs_url"
+			id="{uid}-discogs_url"
 			name="discogs_url"
 			type="url"
 			value={initialDiscogsUrl}
