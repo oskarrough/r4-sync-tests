@@ -250,7 +250,7 @@
 						content: orderDirection === 'asc' ? m.channels_tooltip_sort_asc() : m.channels_tooltip_sort_desc()
 					})}
 				>
-					<Icon icon={orderDirection === 'asc' ? 'arrow-up' : 'arrow-down'} size="20" />
+					<Icon icon={orderDirection === 'asc' ? 'funnel-ascending' : 'funnel-descending'} size="20" />
 				</button>
 				<button
 					class:active={appState.channels_shuffled}
@@ -270,7 +270,7 @@
 			<button class:active={order === 'tracks'} onclick={() => setOrder('tracks')}>{m.channels_order_tracks()}</button>
 			<hr />
 			<button onclick={toggleOrderDirection}>
-				<Icon icon={orderDirection === 'asc' ? 'arrow-up' : 'arrow-down'} size="20" />
+				<Icon icon={orderDirection === 'asc' ? 'funnel-ascending' : 'funnel-descending'} size="20" />
 				{orderDirection === 'asc' ? m.channels_order_asc() : m.channels_order_desc()}
 			</button>
 			<button class:active={appState.channels_shuffled} onclick={toggleShuffle}>
