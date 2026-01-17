@@ -5,7 +5,6 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 
 ## BACKLOG
 
-- Merge `api/player.js` into `api.js` — currently split across two files with overlapping concerns
 - Unify play entry points: `playTrack`, `playChannel`, `setPlaylist` could become one `play(thing)` where thing is track, channel, or track[]. Brainstorm polymorphic vs explicit naming.
 - Seek/position support: add `seekTo(seconds)`, `getPosition()` via media-chrome player. Support `?t=` URL param like YouTube for deep-linking into tracks.
 - Get an overview of the methods we have in lib, api, sdk (the sdk's readme has a good overview for it) and add one to our @docs folder so its easy to get an overview of methods, their args maybe, returns too. to consider naming, api design from high level

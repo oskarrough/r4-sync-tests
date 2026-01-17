@@ -1,10 +1,16 @@
-import {play} from '$lib/api/player'
 import {appState} from '$lib/app-state.svelte'
 import {leaveBroadcast, upsertRemoteBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
 import {sdk} from '@radio4000/sdk'
 import {shuffleArray} from '$lib/utils.ts'
-import {queueInsertManyAfter, queueRemove, queueShuffleKeepCurrent, queueRotate} from '$lib/player/queue'
+import {
+	queueInsertManyAfter,
+	queueNext,
+	queuePrev,
+	queueRemove,
+	queueShuffleKeepCurrent,
+	queueRotate
+} from '$lib/player/queue'
 import {
 	tracksCollection,
 	addPlayHistoryEntry,
@@ -280,4 +286,115 @@ export function rotateQueue() {
 		appState.playlist_tracks_shuffled = queueRotate(appState.playlist_tracks_shuffled, current)
 	}
 	log.log('rotate_queue', {current})
+}
+
+/** @typedef {HTMLElement & {paused: boolean, play(): Promise<void> | void, pause(): void}} MediaPlayer */
+
+/** @param {MediaPlayer | null} [player] */
+export function play(player) {
+	if (!player) {
+		const el = document.querySelector('youtube-video') || document.querySelector('soundcloud-player')
+		if (el && 'paused' in el) player = /** @type {MediaPlayer} */ (el)
+	}
+	if (!player) {
+		log.warn('Media player not ready')
+		return Promise.reject(new Error('Media player not ready'))
+	}
+	log.debug('play() check', player, 'paused?', player.paused)
+	const result = player.play()
+	if (result instanceof Promise) {
+		return result
+			.then(() => {
+				log.log('play() succeeded')
+			})
+			.catch((error) => {
+				log.warn('play() was prevented:', error.message || error)
+				throw error
+			})
+	}
+	return Promise.resolve()
+}
+
+/** @param {MediaPlayer} player */
+export function pause(player) {
+	if (!player) {
+		log.warn('Media player not ready')
+		return
+	}
+	player.pause()
+}
+
+/** @param {MediaPlayer} player */
+export function togglePlay(player) {
+	if (!player) {
+		log.warn('Media player not ready')
+		return
+	}
+	if (player.paused) {
+		play(player)
+	} else {
+		pause(player)
+	}
+}
+
+/**
+ * @param {import('$lib/types').Track | undefined} track
+ * @param {string[]} activeQueue
+ * @param {import('$lib/types').PlayEndReason} endReason
+ */
+export function next(track, activeQueue, endReason) {
+	if (!track?.id) {
+		log.warn('No current track')
+		return
+	}
+	if (!activeQueue?.length) {
+		log.warn('No active queue')
+		return
+	}
+	const nextId = queueNext(activeQueue, track.id)
+	if (nextId) {
+		/** @type {import('$lib/types').PlayStartReason} */
+		const startReason = endReason === 'youtube_error' ? 'track_error' : 'auto_next'
+		playTrack(nextId, endReason, startReason)
+	} else if (activeQueue.length > 0) {
+		log.info('Queue ended: looping to start')
+		playTrack(activeQueue[0], endReason, 'auto_next')
+	} else {
+		log.info('No next track available')
+	}
+}
+
+/**
+ * @param {import('$lib/types').Track | undefined} track
+ * @param {string[]} activeQueue
+ * @param {import('$lib/types').PlayEndReason} endReason
+ */
+export function previous(track, activeQueue, endReason) {
+	if (!track?.id) {
+		log.warn('No current track')
+		return
+	}
+	if (!activeQueue?.length) {
+		log.warn('No active queue')
+		return
+	}
+	const prevId = queuePrev(activeQueue, track.id)
+	if (prevId) {
+		playTrack(prevId, endReason, 'user_prev')
+	} else {
+		log.info('No previous track available')
+	}
+}
+
+export function toggleVideo() {
+	appState.show_video_player = !appState.show_video_player
+}
+
+export function eject() {
+	appState.playlist_track = undefined
+	appState.playlist_tracks = []
+	appState.playlist_tracks_shuffled = []
+	appState.show_video_player = false
+	appState.shuffle = false
+	appState.is_playing = false
 }
