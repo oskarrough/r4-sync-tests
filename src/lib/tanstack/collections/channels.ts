@@ -162,6 +162,9 @@ export function deleteChannel(id: string) {
 		const channel = channelsCollection.get(id)
 		if (channel) {
 			channelsCollection.delete(id)
+			appState.channels = appState.channels?.filter((cid) => cid !== id)
+			if (appState.channel === id) appState.channel = undefined
+			if (appState.broadcasting_channel_id === id) appState.broadcasting_channel_id = undefined
 		}
 	})
 	return tx.commit()

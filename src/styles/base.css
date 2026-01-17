@@ -125,3 +125,11 @@ ul,
 figure {
 	margin: 0;
 }
+
+.error {
+	color: var(--color-error);
+}
+
+.success {
+	color: var(--accent-9);
+}

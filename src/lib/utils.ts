@@ -2,6 +2,17 @@ export function uuid() {
 	return crypto.randomUUID()
 }
 
+export function slugify(str: string): string {
+	return String(str)
+		.normalize('NFKD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.trim()
+		.toLowerCase()
+		.replace(/[^a-z0-9 -]/g, '')
+		.replace(/\s+/g, '-')
+		.replace(/-+/g, '-')
+}
+
 export function delay(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms))
 }
