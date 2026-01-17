@@ -8,15 +8,7 @@
 </svelte:head>
 
 <article class="constrained">
-	<header>
-		<p>{m.settings_appearance_nav()}</p>
-	</header>
+	<a href="/settings">&larr; {m.nav_settings()}</a>
 </article>
 
 <ThemeEditor />
-
-<style>
-	article > header {
-		margin-bottom: 1rem;
-	}
-</style>

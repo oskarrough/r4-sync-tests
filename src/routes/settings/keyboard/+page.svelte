@@ -8,6 +8,6 @@
 </svelte:head>
 
 <article class="constrained">
-	<p><a href="/settings">{m.nav_settings()}</a> / {m.settings_keyboard()}</p>
+	<a href="/settings">&larr; {m.nav_settings()}</a>
 	<KeyboardEditor />
 </article>

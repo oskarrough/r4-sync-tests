@@ -3,8 +3,12 @@
 	width: 100%;
 	max-width: 80ch;
 	margin-inline: auto;
-	margin-block: 0.5rem var(--player-compact-size);
+	margin-block: 0.5rem;
 	padding-inline: 0.5rem;
+
+	&:last-child {
+		margin-block-end: var(--player-compact-size);
+	}
 }
 
 /* Vertically center content, a bit, for pages with less content */
