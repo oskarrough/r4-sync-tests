@@ -281,7 +281,10 @@
 		{"name": "sdk.channels.readFollowers(channelId)", "desc": "Read channel followers."},
 		{"name": "sdk.channels.readFollowings(channelId)", "desc": "Read channel followings."},
 
-		{"name": "sdk.tracks.createTrack(channelId, {url, title, description?, discogs_url?, id?})", "desc": "Create track."},
+		{
+			"name": "sdk.tracks.createTrack(channelId, {url, title, description?, discogs_url?, id?})",
+			"desc": "Create track."
+		},
 		{"name": "sdk.tracks.readTrack(id)", "desc": "Read track."},
 		{"name": "sdk.tracks.updateTrack(id, changes)", "desc": "Update track."},
 		{"name": "sdk.tracks.deleteTrack(id)", "desc": "Delete track."},
@@ -291,7 +294,10 @@
 		{"name": "sdk.search.searchTracks(query, {limit?})", "desc": "Search tracks."},
 		{"name": "sdk.search.searchAll(query, {limit?})", "desc": "Search all."},
 
-		{"name": "sdk.browse.query({page?, limit?, table?, select?, orderBy?, orderConfig?, filters?})", "desc": "Generic browse query."},
+		{
+			"name": "sdk.browse.query({page?, limit?, table?, select?, orderBy?, orderConfig?, filters?})",
+			"desc": "Generic browse query."
+		},
 		{"name": "sdk.browse.supabaseOperators", "desc": "Supported operators."},
 		{"name": "sdk.browse.supabaseOperatorsTable", "desc": "Operators metadata."},
 
@@ -425,6 +431,9 @@
 
 		{"name": "example: r5.mixFrom('starttv').shuffle().play()", "desc": "Example mix play."},
 		{"name": "example: r5.mixFrom('ch1').from('ch2').unique().take(50).play()", "desc": "Example mix play."},
-		{"name": "example: [...r5.tracksCollection.state.values()].filter(t => t.slug === 'x')", "desc": "Example collection query."}
+		{
+			"name": "example: [...r5.tracksCollection.state.values()].filter(t => t.slug === 'x')",
+			"desc": "Example collection query."
+		}
 	]
 }
