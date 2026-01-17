@@ -19,6 +19,7 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 - create standardized loading/error boundaries for async operations in ui
 - improve broadcast feature
 - rethink channel date display: replace "341 days ago" with value-neutral presentation. Old channels aren't stale - they're archives, curated collections. Consider: just showing the year ("2019"), hiding time entirely and only surfacing recency in discovery contexts ("new this week" in feeds), or seasonal labels. The date is provenance, not a freshness indicator. Some of the best mixtapes are old.
+- map-picker.svelte: unused component for selecting channel location. Either delete it or rewrite to work with simplified map.svelte (which no longer has selectMode/onmapclick)
 
 ## Questionable backlog
 

@@ -122,12 +122,12 @@
 		appState.channels_shuffled = false
 	}
 
-	function handleMapChange({latitude, longitude, zoom}) {
-		const query = new URL(page.url).searchParams
-		query.set('latitude', latitude)
-		query.set('longitude', longitude)
-		query.set('zoom', zoom)
-		goto(`?${query.toString()}`, {replaceState: true, keepFocus: true})
+	const viewIconMap = {
+		grid: 'grid',
+		list: 'unordered-list',
+		map: 'map',
+		tuner: 'radio',
+		infinite: 'infinite'
 	}
 
 	const viewLabelMap = {
@@ -203,13 +203,14 @@
 			style="margin-left: auto;"
 			triggerAttachment={tooltip({content: m.channels_view_mode({mode: viewLabelMap[display]()})})}
 		>
-			{#snippet trigger()}<Icon icon="grid" size="20" /> {viewLabelMap[display]()}{/snippet}
+			{#snippet trigger()}<Icon icon={viewIconMap[display]} size="20" strokeWidth={1.7} />
+				{viewLabelMap[display]()}{/snippet}
 			<div class="view-modes">
 				<button
 					class:active={display === 'grid'}
 					onclick={() => setDisplay('grid')}
 					{@attach tooltip({content: m.channels_tooltip_grid()})}
-					><Icon icon="grid" size="20" /><small>{m.channels_view_label_grid()}</small></button
+					><Icon icon="grid" size="20" strokeWidth={1.7} /><small>{m.channels_view_label_grid()}</small></button
 				>
 				<button
 					class:active={display === 'list'}
@@ -221,7 +222,7 @@
 					class:active={display === 'map'}
 					onclick={() => setDisplay('map')}
 					{@attach tooltip({content: m.channels_tooltip_map()})}
-					><Icon icon="map" size="20" /><small>{m.channels_view_label_map()}</small></button
+					><Icon icon="map" size="20" strokeWidth={1.7} /><small>{m.channels_view_label_map()}</small></button
 				>
 				<button
 					class:active={display === 'tuner'}
