@@ -163,7 +163,7 @@ export function deleteChannel(id: string) {
 		if (channel) {
 			channelsCollection.delete(id)
 			appState.channels = appState.channels?.filter((cid) => cid !== id)
-			if (appState.channel === id) appState.channel = undefined
+			if (appState.channel?.id === id) appState.channel = undefined
 			if (appState.broadcasting_channel_id === id) appState.broadcasting_channel_id = undefined
 		}
 	})

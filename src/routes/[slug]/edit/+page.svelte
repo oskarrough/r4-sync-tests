@@ -76,59 +76,57 @@
 
 		{#if !error && !success}<p>&nbsp;</p>{/if}
 
-		<form class="form" onsubmit={handleSubmit}>
-			<fieldset disabled={submitting}>
-				<fieldset>
-					<legend><label for="name">Name</label></legend>
-					<input id="name" name="name" type="text" value={channel.name ?? ''} required />
-				</fieldset>
-
-				<fieldset>
-					<legend><label for="slug">Slug</label></legend>
-					<input id="slug" name="slug" type="text" value={channel.slug ?? ''} required />
-				</fieldset>
-
-				<fieldset>
-					<legend><label for="description">Description</label></legend>
-					<textarea id="description" name="description" rows="4">{channel.description ?? ''}</textarea>
-				</fieldset>
-
-				<fieldset>
-					<legend><label for="url">URL</label></legend>
-					<input id="url" name="url" type="url" value={channel.url ?? ''} placeholder="https://..." />
-				</fieldset>
-
-				<fieldset class="row">
-					<legend>Location</legend>
-					<input
-						name="latitude"
-						type="number"
-						value={channel.latitude ?? ''}
-						step="any"
-						min="-90"
-						max="90"
-						placeholder="Latitude"
-					/>
-					<input
-						name="longitude"
-						type="number"
-						value={channel.longitude ?? ''}
-						step="any"
-						min="-180"
-						max="180"
-						placeholder="Longitude"
-					/>
-				</fieldset>
-
-				<fieldset>
-					<legend>Image</legend>
-					<r4-avatar-upload slug={channel.slug}></r4-avatar-upload>
-				</fieldset>
-
-				<button class="primary" type="submit" disabled={submitting}>
-					{submitting ? m.common_save() + '...' : m.common_save()}
-				</button>
+		<form class="form" onsubmit={handleSubmit} disabled={submitting}>
+			<fieldset>
+				<legend><label for="name">Name</label></legend>
+				<input id="name" name="name" type="text" value={channel.name ?? ''} required />
 			</fieldset>
+
+			<fieldset>
+				<legend><label for="slug">Slug</label></legend>
+				<input id="slug" name="slug" type="text" value={channel.slug ?? ''} required />
+			</fieldset>
+
+			<fieldset>
+				<legend><label for="description">Description</label></legend>
+				<textarea id="description" name="description" rows="4">{channel.description ?? ''}</textarea>
+			</fieldset>
+
+			<fieldset>
+				<legend><label for="url">URL</label></legend>
+				<input id="url" name="url" type="url" value={channel.url ?? ''} placeholder="https://..." />
+			</fieldset>
+
+			<fieldset class="row">
+				<legend>Location</legend>
+				<input
+					name="latitude"
+					type="number"
+					value={channel.latitude ?? ''}
+					step="any"
+					min="-90"
+					max="90"
+					placeholder="Latitude"
+				/>
+				<input
+					name="longitude"
+					type="number"
+					value={channel.longitude ?? ''}
+					step="any"
+					min="-180"
+					max="180"
+					placeholder="Longitude"
+				/>
+			</fieldset>
+
+			<fieldset>
+				<legend>Image</legend>
+				<r4-avatar-upload slug={channel.slug}></r4-avatar-upload>
+			</fieldset>
+
+			<button class="primary" type="submit" disabled={submitting}>
+				{submitting ? m.common_save() + '...' : m.common_save()}
+			</button>
 		</form>
 
 		<p><a href={`/${channel.slug}/delete`}>{m.common_delete()} channel</a></p>
@@ -144,4 +142,3 @@
 		margin-block: 0rem 4rem;
 	}
 </style>
-

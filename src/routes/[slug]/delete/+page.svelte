@@ -56,32 +56,25 @@
 		</header>
 
 		<p>
-			This will permanently delete the channel,<br/>
+			This will permanently delete the channel,<br />
 			AND any {#if channel.track_count}({channel.track_count}){/if} tracks you have added.
 		</p>
 
-		<p>
-			This cannot be undone.
-		</p>
+		<p>This cannot be undone.</p>
 
 		{#if error}
 			<p class="error">{error}</p>
 		{/if}
 
-		<form
-			class="form"
-			onsubmit={handleDelete}
-		>
-			<fieldset disabled={deleting}>
-				<fieldset>
-					<legend><label for="confirm">Type <code>{channel.slug}</code> to confirm</label></legend>
-					<input id="confirm" type="text" bind:value={confirmSlug} autocomplete="off" />
-				</fieldset>
-
-				<button type="submit" disabled={!confirmed || deleting}>
-					{deleting ? 'Deleting...' : 'Delete channel'}
-				</button>
+		<form class="form" onsubmit={handleDelete} disabled={deleting}>
+			<fieldset>
+				<legend><label for="confirm">Type <code>{channel.slug}</code> to confirm</label></legend>
+				<input id="confirm" type="text" bind:value={confirmSlug} autocomplete="off" />
 			</fieldset>
+
+			<button type="submit" disabled={!confirmed || deleting}>
+				{deleting ? 'Deleting...' : 'Delete channel'}
+			</button>
 		</form>
 
 		<p><a href={`/${channel.slug}/edit`}>Cancel</a></p>
@@ -93,7 +86,7 @@
 </article>
 
 <style>
-article {
-	gap: 1rem;
-}
+	article {
+		gap: 1rem;
+	}
 </style>
