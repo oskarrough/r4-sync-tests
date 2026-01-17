@@ -9,7 +9,6 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 - Unify play entry points: `playTrack`, `playChannel`, `setPlaylist` could become one `play(thing)` where thing is track, channel, or track[]. Brainstorm polymorphic vs explicit naming.
 - Seek/position support: add `seekTo(seconds)`, `getPosition()` via media-chrome player. Support `?t=` URL param like YouTube for deep-linking into tracks.
 - Get an overview of the methods we have in lib, api, sdk (the sdk's readme has a good overview for it) and add one to our @docs folder so its easy to get an overview of methods, their args maybe, returns too. to consider naming, api design from high level
-- implement password reset flow (supabase auth)
 - refine offline error handling: In `syncTracks` and `syncChannels`, use `NonRetriableError` from `@tanstack/offline-transactions` for server-side validation errors (e.g., HTTP 4xx) to prevent unnecessary retries.
 - share buttons/embeds (evaluate if needed)
 - add validation layer at sync boundaries (remote->local) using lib like zod 4 shared types from sdk?
