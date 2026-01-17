@@ -2,17 +2,18 @@
 	import {goto} from '$app/navigation'
 	import {page} from '$app/state'
 	import {appState} from '$lib/app-state.svelte'
-	import {shuffleArray} from '$lib/utils.ts'
+	import {shufflePlayChannel} from '$lib/api'
+	import {shuffleArray, channelAvatarUrl} from '$lib/utils.ts'
 	import ChannelCard from './channel-card.svelte'
 	import Icon from './icon.svelte'
-	import InfiniteGrid from './infinite-grid.svelte'
+	import InfiniteCanvas from './infinite-canvas.svelte'
 	import MapComponent from './map.svelte'
 	import PopoverMenu from './popover-menu.svelte'
 	import SpectrumScanner from './spectrum-scanner.svelte'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
 	import * as m from '$lib/paraglide/messages'
 
-	const {channels = [], slug: initialSlug, display: initialDisplay, longitude, latitude, zoom} = $props()
+	const {channels = [], display: initialDisplay} = $props()
 
 	let limit = $state(16)
 	let perPage = $state(100)
@@ -62,14 +63,31 @@
 		displayed: orderedChannels.slice(0, limit),
 		mapMarkers: channels
 			.filter((c) => c.longitude && c.latitude)
-			.map(({longitude, latitude, slug, name}) => ({
+			.map(({id, longitude, latitude, slug, name}) => ({
+				id,
+				slug,
 				longitude,
 				latitude,
-				title: name,
-				href: slug,
-				isActive: slug === initialSlug
+				title: name
 			}))
 	})
+
+	const canvasMedia = $derived(
+		orderedChannels.map((c) => ({
+			url: c.image
+				? channelAvatarUrl(c.image)
+				: `https://placehold.co/250?text=${encodeURIComponent(c.name?.[0] || '?')}`,
+			width: 250,
+			height: 250,
+			slug: c.slug,
+			id: c.id
+		}))
+	)
+
+	function handleCanvasClick(item) {
+		if (!item.slug || !item.id) return
+		shufflePlayChannel({id: item.id, slug: item.slug})
+	}
 
 	/** @param {'grid' | 'list' | 'map' | 'tuner' | 'infinite'} value */
 	function setDisplay(value = 'grid') {
@@ -104,12 +122,12 @@
 		appState.channels_shuffled = false
 	}
 
-	function handleMapChange({latitude, longitude, zoom}) {
-		const query = new URL(page.url).searchParams
-		query.set('latitude', latitude)
-		query.set('longitude', longitude)
-		query.set('zoom', zoom)
-		goto(`?${query.toString()}`, {replaceState: true, keepFocus: true})
+	const viewIconMap = {
+		grid: 'grid',
+		list: 'unordered-list',
+		map: 'map',
+		tuner: 'radio',
+		infinite: 'infinite'
 	}
 
 	const viewLabelMap = {
@@ -185,13 +203,14 @@
 			style="margin-left: auto;"
 			triggerAttachment={tooltip({content: m.channels_view_mode({mode: viewLabelMap[display]()})})}
 		>
-			{#snippet trigger()}<Icon icon="grid" size="20" /> {viewLabelMap[display]()}{/snippet}
+			{#snippet trigger()}<Icon icon={viewIconMap[display]} size="20" strokeWidth={1.7} />
+				{viewLabelMap[display]()}{/snippet}
 			<div class="view-modes">
 				<button
 					class:active={display === 'grid'}
 					onclick={() => setDisplay('grid')}
 					{@attach tooltip({content: m.channels_tooltip_grid()})}
-					><Icon icon="grid" size="20" /><small>{m.channels_view_label_grid()}</small></button
+					><Icon icon="grid" size="20" strokeWidth={1.7} /><small>{m.channels_view_label_grid()}</small></button
 				>
 				<button
 					class:active={display === 'list'}
@@ -203,7 +222,7 @@
 					class:active={display === 'map'}
 					onclick={() => setDisplay('map')}
 					{@attach tooltip({content: m.channels_tooltip_map()})}
-					><Icon icon="map" size="20" /><small>{m.channels_view_label_map()}</small></button
+					><Icon icon="map" size="20" strokeWidth={1.7} /><small>{m.channels_view_label_map()}</small></button
 				>
 				<button
 					class:active={display === 'tuner'}
@@ -231,7 +250,7 @@
 						content: orderDirection === 'asc' ? m.channels_tooltip_sort_asc() : m.channels_tooltip_sort_desc()
 					})}
 				>
-					<Icon icon={orderDirection === 'asc' ? 'arrow-up' : 'arrow-down'} size="20" />
+					<Icon icon={orderDirection === 'asc' ? 'funnel-ascending' : 'funnel-descending'} size="20" />
 				</button>
 				<button
 					class:active={appState.channels_shuffled}
@@ -251,7 +270,7 @@
 			<button class:active={order === 'tracks'} onclick={() => setOrder('tracks')}>{m.channels_order_tracks()}</button>
 			<hr />
 			<button onclick={toggleOrderDirection}>
-				<Icon icon={orderDirection === 'asc' ? 'arrow-up' : 'arrow-down'} size="20" />
+				<Icon icon={orderDirection === 'asc' ? 'funnel-ascending' : 'funnel-descending'} size="20" />
 				{orderDirection === 'asc' ? m.channels_order_asc() : m.channels_order_desc()}
 			</button>
 			<button class:active={appState.channels_shuffled} onclick={toggleShuffle}>
@@ -262,20 +281,11 @@
 	</menu>
 
 	{#if display === 'map'}
-		{#if realChannels.mapMarkers}
-			<MapComponent
-				urlMode
-				markers={realChannels.mapMarkers}
-				{latitude}
-				{longitude}
-				{zoom}
-				onmapchange={handleMapChange}
-			></MapComponent>
-		{/if}
+		<MapComponent markers={realChannels.mapMarkers} />
 	{:else if display === 'tuner'}
 		<SpectrumScanner channels={realChannels.filtered} />
 	{:else if display === 'infinite'}
-		<InfiniteGrid channels={realChannels.filtered} />
+		<InfiniteCanvas media={canvasMedia} onclick={handleCanvasClick} />
 	{:else}
 		<ol class={display}>
 			{#each realChannels.displayed as channel (channel.id)}
@@ -303,10 +313,22 @@
 <style>
 	.layout {
 		position: relative;
-		&.layout--map {
+		&.layout--map,
+		&.layout--infinite {
 			display: flex;
 			flex-direction: column;
 			flex-grow: 1;
+		}
+		&.layout--infinite :global(.canvas-container) {
+			min-height: 100dvh;
+		}
+		&.layout--infinite .filtermenu,
+		&.layout--map .filtermenu {
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			z-index: 1000;
 		}
 	}
 

@@ -43,11 +43,11 @@
 	const doubleClick = () => playTrack(track.id, null, 'user_click_track')
 
 	const addToRadio = () => {
-		window.dispatchEvent(new CustomEvent('r5:openTrackCreateModal', {detail: {track}}))
+		appState.modal_track_add = {track}
 	}
 
 	const editTrack = () => {
-		window.dispatchEvent(new CustomEvent('r5:openTrackEditModal', {detail: {track}}))
+		appState.modal_track_edit = {track}
 	}
 
 	let showDeleteConfirm = $state(false)

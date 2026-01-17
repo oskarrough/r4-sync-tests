@@ -49,6 +49,8 @@ export interface AppState {
 	hide_track_artwork: boolean
 	user?: User
 	language?: string
+	modal_track_add?: {track?: Track; url?: string} | null
+	modal_track_edit?: {track: Track} | null
 }
 
 interface User {

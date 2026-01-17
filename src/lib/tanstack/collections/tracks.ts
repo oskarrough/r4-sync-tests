@@ -102,16 +102,26 @@ export const tracksAPI = {
 	}) {
 		const slug = transaction.metadata?.slug as string
 		const metadata = transaction.metadata || {}
+		let needsInvalidation = false
+
 		for (const mutation of transaction.mutations) {
 			txLog.info('tracks', {type: mutation.type, slug, key: idempotencyKey.slice(0, 8)})
-			if (mutation.type === 'insert') await handleTrackInsert(mutation, metadata)
-			else if (mutation.type === 'update') await handleTrackUpdate(mutation)
-			else if (mutation.type === 'delete') await handleTrackDelete(mutation)
-			else txLog.warn('tracks unhandled type', {type: mutation.type})
+			if (mutation.type === 'insert') {
+				await handleTrackInsert(mutation, metadata)
+				needsInvalidation = true
+			} else if (mutation.type === 'update') {
+				await handleTrackUpdate(mutation)
+				// Updates don't need invalidation - optimistic data is authoritative
+			} else if (mutation.type === 'delete') {
+				await handleTrackDelete(mutation)
+				needsInvalidation = true
+			} else {
+				txLog.warn('tracks unhandled type', {type: mutation.type})
+			}
 		}
 		log.info('tx_complete', {idempotencyKey: idempotencyKey.slice(0, 8), slug})
 
-		if (slug) {
+		if (slug && needsInvalidation) {
 			log.info('invalidate', {slug})
 			await queryClient.invalidateQueries({queryKey: ['tracks', slug]})
 		}

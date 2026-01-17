@@ -1,6 +1,7 @@
 import {createCollection} from '@tanstack/svelte-db'
 import {localStorageCollectionOptions} from '@tanstack/db'
 import {logger} from '$lib/logger'
+import {LOCAL_STORAGE_KEYS} from '$lib/storage-keys'
 
 const log = logger.ns('history').seal()
 
@@ -22,7 +23,7 @@ export interface PlayHistoryEntry {
 
 export const playHistoryCollection = createCollection<PlayHistoryEntry, string>(
 	localStorageCollectionOptions({
-		storageKey: 'r5-play-history',
+		storageKey: LOCAL_STORAGE_KEYS.playHistory,
 		getKey: (item) => item.id
 	})
 )

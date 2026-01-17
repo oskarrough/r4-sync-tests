@@ -212,6 +212,7 @@
 
 	"src/lib/utils.ts": [
 		{"name": "uuid()", "desc": "Generate UUID."},
+		{"name": "slugify(str)", "desc": "URL-safe slug from string."},
 		{"name": "delay(ms)", "desc": "Promise resolved after ms."},
 		{"name": "delayRandom(min, max)", "desc": "Random delay in range."},
 		{"name": "delayWithJitter(base, jitter?)", "desc": "Delay with jitter."},
@@ -226,7 +227,9 @@
 
 		{"name": "trimWithEllipsis(text, maxLength?)", "desc": "Truncate with ellipsis."},
 		{"name": "shuffleArray(arr)", "desc": "Fisher-Yates shuffle."},
-		{"name": "generateFrequency(name, slug, min, max)", "desc": "Deterministic frequency from string."}
+		{"name": "generateFrequency(name, slug, min, max)", "desc": "Deterministic frequency from string."},
+		{"name": "timeAgo(dateString)", "desc": "Relative time: 'Xm ago', 'Xh Ym ago'."},
+		{"name": "channelAvatarUrl(id, size?, format?)", "desc": "Cloudinary URL for channel avatar."}
 	],
 
 	"src/lib/components": [
