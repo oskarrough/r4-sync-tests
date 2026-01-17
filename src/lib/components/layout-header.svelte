@@ -80,7 +80,7 @@
 		<a
 			href="/settings"
 			class="btn"
-			class:active={page.route.id === '/settings'}
+			class:active={page.route.id?.startsWith('/settings')}
 			{@attach tooltip({content: m.nav_settings()})}
 		>
 			<Icon icon="settings" size={20} />
