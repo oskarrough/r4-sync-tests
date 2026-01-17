@@ -5,6 +5,12 @@
 	import * as m from '$lib/paraglide/messages'
 
 	const userChannelId = $derived(appState?.channels?.[0])
+	let error = $state(/** @type {string|null} */ (null))
+
+	$effect(() => {
+		void appState.playlist_track
+		error = null
+	})
 
 	async function stopBroadcasting() {
 		if (userChannelId) {
@@ -14,33 +20,53 @@
 	}
 
 	async function start() {
+		error = null
 		if (!appState.playlist_track) {
-			alert(m.broadcast_requires_track())
-		} else {
-			/** @type {HTMLElement & {paused: boolean, play(): void} | null} */
-			const player = document.querySelector('youtube-video')
-			if (player?.paused) player.play()
+			error = m.broadcast_requires_track()
+			return
+		}
 
-			if (userChannelId && appState.playlist_track) {
+		/** @type {HTMLElement & {paused: boolean, play(): void} | null} */
+		const player = document.querySelector('youtube-video')
+		if (player?.paused) player.play()
+
+		if (userChannelId && appState.playlist_track) {
+			try {
 				await startBroadcast(userChannelId, appState.playlist_track)
 				appState.broadcasting_channel_id = userChannelId
+			} catch (e) {
+				error = /** @type {Error} */ (e).message
 			}
 		}
 	}
 </script>
 
 {#if userChannelId}
-	{#if appState.broadcasting_channel_id}
-		<button onclick={() => stopBroadcasting()}>{m.broadcast_stop_button()}</button>
-	{:else}
-		<button onclick={start}>
-			<Icon icon="signal" size={20} strokeWidth={1.7}></Icon>
-			{m.broadcast_start_button()}
-		</button>
-	{/if}
+	<div>
+		{#if appState.broadcasting_channel_id}
+			<button onclick={() => stopBroadcasting()}>{m.broadcast_stop_button()}</button>
+		{:else}
+			<button onclick={start}>
+				<Icon icon="signal" size={20} strokeWidth={1.7}></Icon>
+				{m.broadcast_start_button()}
+			</button>
+		{/if}
+		{#if error}
+			<p role="alert">
+				{error}. You can still listen, but listeners won't hear this track.
+			</p>
+		{/if}
+	</div>
 {:else}
 	<a class="btn" href="/auth">
 		<Icon icon="signal" size={20} strokeWidth={1.7}></Icon>
 		{m.broadcast_login_prompt()}
 	</a>
 {/if}
+
+<style>
+	[role='alert'] {
+		color: var(--red-3);
+		margin-block: var(--space-2);
+	}
+</style>

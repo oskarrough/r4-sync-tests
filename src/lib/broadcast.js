@@ -2,9 +2,22 @@ import {playTrack} from '$lib/api'
 import {appState} from '$lib/app-state.svelte'
 import {logger} from '$lib/logger'
 import {sdk} from '@radio4000/sdk'
-import {channelsCollection, queryClient} from '$lib/tanstack/collections'
+import {channelsCollection, tracksCollection, queryClient} from '$lib/tanstack/collections'
 
 const log = logger.ns('broadcast').seal()
+
+/** @param {string} channelId */
+function isV1Channel(channelId) {
+	return channelsCollection.get(channelId)?.source === 'v1'
+}
+
+/** @param {string} trackId */
+function isV1Track(trackId) {
+	const track = tracksCollection.get(trackId)
+	if (!track) return false
+	const channel = [...channelsCollection.state.values()].find((ch) => ch.slug === track.slug)
+	return channel?.source === 'v1'
+}
 
 async function readBroadcastsWithChannel() {
 	const {data, error} = await sdk.supabase.from('broadcast').select(`
@@ -70,12 +83,11 @@ export async function startBroadcast(channelId, trackId) {
 		log.log('skipped_no_track', {channelId})
 		return
 	}
-
-	// Check if track is from v1 channel - these can't be broadcast
-	const channel = channelsCollection.get(channelId)
-	if (channel?.source === 'v1') {
-		log.error('failed_v1_track', {channelId, trackId, channel})
-		throw new Error('Cannot broadcast v1 channels')
+	if (isV1Channel(channelId)) {
+		throw new Error('Legacy channels cannot broadcast')
+	}
+	if (isV1Track(trackId)) {
+		throw new Error('This track is from a legacy channel and cannot be streamed live')
 	}
 
 	await upsertRemoteBroadcast(channelId, trackId)
