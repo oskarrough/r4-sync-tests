@@ -3,6 +3,30 @@
 List of possible improvements to the architecture, idea, cli and web application.
 Verify and evaluate todos before taking them on. They might be outdated or just not good ideas.
 
+## Migrate off @radio4000/components
+
+Channel and track CRUD forms are now native Svelte.
+
+### Done
+
+- Channel create: `/create-channel/+page.svelte`
+- Channel edit: `/[slug]/edit/+page.svelte`
+- Channel delete: `/[slug]/delete/+page.svelte`
+- Track create: modal via `track-form.svelte`
+- Track edit: modal via `edit-track-modal.svelte` + `track-form.svelte`
+- Track delete: inline via `track-card.svelte` PopoverMenu
+
+### Tasks
+
+Unify form patterns across channel and track CRUD:
+
+- Markup: use fieldset/legend/label pattern everywhere (track-form currently uses label/span)
+- Data: use FormData extraction, not bind:value (track-form currently uses bind:value + awkward $derived mutation)
+- Errors: consistent `{#if error}<p class="error">{error}</p>{/if}` pattern
+- Styling: track-form should use `class="form"` for global styles instead of inline styles
+- Routes: add `/[slug]/tracks/[id]/edit` and `/[slug]/tracks/[id]/delete` routes (modals stay as progressive enhancement)
+- Note: `createChannel` vs `addTrack` naming is intentional (create = new entity, add = to existing parent)
+
 ## BACKLOG
 
 - Unify play entry points: `playTrack`, `playChannel`, `setPlaylist` could become one `play(thing)` where thing is track, channel, or track[]. Brainstorm polymorphic vs explicit naming.

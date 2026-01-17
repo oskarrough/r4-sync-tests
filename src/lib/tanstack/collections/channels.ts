@@ -9,6 +9,7 @@ import {queryClient} from './query-client'
 import {log, txLog, getErrorMessage} from './utils'
 import {getOfflineExecutor} from './offline-executor'
 import type {Channel} from '$lib/types'
+import {uuid} from '$lib/utils'
 
 export type {Channel}
 
@@ -65,8 +66,14 @@ async function handleChannelInsert(mutation: PendingMutation, metadata: Record<s
 async function handleChannelUpdate(mutation: PendingMutation): Promise<void> {
 	const channel = mutation.modified as {id: string}
 	const changes = mutation.changes as Record<string, unknown>
-	log.info('channel_update_start', {id: channel.id, changes})
-	const response = await sdk.channels.updateChannel(channel.id, changes)
+	const actualChanges = {...changes}
+	delete actualChanges.updated_at
+	if (Object.keys(actualChanges).length === 0) {
+		log.info('channel_update_skip', {id: channel.id, reason: 'no changes'})
+		return
+	}
+	log.info('channel_update_start', {id: channel.id, changes: actualChanges})
+	const response = await sdk.channels.updateChannel(channel.id, actualChanges)
 	log.info('channel_update_done', {id: channel.id, error: response.error})
 	if (response.error) throw new NonRetriableError(getErrorMessage(response.error))
 }
@@ -101,7 +108,7 @@ export const channelsAPI = {
 	}
 }
 
-export function createChannel(input: {name: string; slug: string; description?: string}) {
+export function createChannel(input: {name: string; slug: string; description?: string}): Promise<Channel> {
 	const userId = appState.user?.id
 	if (!userId) throw new Error('Must be signed in to create a channel')
 
@@ -110,25 +117,25 @@ export function createChannel(input: {name: string; slug: string; description?: 
 		metadata: {userId},
 		autoCommit: false
 	})
-	const id = crypto.randomUUID()
+	const channel: Channel = {
+		id: uuid(),
+		name: input.name,
+		slug: input.slug,
+		description: input.description || '',
+		created_at: new Date().toISOString(),
+		updated_at: new Date().toISOString(),
+		image: null,
+		url: null,
+		firebase_id: null,
+		latitude: null,
+		longitude: null,
+		favorites: null,
+		followers: null
+	}
 	tx.mutate(() => {
-		channelsCollection.insert({
-			id,
-			name: input.name,
-			slug: input.slug,
-			description: input.description || '',
-			created_at: new Date().toISOString(),
-			updated_at: new Date().toISOString(),
-			image: null,
-			url: null,
-			firebase_id: null,
-			latitude: null,
-			longitude: null,
-			favorites: null,
-			followers: null
-		})
+		channelsCollection.insert(channel)
 	})
-	return tx.commit().then(() => ({id, slug: input.slug}))
+	return tx.commit().then(() => channel)
 }
 
 export function updateChannel(id: string, changes: Record<string, unknown>) {

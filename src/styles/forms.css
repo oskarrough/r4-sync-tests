@@ -58,6 +58,7 @@ textarea {
 	line-height: inherit;
 }
 
+form.form,
 r4-sign-up,
 r4-password-reset,
 r4-password-update,
@@ -67,11 +68,13 @@ r4-channel-create,
 r4-track-create,
 r4-track-update,
 r4-discogs-resource {
+	&,
 	form,
 	fieldset {
 		display: flex;
 		flex-flow: column;
 	}
+	&,
 	form {
 		gap: 0.5rem;
 	}
@@ -83,6 +86,10 @@ r4-discogs-resource {
 
 		&[hidden] {
 			display: none;
+		}
+
+		&.row {
+			flex-flow: row wrap;
 		}
 	}
 	legend {
