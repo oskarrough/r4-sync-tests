@@ -23,18 +23,21 @@
 	let titleInput = $state()
 	/** @type {HTMLTextAreaElement | undefined} */
 	let descriptionInput = $state()
+	let pendingUrl = ''
 
 	async function handleUrlInput(event) {
 		const input = /** @type {HTMLInputElement} */ (event.target)
 		if (!input.validity.valid || !input.value || titleInput?.value) return
+		const url = input.value
+		pendingUrl = url
 		fetchingTitle = true
 		try {
-			const fetched = await fetchOEmbedTitle(input.value)
-			if (fetched && titleInput && !titleInput.value) {
+			const fetched = await fetchOEmbedTitle(url)
+			if (fetched && titleInput && !titleInput.value && url === pendingUrl) {
 				titleInput.value = fetched
 			}
 		} finally {
-			fetchingTitle = false
+			if (url === pendingUrl) fetchingTitle = false
 		}
 	}
 

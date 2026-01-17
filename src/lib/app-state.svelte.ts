@@ -42,7 +42,8 @@ export const defaultAppState: AppState = {
 
 	user: undefined,
 
-	language: undefined
+	language: undefined,
+	show_add_track_modal: false
 }
 
 // Load from local storage on module init

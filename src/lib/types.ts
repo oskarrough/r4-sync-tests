@@ -49,6 +49,7 @@ export interface AppState {
 	hide_track_artwork: boolean
 	user?: User
 	language?: string
+	show_add_track_modal?: boolean
 }
 
 interface User {

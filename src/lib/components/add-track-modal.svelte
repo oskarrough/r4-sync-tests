@@ -35,16 +35,17 @@
 						: ''
 			}
 		} else {
-			trackData = {url: data.url || '', title: '', description: ''}
+			trackData = {url: data?.url || '', title: '', description: ''}
 		}
 		showModal = true
 	}
 
+	// Watch appState to open modal from anywhere
 	$effect(() => {
-		/** @param {Event} event */
-		const handler = (event) => open(/** @type {CustomEvent} */ (event).detail)
-		window.addEventListener('r5:openTrackCreateModal', handler)
-		return () => window.removeEventListener('r5:openTrackCreateModal', handler)
+		if (appState.show_add_track_modal) {
+			open()
+			appState.show_add_track_modal = false
+		}
 	})
 
 	/** @param {KeyboardEvent} event */
