@@ -193,7 +193,7 @@
 	<title>{m.page_title_stats()}</title>
 </svelte:head>
 
-<article class="SmallContainer">
+<article class="constrained">
 	<menu>
 		<a class="btn" href="/stats" class:active={page.route.id === '/stats'}>
 			<Icon icon="chart-scatter" size={20} />
@@ -384,7 +384,6 @@
 
 <style>
 	article {
-		margin-top: 0.5rem;
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;

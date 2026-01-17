@@ -42,7 +42,7 @@
 	)
 </script>
 
-<div class="SmallContainer">
+<div class="constrained">
 	<Menu />
 	<h1>Recent Tracks (cross-collection)</h1>
 

@@ -30,62 +30,59 @@
 	<title>{m.page_title_broadcasts()}</title>
 </svelte:head>
 
-<header>
-	<h1>{m.broadcasts_title()}</h1>
-	<p>{m.broadcasts_wip()}</p>
+<article class="constrained">
+	<header>
+		<h1>{m.broadcasts_title()}</h1>
+		<p>{m.broadcasts_wip()}</p>
 
-	{#if loadingError}
-		<p>{m.broadcasts_error()} {loadingError}</p>
-	{/if}
+		{#if loadingError}
+			<p>{m.broadcasts_error()} {loadingError}</p>
+		{/if}
 
-	<menu>
-		<BroadcastControls />
-	</menu>
-</header>
+		<menu>
+			<BroadcastControls />
+		</menu>
+	</header>
 
-<section class="list">
-	{#each activeBroadcasts as broadcast (broadcast.channel_id)}
-		{@const joined = broadcast.channel_id === appState.listening_to_channel_id}
-		<div class:active={joined}>
-			<div class="live-dot"></div>
-			<ChannelCard channel={broadcast.channels}>
-				<p>
-					<span class="live">{m.broadcasts_live()}</span>
-					{m.broadcasts_since()}
-					{timeAgo(broadcast.track_played_at)}
-					<em>
-						<EnsureTrack tid={broadcast.track_id}></EnsureTrack>
-					</em>
-				</p>
+	<section class="list">
+		{#each activeBroadcasts as broadcast (broadcast.channel_id)}
+			{@const joined = broadcast.channel_id === appState.listening_to_channel_id}
+			<div class:active={joined}>
+				<div class="live-dot"></div>
+				<ChannelCard channel={broadcast.channels}>
+					<p>
+						<span class="live">{m.broadcasts_live()}</span>
+						{m.broadcasts_since()}
+						{timeAgo(broadcast.track_played_at)}
+						<em>
+							<EnsureTrack tid={broadcast.track_id}></EnsureTrack>
+						</em>
+					</p>
 
-				<button
-					type="button"
-					onclick={(e) => {
-						e.preventDefault()
-						if (joined) {
-							leaveBroadcast()
-						} else {
-							joinBroadcast(broadcast.channel_id)
-						}
-					}}
-				>
-					{joined ? m.broadcasts_leave() : m.broadcasts_join()}
-				</button>
-			</ChannelCard>
-		</div>
-	{:else}
-		<p>{m.broadcasts_none()}</p>
-	{/each}
-</section>
+					<button
+						type="button"
+						onclick={(e) => {
+							e.preventDefault()
+							if (joined) {
+								leaveBroadcast()
+							} else {
+								joinBroadcast(broadcast.channel_id)
+							}
+						}}
+					>
+						{joined ? m.broadcasts_leave() : m.broadcasts_join()}
+					</button>
+				</ChannelCard>
+			</div>
+		{:else}
+			<p>{m.broadcasts_none()}</p>
+		{/each}
+	</section>
+</article>
 
 <style>
-	header,
-	section {
-		margin: 0.5rem;
-	}
-
 	header > menu {
-		margin: 1rem;
+		margin-block: 1rem;
 	}
 
 	.list :global(article > a) {

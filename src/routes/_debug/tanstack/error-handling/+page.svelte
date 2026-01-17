@@ -31,7 +31,7 @@
 	let isError = $derived.by(() => (void cacheVersion, channelsCollection.utils.isError))
 </script>
 
-<div class="SmallContainer">
+<div class="constrained">
 	<Menu />
 	<h1>Error Handling</h1>
 

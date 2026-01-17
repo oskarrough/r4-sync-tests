@@ -7,7 +7,7 @@
 	<title>{m.settings_appearance_title()}</title>
 </svelte:head>
 
-<article class="SmallContainer">
+<article class="constrained">
 	<header>
 		<p>{m.settings_appearance_nav()}</p>
 	</header>
@@ -17,7 +17,6 @@
 
 <style>
 	article > header {
-		margin-top: 0.5rem;
 		margin-bottom: 1rem;
 	}
 </style>

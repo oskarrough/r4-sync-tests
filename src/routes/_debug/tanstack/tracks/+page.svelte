@@ -94,7 +94,7 @@
 	}
 </script>
 
-<div class="SmallContainer">
+<div class="constrained">
 	<Menu />
 
 	{#if !userChannel}

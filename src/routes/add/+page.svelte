@@ -24,7 +24,7 @@
 	<title>{m.page_title_add_track()}</title>
 </svelte:head>
 
-<div class="MiniContainer">
+<div class="constrained">
 	{#if canAddTrack && channel}
 		<h2>
 			{m.track_add_title()}

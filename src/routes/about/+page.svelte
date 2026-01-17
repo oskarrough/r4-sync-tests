@@ -6,7 +6,7 @@
 	<title>{m.about_title()}</title>
 </svelte:head>
 
-<article class="SmallContainer">
+<article class="constrained">
 	<header>
 		<figure>
 			<img
@@ -60,18 +60,8 @@
 </article>
 
 <style>
-	article {
-		max-width: 70ch;
-		margin: 2rem auto;
-		padding: 0 1rem 5rem;
-	}
-
 	section {
 		margin: 2rem 0;
-	}
-
-	h2 {
-		margin-bottom: 0.5rem;
 	}
 
 	ul {

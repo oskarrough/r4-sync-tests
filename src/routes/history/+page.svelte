@@ -17,7 +17,7 @@
 	<title>{m.page_title_history()}</title>
 </svelte:head>
 
-<article class="SmallContainer">
+<article class="constrained">
 	<menu>
 		<a class="btn" href="/stats" class:active={page.route.id === '/stats'}>
 			<Icon icon="chart-scatter" size={20} />
@@ -81,13 +81,9 @@
 {/snippet}
 
 <style>
-	.SmallContainer {
-		margin-top: 0.5rem;
-
-		> menu,
-		> header {
-			margin-bottom: 1rem;
-		}
+	article > menu,
+	article > header {
+		margin-bottom: 1rem;
 	}
 
 	.row {

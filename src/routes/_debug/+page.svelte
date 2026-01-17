@@ -2,7 +2,7 @@
 	<title>Debug</title>
 </svelte:head>
 
-<div class="SmallContainer">
+<div class="constrained">
 	<menu class="grouped">
 		<a href="/_debug/appstate">appstate</a>
 		<a href="/_debug/async-test">async-test</a>

@@ -7,13 +7,7 @@
 	<title>{m.page_title_keyboard()}</title>
 </svelte:head>
 
-<article class="SmallContainer">
+<article class="constrained">
 	<p><a href="/settings">{m.nav_settings()}</a> / {m.settings_keyboard()}</p>
 	<KeyboardEditor />
 </article>
-
-<style>
-	article {
-		margin-bottom: calc(var(--player-compact-size));
-	}
-</style>

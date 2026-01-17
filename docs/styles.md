@@ -1,23 +1,20 @@
-The app follows a few guidelines and preferences when it comes to design and styling with CSS.
+# Styles
 
-- Keepo consistent defaults, and allow customizations
-- CSS variables for most things
+## Colors
 
-Everything has to work in both light and dark mode.
+`--gray-1` to `--gray-12`, `--accent-1` to `--accent-12`
 
-We define four variables:
+Generated from four base colors in `variables.css` and `color-scales.css`.
 
-- gray-light, gray-dark
-- accent-light, accent-dark
+## Layout
 
-and from those we generate two scales of 12 colors each:
+From `layout.css`:
 
-```
---gray-1 to --gray-12
---accent-1 to --gray-12
-```
-
-See the following files:
-
-- variables.css
-- color-scales.css
+- `.constrained` — 80ch centered
+- `.focused` — vertically centered
+- `.scroll` — scrollable container
+- `.list` — dividers + hover
+- `.grid` — responsive card grid
+- `.row` / `.row--vcenter` — flex row
+- `menu` / `menu[data-vertical]` / `menu.grouped` — menus
+- `dl.meta` — key-value pairs

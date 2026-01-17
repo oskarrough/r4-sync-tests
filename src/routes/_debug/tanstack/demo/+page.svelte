@@ -189,7 +189,7 @@
 	</ul>
 {/snippet}
 
-<article class="SmallContainer">
+<article class="constrained">
 	<h1>TanStack Query + DB</h1>
 	<p>Interactive exploration of TanStack's data fetching and caching abstractions.</p>
 
