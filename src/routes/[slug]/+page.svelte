@@ -50,7 +50,7 @@
 	let canEdit = $derived(isSignedIn && appState.channels?.includes(channel?.id))
 
 	function openAddTrackModal() {
-		appState.show_add_track_modal = true
+		appState.modal_track_add = {}
 	}
 </script>
 

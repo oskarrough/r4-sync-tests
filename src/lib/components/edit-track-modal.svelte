@@ -1,4 +1,5 @@
 <script>
+	import {appState} from '$lib/app-state.svelte'
 	import Modal from '$lib/components/modal.svelte'
 	import TrackForm from '$lib/components/track-form.svelte'
 	import * as m from '$lib/paraglide/messages'
@@ -15,10 +16,10 @@
 	}
 
 	$effect(() => {
-		/** @param {Event} event */
-		const handler = (event) => open(/** @type {CustomEvent} */ (event).detail)
-		window.addEventListener('r5:openTrackEditModal', handler)
-		return () => window.removeEventListener('r5:openTrackEditModal', handler)
+		if (appState.modal_track_edit) {
+			open(appState.modal_track_edit)
+			appState.modal_track_edit = null
+		}
 	})
 
 	function handleSubmit(event) {

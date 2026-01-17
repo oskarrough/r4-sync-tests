@@ -44,7 +44,8 @@ export const defaultAppState: AppState = {
 	user: undefined,
 
 	language: undefined,
-	show_add_track_modal: false
+	modal_track_add: null,
+	modal_track_edit: null
 }
 
 // Load from local storage on module init

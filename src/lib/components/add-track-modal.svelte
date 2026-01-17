@@ -42,9 +42,9 @@
 
 	// Watch appState to open modal from anywhere
 	$effect(() => {
-		if (appState.show_add_track_modal) {
-			open()
-			appState.show_add_track_modal = false
+		if (appState.modal_track_add) {
+			open(appState.modal_track_add)
+			appState.modal_track_add = null
 		}
 	})
 
