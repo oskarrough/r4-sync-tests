@@ -1,21 +1,11 @@
 <script>
+	import {channelAvatarUrl} from '$lib/utils'
 	/* keep 250 please, since it is what cloudinary has already generated */
 	let {id, alt = '', size = 250} = $props()
-
-	/**
-	 * @param {string} id - from cloudinary image
-	 * @param {string} format -
-	 */
-	export function createImage(id, format = 'webp') {
-		const baseUrl = 'https://res.cloudinary.com/radio4000/image/upload'
-		const dimensions = `w_${size},h_${size}`
-		const crop = 'c_thumb,q_60'
-		return `${baseUrl}/${dimensions},${crop},fl_awebp/${id}.${format}`
-	}
 </script>
 
 {#if id}
-	<img loading="lazy" src={createImage(id)} {alt} />
+	<img loading="lazy" src={channelAvatarUrl(id, size)} {alt} />
 {:else}
 	<!-- <img loading="lazy" src={`base64,${btoa('ba')}`} {alt} /> -->
 	<div class="placeholder">{alt.slice(0, 2) || '?'}</div>

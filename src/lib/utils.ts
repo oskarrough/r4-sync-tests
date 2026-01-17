@@ -160,3 +160,14 @@ export function delayWithJitter(base: number, jitter: number = 0.2): Promise<voi
 	const ms = base + (Math.random() * 2 - 1) * variance
 	return new Promise((resolve) => setTimeout(resolve, ms))
 }
+
+/**
+ * Build a Cloudinary URL for a channel avatar image
+ * @param {string} id - Cloudinary image ID
+ * @param {number} [size=250] - Image dimensions (square)
+ * @param {string} [format='webp'] - Image format
+ */
+export function channelAvatarUrl(id: string, size = 250, format = 'webp') {
+	const baseUrl = 'https://res.cloudinary.com/radio4000/image/upload'
+	return `${baseUrl}/w_${size},h_${size},c_thumb,q_60,fl_awebp/${id}.${format}`
+}

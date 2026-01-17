@@ -3,6 +3,7 @@
 	import {page} from '$app/state'
 	import {appState} from '$lib/app-state.svelte'
 	import {shuffleArray} from '$lib/utils.ts'
+	import {shuffleArray, channelAvatarUrl} from '$lib/utils.ts'
 	import ChannelCard from './channel-card.svelte'
 	import Icon from './icon.svelte'
 	import InfiniteGrid from './infinite-grid.svelte'
