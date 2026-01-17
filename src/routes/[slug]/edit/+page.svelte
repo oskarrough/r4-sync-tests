@@ -3,11 +3,8 @@
 	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
 	import {eq} from '@tanstack/db'
 	import {appState} from '$lib/app-state.svelte'
-	import {channelsCollection} from '$lib/tanstack/collections'
+	import {channelsCollection, updateChannel} from '$lib/tanstack/collections'
 	import * as m from '$lib/paraglide/messages'
-	import {logger} from '$lib/logger'
-
-	const log = logger.ns('channel').seal()
 
 	let {data} = $props()
 
@@ -25,30 +22,36 @@
 
 	let error = $state('')
 	let success = $state(false)
+	let submitting = $state(false)
 
+	/** @param {SubmitEvent} event */
 	async function handleSubmit(event) {
+		event.preventDefault()
+		if (!channel || submitting) return
+
+		const formData = new FormData(/** @type {HTMLFormElement} */ (event.target))
+		const name = /** @type {string} */ (formData.get('name'))
+		const slug = /** @type {string} */ (formData.get('slug'))
+		const description = /** @type {string} */ (formData.get('description'))
+		const url = formData.get('url') || null
+		const latitude = formData.get('latitude') ? Number(formData.get('latitude')) : null
+		const longitude = formData.get('longitude') ? Number(formData.get('longitude')) : null
+
 		error = ''
 		success = false
+		submitting = true
 
 		try {
-			const channelData = event.detail.data
-
-			const {error: updateError} = await /** @type {any} */ (window).r4sdk.channels.updateChannel(
-				channel.id,
-				channelData
-			)
-
-			if (updateError) {
-				throw updateError
-			}
-
+			await updateChannel(channel.id, {name, slug, description, url, latitude, longitude})
 			success = true
-			setTimeout(() => {
-				goto(`/${data.slug}`)
-			}, 1500)
+			// Navigate to new slug if it changed
+			if (slug !== data.slug) {
+				goto(`/${slug}/edit`, {replaceState: true})
+			}
 		} catch (err) {
-			log.error('update channel failed', {id: channel.id, err})
-			error = err.message || 'Failed to update channel'
+			error = /** @type {Error} */ (err).message || 'Failed to update channel'
+		} finally {
+			submitting = false
 		}
 	}
 </script>
@@ -57,30 +60,88 @@
 	<title>{m.channel_edit_page_title({name: channel?.name || m.channel_page_fallback()})}</title>
 </svelte:head>
 
-{#if canEdit}
-	<h2>
-		{m.channel_edit_title()}
-		{#if channel}
-			<a href={`/${channel.slug}`}>{channel.name}</a>
+<article class="constrained focused">
+	{#if canEdit && channel}
+		<header>
+			<h1>{m.channel_edit_title()} <a href={`/${channel.slug}`}>{channel.name}</a></h1>
+		</header>
+
+		{#if error}
+			<p class="error">{m.common_error()}: {error}</p>
 		{/if}
-	</h2>
 
-	{#if error}
-		<p class="error">{m.common_error()}: {error}</p>
-	{/if}
+		{#if success}
+			<p class="success">{m.channel_updated_success()}</p>
+		{/if}
 
-	{#if success}
-		<p class="success">{m.channel_updated_success()}</p>
+		{#if !error && !success}<p>&nbsp;</p>{/if}
+
+		<form class="form" onsubmit={handleSubmit}>
+			<fieldset disabled={submitting}>
+				<fieldset>
+					<legend><label for="name">Name</label></legend>
+					<input id="name" name="name" type="text" value={channel.name ?? ''} required />
+				</fieldset>
+
+				<fieldset>
+					<legend><label for="slug">Slug</label></legend>
+					<input id="slug" name="slug" type="text" value={channel.slug ?? ''} required />
+				</fieldset>
+
+				<fieldset>
+					<legend><label for="description">Description</label></legend>
+					<textarea id="description" name="description" rows="4">{channel.description ?? ''}</textarea>
+				</fieldset>
+
+				<fieldset>
+					<legend><label for="url">URL</label></legend>
+					<input id="url" name="url" type="url" value={channel.url ?? ''} placeholder="https://..." />
+				</fieldset>
+
+				<fieldset class="row">
+					<legend>Location</legend>
+					<input
+						name="latitude"
+						type="number"
+						value={channel.latitude ?? ''}
+						step="any"
+						min="-90"
+						max="90"
+						placeholder="Latitude"
+					/>
+					<input
+						name="longitude"
+						type="number"
+						value={channel.longitude ?? ''}
+						step="any"
+						min="-180"
+						max="180"
+						placeholder="Longitude"
+					/>
+				</fieldset>
+
+				<fieldset>
+					<legend>Image</legend>
+					<r4-avatar-upload slug={channel.slug}></r4-avatar-upload>
+				</fieldset>
+
+				<button class="primary" type="submit" disabled={submitting}>
+					{submitting ? m.common_save() + '...' : m.common_save()}
+				</button>
+			</fieldset>
+		</form>
+
+		<p><a href={`/${channel.slug}/delete`}>{m.common_delete()} channel</a></p>
+	{:else if !isSignedIn}
+		<p><a href="/auth">{m.auth_sign_in_to_edit()}</a></p>
 	{:else}
-		<r4-channel-update
-			channel_id={channel.id}
-			name={channel.name}
-			description={channel.description}
-			url={channel.url}
-			image={channel.image}
-			onsubmit={handleSubmit}
-		></r4-channel-update>
+		<p>Loading...</p>
 	{/if}
-{:else}
-	<p><a href="/auth">{m.auth_sign_in_to_edit()}</a></p>
-{/if}
+</article>
+
+<style>
+	.form {
+		margin-block: 0rem 4rem;
+	}
+</style>
+
