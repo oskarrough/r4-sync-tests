@@ -5,6 +5,7 @@
 	import {eq} from '@tanstack/db'
 	import {appState} from '$lib/app-state.svelte'
 	import {channelsCollection, updateChannel} from '$lib/tanstack/collections'
+	import MapPicker from '$lib/components/map-picker.svelte'
 	import * as m from '$lib/paraglide/messages'
 
 	// Derive slug from URL for reactivity with shallow routing
@@ -34,6 +35,17 @@
 	let error = $state('')
 	let success = $state(false)
 	let submitting = $state(false)
+	let showMap = $state(false)
+	let pickedLat = $state(/** @type {number|null} */ (null))
+	let pickedLng = $state(/** @type {number|null} */ (null))
+
+	const locationLat = $derived(pickedLat ?? channel?.latitude ?? null)
+	const locationLng = $derived(pickedLng ?? channel?.longitude ?? null)
+
+	function handleLocationSelect({latitude, longitude}) {
+		pickedLat = latitude
+		pickedLng = longitude
+	}
 
 	/** @param {SubmitEvent} event */
 	async function handleSubmit(event) {
@@ -122,26 +134,38 @@
 				<input id="url" name="url" type="url" value={channel.url ?? ''} placeholder="https://..." />
 			</fieldset>
 
-			<fieldset class="row">
+			<fieldset>
 				<legend>Location</legend>
-				<input
-					name="latitude"
-					type="number"
-					value={channel.latitude ?? ''}
-					step="any"
-					min="-90"
-					max="90"
-					placeholder="Latitude"
-				/>
-				<input
-					name="longitude"
-					type="number"
-					value={channel.longitude ?? ''}
-					step="any"
-					min="-180"
-					max="180"
-					placeholder="Longitude"
-				/>
+				<div class="location-inputs">
+					<input
+						name="latitude"
+						type="number"
+						value={locationLat ?? ''}
+						step="any"
+						min="-90"
+						max="90"
+						placeholder="Latitude"
+						onchange={(e) => (pickedLat = e.currentTarget.value ? Number(e.currentTarget.value) : null)}
+					/>
+					<input
+						name="longitude"
+						type="number"
+						value={locationLng ?? ''}
+						step="any"
+						min="-180"
+						max="180"
+						placeholder="Longitude"
+						onchange={(e) => (pickedLng = e.currentTarget.value ? Number(e.currentTarget.value) : null)}
+					/>
+					<button type="button" onclick={() => (showMap = !showMap)}>
+						{showMap ? 'Hide map' : 'Pick on map'}
+					</button>
+				</div>
+				{#if showMap}
+					<div class="map-container">
+						<MapPicker latitude={locationLat} longitude={locationLng} onselect={handleLocationSelect} />
+					</div>
+				{/if}
 			</fieldset>
 
 			<fieldset>
@@ -165,5 +189,22 @@
 <style>
 	.form {
 		margin-block: 0rem 4rem;
+	}
+	.location-inputs {
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+	.location-inputs input {
+		flex: 1;
+		min-width: 8rem;
+	}
+	.map-container {
+		margin-top: 0.5rem;
+		height: 300px;
+		position: relative;
+	}
+	.map-container :global(.map) {
+		height: 100%;
 	}
 </style>

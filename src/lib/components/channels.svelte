@@ -7,7 +7,7 @@
 	import ChannelCard from './channel-card.svelte'
 	import Icon from './icon.svelte'
 	import InfiniteCanvas from './infinite-canvas.svelte'
-	import MapComponent from './map.svelte'
+	import MapChannels from './map-channels.svelte'
 	import PopoverMenu from './popover-menu.svelte'
 	import SpectrumScanner from './spectrum-scanner.svelte'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
@@ -60,16 +60,7 @@
 
 	const realChannels = $derived({
 		filtered: filteredChannels,
-		displayed: orderedChannels.slice(0, limit),
-		mapMarkers: channels
-			.filter((c) => c.longitude && c.latitude)
-			.map(({id, longitude, latitude, slug, name}) => ({
-				id,
-				slug,
-				longitude,
-				latitude,
-				title: name
-			}))
+		displayed: orderedChannels.slice(0, limit)
 	})
 
 	const canvasMedia = $derived(
@@ -281,7 +272,7 @@
 	</menu>
 
 	{#if display === 'map'}
-		<MapComponent markers={realChannels.mapMarkers} />
+		<MapChannels {channels} />
 	{:else if display === 'tuner'}
 		<SpectrumScanner channels={realChannels.filtered} />
 	{:else if display === 'infinite'}

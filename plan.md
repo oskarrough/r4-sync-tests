@@ -21,7 +21,6 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 - share buttons/embeds (evaluate if needed)
 - improve broadcast feature
 - run `bun run check` and slowly get rid of these warnings - tidy codebase
-- map-picker.svelte: fix to work with channel update flow
 
 ## Questionable backlog
 
