@@ -1,4 +1,5 @@
 import {appState} from '$lib/app-state.svelte'
+import {LOCAL_STORAGE_KEYS, IDB_DATABASES} from '$lib/storage-keys'
 import {leaveBroadcast, upsertRemoteBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
 import {sdk} from '@radio4000/sdk'
@@ -397,4 +398,18 @@ export function eject() {
 	appState.show_video_player = false
 	appState.shuffle = false
 	appState.is_playing = false
+}
+
+/**
+ * Clears all local data (localStorage and IndexedDB).
+ * Remote Radio4000 account data remains intact.
+ * Typically followed by a page reload.
+ */
+export function resetLocalData() {
+	for (const key of Object.values(LOCAL_STORAGE_KEYS)) {
+		localStorage.removeItem(key)
+	}
+	for (const db of Object.values(IDB_DATABASES)) {
+		indexedDB.deleteDatabase(db)
+	}
 }

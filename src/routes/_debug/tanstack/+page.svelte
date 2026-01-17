@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Menu from './menu.svelte'
+	import {resetLocalData} from '$lib/api'
 	import {queryClient, tracksCollection, channelsCollection, followsCollection} from '$lib/tanstack/collections'
 	import {trackMetaCollection} from '$lib/tanstack/collections/track-meta'
 	import {playHistoryCollection} from '$lib/tanstack/collections/play-history'
@@ -86,8 +87,7 @@
 
 	async function clearIDB() {
 		if (!confirm('Clear IndexedDB cache? Page will reload.')) return
-		indexedDB.deleteDatabase('keyval-store')
-		indexedDB.deleteDatabase('r5-offline-mutations')
+		resetLocalData()
 		location.reload()
 	}
 </script>

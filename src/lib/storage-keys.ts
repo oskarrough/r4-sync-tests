@@ -1,0 +1,19 @@
+/** All localStorage keys used by R5. Add new keys here to ensure resetLocalData clears them. */
+export const LOCAL_STORAGE_KEYS = {
+	appState: 'r5-app-state',
+	follows: 'r5-follows',
+	trackMeta: 'r5-track-meta',
+	playHistory: 'r5-play-history',
+	spamDecisions: 'r5-spam-decisions'
+} as const
+
+/** All IndexedDB database names used by R5. */
+export const IDB_DATABASES = {
+	keyval: 'r5-keyval',
+	offlineMutations: 'r5-offline-mutations'
+} as const
+
+/** Key within the keyval database for query cache. */
+export const IDB_KEYS = {
+	queryCache: 'r5-query-cache'
+} as const
