@@ -2,7 +2,7 @@
 	import {goto} from '$app/navigation'
 	import {page} from '$app/state'
 	import {appState} from '$lib/app-state.svelte'
-	import {shuffleArray} from '$lib/utils.ts'
+	import {shufflePlayChannel} from '$lib/api'
 	import {shuffleArray, channelAvatarUrl} from '$lib/utils.ts'
 	import ChannelCard from './channel-card.svelte'
 	import Icon from './icon.svelte'
@@ -63,12 +63,12 @@
 		displayed: orderedChannels.slice(0, limit),
 		mapMarkers: channels
 			.filter((c) => c.longitude && c.latitude)
-			.map(({longitude, latitude, slug, name}) => ({
+			.map(({id, longitude, latitude, slug, name}) => ({
+				id,
+				slug,
 				longitude,
 				latitude,
-				title: name,
-				href: slug,
-				isActive: slug === initialSlug
+				title: name
 			}))
 	})
 
@@ -263,16 +263,7 @@
 	</menu>
 
 	{#if display === 'map'}
-		{#if realChannels.mapMarkers}
-			<MapComponent
-				urlMode
-				markers={realChannels.mapMarkers}
-				{latitude}
-				{longitude}
-				{zoom}
-				onmapchange={handleMapChange}
-			></MapComponent>
-		{/if}
+		<MapComponent markers={realChannels.mapMarkers} />
 	{:else if display === 'tuner'}
 		<SpectrumScanner channels={realChannels.filtered} />
 	{:else if display === 'infinite'}
@@ -304,10 +295,22 @@
 <style>
 	.layout {
 		position: relative;
-		&.layout--map {
+		&.layout--map,
+		&.layout--infinite {
 			display: flex;
 			flex-direction: column;
 			flex-grow: 1;
+		}
+		&.layout--infinite :global(.canvas-container) {
+			min-height: 100dvh;
+		}
+		&.layout--infinite .filtermenu,
+		&.layout--map .filtermenu {
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			z-index: 1000;
 		}
 	}
 
