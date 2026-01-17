@@ -6,14 +6,14 @@
 	import {shuffleArray, channelAvatarUrl} from '$lib/utils.ts'
 	import ChannelCard from './channel-card.svelte'
 	import Icon from './icon.svelte'
-	import InfiniteGrid from './infinite-grid.svelte'
+	import InfiniteCanvas from './infinite-canvas.svelte'
 	import MapComponent from './map.svelte'
 	import PopoverMenu from './popover-menu.svelte'
 	import SpectrumScanner from './spectrum-scanner.svelte'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
 	import * as m from '$lib/paraglide/messages'
 
-	const {channels = [], slug: initialSlug, display: initialDisplay, longitude, latitude, zoom} = $props()
+	const {channels = [], display: initialDisplay} = $props()
 
 	let limit = $state(16)
 	let perPage = $state(100)
@@ -71,6 +71,23 @@
 				title: name
 			}))
 	})
+
+	const canvasMedia = $derived(
+		orderedChannels.map((c) => ({
+			url: c.image
+				? channelAvatarUrl(c.image)
+				: `https://placehold.co/250?text=${encodeURIComponent(c.name?.[0] || '?')}`,
+			width: 250,
+			height: 250,
+			slug: c.slug,
+			id: c.id
+		}))
+	)
+
+	function handleCanvasClick(item) {
+		if (!item.slug || !item.id) return
+		shufflePlayChannel({id: item.id, slug: item.slug})
+	}
 
 	/** @param {'grid' | 'list' | 'map' | 'tuner' | 'infinite'} value */
 	function setDisplay(value = 'grid') {
@@ -267,7 +284,7 @@
 	{:else if display === 'tuner'}
 		<SpectrumScanner channels={realChannels.filtered} />
 	{:else if display === 'infinite'}
-		<InfiniteGrid channels={realChannels.filtered} />
+		<InfiniteCanvas media={canvasMedia} onclick={handleCanvasClick} />
 	{:else}
 		<ol class={display}>
 			{#each realChannels.displayed as channel (channel.id)}

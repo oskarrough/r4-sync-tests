@@ -115,6 +115,9 @@
 		return Math.min(buildMix().count(), options.limit)
 	})
 
+	let hasOnlyTags = $derived(sources.length > 0 && !sources.some((s) => s.type === 'channel'))
+	let needsChannelHint = $derived(!loading && trackCount === 0 && hasOnlyTags)
+
 	async function handleSearch() {
 		if (!searchQuery.trim()) {
 			searchResults = []
@@ -265,7 +268,7 @@
 	<footer>
 		<output>
 			{loading ? 'Loading...' : `${trackCount} tracks`}
-			{#if !loading && trackCount === 0 && sources.length > 0 && !sources.some((s) => s.type === 'channel')}
+			{#if needsChannelHint}
 				<small>— add a channel to get tracks to filter</small>
 			{/if}
 		</output>
