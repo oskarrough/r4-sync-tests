@@ -10,11 +10,10 @@
 	import TestCounter from '$lib/components/test-counter.svelte'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
 	import * as m from '$lib/paraglide/messages'
-	import {channelsCollection} from '$lib/tanstack/collections'
 
 	const {preloading} = $props()
 
-	const userChannel = $derived(appState.channels?.[0] ? channelsCollection.get(appState.channels[0]) : null)
+	const userChannel = $derived(appState.channel)
 
 	let broadcastCount = $state(0)
 
