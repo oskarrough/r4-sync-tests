@@ -95,16 +95,28 @@ export const channelsAPI = {
 		idempotencyKey: string
 	}) {
 		const metadata = transaction.metadata || {}
+		let needsFullInvalidation = false
+
 		for (const mutation of transaction.mutations) {
 			txLog.info('channels', {type: mutation.type, key: idempotencyKey.slice(0, 8)})
-			if (mutation.type === 'insert') await handleChannelInsert(mutation, metadata)
-			else if (mutation.type === 'update') await handleChannelUpdate(mutation)
-			else if (mutation.type === 'delete') await handleChannelDelete(mutation)
-			else txLog.warn('channels unhandled type', {type: mutation.type})
+			if (mutation.type === 'insert') {
+				await handleChannelInsert(mutation, metadata)
+				needsFullInvalidation = true
+			} else if (mutation.type === 'update') {
+				await handleChannelUpdate(mutation)
+			} else if (mutation.type === 'delete') {
+				await handleChannelDelete(mutation)
+				needsFullInvalidation = true
+			} else {
+				txLog.warn('channels unhandled type', {type: mutation.type})
+			}
 		}
 		log.info('channel_tx_complete', {idempotencyKey: idempotencyKey.slice(0, 8)})
 
-		await queryClient.invalidateQueries({queryKey: ['channels']})
+		if (needsFullInvalidation) {
+			await queryClient.invalidateQueries({queryKey: ['channels']})
+		}
+		// Updates don't need invalidation - optimistic data is authoritative
 	}
 }
 

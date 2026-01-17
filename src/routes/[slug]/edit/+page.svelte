@@ -1,22 +1,33 @@
 <script>
-	import {goto} from '$app/navigation'
+	import {replaceState} from '$app/navigation'
+	import {page} from '$app/state'
 	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
 	import {eq} from '@tanstack/db'
 	import {appState} from '$lib/app-state.svelte'
 	import {channelsCollection, updateChannel} from '$lib/tanstack/collections'
 	import * as m from '$lib/paraglide/messages'
 
-	let {data} = $props()
+	// Derive slug from URL for reactivity with shallow routing
+	const slug = $derived(page.url.pathname.split('/')[1])
 
+	// Initial query by slug
 	const channelQuery = useLiveQuery((q) =>
 		q
 			.from({channels: channelsCollection})
-			.where(({channels}) => eq(channels.slug, data.slug))
+			.where(({channels}) => eq(channels.slug, slug))
 			.orderBy(({channels}) => channels.created_at)
 			.limit(1)
 	)
 
-	const channel = $derived(channelQuery.data?.[0])
+	// Lock to channel ID once found (ID never changes, slug might)
+	let channelId = $state('')
+	$effect(() => {
+		const found = channelQuery.data?.[0]
+		if (found?.id && !channelId) channelId = found.id
+	})
+
+	// Once we have the ID, read directly from collection (bypasses stale query)
+	const channel = $derived(channelId ? channelsCollection.get(channelId) : channelQuery.data?.[0])
 	const isSignedIn = $derived(!!appState.user)
 	const canEdit = $derived(isSignedIn && appState.channels?.includes(channel?.id))
 
@@ -31,7 +42,7 @@
 
 		const formData = new FormData(/** @type {HTMLFormElement} */ (event.target))
 		const name = /** @type {string} */ (formData.get('name'))
-		const slug = /** @type {string} */ (formData.get('slug'))
+		const newSlug = /** @type {string} */ (formData.get('slug'))
 		const description = /** @type {string} */ (formData.get('description'))
 		const url = formData.get('url') || null
 		const latitude = formData.get('latitude') ? Number(formData.get('latitude')) : null
@@ -42,11 +53,25 @@
 		submitting = true
 
 		try {
-			await updateChannel(channel.id, {name, slug, description, url, latitude, longitude})
+			const hasChanges =
+				name !== (channel.name ?? '') ||
+				newSlug !== (channel.slug ?? '') ||
+				description !== (channel.description ?? '') ||
+				url !== channel.url ||
+				latitude !== channel.latitude ||
+				longitude !== channel.longitude
+
+			if (!hasChanges) {
+				success = true
+				return
+			}
+
+			const oldSlug = channel.slug
+			await updateChannel(channel.id, {name, slug: newSlug, description, url, latitude, longitude})
 			success = true
-			// Navigate to new slug if it changed
-			if (slug !== data.slug) {
-				goto(`/${slug}/edit`, {replaceState: true})
+			// Update URL if slug changed (shallow routing)
+			if (newSlug !== oldSlug) {
+				replaceState(`/${newSlug}/edit`, {})
 			}
 		} catch (err) {
 			error = /** @type {Error} */ (err).message || 'Failed to update channel'

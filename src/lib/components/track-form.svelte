@@ -78,12 +78,22 @@
 				})
 			} else {
 				if (!trackId) throw new Error('Track ID required for update')
-				await updateTrack(channel, trackId, {
-					url,
-					title,
-					description: description || undefined,
-					discogs_url: discogs_url || undefined
-				})
+
+				// Skip update if nothing changed
+				const hasChanges =
+					url !== initialUrl ||
+					title !== initialTitle ||
+					description !== initialDescription ||
+					discogs_url !== initialDiscogsUrl
+
+				if (hasChanges) {
+					await updateTrack(channel, trackId, {
+						url,
+						title,
+						description: description || undefined,
+						discogs_url: discogs_url || undefined
+					})
+				}
 			}
 			onsubmit?.({data: {url, title}, error: null})
 			if (mode === 'create') {
