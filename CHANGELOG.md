@@ -2,9 +2,10 @@
 
 ## January 2026
 
+- Added and improved channel and track forms, including dedicated edit/delete routes for tracks
 - Infinite canvas replaces infinite grid for browsing channels
 - Experimental /mix page
-- Simplified map component
+- Simplified and split map components
 - Auth UI polish with social providers
 - Replaced 11ty docs with Svelte
 - Resolved all svelte-check warnings
