@@ -5,6 +5,19 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 
 ## BACKLOG
 
+- Granular channel invalidation: channel insert/delete invalidates all `['channels']`, causing full refetch of 3k channels. Fix: use `setQueryData` to update the list in-place, then invalidate only the specific slug:
+  ```ts
+  queryClient.setQueryData(['channels'], (old) => (old ? [...old, newChannel] : [newChannel]))
+  queryClient.invalidateQueries({queryKey: ['channels', newChannel.slug]})
+  ```
+- On-demand predicate push-down: we set `syncMode: 'on-demand'` but don't use `parseLoadSubsetOptions` in queryFn. Currently we manually check for slug and call different SDK methods. With proper on-demand, live query `where()` clauses flow through to backend:
+  ```ts
+  const {where} = parseLoadSubsetOptions(ctx.meta.loadSubsetOptions)
+  const filters = extractSimpleComparisons(where)
+  const slugFilter = filters.find((f) => f.field[0] === 'slug')
+  if (slugFilter) return fetchTracksBySlug(slugFilter.value)
+  ```
+  Benefit: add date range or search filters in UI, they flow to SDK without touching queryFn dispatch.
 - Unify play entry points: `playTrack`, `playChannel`, `setPlaylist` could become one `play(thing)` where thing is track, channel, or track[]. Brainstorm polymorphic vs explicit naming.
 - Seek/position support: add `seekTo(seconds)`, `getPosition()` via media-chrome player. Support `?t=` URL param like YouTube for deep-linking into tracks.
 - Get an overview of the methods we have in lib, api, sdk (the sdk's readme has a good overview for it) and add one to our @docs folder so its easy to get an overview of methods, their args maybe, returns too. to consider naming, api design from high level
