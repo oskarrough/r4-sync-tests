@@ -1,6 +1,7 @@
 import {createCollection} from '@tanstack/svelte-db'
 import {localStorageCollectionOptions} from '@tanstack/db'
 import {logger} from '$lib/logger'
+import {uuid} from '$lib/utils'
 import {LOCAL_STORAGE_KEYS} from '$lib/storage-keys'
 
 const log = logger.ns('history').seal()
@@ -35,7 +36,7 @@ export function addPlayHistoryEntry(
 	if (!track.slug) return
 	try {
 		playHistoryCollection.insert({
-			id: crypto.randomUUID(),
+			id: uuid(),
 			track_id: track.id,
 			slug: track.slug,
 			title: track.title,

@@ -5,11 +5,11 @@ import {sdk} from '@radio4000/sdk'
 import {appState} from '$lib/app-state.svelte'
 import type {PendingMutation} from '@tanstack/db'
 import {fetchAllChannels, fetchChannelBySlug} from '$lib/api/fetch-channels'
+import {uuid} from '$lib/utils'
 import {queryClient} from './query-client'
 import {log, txLog, getErrorMessage} from './utils'
 import {getOfflineExecutor} from './offline-executor'
 import type {Channel} from '$lib/types'
-import {uuid} from '$lib/utils'
 
 export type {Channel}
 
