@@ -15,7 +15,6 @@
 	import {extractYouTubeId} from '$lib/utils'
 	import {appState} from '$lib/app-state.svelte'
 	import {pull as pullYouTubeMeta} from '$lib/metadata/youtube'
-	import {mapChunked} from '$lib/async'
 	import TrackRow from './track-row.svelte'
 	import BatchActionBar from './batch-action-bar.svelte'
 	import PopoverMenu from '$lib/components/popover-menu.svelte'
@@ -63,49 +62,72 @@
 	let mentionFilter = $state('')
 	let search = $state('')
 	let fetchingMeta = $state(false)
+	let fetchProgress = $state({current: 0, total: 0})
 
-	// Tracks missing YouTube metadata (exclude tracks with playback errors)
-	let tracksMissingMeta = $derived(
-		tracks
-			.filter((t) => !t.youtube_data && !t.playback_error)
-			.map((t) => extractYouTubeId(t.url))
-			.filter(Boolean)
+	// All tracks missing YouTube metadata
+	let allTracksMissingMeta = $derived(tracks.filter((t) => !t.youtube_data && !t.playback_error))
+
+	// Selected tracks (actual track objects)
+	let selectedTrackObjects = $derived(selectedTracks.map((id) => tracks.find((t) => t.id === id)).filter(Boolean))
+
+	// Target tracks for fetch: selected if any, otherwise all missing meta
+	let targetTracks = $derived(
+		selectedTracks.length > 0
+			? selectedTrackObjects.filter((t) => !t.youtube_data && !t.playback_error)
+			: allTracksMissingMeta
 	)
 
+	// YouTube IDs for target tracks
+	let targetYtids = $derived(targetTracks.map((t) => extractYouTubeId(t.url)).filter(Boolean))
+
+	// Tracks with cached metadata duration but no saved track.duration
+	let tracksNeedingDuration = $derived(tracks.filter((t) => !t.duration && t.youtube_data?.duration))
+
 	async function fetchYouTubeMeta() {
-		if (fetchingMeta || tracksMissingMeta.length === 0) return
+		if (fetchingMeta || targetYtids.length === 0) return
 		fetchingMeta = true
+		fetchProgress = {current: 0, total: targetYtids.length}
+
+		// Build ytid → track mapping from target tracks
+		/** @type {SvelteMap<string, import('$lib/types').Track>} */
+		const trackByYtid = new SvelteMap()
+		for (const t of targetTracks) {
+			const ytid = extractYouTubeId(t.url)
+			if (ytid) trackByYtid.set(ytid, t)
+		}
+
 		try {
-			// Build ytid → track mapping
-			/** @type {SvelteMap<string, import('$lib/types').Track>} */
-			const trackByYtid = new SvelteMap()
-			for (const t of rawTracks) {
-				const ytid = extractYouTubeId(t.url)
-				if (ytid) trackByYtid.set(ytid, t)
-			}
+			await pullYouTubeMeta(targetYtids, {
+				onProgress: async ({current, total, videos}) => {
+					fetchProgress = {current, total}
 
-			// Stream: fetch chunk → update tracks → next chunk
-			for await (const result of mapChunked(tracksMissingMeta, (batch) => pullYouTubeMeta(batch), {
-				chunk: 50,
-				concurrency: 1
-			})) {
-				if (!result.ok) continue
+					// Save durations incrementally as batches complete
+					const updates = videos
+						.filter((v) => v?.duration && trackByYtid.has(v.id))
+						.map((v) => {
+							const track = trackByYtid.get(v.id)
+							return track ? {id: track.id, changes: {duration: v.duration}} : null
+						})
+						.filter(Boolean)
 
-				const updates = result.value
-					.filter((v) => v?.duration && trackByYtid.has(v.id))
-					.map((v) => {
-						const track = trackByYtid.get(v.id)
-						return track ? {id: track.id, changes: {duration: v.duration}} : null
-					})
-					.filter(Boolean)
-
-				if (updates.length && channel) {
-					await batchUpdateTracksIndividual(channel, updates)
+					if (updates.length && channel) {
+						await batchUpdateTracksIndividual(channel, updates)
+					}
 				}
-			}
+			})
 		} finally {
 			fetchingMeta = false
+			fetchProgress = {current: 0, total: 0}
 		}
+	}
+
+	async function fixDurations() {
+		if (!channel || tracksNeedingDuration.length === 0) return
+		const updates = tracksNeedingDuration.map((t) => ({
+			id: t.id,
+			changes: {duration: t.youtube_data?.duration}
+		}))
+		await batchUpdateTracksIndividual(channel, updates)
 	}
 
 	// Column visibility
@@ -163,7 +185,8 @@
 		'has-t-param': 'Has &t= param',
 		'has-error': 'Has error',
 		'has-duration': 'Has duration',
-		'no-duration': 'No duration'
+		'no-duration': 'No duration',
+		'meta-no-duration': 'Meta but no duration'
 	}
 
 	const sortKey = {
@@ -247,6 +270,8 @@
 					return (track.duration ?? 0) > 0
 				case 'no-duration':
 					return !track.duration
+				case 'meta-no-duration':
+					return !track.duration && track.youtube_data?.duration
 				default:
 					return true
 			}
@@ -365,6 +390,9 @@
 				<button class:active={filter === 'has-error'} onclick={() => (filter = 'has-error')}>Has error</button>
 				<button class:active={filter === 'has-duration'} onclick={() => (filter = 'has-duration')}>Has duration</button>
 				<button class:active={filter === 'no-duration'} onclick={() => (filter = 'no-duration')}>No duration</button>
+				<button class:active={filter === 'meta-no-duration'} onclick={() => (filter = 'meta-no-duration')}
+					>Meta but no duration</button
+				>
 			</PopoverMenu>
 
 			{#if allTags.length > 0}
@@ -391,13 +419,20 @@
 
 			<input type="search" bind:value={search} placeholder="Search..." />
 
-			{#if canEdit && tracksMissingMeta.length > 0}
+			{#if canEdit && targetYtids.length > 0}
 				<button
 					onclick={fetchYouTubeMeta}
 					disabled={fetchingMeta}
-					title="Fetch YouTube metadata for {tracksMissingMeta.length} tracks (excludes tracks with playback errors)"
+					title="Fetch YouTube metadata for {targetYtids.length} {selectedTracks.length > 0 ? 'selected' : ''} tracks"
 				>
-					{fetchingMeta ? 'Fetching...' : `Fetch meta (${tracksMissingMeta.length})`}
+					{fetchingMeta
+						? `Fetching... (${fetchProgress.current}/${fetchProgress.total})`
+						: `Fetch meta (${targetYtids.length}${selectedTracks.length > 0 ? ' sel' : ''})`}
+				</button>
+			{/if}
+			{#if canEdit && tracksNeedingDuration.length > 0}
+				<button onclick={fixDurations} title="Copy cached metadata duration to {tracksNeedingDuration.length} tracks">
+					Fix durations ({tracksNeedingDuration.length})
 				</button>
 			{/if}
 
