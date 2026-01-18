@@ -24,6 +24,14 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
   - DONE: Fixed upsert with `onConflict: 'channel_id'`, track now included in broadcast select, stop button reactivity via `.state` access.
   - DONE: Prefetch channel tracks on join via `ensureTracksLoaded(slug)` when listener joins.
 - run `bun run check` and slowly get rid of these warnings - tidy codebase
+  - DONE: Removed invalid `disabled` attribute from `<form>` elements (5 files)
+  - DONE: Fixed vite.config.ts vitest reference (added `/// <reference types="vitest/config" />`)
+  - DONE: Fixed missing i18n key in ensure-track.svelte (uses `common_loading` now)
+  - DONE: Fixed null checks in track-form.svelte and canvas debug
+  - DONE: Fixed map-picker.svelte type annotation
+  - DONE: Fixed BroadcastWithChannel type to match Supabase response
+  - DONE: Fixed broadcasts page to use channel slug instead of track slug
+  - DONE: Changed YOUTUBE_API_KEY to dynamic env import with 503 fallback
 
 ## Questionable backlog
 

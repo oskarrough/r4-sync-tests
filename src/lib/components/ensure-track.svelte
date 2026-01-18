@@ -27,5 +27,5 @@
 {#if track}
 	{track.title}
 {:else}
-	{m.track_loading_label?.() ?? '...'}
+	{m.common_loading()}
 {/if}
