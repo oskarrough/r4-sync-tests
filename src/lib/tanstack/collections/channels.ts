@@ -10,7 +10,6 @@ import {queryClient} from './query-client'
 import {log, txLog, getErrorMessage} from './utils'
 import {getOfflineExecutor} from './offline-executor'
 import type {Channel} from '$lib/types'
-import {uuid} from '$lib/utils'
 
 export type {Channel}
 

@@ -192,7 +192,7 @@ export async function fetchOEmbedTitle(mediaUrl: string): Promise<string | null>
 		return null
 	}
 }
-  
+
 /**
  * Build a Cloudinary URL for a channel avatar image
  * @param {string} id - Cloudinary image ID
