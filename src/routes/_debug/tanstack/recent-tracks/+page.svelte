@@ -26,7 +26,9 @@
 	const slugsLoaded = $derived(() => {
 		const slugs: Record<string, true> = {}
 		for (const track of tracksCollection.state.values()) {
-			slugs[track.slug] = true
+			if (track.slug) {
+				slugs[track.slug] = true
+			}
 		}
 		return Object.keys(slugs).sort()
 	})
@@ -40,7 +42,7 @@
 	)
 </script>
 
-<div class="SmallContainer">
+<div class="constrained">
 	<Menu />
 	<h1>Recent Tracks (cross-collection)</h1>
 

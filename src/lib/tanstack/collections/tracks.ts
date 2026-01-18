@@ -62,7 +62,7 @@ async function fetchTracksBySlug(slug: string, opts?: {limit?: number; createdAf
 		}
 	}
 
-	return data || []
+	return (data || []) as Track[]
 }
 
 async function handleTrackInsert(mutation: PendingMutation, metadata: Record<string, unknown>): Promise<void> {
@@ -80,12 +80,7 @@ async function handleTrackUpdate(mutation: PendingMutation): Promise<void> {
 	const changes = mutation.changes as Record<string, unknown>
 	log.info('update_start', {id: track.id, title: changes.title})
 	const response = await sdk.tracks.updateTrack(track.id, changes)
-	log.info('update_done', {
-		id: track.id,
-		rowsAffected: response.data?.length,
-		status: response.status,
-		error: response.error
-	})
+	log.info('update_done', {id: track.id, error: response.error})
 	if (response.error) throw new NonRetriableError(getErrorMessage(response.error))
 }
 
@@ -93,7 +88,7 @@ async function handleTrackDelete(mutation: PendingMutation): Promise<void> {
 	const track = mutation.original as {id: string}
 	log.info('delete_start', {id: track.id})
 	const response = await sdk.tracks.deleteTrack(track.id)
-	log.info('delete_done', {id: track.id, status: response.status, error: response.error})
+	log.info('delete_done', {id: track.id, error: response.error})
 	if (response.error) throw new NonRetriableError(getErrorMessage(response.error))
 }
 
@@ -107,16 +102,26 @@ export const tracksAPI = {
 	}) {
 		const slug = transaction.metadata?.slug as string
 		const metadata = transaction.metadata || {}
+		let needsInvalidation = false
+
 		for (const mutation of transaction.mutations) {
 			txLog.info('tracks', {type: mutation.type, slug, key: idempotencyKey.slice(0, 8)})
-			if (mutation.type === 'insert') await handleTrackInsert(mutation, metadata)
-			else if (mutation.type === 'update') await handleTrackUpdate(mutation)
-			else if (mutation.type === 'delete') await handleTrackDelete(mutation)
-			else txLog.warn('tracks unhandled type', {type: mutation.type})
+			if (mutation.type === 'insert') {
+				await handleTrackInsert(mutation, metadata)
+				needsInvalidation = true
+			} else if (mutation.type === 'update') {
+				await handleTrackUpdate(mutation)
+				// Updates don't need invalidation - optimistic data is authoritative
+			} else if (mutation.type === 'delete') {
+				await handleTrackDelete(mutation)
+				needsInvalidation = true
+			} else {
+				txLog.warn('tracks unhandled type', {type: mutation.type})
+			}
 		}
 		log.info('tx_complete', {idempotencyKey: idempotencyKey.slice(0, 8), slug})
 
-		if (slug) {
+		if (slug && needsInvalidation) {
 			log.info('invalidate', {slug})
 			await queryClient.invalidateQueries({queryKey: ['tracks', slug]})
 		}
@@ -132,7 +137,7 @@ export function getTrackWithMeta<T extends {url?: string}>(track: T): T & Partia
 }
 
 export function addTrack(
-	channel: Channel,
+	channel: {id: string; slug: string},
 	input: {url: string; title: string; description?: string; discogs_url?: string}
 ) {
 	const tx = getOfflineExecutor().createOfflineTransaction({

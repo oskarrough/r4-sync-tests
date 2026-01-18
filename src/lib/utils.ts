@@ -2,6 +2,21 @@ export function uuid() {
 	return crypto.randomUUID()
 }
 
+export function slugify(str: string): string {
+	return String(str)
+		.normalize('NFKD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.trim()
+		.toLowerCase()
+		.replace(/[^a-z0-9 -]/g, '')
+		.replace(/\s+/g, '-')
+		.replace(/-+/g, '-')
+}
+
+export function delay(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 export function trimWithEllipsis(text?: string | null, maxLength: number = 267) {
 	return !text || text.length <= maxLength ? text || '' : `${text.substring(0, maxLength)}…`
 }
@@ -176,4 +191,15 @@ export async function fetchOEmbedTitle(mediaUrl: string): Promise<string | null>
 	} catch {
 		return null
 	}
+}
+  
+/**
+ * Build a Cloudinary URL for a channel avatar image
+ * @param {string} id - Cloudinary image ID
+ * @param {number} [size=250] - Image dimensions (square)
+ * @param {string} [format='webp'] - Image format
+ */
+export function channelAvatarUrl(id: string, size = 250, format = 'webp') {
+	const baseUrl = 'https://res.cloudinary.com/radio4000/image/upload'
+	return `${baseUrl}/w_${size},h_${size},c_thumb,q_60,fl_awebp/${id}.${format}`
 }

@@ -66,7 +66,7 @@
 	}
 </script>
 
-<div class="SmallContainer">
+<div class="constrained">
 	<Menu />
 
 	{#if !user}
@@ -88,14 +88,14 @@
 		</form>
 	{/if}
 
-	{#if error}<p style="color: var(--red)">{error}</p>{/if}
+	{#if error}<p class="error" role="alert">{error}</p>{/if}
 
 	<details open>
 		<summary>Your channels ({myChannels.length})</summary>
 		{#if myChannelQuery.isLoading}
 			<p>Loading…</p>
 		{:else if myChannelQuery.isError}
-			<p style="color: var(--red)">
+			<p class="error" role="alert">
 				{channelsCollection.utils.lastError instanceof Error
 					? channelsCollection.utils.lastError.message
 					: 'Sync failed'}
@@ -131,7 +131,7 @@
 		{#if latestQuery.isLoading}
 			<p>Loading…</p>
 		{:else if latestQuery.isError}
-			<p style="color: var(--red)">
+			<p class="error" role="alert">
 				{channelsCollection.utils.lastError instanceof Error
 					? channelsCollection.utils.lastError.message
 					: 'Sync failed'}

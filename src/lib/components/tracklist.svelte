@@ -146,19 +146,6 @@
 {/if}
 
 <style>
-	li {
-		/*
-		contain: content;
-		content-visibility: auto;
-		 */
-		/* contain-intrinsic-height: auto 3rem; */
-	}
-
-	section {
-		/* contain: layout style; */
-		/* content-visibility: auto; */
-	}
-
 	.month {
 		margin-bottom: 1rem;
 	}

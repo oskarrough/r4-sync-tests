@@ -15,7 +15,7 @@
 	<title>{m.settings_title()}</title>
 </svelte:head>
 
-<article class="SmallContainer">
+<article class="constrained">
 	{#if appState.user}
 		<p class="row row--vcenter">
 			{m.auth_signed_in_as({email: appState.user.email})} <button onclick={() => logout()}>{m.auth_log_out()}</button>
@@ -44,15 +44,8 @@
 </article>
 
 <style>
-	article {
-		margin-bottom: calc(var(--player-compact-size));
-
-		> p {
-			margin-bottom: 1rem;
-		}
-	}
-	menu:first-of-type {
-		margin-top: 1rem;
+	article > p {
+		margin-bottom: 1rem;
 	}
 	menu {
 		margin: 0 0 1rem;

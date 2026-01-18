@@ -35,5 +35,9 @@ export default defineConfig({
 	},
 	define: {
 		__GIT_INFO__: JSON.stringify(getGitInfo())
+	},
+	test: {
+		reporters: ['dot'],
+		onConsoleLog: () => false
 	}
 })

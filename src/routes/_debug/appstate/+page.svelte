@@ -1,25 +1,16 @@
 <script>
-	import {toggleQueuePanel} from '$lib/api'
+	import {toggleQueuePanel, resetLocalData} from '$lib/api'
 	import {appState} from '$lib/app-state.svelte'
 	import InputRange from '$lib/components/input-range.svelte'
 
-	const localStorageKeys = ['r5-app-state', 'r5-follows', 'r5-track-meta', 'r5-play-history', 'r5-spam-decisions']
-
-	const idbDatabases = ['keyval-store', 'r5-offline-mutations']
-
 	function clearAll() {
 		if (!confirm('Clear ALL data (localStorage + IndexedDB)? Page will reload.')) return
-		for (const key of localStorageKeys) {
-			localStorage.removeItem(key)
-		}
-		for (const db of idbDatabases) {
-			indexedDB.deleteDatabase(db)
-		}
+		resetLocalData()
 		location.reload()
 	}
 </script>
 
-<div class="SmallContainer">
+<div class="constrained">
 	<menu class="grouped">
 		<a href="/_debug">&larr;</a>
 	</menu>

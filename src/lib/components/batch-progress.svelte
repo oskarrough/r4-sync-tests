@@ -28,6 +28,13 @@
 		elapsed < 60 ? `${elapsed.toFixed(1)}s` : `${Math.floor(elapsed / 60)}m ${(elapsed % 60).toFixed(0)}s`
 	)
 
+	/** @param {MouseEvent & {currentTarget: HTMLButtonElement}} e */
+	function handleAbort(e) {
+		e.currentTarget.disabled = true
+		e.currentTarget.textContent = 'Aborting...'
+		onAbort?.()
+	}
+
 	function getStatus(i) {
 		return chunks[i]?.status || 'queued'
 	}
@@ -79,14 +86,7 @@
 			<button onclick={onRun} disabled={running}>{isDone ? '▶ Run again' : '▶ Run'}</button>
 		{/if}
 		{#if running && onAbort}
-			<button
-				class="abort"
-				onclick={(e) => {
-					e.target.disabled = true
-					e.target.textContent = 'Aborting...'
-					onAbort()
-				}}>Abort</button
-			>
+			<button class="abort" onclick={handleAbort}>Abort</button>
 		{/if}
 	</footer>
 

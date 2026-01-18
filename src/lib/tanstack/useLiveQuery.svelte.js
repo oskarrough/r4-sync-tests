@@ -69,12 +69,13 @@ export function useLiveQuery(configOrQueryOrCollection, deps = []) {
 
 	const state = new SvelteMap()
 	let internalData = $state([])
-	let status = $state(collection ? collection.status : `disabled`)
+	let status = $derived(collection ? collection.status : `disabled`)
 
 	const syncDataFromCollection = (currentCollection) => {
 		untrack(() => {
 			internalData = []
-			internalData.push(...Array.from(currentCollection.values()))
+			// Use .state.values() to read from the Map that writeUpsert updates
+			internalData.push(...Array.from(currentCollection.state.values()))
 		})
 	}
 
@@ -96,7 +97,7 @@ export function useLiveQuery(configOrQueryOrCollection, deps = []) {
 			return
 		}
 
-		log.info('effect run', {collectionStatus: currentCollection.status, collectionId: currentCollection.id})
+		log.debug('effect run', {collectionStatus: currentCollection.status, collectionId: currentCollection.id})
 		status = currentCollection.status
 
 		if (currentUnsubscribe) {
@@ -105,7 +106,7 @@ export function useLiveQuery(configOrQueryOrCollection, deps = []) {
 
 		untrack(() => {
 			state.clear()
-			for (const [key, value] of currentCollection.entries()) {
+			for (const [key, value] of currentCollection.state.entries()) {
 				state.set(key, value)
 			}
 		})

@@ -21,13 +21,13 @@
 	<title>{m.page_title_following()}</title>
 </svelte:head>
 
-<article>
+<article class="constrained">
 	<header>
 		<h1>{m.following_title({count: followings?.length || 0})}</h1>
 		{#if appState.user}
 			<p>{m.following_synced()}</p>
 		{:else}
-			<p>{m.following_tip_signin()}</p>
+			<p><a href="/auth">{m.following_tip_signin()}</a></p>
 		{/if}
 	</header>
 
@@ -45,9 +45,3 @@
 		</div>
 	{/if}
 </article>
-
-<style>
-	article {
-		margin: 0.5rem 0.5rem var(--player-compact-size);
-	}
-</style>

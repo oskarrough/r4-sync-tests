@@ -48,6 +48,10 @@
 	let latestTrackDate = $derived(tracks[0]?.created_at)
 	let isSignedIn = $derived(!!appState.user)
 	let canEdit = $derived(isSignedIn && appState.channels?.includes(channel?.id))
+
+	function openAddTrackModal() {
+		appState.modal_track_add = {}
+	}
 </script>
 
 <svelte:head>
@@ -108,6 +112,11 @@
 				<Tracklist {tracks} {canEdit} grouped={true} virtual={false} />
 			{:else if (channel.track_count ?? 0) > 0}
 				<p style="margin-top:1rem; margin-left: 0.5rem;">{m.channel_loading_tracks()}</p>
+			{:else if canEdit}
+				<p style="margin-top:1rem; margin-left: 0.5rem;">
+					No tracks yet.
+					<button onclick={openAddTrackModal}>Add your first track</button>
+				</p>
 			{:else}
 				<p style="margin-top:1rem; margin-left: 0.5rem;">No tracks yet</p>
 			{/if}
@@ -130,11 +139,6 @@
 
 			@media (min-width: 520px) {
 				justify-content: flex-start;
-			}
-
-			:global(a, button) {
-				min-height: 2.5rem;
-				padding: 0.5rem 1rem;
 			}
 		}
 

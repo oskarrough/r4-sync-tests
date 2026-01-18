@@ -21,12 +21,14 @@
 	<title>{m.auth_page_title()}</title>
 </svelte:head>
 
-<article class="SmallContainer center-page">
+<article class="constrained focused">
 	<figure class="logo">
 		<IconR4 />
 	</figure>
 
 	{#if appState.user}
+		<p style="margin-block: 2rem">{m.auth_signed_in_as({email: appState.user.email})}</p>
+
 		{#if userChannelsQuery.isLoading}
 			<p>{m.auth_loading_channels()}</p>
 		{:else if userChannelsQuery.isError}
@@ -38,22 +40,21 @@
 							: 'Sync failed'
 				})}
 			</p>
-			<menu class="options single">
-				<a href="/create-channel">{m.auth_create_radio_cta()}</a>
-			</menu>
 		{:else if userChannelsQuery.data?.length}
-			<div class="channels-grid">
+			<section class="channels-grid">
 				{#each userChannelsQuery.data as channel (channel.id)}
 					<ChannelCard {channel} />
 				{/each}
-			</div>
-		{:else}
-			<menu class="options single">
-				<a href="/create-channel">{m.auth_create_radio_cta()}</a>
-			</menu>
+			</section>
 		{/if}
-		<p><small>{m.auth_signed_in_as({email: appState.user.email})}</small></p>
-		<p><button type="button" onclick={() => sdk.auth.signOut()}>{m.auth_log_out()}</button></p>
+
+		<menu data-vertical>
+			{#if !userChannelsQuery.data?.length}
+				<a href="/create-channel">{m.auth_create_radio_cta()}</a>
+			{/if}
+			<a href="/settings">Settings</a>
+			<button type="button" onclick={() => sdk.auth.signOut()}>{m.auth_log_out()}</button>
+		</menu>
 	{:else}
 		<menu class="options">
 			<a href="/auth/create-account{redirectParam}">
@@ -69,25 +70,11 @@
 </article>
 
 <style>
-	article {
-		margin-top: 0.5rem;
-	}
-
-	.logo {
-		display: block;
-		text-align: center;
-		margin: 5vh 0 3vh;
-		:global(svg) {
-			width: 6rem;
-			height: auto;
-		}
-	}
-
 	.channels-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 		gap: 1rem;
-		margin-top: 2rem;
+		margin-block: 1.5rem;
 	}
 
 	.options {
@@ -97,11 +84,6 @@
 		margin-top: 2rem;
 		text-align: center;
 		font-size: var(--font-6);
-
-		&.single {
-			grid-template-columns: 1fr;
-			margin-block-end: 1rem;
-		}
 
 		> a {
 			text-decoration: none;

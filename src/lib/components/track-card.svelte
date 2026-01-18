@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type {Snippet} from 'svelte'
-	import {playTrack} from '$lib/api'
+	import {playTrack, playNext, playFromHere} from '$lib/api'
 	import {deleteTrack, channelsCollection} from '$lib/tanstack/collections'
 	import {appState} from '$lib/app-state.svelte'
 	import type {Track} from '$lib/types'
@@ -17,9 +17,10 @@
 		showSlug?: boolean
 		canEdit?: boolean
 		children?: Snippet<[Track]>
+		description?: Snippet
 	}
 
-	let {track, index, showImage = true, showSlug = false, canEdit = false, children}: Props = $props()
+	let {track, index, showImage = true, showSlug = false, canEdit = false, children, description}: Props = $props()
 
 	const menuId = $props.id()
 	const permalink = $derived(`/${track?.slug}/tracks/${track?.id}`)
@@ -42,11 +43,11 @@
 	const doubleClick = () => playTrack(track.id, null, 'user_click_track')
 
 	const addToRadio = () => {
-		window.dispatchEvent(new CustomEvent('r5:openTrackCreateModal', {detail: {track}}))
+		appState.modal_track_add = {track}
 	}
 
 	const editTrack = () => {
-		window.dispatchEvent(new CustomEvent('r5:openTrackEditModal', {detail: {track}}))
+		appState.modal_track_edit = {track}
 	}
 
 	let showDeleteConfirm = $state(false)
@@ -72,7 +73,9 @@
 			/>{/if}
 		<div class="text">
 			<h3 class="title">{track.title}</h3>
-			{#if track.description}
+			{#if description}
+				<p class="description"><small>{@render description()}</small></p>
+			{:else if track.description}
 				<p class="description">
 					<small>
 						<LinkEntities slug={track.slug} text={track.description} />
@@ -99,6 +102,22 @@
 			<button type="button" role="menuitem" onclick={() => menu?.close()}>{m.common_cancel()}</button>
 		{:else}
 			<a class="btn" href={permalink} role="menuitem">{m.common_details()}</a>
+			<button
+				type="button"
+				role="menuitem"
+				onclick={() => {
+					playFromHere(track.id)
+					menu?.close()
+				}}>{m.track_play_from_here()}</button
+			>
+			<button
+				type="button"
+				role="menuitem"
+				onclick={() => {
+					playNext(track.id)
+					menu?.close()
+				}}>{m.track_play_next()}</button
+			>
 			<button type="button" role="menuitem" onclick={addToRadio}>{m.common_add()}</button>
 			{#if canEdit}<button type="button" role="menuitem" onclick={editTrack}>{m.common_edit()}</button>{/if}
 			{#if canEdit}<button
@@ -139,8 +158,8 @@
 	}
 
 	.artwork {
-		width: 2rem;
-		height: 2rem;
+		width: 2.3rem;
+		height: 2.3rem;
 		object-fit: cover;
 		object-position: center;
 		align-self: center;
@@ -157,7 +176,13 @@
 		.active & {
 			background: var(--accent-9);
 			color: var(--gray-1);
+			padding-inline: var(--space-1);
+			border-radius: 2px;
 		}
+	}
+
+	.active {
+		background: var(--accent-2);
 	}
 
 	p {

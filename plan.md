@@ -5,18 +5,25 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 
 ## BACKLOG
 
-- implement password reset flow (supabase auth)
-- tracks inside <tracklist> aren't highlighted/marked when they are loaded in player? appState.playlist_track === track.id?
-- refine offline error handling: In `syncTracks` and `syncChannels`, use `NonRetriableError` from `@tanstack/offline-transactions` for server-side validation errors (e.g., HTTP 4xx) to prevent unnecessary retries.
-- add an url param to directly queueplay a track. maybe slug?play=trackid
-- share buttons/embeds (evaluate if needed)
+- On-demand predicate push-down: we set `syncMode: 'on-demand'` but don't use `parseLoadSubsetOptions` in queryFn. Currently we manually check for slug and call different SDK methods. With proper on-demand, live query `where()` clauses flow through to backend:
+  ```ts
+  const {where} = parseLoadSubsetOptions(ctx.meta.loadSubsetOptions)
+  const filters = extractSimpleComparisons(where)
+  const slugFilter = filters.find((f) => f.field[0] === 'slug')
+  if (slugFilter) return fetchTracksBySlug(slugFilter.value)
+  ```
+  Benefit: add date range or search filters in UI, they flow to SDK without touching queryFn dispatch.
+- Seek/position support: add `seekTo(seconds)`, `getPosition()` via media-chrome player. Support `?t=` URL param like YouTube for deep-linking into tracks.
 - add validation layer at sync boundaries (remote->local) using lib like zod 4 shared types from sdk?
-- run `bun run check` and slowly get rid of these warnings - tidy codebase
 - what should happen when you play a track that is not part of the current loaded playlist? Replace playlist (with what?)? Just play, ignore playlist?
 - v1 compatibility: v1 channels can't be followed/broadcasted because remote supabase doesn't know about their foreign keys. V1 channels have firebase_id but don't exist in remote postgres, causing FK constraint failures. Solution ideas: use string-based IDs instead of proper foreign keys, or create placeholder records in remote for v1 channels.
 - create standardized loading/error boundaries for async operations in ui
+- share buttons/embeds (evaluate if needed)
 - improve broadcast feature
-- rethink channel date display: replace "341 days ago" with value-neutral presentation. Old channels aren't stale - they're archives, curated collections. Consider: just showing the year ("2019"), hiding time entirely and only surfacing recency in discovery contexts ("new this week" in feeds), or seasonal labels. The date is provenance, not a freshness indicator. Some of the best mixtapes are old.
+  - DONE: Created `broadcastsCollection` with single realtime subscription that directly updates collection via `writeUpsert`/`writeDelete`. Both `/broadcasts` page and `layout-header.svelte` now use `useLiveQuery(broadcastsCollection)`. Removed `watchBroadcasts`, `readBroadcastsWithChannel`, workaround effects.
+  - DONE: Fixed upsert with `onConflict: 'channel_id'`, track now included in broadcast select, stop button reactivity via `.state` access.
+  - DONE: Prefetch channel tracks on join via `ensureTracksLoaded(slug)` when listener joins.
+- run `bun run check` and slowly get rid of these warnings - tidy codebase
 
 ## Parked features
 

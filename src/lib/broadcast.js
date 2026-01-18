@@ -2,22 +2,24 @@ import {playTrack} from '$lib/api'
 import {appState} from '$lib/app-state.svelte'
 import {logger} from '$lib/logger'
 import {sdk} from '@radio4000/sdk'
-import {channelsCollection, queryClient} from '$lib/tanstack/collections'
+import {broadcastsCollection, channelsCollection, tracksCollection, ensureTracksLoaded} from '$lib/tanstack/collections'
 
 const log = logger.ns('broadcast').seal()
 
-async function readBroadcastsWithChannel() {
-	const {data, error} = await sdk.supabase.from('broadcast').select(`
-		channel_id,
-		track_id,
-		track_played_at,
-		channels:channels_with_tracks (*)
-	`)
-	if (error) throw error
-	return /** @type {import('$lib/types').BroadcastWithChannel[]} */ (data || [])
+/** @param {string} channelId */
+function isV1Channel(channelId) {
+	return channelsCollection.get(channelId)?.source === 'v1'
 }
 
-/** This will be the Supabase "channel" for broadcast updates
+/** @param {string} trackId */
+function isV1Track(trackId) {
+	const track = tracksCollection.get(trackId)
+	if (!track) return false
+	const channel = [...channelsCollection.state.values()].find((ch) => ch.slug === track.slug)
+	return channel?.source === 'v1'
+}
+
+/** Supabase channel for listening to a single broadcast's updates
  * @type {any}
  */
 let broadcastChannel = null
@@ -26,6 +28,15 @@ let broadcastChannel = null
 export async function joinBroadcast(channelId) {
 	try {
 		const {data} = await sdk.supabase.from('broadcast').select('*').eq('channel_id', channelId).single().throwOnError()
+
+		// Prefetch all tracks for this channel
+		const broadcast = broadcastsCollection.state.get(channelId)
+		const slug = broadcast?.channels?.slug
+		if (slug) {
+			ensureTracksLoaded(slug)
+			log.log('prefetching_tracks', {slug})
+		}
+
 		await playBroadcastTrack(data)
 		startBroadcastSync(channelId)
 		log.log('joined', {channelId})
@@ -40,6 +51,7 @@ export async function joinBroadcast(channelId) {
 export function leaveBroadcast() {
 	stopBroadcastSync()
 	appState.listening_to_channel_id = undefined
+	appState.is_playing = false
 	log.log('left')
 }
 
@@ -51,11 +63,14 @@ export function leaveBroadcast() {
 export async function upsertRemoteBroadcast(channelId, trackId) {
 	return sdk.supabase
 		.from('broadcast')
-		.upsert({
-			channel_id: channelId,
-			track_id: trackId,
-			track_played_at: new Date().toISOString()
-		})
+		.upsert(
+			{
+				channel_id: channelId,
+				track_id: trackId,
+				track_played_at: new Date().toISOString()
+			},
+			{onConflict: 'channel_id'}
+		)
 		.throwOnError()
 }
 
@@ -70,12 +85,11 @@ export async function startBroadcast(channelId, trackId) {
 		log.log('skipped_no_track', {channelId})
 		return
 	}
-
-	// Check if track is from v1 channel - these can't be broadcast
-	const channel = channelsCollection.get(channelId)
-	if (channel?.source === 'v1') {
-		log.error('failed_v1_track', {channelId, trackId, channel})
-		throw new Error('Cannot broadcast v1 channels')
+	if (isV1Channel(channelId)) {
+		throw new Error('Legacy channels cannot broadcast')
+	}
+	if (isV1Track(trackId)) {
+		throw new Error('This track is from a legacy channel and cannot be streamed live')
 	}
 
 	await upsertRemoteBroadcast(channelId, trackId)
@@ -96,64 +110,6 @@ export async function stopBroadcast(channelId) {
 			channelId,
 			error: /** @type {Error} */ (error).message
 		})
-	}
-}
-
-/**
- * Watch all broadcasts and call onChange when data changes
- * @param {(data: {broadcasts: import('$lib/types').BroadcastWithChannel[], error: string|null}) => void} onChange
- * @returns {() => void} unsubscribe function
- */
-export function watchBroadcasts(onChange) {
-	log.debug('watching for remote changes')
-
-	// Load initial data
-	readBroadcastsWithChannel()
-		.then((broadcasts) => onChange({broadcasts, error: null}))
-		.catch((error) => onChange({broadcasts: [], error: error.message}))
-
-	/** @type {ReturnType<typeof sdk.supabase.channel> | null} */
-	let watchChannel = sdk.supabase
-		.channel('broadcasts-page')
-		.on('postgres_changes', {event: '*', schema: 'public', table: 'broadcast'}, async (payload) => {
-			const newData = /** @type {import('$lib/types').Broadcast | undefined} */ (payload.new)
-			const oldData = /** @type {Partial<import('$lib/types').Broadcast> | undefined} */ (payload.old)
-			const channelId = newData?.channel_id || oldData?.channel_id
-			log.log('realtime_event', {
-				event: payload.eventType,
-				channel_id: channelId,
-				track_id: newData?.track_id,
-				old_track_id: oldData?.track_id
-			})
-
-			if (payload.eventType === 'DELETE' && channelId) {
-				log.log('broadcast_removed_from_ui', {channel_id: channelId})
-
-				// Clear local broadcasting state if this was our broadcast
-				if (channelId === appState.channels?.[0]) {
-					appState.broadcasting_channel_id = undefined
-					log.log('my_broadcast_removed_remotely', {channel_id: channelId})
-				}
-			}
-
-			// Reload and notify
-			try {
-				const broadcasts = await readBroadcastsWithChannel()
-				onChange({broadcasts, error: null})
-			} catch (error) {
-				onChange({broadcasts: [], error: error.message})
-			}
-		})
-		.subscribe((status) => {
-			log.debug('broadcasts_subscription_status', {status})
-		})
-
-	return () => {
-		if (watchChannel) {
-			log.log('broadcasts_watch_stopped')
-			watchChannel.unsubscribe()
-			watchChannel = null
-		}
 	}
 }
 
@@ -189,7 +145,7 @@ function startBroadcastSync(channelId) {
 		})
 }
 
-export function stopBroadcastSync() {
+function stopBroadcastSync() {
 	if (broadcastChannel) {
 		log.log('stopping_sync')
 		broadcastChannel.unsubscribe()
@@ -198,31 +154,35 @@ export function stopBroadcastSync() {
 }
 
 /**
- *  @param {import('$lib/types').Broadcast} broadcast
- * */
-export async function playBroadcastTrack(broadcast) {
+ * @param {import('$lib/types').Broadcast} broadcast
+ */
+async function playBroadcastTrack(broadcast) {
 	const {track_id, channel_id} = broadcast
 
-	try {
+	// Check if track is already loaded
+	if (tracksCollection.get(track_id)) {
 		await playTrack(track_id, null, 'broadcast_sync')
 		appState.listening_to_channel_id = channel_id
 		return true
-	} catch {
-		// if it failed, fetch channel tracks and retry
-		try {
-			// Get slug from channel (we have channel_id from broadcast)
-			const channel = channelsCollection.get(channel_id)
-			const slug = channel?.slug
-			if (!slug) throw new Error('No channel found for broadcast')
-			await queryClient.invalidateQueries({queryKey: ['tracks', slug]})
-			await playTrack(track_id, null, 'broadcast_sync')
-			appState.listening_to_channel_id = channel_id
-			log.log('play_success_after_fetch', {track_id, channel_id, slug})
-			return true
-		} catch (error) {
-			log.error('failed_completely', {track_id, error: /** @type {Error} */ (error).message})
-			return false
+	}
+
+	// Track not loaded - fetch it directly by ID
+	try {
+		const {data: track, error} = await sdk.tracks.readTrack(track_id)
+
+		if (error || !track) {
+			throw new Error(`Track ${track_id} not found`)
 		}
+
+		// Add track to collection and play
+		tracksCollection.utils.writeUpsert(/** @type {import('$lib/types').Track} */ (track))
+		await playTrack(track_id, null, 'broadcast_sync')
+		appState.listening_to_channel_id = channel_id
+		log.log('play_success_after_fetch', {track_id, channel_id, slug: track.slug})
+		return true
+	} catch (error) {
+		log.error('failed_to_play', {track_id, channel_id, error: /** @type {Error} */ (error).message})
+		return false
 	}
 }
 

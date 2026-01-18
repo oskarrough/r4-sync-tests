@@ -103,7 +103,7 @@
 	}
 </script>
 
-<div class="SmallContainer">
+<div class="constrained">
 	<menu class="grouped">
 		<a href="/_debug">&larr;</a>
 	</menu>

@@ -157,7 +157,7 @@
 	const accents = [...Array(12).keys()].map((i) => `--accent-${i + 1}`)
 </script>
 
-<div class="SmallContainer">
+<div class="constrained">
 	<section>
 		<h1>{m.theme_heading()}</h1>
 		<ThemeToggle />
@@ -224,6 +224,7 @@
 					label={variable.label()}
 					value={getCurrentValue(variable)}
 					onchange={(e) => updateVariable(variable.name, e.target.value)}
+					disabled={!getCurrentValue(variable)}
 				/>
 				<input
 					hidden
@@ -293,7 +294,7 @@
 <br />
 <br />
 
-<section class="SmallContainer">
+<section class="constrained">
 	<h2>{m.theme_typography_heading()}</h2>
 	<div class="variable-grid">
 		{#each fontSizes as sizeVar (sizeVar)}
@@ -305,7 +306,7 @@
 	</div>
 </section>
 
-<section class="SmallContainer">
+<section class="constrained">
 	<h2>{m.theme_form_heading()}</h2>
 	<form>
 		<div>

@@ -6,6 +6,7 @@ import {appState} from '$lib/app-state.svelte'
 import type {PendingMutation} from '@tanstack/db'
 import {log, txLog, getErrorMessage} from './utils'
 import {getOfflineExecutor} from './offline-executor'
+import {LOCAL_STORAGE_KEYS} from '$lib/storage-keys'
 
 // v1 follows can't sync to remote due to FK constraint - stored locally only
 export interface Follow {
@@ -16,7 +17,7 @@ export interface Follow {
 
 export const followsCollection = createCollection<Follow, string>(
 	localStorageCollectionOptions({
-		storageKey: 'r5-follows',
+		storageKey: LOCAL_STORAGE_KEYS.follows,
 		getKey: (item) => item.channelId
 	})
 )

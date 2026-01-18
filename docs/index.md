@@ -1,4 +1,6 @@
-r5 is a local-first music player prototype.
+# DOCS
+
+This is a local-first music player prototype.
 
 - pulls data from Radio4000 v1 (firebase) and v2 (r4 postgres)
 - queries and caches it in your browser storage
@@ -8,6 +10,7 @@ We query from the local collections. Tanstack fires requests as needed to read a
 
 ## Overview
 
+- [API overview](overview.md) - all exported functions (lib, sdk, utils)
 - [tanstack](tanstack.md) - unified api for local/remote data access
 - [v1 data](v1-data.md) - how we deal with firebase v1 data
 - [metadata](metadata.md) - track enrichment via youtube, musicbrainz, discogs etc

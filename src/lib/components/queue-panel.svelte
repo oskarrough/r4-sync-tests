@@ -6,6 +6,7 @@
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
 	import {relativeTime} from '$lib/dates'
 	import {playHistoryCollection, clearPlayHistory, tracksCollection} from '$lib/tanstack/collections'
+	import {shuffleRemaining} from '$lib/api'
 	import Modal from './modal.svelte'
 	import SearchInput from './search-input.svelte'
 	import TrackCard from './track-card.svelte'
@@ -108,7 +109,15 @@
 			title: entry.title,
 			url: entry.url,
 			created_at: entry.started_at,
-			updated_at: entry.started_at
+			updated_at: entry.started_at,
+			channel_id: undefined,
+			description: null,
+			discogs_url: null,
+			duration: null,
+			fts: null,
+			mentions: null,
+			playback_error: null,
+			tags: null
 		}
 	}
 </script>
@@ -128,8 +137,15 @@
 
 	<div class="search-container">
 		<SearchInput bind:value={searchQuery} placeholder={m.search_placeholder()} />
-		{#if view === 'queue' && trackIds.length > 0}
-			<button onclick={clearQueue} {@attach tooltip({content: m.queue_no_tracks()})}>{m.common_clear()}</button>
+		{#if view === 'queue' && trackIds.length > 1}
+			<menu class="queue-actions">
+				<button
+					onclick={shuffleRemaining}
+					{@attach tooltip({content: m.queue_shuffle_remaining()})}
+					title={m.queue_shuffle_remaining()}>⤮</button
+				>
+				<button onclick={clearQueue} {@attach tooltip({content: m.common_clear()})} title={m.common_clear()}>✕</button>
+			</menu>
 		{:else if view === 'history' && playHistory.length > 0}
 			<button onclick={() => (showClearHistoryModal = true)} {@attach tooltip({content: m.queue_no_history()})}
 				>{m.common_clear()}</button
@@ -155,18 +171,20 @@
 		{:else if filteredPlayHistory.length > 0}
 			<ul class="list tracks">
 				{#each filteredPlayHistory as entry, index (entry.id)}
-					<li>
+					<li
+						data-skipped={(entry.ms_played != null && entry.ms_played < 3000) || null}
+						data-start-reason={entry.reason_start || null}
+						data-end-reason={entry.reason_end || null}
+					>
 						<TrackCard track={playHistoryToTrack(entry)} {index}>
-							<p class="history">
-								<small>
-									{relativeTime(entry.started_at)}
-									{#if entry.reason_start}• {entry.reason_start}{/if}
-									{#if entry.reason_end}→ {entry.reason_end}{/if}
-									{#if entry.ms_played}
-										• {m.queue_seconds_suffix({seconds: Math.round(entry.ms_played / 1000)})}
-									{/if}
-								</small>
-							</p>
+							{#snippet description()}
+								{relativeTime(entry.started_at)}
+								{#if entry.reason_start}• {entry.reason_start}{/if}
+								{#if entry.reason_end}→ {entry.reason_end}{/if}
+								{#if entry.ms_played}
+									• {m.queue_seconds_suffix({seconds: Math.round(entry.ms_played / 1000)})}
+								{/if}
+							{/snippet}
 						</TrackCard>
 					</li>
 				{/each}
@@ -245,10 +263,6 @@
 		border-bottom: 1px solid var(--gray-5);
 	}
 
-	p.history {
-		margin: 0 0 0 0.5rem;
-	}
-
 	main {
 		flex: 1;
 		padding-bottom: var(--player-compact-size);
@@ -275,9 +289,27 @@
 		padding: 0.5rem;
 		border-bottom: 1px solid var(--gray-5);
 		justify-content: space-between;
+		gap: 0.25rem;
 	}
 
-	.tracks :global(.slug) {
+	.queue-actions {
+		display: flex;
+		gap: var(--space-1);
+	}
+
+	.tracks :global(.slug),
+	main :global(.index) {
 		display: none;
+	}
+
+	li[data-skipped] {
+		opacity: 0.6;
+		:global(a) {
+			padding-top: 0.2rem;
+			padding-bottom: 0.2rem;
+		}
+		:global(.artwork) {
+			display: none;
+		}
 	}
 </style>

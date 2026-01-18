@@ -1,11 +1,12 @@
 import type {AppState} from './types.ts'
 import {logger} from '$lib/logger'
+import {LOCAL_STORAGE_KEYS} from '$lib/storage-keys'
 
 const log = logger.ns('appstate').seal()
 
 /** The "app state" is a global, single reactive object shared across the app. Can be freely mutated anywhere directly. It persists to local storage automatically. */
 
-const STORAGE_KEY = 'r5-app-state'
+const STORAGE_KEY = LOCAL_STORAGE_KEYS.appState
 
 export const defaultAppState: AppState = {
 	id: 1,
@@ -14,7 +15,7 @@ export const defaultAppState: AppState = {
 	channels: [],
 	channel: undefined,
 	custom_css_variables: {},
-	shortcuts: {},
+	shortcuts: undefined,
 
 	channels_display: 'grid',
 	channels_filter: '10+',
@@ -42,7 +43,9 @@ export const defaultAppState: AppState = {
 
 	user: undefined,
 
-	language: undefined
+	language: undefined,
+	modal_track_add: null,
+	modal_track_edit: null
 }
 
 // Load from local storage on module init

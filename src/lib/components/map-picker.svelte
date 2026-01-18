@@ -1,37 +1,54 @@
 <script>
+	import L from 'leaflet'
 	import * as m from '$lib/paraglide/messages'
 	import MapComponent from '$lib/components/map.svelte'
 
-	const {latitude = null, longitude = null, title = '', onselect = () => {}} = $props()
+	const {latitude = null, longitude = null, onselect = () => {}} = $props()
 
+	let map = null
+	let selectedMarker = null
 	let selected = $state(null)
-	let mapComponent
 
-	const markers = $derived(
-		latitude && longitude
-			? [
-					{
-						latitude,
-						longitude,
-						title: title || ''
-					}
-				]
-			: []
-	)
+	function handleReady(m) {
+		map = m
+		if (latitude && longitude) {
+			L.circleMarker([latitude, longitude], {
+				radius: 8,
+				color: '#fff',
+				weight: 2,
+				fillColor: '#666',
+				fillOpacity: 1
+			}).addTo(map)
+		}
+	}
 
-	function handleMapClick(coords) {
-		selected = coords
-		onselect(selected)
+	function handleClick({lat, lng}) {
+		if (!map) return
+
+		if (selectedMarker) selectedMarker.remove()
+
+		selectedMarker = L.marker([lat, lng]).addTo(map)
+		selected = {lat, lng}
+		onselect({latitude: lat, longitude: lng})
 	}
 
 	function clearSelection() {
+		if (selectedMarker) {
+			selectedMarker.remove()
+			selectedMarker = null
+		}
 		selected = null
-		onselect({})
-		mapComponent?.clearNewMarker()
+		onselect({latitude: null, longitude: null})
 	}
 </script>
 
-<MapComponent bind:this={mapComponent} {markers} {latitude} {longitude} selectMode={true} onmapclick={handleMapClick} />
+<MapComponent
+	latitude={latitude ?? undefined}
+	longitude={longitude ?? undefined}
+	zoom={latitude && longitude ? 10 : 2}
+	onclick={handleClick}
+	onready={handleReady}
+/>
 
 {#if selected}
 	<button type="button" onclick={clearSelection}>

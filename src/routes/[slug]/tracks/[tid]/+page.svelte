@@ -68,7 +68,7 @@
 			.data?.[0]?.id})
 	</p>
 {:else}
-	<article>
+	<article class="constrained">
 		<header>
 			<p>
 				<a href="/{channel.slug}">@{channel.slug}</a> / {track.title}
@@ -101,10 +101,6 @@
 {/if}
 
 <style>
-	article {
-		margin: 0.5rem 0.5rem var(--player-compact-size);
-	}
-
 	.tree {
 		margin-left: 2rem;
 		display: inline-flex;

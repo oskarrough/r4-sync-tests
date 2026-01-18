@@ -11,6 +11,7 @@ import {channelsCollection} from '$lib/tanstack/collections'
  * Search channels remotely
  * @param {string} query
  * @param {{limit?: number}} options
+ * @returns {Promise<import('$lib/types').Channel[]>}
  */
 export async function searchChannels(query, {limit = 100} = {}) {
 	if (!query?.trim()) return []
@@ -20,13 +21,14 @@ export async function searchChannels(query, {limit = 100} = {}) {
 		.textSearch('fts', query, {type: 'websearch'})
 		.limit(limit)
 	if (error) throw new Error(error.message)
-	return data ?? []
+	return /** @type {import('$lib/types').Channel[]} */ (data ?? [])
 }
 
 /**
  * Search tracks remotely, optionally scoped to a channel
  * @param {string} query
  * @param {{limit?: number, channelSlug?: string}} options
+ * @returns {Promise<import('$lib/types').Track[]>}
  */
 export async function searchTracks(query, {limit = 100, channelSlug} = {}) {
 	if (!query?.trim()) return []
@@ -34,7 +36,7 @@ export async function searchTracks(query, {limit = 100, channelSlug} = {}) {
 	if (channelSlug) q = q.eq('slug', channelSlug)
 	const {data, error} = await q
 	if (error) throw new Error(error.message)
-	return data ?? []
+	return /** @type {import('$lib/types').Track[]} */ (data ?? [])
 }
 
 /**
@@ -67,13 +69,16 @@ function findChannelBySlug(slug) {
  * Main search - remote only
  * @param {string} query
  * @param {{limit?: number}} options
+ * @returns {Promise<{channels: import('$lib/types').Channel[], tracks: import('$lib/types').Track[]}>}
  */
 export async function searchAll(query, {limit = 100} = {}) {
 	if (query.trim().length < 2) return {channels: [], tracks: []}
 
 	if (query.includes('@')) {
 		const {channelSlugs, trackQuery} = parseMentionQuery(query)
-		const channels = channelSlugs.map(findChannelBySlug).filter(Boolean)
+		const channels = /** @type {import('$lib/types').Channel[]} */ (
+			channelSlugs.map(findChannelBySlug).filter((c) => c !== undefined)
+		)
 		if (!trackQuery) return {channels, tracks: []}
 		const results = await Promise.all(channelSlugs.map((slug) => searchTracks(trackQuery, {limit, channelSlug: slug})))
 		return {channels, tracks: results.flat()}

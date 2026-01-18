@@ -2,11 +2,19 @@ import {browser} from '$app/environment'
 import {validateListeningState} from '$lib/broadcast.js'
 import {logger} from '$lib/logger'
 import {sdk} from '@radio4000/sdk'
-import {queryClient, tracksCollection, channelsCollection, spamDecisionsCollection} from '$lib/tanstack/collections'
+import {
+	queryClient,
+	tracksCollection,
+	channelsCollection,
+	spamDecisionsCollection,
+	broadcastsCollection
+} from '$lib/tanstack/collections'
 import {cacheReady} from '$lib/tanstack/query-cache-persistence'
 import {collectionsHydrated} from '$lib/tanstack/collection-persistence'
 import {fetchAllChannels} from '$lib/api/fetch-channels'
 import {appState} from '$lib/app-state.svelte'
+import * as api from '$lib/api'
+import * as queue from '$lib/player/queue'
 
 // Disable SSR
 export const ssr = false
@@ -46,9 +54,19 @@ async function preload() {
 
 		validateListeningState().catch((err) => log.error('validate_listening_state_error', err))
 
-		// For debugging
+		// For debugging and console experimentation
 		// @ts-expect-error debugging
-		window.r5 = {sdk, appState, queryClient, tracksCollection, channelsCollection, spamDecisionsCollection}
+		window.r5 = {
+			sdk,
+			appState,
+			queryClient,
+			tracksCollection,
+			channelsCollection,
+			broadcastsCollection,
+			spamDecisionsCollection,
+			queue,
+			api
+		}
 	} catch (err) {
 		log.error('preloading_error', err)
 	} finally {

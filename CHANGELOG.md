@@ -1,5 +1,19 @@
 # Changelog
 
+## January 2026
+
+- Added and improved channel and track forms, including dedicated edit/delete routes for tracks
+- Infinite canvas replaces infinite grid for browsing channels
+- Experimental /mix page
+- Simplified and split map components
+- Auth UI polish with social providers
+- Replaced 11ty docs with Svelte
+- Resolved all svelte-check warnings
+- Prefer Svelte attachments over `use:` directives
+- Layout options: default, constrained, focused
+- Queue operations improvements
+- More UI translations
+
 ## December 2025
 
 - Queue panel is now resizable by dragging its left edge (desktop only)
@@ -7,6 +21,12 @@
 - Batch editing UI with shift-click selection and tooltips
 - Added `track.duration` + `track.playback_error` fields
 - Replaced pglite with tanstack db
+- Internet status indicator in header
+- Fixed search fuzzy search and URL param reactivity bugs
+- Improved spam tool UI
+- Default channels filter now requires 10+ tracks
+- Fixed track edit/delete inside modal
+- Added logging system
 
 ## November 2025
 

@@ -1,47 +1,15 @@
-import type {Channel as SDKChannel, ChannelTrack as SDKChannelTrack} from '@radio4000/sdk'
+import type {Channel as SDKChannel, Track as SDKTrack} from '@radio4000/sdk'
 
-// From r5-channels.json (v1 firebase export)
-export interface ChannelFirebase {
-	firebase_id: string
-	created_at: number
-	updated_at: number
-	name: string
-	slug: string
-	description?: string
-	image?: string
-	track_count?: number
-	track_ids?: string[]
-}
-
-// Extends SDK Channel, omitting internal DB fields
-export interface Channel extends Omit<SDKChannel, 'coordinates' | 'fts' | 'latest_track_at' | 'track_count'> {
-	id: string // override nullable from view
-	name: string
-	slug: string
-	// from channels_with_tracks view (optional when from base table)
-	latest_track_at?: string | null
-	track_count?: number | null
-	source?: 'v1' | 'v2'
-	// broadcasting
+// Extends SDK Channel with r5-specific fields
+export interface Channel extends SDKChannel {
 	broadcasting?: boolean
 	broadcast_track_id?: string | null
 	broadcast_started_at?: string | null
-	// local only
 	spam?: boolean
 }
 
-// Extends SDK ChannelTrack (includes slug, duration, playback_error from view)
-export interface Track extends SDKChannelTrack {
-	id: string // override nullable from view
-	created_at: string
-	updated_at: string
-	url: string
-	title: string
-	// local extensions
-	firebase_id?: string
-	channel_id?: string
-	source?: 'v1' | 'v2'
-}
+// SDK Track now has id: string, just re-export with alias
+export type Track = SDKTrack
 
 // Track joined with metadata from TrackMeta collection
 export interface TrackWithMeta extends Track {
@@ -77,10 +45,12 @@ export interface AppState {
 	queue_panel_width?: number
 	show_video_player: boolean
 	player_expanded?: boolean
-	shortcuts: Record<string, string>
+	shortcuts?: Record<string, string>
 	hide_track_artwork: boolean
 	user?: User
 	language?: string
+	modal_track_add?: {track?: Track; url?: string} | null
+	modal_track_edit?: {track: Track} | null
 }
 
 interface User {
@@ -98,6 +68,7 @@ export interface Broadcast {
 
 export interface BroadcastWithChannel extends Broadcast {
 	channels: Channel
+	tracks: Track | null
 }
 
 export interface PlayHistory {

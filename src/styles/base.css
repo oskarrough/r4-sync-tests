@@ -125,3 +125,15 @@ ul,
 figure {
 	margin: 0;
 }
+
+.error {
+	color: var(--color-error);
+}
+
+.warning {
+	color: var(--color-warning);
+}
+
+.success {
+	color: var(--accent-9);
+}

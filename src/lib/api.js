@@ -1,9 +1,17 @@
-import {play} from '$lib/api/player'
 import {appState} from '$lib/app-state.svelte'
+import {LOCAL_STORAGE_KEYS, IDB_DATABASES} from '$lib/storage-keys'
 import {leaveBroadcast, upsertRemoteBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
 import {sdk} from '@radio4000/sdk'
 import {shuffleArray} from '$lib/utils.ts'
+import {
+	queueInsertManyAfter,
+	queueNext,
+	queuePrev,
+	queueRemove,
+	queueShuffleKeepCurrent,
+	queueRotate
+} from '$lib/player/queue'
 import {
 	tracksCollection,
 	addPlayHistoryEntry,
@@ -38,7 +46,7 @@ export async function checkUser() {
 
 		// Store IDs - collection handles fetching when needed
 		appState.channels = channels.map((c) => c.id)
-		appState.channel = channels[0] || undefined
+		appState.channel = /** @type {import('$lib/types').Channel | undefined} */ (channels[0])
 
 		// Pull follows when user signs in (not on every check)
 		if (wasSignedOut && appState.channels.length) {
@@ -135,6 +143,23 @@ export async function playChannel({id, slug}, index = 0) {
 	await playTrack(tracks[index].id, null, 'play_channel')
 }
 
+/** Play channel starting from random track with shuffle enabled */
+export async function shufflePlayChannel({id, slug}) {
+	log.log('shuffle_play_channel', {id, slug})
+	leaveBroadcast()
+	await ensureTracksLoaded(slug)
+	const tracks = [...tracksCollection.state.values()].filter((t) => t.slug === slug)
+	if (!tracks.length) {
+		log.warn('shuffle_play_no_tracks', {slug})
+		return
+	}
+	const ids = tracks.map((t) => t.id)
+	const randomIndex = Math.floor(Math.random() * ids.length)
+	await setPlaylist(ids)
+	appState.shuffle = true
+	await playTrack(ids[randomIndex], null, 'play_channel')
+}
+
 /** @param {string[]} trackIds */
 export function setPlaylist(trackIds) {
 	appState.playlist_tracks = trackIds
@@ -149,6 +174,30 @@ export function addToPlaylist(trackIds) {
 	if (appState.shuffle) {
 		appState.playlist_tracks_shuffled = shuffleArray(appState.playlist_tracks)
 	}
+}
+
+/** Queue track(s) to play after the current track */
+export function playNext(trackIds) {
+	const ids = Array.isArray(trackIds) ? trackIds : [trackIds]
+	const currentId = appState.playlist_track
+	if (!currentId) {
+		appState.playlist_tracks = ids
+		return
+	}
+	appState.playlist_tracks = queueInsertManyAfter(appState.playlist_tracks, currentId, ids)
+	if (appState.shuffle) {
+		appState.playlist_tracks_shuffled = queueInsertManyAfter(appState.playlist_tracks_shuffled, currentId, ids)
+	}
+	log.log('play_next', {ids, after: currentId})
+}
+
+/** Remove track from queue */
+export function removeFromQueue(trackId) {
+	appState.playlist_tracks = queueRemove(appState.playlist_tracks, trackId)
+	if (appState.shuffle) {
+		appState.playlist_tracks_shuffled = queueRemove(appState.playlist_tracks_shuffled, trackId)
+	}
+	log.log('remove_from_queue', {trackId})
 }
 
 export function toggleTheme() {
@@ -183,5 +232,184 @@ export function togglePlayPause() {
 		} else {
 			ytPlayer.pause()
 		}
+	}
+}
+
+/** Play from this track to end of list (useful for "play from here" action) */
+export function playFromHere(trackId) {
+	const idx = appState.playlist_tracks.indexOf(trackId)
+	if (idx === -1) return
+	const fromHere = appState.playlist_tracks.slice(idx)
+	appState.playlist_tracks = fromHere
+	appState.playlist_tracks_shuffled = shuffleArray(fromHere)
+	playTrack(trackId, null, 'user_click_track')
+	log.log('play_from_here', {trackId, remaining: fromHere.length})
+}
+
+/** Clear the queue but keep current track */
+export function clearQueue() {
+	const current = appState.playlist_track
+	if (current) {
+		appState.playlist_tracks = [current]
+		appState.playlist_tracks_shuffled = [current]
+	} else {
+		appState.playlist_tracks = []
+		appState.playlist_tracks_shuffled = []
+	}
+	log.log('clear_queue', {kept: current})
+}
+
+/** Toggle shuffle mode on/off. Switches between original order and a pre-shuffled order.
+ * The two orderings stay fixed - toggling just switches which one is active. */
+export function toggleShuffle() {
+	appState.shuffle = !appState.shuffle
+	if (appState.shuffle) {
+		appState.playlist_tracks_shuffled = shuffleArray(appState.playlist_tracks || [])
+	}
+}
+
+/** Shuffle remaining tracks in place. Keeps current track, randomizes what comes next.
+ * Unlike toggleShuffle, this is destructive - it changes the actual queue order. */
+export function shuffleRemaining() {
+	const current = appState.playlist_track
+	if (!current) return
+	appState.playlist_tracks = queueShuffleKeepCurrent(appState.playlist_tracks, current)
+	appState.playlist_tracks_shuffled = queueShuffleKeepCurrent(appState.playlist_tracks_shuffled, current)
+	log.log('shuffle_remaining', {current})
+}
+
+/** Rotate queue: move played tracks to end (radio-like infinite play) */
+export function rotateQueue() {
+	const current = appState.playlist_track
+	if (!current) return
+	appState.playlist_tracks = queueRotate(appState.playlist_tracks, current)
+	if (appState.shuffle) {
+		appState.playlist_tracks_shuffled = queueRotate(appState.playlist_tracks_shuffled, current)
+	}
+	log.log('rotate_queue', {current})
+}
+
+/** @typedef {HTMLElement & {paused: boolean, play(): Promise<void> | void, pause(): void}} MediaPlayer */
+
+/** @param {MediaPlayer | null} [player] */
+export function play(player) {
+	if (!player) {
+		const el = document.querySelector('youtube-video') || document.querySelector('soundcloud-player')
+		if (el && 'paused' in el) player = /** @type {MediaPlayer} */ (el)
+	}
+	if (!player) {
+		log.warn('Media player not ready')
+		return Promise.reject(new Error('Media player not ready'))
+	}
+	log.debug('play() check', player, 'paused?', player.paused)
+	const result = player.play()
+	if (result instanceof Promise) {
+		return result
+			.then(() => {
+				log.log('play() succeeded')
+			})
+			.catch((error) => {
+				log.warn('play() was prevented:', error.message || error)
+				throw error
+			})
+	}
+	return Promise.resolve()
+}
+
+/** @param {MediaPlayer} player */
+export function pause(player) {
+	if (!player) {
+		log.warn('Media player not ready')
+		return
+	}
+	player.pause()
+}
+
+/** @param {MediaPlayer} player */
+export function togglePlay(player) {
+	if (!player) {
+		log.warn('Media player not ready')
+		return
+	}
+	if (player.paused) {
+		play(player)
+	} else {
+		pause(player)
+	}
+}
+
+/**
+ * @param {import('$lib/types').Track | undefined} track
+ * @param {string[]} activeQueue
+ * @param {import('$lib/types').PlayEndReason} endReason
+ */
+export function next(track, activeQueue, endReason) {
+	if (!track?.id) {
+		log.warn('No current track')
+		return
+	}
+	if (!activeQueue?.length) {
+		log.warn('No active queue')
+		return
+	}
+	const nextId = queueNext(activeQueue, track.id)
+	if (nextId) {
+		/** @type {import('$lib/types').PlayStartReason} */
+		const startReason = endReason === 'youtube_error' ? 'track_error' : 'auto_next'
+		playTrack(nextId, endReason, startReason)
+	} else if (activeQueue.length > 0) {
+		log.info('Queue ended: looping to start')
+		playTrack(activeQueue[0], endReason, 'auto_next')
+	} else {
+		log.info('No next track available')
+	}
+}
+
+/**
+ * @param {import('$lib/types').Track | undefined} track
+ * @param {string[]} activeQueue
+ * @param {import('$lib/types').PlayEndReason} endReason
+ */
+export function previous(track, activeQueue, endReason) {
+	if (!track?.id) {
+		log.warn('No current track')
+		return
+	}
+	if (!activeQueue?.length) {
+		log.warn('No active queue')
+		return
+	}
+	const prevId = queuePrev(activeQueue, track.id)
+	if (prevId) {
+		playTrack(prevId, endReason, 'user_prev')
+	} else {
+		log.info('No previous track available')
+	}
+}
+
+export function toggleVideo() {
+	appState.show_video_player = !appState.show_video_player
+}
+
+export function eject() {
+	appState.playlist_track = undefined
+	appState.playlist_tracks = []
+	appState.playlist_tracks_shuffled = []
+	appState.show_video_player = false
+	appState.shuffle = false
+	appState.is_playing = false
+}
+
+/**
+ * Clears all local data (localStorage and IndexedDB).
+ * Remote Radio4000 account data remains intact.
+ * Typically followed by a page reload.
+ */
+export function resetLocalData() {
+	for (const key of Object.values(LOCAL_STORAGE_KEYS)) {
+		localStorage.removeItem(key)
+	}
+	for (const db of Object.values(IDB_DATABASES)) {
+		indexedDB.deleteDatabase(db)
 	}
 }

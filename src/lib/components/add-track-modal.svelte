@@ -11,6 +11,10 @@
 	let recentTracks = $state([])
 	let trackData = $state({url: '', title: '', description: ''})
 
+	const channel = $derived(appState.channel)
+	const isSignedIn = $derived(!!appState.user)
+	const canAddTrack = $derived(isSignedIn && channel)
+
 	/** @param {{track?: import('$lib/types').Track, url?: string}} [data] */
 	function open(data = {}) {
 		if (!canAddTrack) {
@@ -31,21 +35,18 @@
 						: ''
 			}
 		} else {
-			trackData = {url: data.url || '', title: '', description: ''}
+			trackData = {url: data?.url || '', title: '', description: ''}
 		}
 		showModal = true
 	}
 
+	// Watch appState to open modal from anywhere
 	$effect(() => {
-		/** @param {Event} event */
-		const handler = (event) => open(/** @type {CustomEvent} */ (event).detail)
-		window.addEventListener('r5:openTrackCreateModal', handler)
-		return () => window.removeEventListener('r5:openTrackCreateModal', handler)
+		if (appState.modal_track_add) {
+			open(appState.modal_track_add)
+			appState.modal_track_add = null
+		}
 	})
-
-	const channel = $derived(appState.channel)
-	const isSignedIn = $derived(!!appState.user)
-	const canAddTrack = $derived(isSignedIn && channel)
 
 	/** @param {KeyboardEvent} event */
 	function handleKeyDown(event) {

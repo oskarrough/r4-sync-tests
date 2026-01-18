@@ -6,12 +6,13 @@
 	<title>{data.slug} - r5 docs</title>
 </svelte:head>
 
-<nav>
+<menu class="grouped">
 	<a href="/docs">index</a>
-	{#each data.docs.filter((d) => d !== 'index') as doc (doc)}
+	<a href="/docs/overview">overview</a>
+	{#each data.docs.filter((d) => d !== 'index' && d !== 'overview') as doc (doc)}
 		<a href="/docs/{doc}">{doc}</a>
 	{/each}
-</nav>
+</menu>
 
 <!-- eslint-disable svelte/no-at-html-tags -->
 <article>
@@ -19,13 +20,6 @@
 </article>
 
 <style>
-	nav {
-		display: flex;
-		flex-wrap: wrap;
-		border-block-end: 1px solid var(--color-border);
-		margin: 0.5rem;
-		gap: 0.2rem;
-	}
 	article {
 		margin: 0.5rem 0.5rem 10rem;
 		:global(h1) {

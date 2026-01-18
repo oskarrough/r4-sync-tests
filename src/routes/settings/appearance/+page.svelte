@@ -7,17 +7,16 @@
 	<title>{m.settings_appearance_title()}</title>
 </svelte:head>
 
-<article class="SmallContainer">
-	<header>
-		<p>{m.settings_appearance_nav()}</p>
-	</header>
+<article class="constrained">
+	<a href="/settings">&larr; {m.nav_settings()}</a>
 </article>
 
 <ThemeEditor />
 
-<style>
-	article > header {
-		margin-top: 0.5rem;
-		margin-bottom: 1rem;
-	}
-</style>
+<article class="constrained">
+	<h2>Status classes</h2>
+	<p class="error">Error message</p>
+	<p class="warning">Warning message</p>
+	<p class="success">Success message</p>
+	<p><small>Muted text using small element</small></p>
+</article>

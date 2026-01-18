@@ -69,3 +69,21 @@ export function relativeTime(dateInput) {
 		hour12: false
 	})
 }
+
+/** Value-neutral: just the year - archives aren't stale
+ * @param {string | null | undefined} dateString */
+export function dateYear(dateString) {
+	if (!dateString) return ''
+	return new Date(dateString).getFullYear().toString()
+}
+
+/** Smart date: recent shows relative time, older shows just year
+ * @param {string | null | undefined} dateString */
+export function dateProvenance(dateString) {
+	if (!dateString) return ''
+	const days = differenceInDays(dateString)
+	if (days < 7) return 'this week'
+	if (days < 30) return 'this month'
+	if (days < 90) return 'recent'
+	return dateYear(dateString)
+}

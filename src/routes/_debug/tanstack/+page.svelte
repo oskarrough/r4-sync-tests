@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Menu from './menu.svelte'
+	import {resetLocalData} from '$lib/api'
 	import {queryClient, tracksCollection, channelsCollection, followsCollection} from '$lib/tanstack/collections'
 	import {trackMetaCollection} from '$lib/tanstack/collections/track-meta'
 	import {playHistoryCollection} from '$lib/tanstack/collections/play-history'
@@ -60,7 +61,9 @@
 		void tick
 		const slugs: Record<string, number> = {}
 		for (const track of tracksCollection.state.values()) {
-			slugs[track.slug] = (slugs[track.slug] || 0) + 1
+			if (track.slug) {
+				slugs[track.slug] = (slugs[track.slug] || 0) + 1
+			}
 		}
 		return Object.entries(slugs).sort((a, b) => b[1] - a[1])
 	})
@@ -84,13 +87,12 @@
 
 	async function clearIDB() {
 		if (!confirm('Clear IndexedDB cache? Page will reload.')) return
-		indexedDB.deleteDatabase('keyval-store')
-		indexedDB.deleteDatabase('r5-offline-mutations')
+		resetLocalData()
 		location.reload()
 	}
 </script>
 
-<div class="SmallContainer">
+<div class="constrained">
 	<Menu />
 
 	<menu>

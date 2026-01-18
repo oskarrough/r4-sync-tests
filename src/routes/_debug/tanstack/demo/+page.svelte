@@ -69,6 +69,7 @@
 	let cacheUpdated = $state(false)
 
 	function addToCache() {
+		/** @type {import('./demo-state.svelte').DemoTodo[] | undefined} */
 		const current = queryClient.getQueryData(QUERY_KEY)
 		if (!current) return
 		queryClient.setQueryData(QUERY_KEY, [
@@ -91,6 +92,7 @@
 
 		try {
 			await fakeAPI.add(newTodo, 1500)
+			/** @type {import('./demo-state.svelte').DemoTodo[] | undefined} */
 			const previous = queryClient.getQueryData(QUERY_KEY)
 			if (previous) {
 				queryClient.setQueryData(QUERY_KEY, [newTodo, ...previous])
@@ -108,6 +110,7 @@
 		const newTodo = {id: Date.now(), todo: '→ Added (optimistic)', completed: false, userId: 1}
 
 		await queryClient.cancelQueries({queryKey: QUERY_KEY})
+		/** @type {import('./demo-state.svelte').DemoTodo[] | undefined} */
 		const previous = queryClient.getQueryData(QUERY_KEY)
 
 		if (previous) {
@@ -186,7 +189,7 @@
 	</ul>
 {/snippet}
 
-<article class="SmallContainer">
+<article class="constrained">
 	<h1>TanStack Query + DB</h1>
 	<p>Interactive exploration of TanStack's data fetching and caching abstractions.</p>
 

@@ -17,7 +17,7 @@
 	<title>{m.page_title_history()}</title>
 </svelte:head>
 
-<article class="SmallContainer">
+<article class="constrained">
 	<menu>
 		<a class="btn" href="/stats" class:active={page.route.id === '/stats'}>
 			<Icon icon="chart-scatter" size={20} />
@@ -41,7 +41,11 @@
 	{:else}
 		<ul class="list">
 			{#each history as play (play.id)}
-				<li>
+				<li
+					data-skipped={(play.ms_played != null && play.ms_played < 3000) || null}
+					data-start-reason={play.reason_start || null}
+					data-end-reason={play.reason_end || null}
+				>
 					{@render playRecord(play)}
 				</li>
 			{/each}
@@ -77,13 +81,9 @@
 {/snippet}
 
 <style>
-	.SmallContainer {
-		margin-top: 0.5rem;
-
-		> menu,
-		> header {
-			margin-bottom: 1rem;
-		}
+	article > menu,
+	article > header {
+		margin-bottom: 1rem;
 	}
 
 	.row {
@@ -107,5 +107,10 @@
 
 	.reasons {
 		color: var(--gray-11);
+	}
+
+	li[data-skipped] {
+		opacity: 0.4;
+		font-size: var(--font-2);
 	}
 </style>

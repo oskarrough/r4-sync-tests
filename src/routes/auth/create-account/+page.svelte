@@ -11,7 +11,7 @@
 	<title>{m.auth_create_page_title()}</title>
 </svelte:head>
 
-<article class="MiniContainer">
+<article class="constrained focused">
 	<figure class="logo">
 		<IconR4 />
 	</figure>
@@ -26,20 +26,6 @@
 </article>
 
 <style>
-	article {
-		margin-top: 0.5rem;
-	}
-
-	.logo {
-		display: block;
-		text-align: center;
-		margin: 5vh 0 3vh;
-		:global(svg) {
-			width: 4rem;
-			height: auto;
-		}
-	}
-
 	h1 {
 		margin: 0 auto 2rem;
 		font-size: var(--font-7);

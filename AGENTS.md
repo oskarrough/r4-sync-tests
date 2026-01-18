@@ -1,19 +1,21 @@
 # R5
 
-Prototype local-first music player for Radio4000. SvelteKit + Svelte 5, @radio4000/sdk, Tanstack DB.
+Prototype local-first music player web application for Radio4000.  
+SvelteKit + Svelte 5, @radio4000/sdk, Tanstack DB.
 
-## Task-based agent approach
+## Workflow
 
-1. Operate on tasks with @plan.md as your scratchpad
-2. Research, ask user for guidance when things aren't clear, or strategically important
-3. Review research, create a plan
-4. Implement plan
+1. Choose something from @plan.md to work on
+2. Write a plan
+3. Implement
+4. bun run check
+5. Review your work
+6. Finally update @plan.md
 
 ## Documentation
 
-Read the @docs folder for more. Continously update our documentation as we go and learn.
-
-## File overview
+See the @docs folder.
+The `/src/routes/_debug` folder has several examples, tests and playgrounds.
 
 ```
 /src/lib/types.ts      -- type definitions for the most important interfaces
@@ -24,19 +26,41 @@ Read the @docs folder for more. Continously update our documentation as we go an
 /src/routes            -- our pages
 ```
 
+- @radio4000/sdk (see @docs/radio4000-sdk.md)
+- @radio4000/cli (see `r4 --help`)
+
 ## Database and state
 
-The app orchestrates data between local browser memory and the remote PostgreSQL database. Database is state. We limit component state, avoid multiple stores. Read more in `docs/tanstack.md`
-
-`appState` (src/lib/app-state.svelte.ts) is a global reactive object for UI state - player, queue, theme, user preferences. Auto-persists to localStorage. Debug at /debug/appstate.
-
-We're usually dealing with one of three "tables":
+The remote PostgreSQL (via Supabase) database is our source of truth and we can use the `r4` cli, the `@radio4000/sdk` or Supabase directly to interact with it.
 
 ```sql
-appState  -- global application state
 channels  -- radio channels (id, slug, name, description, ...)
 tracks    -- music tracks (id, url, title, description, ...)
 ```
+
+Most data is also synced to local storage or IDB, either manually or with tanstack db.
+
+The `appState` is a svelte, reactive global and local-persisted object we use for player, queue, user settings etc.
+
+## Debug Tricks
+
+When valuable, we can write tests using vitest.
+There is no need to start a dev server, the user will do it.
+Format and lint the code using `bun run check`.
+
+We use `window.r5` to expose sdk, appState, queryClient, tracksCollection, channelsCollection. Example: `[...window.r5.channelsCollection.state.values()].map(...` for testing.
+
+## Writing style (guides, docs, explanations)
+
+Lead with the point. Skip preambles, start mid-thought when context is clear.
+
+Assume domain knowledge. Say "use debouncing" not "you might want to consider implementing a debouncing mechanism." Reference concepts directly without basic explanations.
+
+Natural prose over formatting tricks. Never do "**bold**: explanation" syntax. Prefer flowing paragraphs to numbered lists when the content permits. Sentence case for titles.
+
+Terse and precise. Expand reasoning only when asked. Point out flaws directly: "that breaks because..." not "one consideration might be..."
+
+Dry wit welcome. Channel the sensibility of someone who finds elegance in plain text and thinks most abstractions are premature.
 
 ## Code Style
 
@@ -55,13 +79,13 @@ tracks    -- music tracks (id, url, title, description, ...)
 - Optimistic execution - trust in methods, let errors throw
 - Avoid type casts to silence errors. Casts like `/** @type {any} */` or `as Type` are bloat that hide real issues.
 
-## HTML/CSS
+### HTML/CSS
 
 - Don't redefine button styles etc., as we have global styles in `styles/style.css`
 - Use CSS custom property variables from variables.css (colors, font-sizing)
 - Right semantic elements (`<section>`, `<article>`, `<figure>`). No unnecessary container `<div>`s. Write HTML/CSS without classes by default. Use semantic elements, ARIA roles, data-\* attributes, and custom elements to express state/variants. Style via structure and modern selectors (:has, :where, :is), not class soup. Only introduce a class for 3rd-party hooks or proven reuse. Don't add arbitrary spacing or typography changes unless requested. Let browser defaults handle spacing, typography and most layout. Focus on styles critical for functionality. Reuse CSS custom property variables.
 
-## Svelte 5 tips
+### Svelte 5 tips
 
 Use $derived liberally. $derived can be mutated!
 `await` can be used inside components' `<script>`, `$derived()`and markup.
@@ -69,36 +93,3 @@ Use `bind:this`to get a reference to a DOM element. You can even export methods 
 import`page`from`$app/state` (and not `$app/stores`)
 Snippets can be used for reusable "mini" components, when a file is too much https://svelte.dev/docs/svelte/snippet.
 Attachments can be used for reusable behaviours/effects on elements https://svelte.dev/docs/svelte/@attach.
-
-## Debug Tricks
-
-`window.r5` exposes sdk, appState, queryClient, tracksCollection, channelsCollection. Example: `[...window.r5.channelsCollection.state.values()].map(...`
-Format and lint the code using `bun run lint`. Or use the claude code command /lint-test.
-When valuable, we can write tests using vitest. Put them next to the original file and name them xxx.test.js. Run tests with: `bun test [optional-name]`
-There is no need to start a dev server, as the user does it.
-When searching for text or files, prefer using `rg` or `rg --files` respectively because `rg` is much faster than alternatives like `grep`.
-
-## Key packages
-
-- @radio4000/sdk (see @docs/radio4000-sdk.md)
-- @radio4000/components (see https://github.com/radio4000/components)
-
-## r4 CLI
-
-A separate project, can help to debug remote data. Explore `r4 --help` commands as needed.
-
-## Tanstack notes
-
-- @docs/tanstack.md
-
-## Writing style (guides, docs, explanations)
-
-Lead with the point. Skip preambles, start mid-thought when context is clear.
-
-Assume domain knowledge. Say "use debouncing" not "you might want to consider implementing a debouncing mechanism." Reference concepts directly without basic explanations.
-
-Natural prose over formatting tricks. Never do "**bold**: explanation" syntax. Prefer flowing paragraphs to numbered lists when the content permits. Sentence case for titles.
-
-Terse and precise. Expand reasoning only when asked. Point out flaws directly: "that breaks because..." not "one consideration might be..."
-
-Dry wit welcome. Channel the sensibility of someone who finds elegance in plain text and thinks most abstractions are premature.

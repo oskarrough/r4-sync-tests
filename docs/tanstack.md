@@ -21,9 +21,11 @@ TanStack DB adds:
 const recentTracks = useLiveQuery((q) =>
 	q
 		.from({tracks: tracksCollection})
+		.where(({tracks}) => eq(tracks.channel_id, channelId))
 		.orderBy(({tracks}) => tracks.created_at, 'desc')
 		.limit(50)
 )
+// Also: leftJoin, groupBy, having, distinct, findOne(), count(), sum(), avg()
 ```
 
 ## The Three Layers
@@ -137,9 +139,11 @@ tracksCollection.utils.writeBatch(() => {
 const todoCollection = createCollection({
 	onInsert: async ({transaction}) => {
 		await api.create(transaction.mutations[0].modified)
+		return {refetch: false} // skip automatic refetch
 	}
 })
 todoCollection.insert({id, text}) // fires onInsert
+todoCollection.insert({id, text}, {optimistic: false}) // wait for server
 ```
 
 ### Offline-first (what we use)
@@ -154,6 +158,8 @@ await tx.commit()
 2. Apply optimistic update to collection (instant UI)
 3. Sync to server when online (via mutationFn)
 4. Remove from outbox on success
+
+Transaction states: `pending` → `persisting` → `completed` (or `failed`). Use `await tx.isPersisted.promise` to wait.
 
 ### Our wrapper functions
 
@@ -191,9 +197,14 @@ collection.utils.writeDelete(id)
 collection.utils.writeBatch(() => {
 	items.forEach((i) => collection.utils.writeUpsert(i))
 })
+collection.utils.refetch() // manually trigger query refresh
 ```
 
 Use for: seeding on login, WebSocket updates, pagination.
+
+### Mutation merging
+
+When multiple mutations target the same item within a transaction: insert+update → insert (merged), insert+delete → removed, update+update → update (merged), update+delete → delete.
 
 ## QueryClient Primitives
 
@@ -281,8 +292,11 @@ Append `.md` for raw markdown.
 
 - https://tanstack.com/db/latest/docs/overview.md
 - https://tanstack.com/db/latest/docs/guides/mutations.md
+- https://tanstack.com/db/latest/docs/guides/live-queries.md
 - https://tanstack.com/db/latest/docs/collections/query-collection.md
 - https://tanstack.com/query/latest/docs/framework/react/plugins/persistQueryClient.md
+
+For debouncing/throttling mutations, see `usePacedMutations` with `debounceStrategy`/`throttleStrategy` in the mutations guide. For complex multi-collection mutations, see `createOptimisticAction`.
 
 ## Tips
 

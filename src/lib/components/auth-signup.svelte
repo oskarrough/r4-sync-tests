@@ -7,7 +7,7 @@
 
 	let step = $state('providers') // 'providers' | 'email' | 'linkSent'
 	let email = $state('')
-	let error = $state(null)
+	let error = $state(/** @type {string | null} */ (null))
 	let loading = $state(false)
 
 	async function sendMagicLink() {
@@ -52,16 +52,18 @@
 	>
 		<label>
 			{m.auth_email()}
-			<input type="email" bind:value={email} required autocomplete="email" />
+			<input type="email" bind:value={email} required autocomplete="email" placeholder="Enter your email address…" />
 		</label>
 		{#if error}
-			<p role="alert">{error}</p>
+			<p class="error" role="alert">{error}</p>
 		{/if}
 		<button type="submit" class="primary" disabled={loading}>
 			{loading ? m.common_sending() : m.auth_continue_with_email()}
 		</button>
 	</form>
-	<button type="button" onclick={() => (step = 'providers')}>{m.common_back()}</button>
+	<menu>
+		<button type="button" onclick={() => (step = 'providers')}>← {m.common_back()}</button>
+	</menu>
 {:else}
 	<AuthProviders onEmailClick={handleEmailContinue} {redirect} />
 	<p>
@@ -89,6 +91,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
+		margin-top: 1rem;
 	}
 	section {
 		text-align: center;

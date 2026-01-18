@@ -1,17 +1,44 @@
-/* Use on pages that are text heavy, like settings */
-.SmallContainer {
+/* Limit width to readable line length */
+.constrained {
 	width: 100%;
 	max-width: 80ch;
-	margin: 0.5rem auto;
-	padding: 0 0.5rem;
+	margin-inline: auto;
+	margin-block: 0.5rem;
+	padding-inline: 0.5rem;
+
+	&:last-child {
+		margin-block-end: var(--player-compact-size);
+	}
 }
 
-/* Usually around forms */
-.MiniContainer {
-	width: 100%;
-	max-width: 45ch;
-	margin: 0.5rem auto;
-	padding: 0 0.5rem;
+/* Vertically center content, a bit, for pages with less content */
+.focused {
+	display: grid;
+
+	/* approach 1*/
+	/* min-height: 50dvh; */
+	/* place-content: center; */
+
+	/* approach 2*/
+	justify-content: center;
+	align-content: baseline;
+	padding-top: 10vh;
+}
+
+.focused.constrained {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.logo {
+	display: block;
+	text-align: center;
+	margin-block-end: 2rem;
+
+	svg {
+		width: 4rem;
+		height: auto;
+	}
 }
 
 /* Use on containers that need scrolling */
@@ -99,6 +126,7 @@ menu[data-vertical] {
 
 menu.grouped {
 	display: inline-flex;
+	flex-flow: row wrap;
 	gap: 0;
 	padding: 0;
 	margin: 0 0 1rem;
@@ -172,21 +200,4 @@ dl.meta {
 	border-radius: var(--border-radius);
 	overflow: hidden;
 	background: var(--gray-2);
-}
-
-.center-page {
-	display: grid;
-	place-content: center;
-	place-items: normal;
-	min-height: 50dvh;
-
-	h1,
-	h2,
-	p {
-		text-align: center;
-	}
-
-	> header {
-		margin-block-end: 2rem;
-	}
 }

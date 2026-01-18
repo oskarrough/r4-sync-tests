@@ -4,10 +4,11 @@ import {
 	persistQueryClientSubscribe,
 	type PersistedClient
 } from '@tanstack/query-persist-client-core'
-import {get, set, del} from 'idb-keyval'
+import {get, set, del, createStore} from 'idb-keyval'
 import {queryClient} from './collections'
+import {IDB_DATABASES, IDB_KEYS} from '$lib/storage-keys'
 
-const IDB_KEY = 'r5-query-cache'
+const store = createStore(IDB_DATABASES.keyval, 'keyval')
 
 function serialize(client: PersistedClient): string {
 	const seen = new WeakSet()
@@ -23,18 +24,18 @@ function serialize(client: PersistedClient): string {
 
 const idbPersister = {
 	persistClient: async (client: PersistedClient) => {
-		await set(IDB_KEY, serialize(client))
+		await set(IDB_KEYS.queryCache, serialize(client), store)
 	},
 	restoreClient: async () => {
-		const data = await get<string>(IDB_KEY)
+		const data = await get<string>(IDB_KEYS.queryCache, store)
 		return data ? JSON.parse(data) : undefined
 	},
 	removeClient: async () => {
-		await del(IDB_KEY)
+		await del(IDB_KEYS.queryCache, store)
 	}
 }
 
-function shouldDehydrateQuery(query: {queryKey: unknown[]; state: {status: string; data: unknown}}): boolean {
+function shouldDehydrateQuery(query: {queryKey: readonly unknown[]; state: {status: string; data: unknown}}): boolean {
 	if (query.state.status !== 'success') return false
 
 	const data = query.state.data
