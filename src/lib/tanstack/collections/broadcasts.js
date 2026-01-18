@@ -22,7 +22,7 @@ const BROADCAST_SELECT = `
 	track_id,
 	track_played_at,
 	channels:channels_with_tracks (*),
-	tracks (*)
+	tracks:channel_tracks!track_id (*)
 `
 
 async function fetchBroadcastsWithChannel() {
