@@ -21,6 +21,8 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 - share buttons/embeds (evaluate if needed)
 - improve broadcast feature
   - DONE: Created `broadcastsCollection` with single realtime subscription that directly updates collection via `writeUpsert`/`writeDelete`. Both `/broadcasts` page and `layout-header.svelte` now use `useLiveQuery(broadcastsCollection)`. Removed `watchBroadcasts`, `readBroadcastsWithChannel`, workaround effects.
+  - DONE: Fixed upsert with `onConflict: 'channel_id'`, track now included in broadcast select, stop button reactivity via `.state` access.
+  - DONE: Prefetch channel tracks on join via `ensureTracksLoaded(slug)` when listener joins.
 - run `bun run check` and slowly get rid of these warnings - tidy codebase
 
 ## Questionable backlog

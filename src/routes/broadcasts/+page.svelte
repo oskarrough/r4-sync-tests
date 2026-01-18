@@ -3,7 +3,6 @@
 	import {joinBroadcast, leaveBroadcast} from '$lib/broadcast'
 	import BroadcastControls from '$lib/components/broadcast-controls.svelte'
 	import ChannelCard from '$lib/components/channel-card.svelte'
-	import EnsureTrack from '$lib/components/ensure-track.svelte'
 	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
 	import {broadcastsCollection} from '$lib/tanstack/collections'
 	import {timeAgo} from '$lib/utils'
@@ -45,9 +44,11 @@
 							{m.broadcasts_since()}
 							{timeAgo(broadcast.track_played_at)}
 						{/if}
-						<em>
-							<EnsureTrack tid={broadcast.track_id}></EnsureTrack>
-						</em>
+						{#if broadcast.tracks}
+							<em>{broadcast.tracks.title}</em> via <a href="/{broadcast.tracks.slug}">@{broadcast.tracks.slug}</a>
+						{:else}
+							<em>...</em>
+						{/if}
 					</p>
 
 					{#if !isOwnChannel}

@@ -1,15 +1,24 @@
 <script>
 	import {appState} from '$lib/app-state.svelte'
 	import {startBroadcast, stopBroadcast} from '$lib/broadcast'
+	import {broadcastsCollection} from '$lib/tanstack/collections'
 	import Icon from '$lib/components/icon.svelte'
 	import * as m from '$lib/paraglide/messages'
 
 	const userChannelId = $derived(appState?.channels?.[0])
+	// Access .state.size to create reactive dependency, then check if broadcasting
+	const isBroadcasting = $derived(
+		userChannelId && (broadcastsCollection.state.size, broadcastsCollection.state.get(userChannelId))
+	)
 	let error = $state(/** @type {string|null} */ (null))
 
 	$effect(() => {
 		void appState.playlist_track
 		error = null
+	})
+
+	$effect(() => {
+		appState.broadcasting_channel_id = isBroadcasting ? userChannelId : undefined
 	})
 
 	async function stopBroadcasting() {
@@ -43,7 +52,7 @@
 
 {#if userChannelId}
 	<div>
-		{#if appState.broadcasting_channel_id}
+		{#if isBroadcasting}
 			<button onclick={() => stopBroadcasting()}>{m.broadcast_stop_button()}</button>
 		{:else}
 			<button onclick={start}>

@@ -28,6 +28,15 @@ let broadcastChannel = null
 export async function joinBroadcast(channelId) {
 	try {
 		const {data} = await sdk.supabase.from('broadcast').select('*').eq('channel_id', channelId).single().throwOnError()
+
+		// Prefetch all tracks for this channel
+		const broadcast = broadcastsCollection.state.get(channelId)
+		const slug = broadcast?.channels?.slug
+		if (slug) {
+			ensureTracksLoaded(slug)
+			log.log('prefetching_tracks', {slug})
+		}
+
 		await playBroadcastTrack(data)
 		startBroadcastSync(channelId)
 		log.log('joined', {channelId})
@@ -42,6 +51,7 @@ export async function joinBroadcast(channelId) {
 export function leaveBroadcast() {
 	stopBroadcastSync()
 	appState.listening_to_channel_id = undefined
+	appState.is_playing = false
 	log.log('left')
 }
 
@@ -53,11 +63,14 @@ export function leaveBroadcast() {
 export async function upsertRemoteBroadcast(channelId, trackId) {
 	return sdk.supabase
 		.from('broadcast')
-		.upsert({
-			channel_id: channelId,
-			track_id: trackId,
-			track_played_at: new Date().toISOString()
-		})
+		.upsert(
+			{
+				channel_id: channelId,
+				track_id: trackId,
+				track_played_at: new Date().toISOString()
+			},
+			{onConflict: 'channel_id'}
+		)
 		.throwOnError()
 }
 
@@ -153,24 +166,19 @@ async function playBroadcastTrack(broadcast) {
 		return true
 	}
 
-	// Track not loaded, fetch channel tracks first
+	// Track not loaded - fetch it directly by ID
 	try {
-		// Get slug from broadcastsCollection (has joined channel data)
-		const broadcastWithChannel = broadcastsCollection.get(channel_id)
-		const slug = broadcastWithChannel?.channels?.slug
-		if (!slug) throw new Error('No channel slug found for broadcast')
+		const {data: track, error} = await sdk.tracks.readTrack(track_id)
 
-		await ensureTracksLoaded(slug)
-		// Allow collection state to propagate
-		await Promise.resolve()
-
-		if (!tracksCollection.get(track_id)) {
-			throw new Error(`Track ${track_id} not found in channel ${slug}`)
+		if (error || !track) {
+			throw new Error(`Track ${track_id} not found`)
 		}
 
+		// Add track to collection and play
+		tracksCollection.utils.writeUpsert(/** @type {import('$lib/types').Track} */ (track))
 		await playTrack(track_id, null, 'broadcast_sync')
 		appState.listening_to_channel_id = channel_id
-		log.log('play_success_after_fetch', {track_id, channel_id, slug})
+		log.log('play_success_after_fetch', {track_id, channel_id, slug: track.slug})
 		return true
 	} catch (error) {
 		log.error('failed_to_play', {track_id, channel_id, error: /** @type {Error} */ (error).message})

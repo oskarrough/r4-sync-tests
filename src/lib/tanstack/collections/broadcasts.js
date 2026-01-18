@@ -17,13 +17,16 @@ export const broadcastsCollection = createCollection(
 	})
 )
 
+const BROADCAST_SELECT = `
+	channel_id,
+	track_id,
+	track_played_at,
+	channels:channels_with_tracks (*),
+	tracks (*)
+`
+
 async function fetchBroadcastsWithChannel() {
-	const {data, error} = await sdk.supabase.from('broadcast').select(`
-		channel_id,
-		track_id,
-		track_played_at,
-		channels:channels_with_tracks (*)
-	`)
+	const {data, error} = await sdk.supabase.from('broadcast').select(BROADCAST_SELECT)
 	if (error) throw error
 	syncBroadcastingState(data || [])
 	return /** @type {BroadcastWithChannel[]} */ (data || [])
@@ -48,7 +51,7 @@ sdk.supabase
 			const newData = /** @type {{channel_id: string}} */ (payload.new)
 			const {data} = await sdk.supabase
 				.from('broadcast')
-				.select('channel_id, track_id, track_played_at, channels:channels_with_tracks (*)')
+				.select(BROADCAST_SELECT)
 				.eq('channel_id', newData.channel_id)
 				.single()
 			if (data) {
