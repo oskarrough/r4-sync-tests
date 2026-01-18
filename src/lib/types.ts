@@ -68,6 +68,7 @@ export interface Broadcast {
 
 export interface BroadcastWithChannel extends Broadcast {
 	channels: Channel
+	tracks: Track | null
 }
 
 export interface PlayHistory {

@@ -74,7 +74,8 @@ export function useLiveQuery(configOrQueryOrCollection, deps = []) {
 	const syncDataFromCollection = (currentCollection) => {
 		untrack(() => {
 			internalData = []
-			internalData.push(...Array.from(currentCollection.values()))
+			// Use .state.values() to read from the Map that writeUpsert updates
+			internalData.push(...Array.from(currentCollection.state.values()))
 		})
 	}
 
@@ -105,7 +106,7 @@ export function useLiveQuery(configOrQueryOrCollection, deps = []) {
 
 		untrack(() => {
 			state.clear()
-			for (const [key, value] of currentCollection.entries()) {
+			for (const [key, value] of currentCollection.state.entries()) {
 				state.set(key, value)
 			}
 		})
