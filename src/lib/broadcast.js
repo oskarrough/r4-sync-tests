@@ -154,36 +154,45 @@ function stopBroadcastSync() {
 }
 
 /**
+ * Calculate elapsed seconds from track_played_at
+ * @param {import('$lib/types').Broadcast} broadcast
+ * @param {import('$lib/types').Track} track
+ * @returns {number|undefined}
+ */
+function calculateSeekTime(broadcast, track) {
+	if (!broadcast.track_played_at || !track.duration) return undefined
+	const elapsed = (Date.now() - new Date(broadcast.track_played_at).getTime()) / 1000
+	if (elapsed < 0 || elapsed >= track.duration) return undefined
+	return Math.floor(elapsed)
+}
+
+/**
  * @param {import('$lib/types').Broadcast} broadcast
  */
 async function playBroadcastTrack(broadcast) {
 	const {track_id, channel_id} = broadcast
 
 	// Check if track is already loaded
-	if (tracksCollection.get(track_id)) {
-		await playTrack(track_id, null, 'broadcast_sync')
-		appState.listening_to_channel_id = channel_id
-		return true
-	}
-
-	// Track not loaded - fetch it directly by ID
-	try {
-		const {data: track, error} = await sdk.tracks.readTrack(track_id)
-
-		if (error || !track) {
-			throw new Error(`Track ${track_id} not found`)
+	let track = tracksCollection.get(track_id)
+	if (!track) {
+		// Track not loaded - fetch it directly by ID
+		try {
+			const {data, error} = await sdk.tracks.readTrack(track_id)
+			if (error || !data) throw new Error(`Track ${track_id} not found`)
+			tracksCollection.utils.writeUpsert(/** @type {import('$lib/types').Track} */ (data))
+			track = /** @type {import('$lib/types').Track} */ (data)
+		} catch (error) {
+			log.error('failed_to_play', {track_id, channel_id, error: /** @type {Error} */ (error).message})
+			return false
 		}
-
-		// Add track to collection and play
-		tracksCollection.utils.writeUpsert(/** @type {import('$lib/types').Track} */ (track))
-		await playTrack(track_id, null, 'broadcast_sync')
-		appState.listening_to_channel_id = channel_id
-		log.log('play_success_after_fetch', {track_id, channel_id, slug: track.slug})
-		return true
-	} catch (error) {
-		log.error('failed_to_play', {track_id, channel_id, error: /** @type {Error} */ (error).message})
-		return false
 	}
+
+	const seekTime = calculateSeekTime(broadcast, track)
+	log.log('play_broadcast_track', {track_id, seekTime})
+	globalThis.__pendingSeekTime = seekTime
+	await playTrack(track_id, null, 'broadcast_sync')
+	appState.listening_to_channel_id = channel_id
+	return true
 }
 
 /** Validate that listening_to_channel_id points to an active broadcast */
