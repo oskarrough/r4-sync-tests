@@ -1,5 +1,4 @@
 <script>
-	import {SvelteMap} from 'svelte/reactivity'
 	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
 	import {eq} from '@tanstack/db'
 	import SvelteVirtualList from '@humanspeak/svelte-virtual-list'
@@ -10,11 +9,11 @@
 		tracksCollection,
 		trackMetaCollection,
 		updateTrack,
-		batchUpdateTracksIndividual
+		insertDurationFromMeta
 	} from '$lib/tanstack/collections'
+	import {pull as pullYouTubeMeta} from '$lib/metadata/youtube'
 	import {extractYouTubeId} from '$lib/utils'
 	import {appState} from '$lib/app-state.svelte'
-	import {pull as pullYouTubeMeta} from '$lib/metadata/youtube'
 	import TrackRow from './track-row.svelte'
 	import BatchActionBar from './batch-action-bar.svelte'
 	import PopoverMenu from '$lib/components/popover-menu.svelte'
@@ -66,40 +65,19 @@
 
 	// All tracks missing YouTube metadata
 	let allTracksMissingMeta = $derived(tracks.filter((t) => !t.youtube_data && !t.playback_error))
-	let allMissingYtids = $derived(allTracksMissingMeta.map((t) => extractYouTubeId(t.url)).filter(Boolean))
 
 	async function fetchAllMeta() {
-		if (fetchingMeta || allMissingYtids.length === 0) return
+		if (fetchingMeta || allTracksMissingMeta.length === 0 || !channel) return
 		fetchingMeta = true
-		fetchProgress = {current: 0, total: allMissingYtids.length}
-
-		// Build ytid → track mapping
-		/** @type {SvelteMap<string, import('$lib/types').Track>} */
-		const trackByYtid = new SvelteMap()
-		for (const t of allTracksMissingMeta) {
-			const ytid = extractYouTubeId(t.url)
-			if (ytid) trackByYtid.set(ytid, t)
-		}
-
+		fetchProgress = {current: 0, total: 0}
 		try {
-			await pullYouTubeMeta(allMissingYtids, {
-				onProgress: async ({current, total, videos}) => {
+			const ytids = allTracksMissingMeta.map((t) => extractYouTubeId(t.url)).filter((id) => id !== null)
+			await pullYouTubeMeta(ytids, {
+				onProgress: ({current, total}) => {
 					fetchProgress = {current, total}
-
-					// Save durations incrementally as batches complete
-					const updates = videos
-						.filter((v) => v?.duration && trackByYtid.has(v.id))
-						.map((v) => {
-							const track = trackByYtid.get(v.id)
-							return track ? {id: track.id, changes: {duration: v.duration}} : null
-						})
-						.filter(Boolean)
-
-					if (updates.length && channel) {
-						await batchUpdateTracksIndividual(channel, updates)
-					}
 				}
 			})
+			await insertDurationFromMeta(channel, allTracksMissingMeta)
 		} finally {
 			fetchingMeta = false
 			fetchProgress = {current: 0, total: 0}
@@ -380,15 +358,15 @@
 
 			<input type="search" bind:value={search} placeholder="Search..." />
 
-			{#if canEdit && allMissingYtids.length > 0}
+			{#if canEdit && allTracksMissingMeta.length > 0}
 				<button
 					onclick={fetchAllMeta}
 					disabled={fetchingMeta}
-					title="Fetch YouTube metadata for all {allMissingYtids.length} tracks missing metadata"
+					title="Fetch YouTube metadata for all {allTracksMissingMeta.length} tracks missing metadata"
 				>
 					{fetchingMeta
 						? `Fetching... (${fetchProgress.current}/${fetchProgress.total})`
-						: `Fetch all meta (${allMissingYtids.length})`}
+						: `Fetch all meta (${allTracksMissingMeta.length})`}
 				</button>
 			{/if}
 
