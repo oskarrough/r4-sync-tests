@@ -19,8 +19,9 @@ Verify and evaluate todos before taking them on. They might be outdated or just 
 - v1 compatibility: v1 channels can't be followed/broadcasted because remote supabase doesn't know about their foreign keys. V1 channels have firebase_id but don't exist in remote postgres, causing FK constraint failures. Solution ideas: use string-based IDs instead of proper foreign keys, or create placeholder records in remote for v1 channels.
 - create standardized loading/error boundaries for async operations in ui
 - share buttons/embeds (evaluate if needed)
-- look into atproto as backend alternative to supabase. sign in with bluesky, your channel + tracks are now synced into. one way sync? probably for now unforunately. See  github.com/radio4000/r4atproto
+- look into atproto as backend alternative to supabase. sign in with bluesky, your channel + tracks are now synced into. one way sync? probably for now unforunately. See github.com/radio4000/r4atproto
 - run `bun run check` and slowly get rid of these warnings - tidy codebase
+- batch-edit: URL-persist filter/search/sort state so filtered views survive refresh and can be bookmarked
 
 ## Parked features
 
