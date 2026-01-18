@@ -112,7 +112,7 @@
 </script>
 
 {#if error}
-	<p role="alert">{m.common_error()}: {error}</p>
+	<p class="error" role="alert">{m.common_error()}: {error}</p>
 {/if}
 
 <form class="form" onsubmit={handleSubmit} disabled={submitting}>

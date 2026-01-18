@@ -88,14 +88,14 @@
 		</form>
 	{/if}
 
-	{#if error}<p role="alert">{error}</p>{/if}
+	{#if error}<p class="error" role="alert">{error}</p>{/if}
 
 	<details open>
 		<summary>Your channels ({myChannels.length})</summary>
 		{#if myChannelQuery.isLoading}
 			<p>Loading…</p>
 		{:else if myChannelQuery.isError}
-			<p role="alert">
+			<p class="error" role="alert">
 				{channelsCollection.utils.lastError instanceof Error
 					? channelsCollection.utils.lastError.message
 					: 'Sync failed'}
@@ -131,7 +131,7 @@
 		{#if latestQuery.isLoading}
 			<p>Loading…</p>
 		{:else if latestQuery.isError}
-			<p role="alert">
+			<p class="error" role="alert">
 				{channelsCollection.utils.lastError instanceof Error
 					? channelsCollection.utils.lastError.message
 					: 'Sync failed'}

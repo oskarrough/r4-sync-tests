@@ -108,11 +108,11 @@
 		</form>
 	{/if}
 
-	{#if error}<p role="alert">{error}</p>{/if}
+	{#if error}<p class="error" role="alert">{error}</p>{/if}
 	{#if tracksQuery.isLoading}
 		<p>Loading…</p>
 	{:else if tracksQuery.isError}
-		<p role="alert">
+		<p class="error" role="alert">
 			{tracksCollection.utils.lastError instanceof Error ? tracksCollection.utils.lastError.message : 'Sync failed'}
 		</p>
 	{:else if tracksQuery.data?.length}
