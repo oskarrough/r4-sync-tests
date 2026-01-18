@@ -47,35 +47,43 @@
 	<section class="list">
 		{#each activeBroadcasts as broadcast (broadcast.channel_id)}
 			{@const joined = broadcast.channel_id === appState.listening_to_channel_id}
+			{@const isOwnChannel = broadcast.channel_id === appState.channels?.[0]}
 			<div class:active={joined}>
-				<div class="live-dot"></div>
 				<ChannelCard channel={broadcast.channels}>
 					<p>
-						<span class="live">{m.broadcasts_live()}</span>
-						{m.broadcasts_since()}
-						{timeAgo(broadcast.track_played_at)}
+						<span class="live">{isOwnChannel ? m.broadcasts_you_are_live() : m.broadcasts_live()}</span>
+						{#if !isOwnChannel}
+							{m.broadcasts_since()}
+							{timeAgo(broadcast.track_played_at)}
+						{/if}
 						<em>
 							<EnsureTrack tid={broadcast.track_id}></EnsureTrack>
 						</em>
 					</p>
 
-					<button
-						type="button"
-						onclick={(e) => {
-							e.preventDefault()
-							if (joined) {
-								leaveBroadcast()
-							} else {
-								joinBroadcast(broadcast.channel_id)
-							}
-						}}
-					>
-						{joined ? m.broadcasts_leave() : m.broadcasts_join()}
-					</button>
+					{#if !isOwnChannel}
+						<button
+							type="button"
+							onclick={(e) => {
+								e.preventDefault()
+								if (joined) {
+									leaveBroadcast()
+								} else {
+									joinBroadcast(broadcast.channel_id)
+								}
+							}}
+						>
+							{joined ? m.broadcasts_leave() : m.broadcasts_join()}
+						</button>
+					{/if}
 				</ChannelCard>
 			</div>
 		{:else}
-			<p>{m.broadcasts_none()}</p>
+			{#if loading}
+				<p class="scanning"><rough-spinner spinner="14" interval="150"></rough-spinner> Scanning the airwaves…</p>
+			{:else}
+				<p>{m.broadcasts_none()}</p>
+			{/if}
 		{/each}
 	</section>
 </article>
@@ -83,6 +91,14 @@
 <style>
 	header > menu {
 		margin-block: 1rem;
+	}
+
+	.scanning {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-style: italic;
+		color: var(--gray-9);
 	}
 
 	.list :global(article > a) {
@@ -96,7 +112,7 @@
 
 	.live {
 		display: inline-block;
-		background: var(--color-red);
+		background: var(--accent-5);
 		color: var(--gray-12);
 		padding: 0 0.5rem;
 		border-radius: var(--border-radius);

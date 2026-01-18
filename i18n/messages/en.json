@@ -126,6 +126,7 @@
 	"broadcasts_join": "Listen along",
 	"broadcasts_leave": "Leave broadcast",
 	"broadcasts_live": "Live now",
+	"broadcasts_you_are_live": "You are live!",
 	"broadcasts_none": "No one is broadcasting right now.",
 	"broadcasts_since": "since",
 	"broadcasts_title": "Broadcasts",
