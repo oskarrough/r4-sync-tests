@@ -138,8 +138,8 @@
 		'tags',
 		'mentions',
 		'discogs',
-		'meta',
 		'duration',
+		'meta',
 		'error',
 		'created',
 		'updated'
@@ -437,7 +437,7 @@
 			{/if}
 
 			<PopoverMenu id="batch-display" closeOnClick={false} style="margin-left: auto;">
-				{#snippet trigger()}<Icon icon="grid" size="20" /> Display{/snippet}
+				{#snippet trigger()}<Icon icon="grid" size="20" strokeWidth={1.7} /> Display{/snippet}
 				<div class="sort-row">
 					<select bind:value={sortBy}>
 						<option value={null}>Sort by...</option>
@@ -481,9 +481,20 @@
 				</div>
 			</PopoverMenu>
 		</menu>
+
+		<nav>
+			<a href="/{slug}">@{channel.name}</a>
+			{m.batch_edit_nav_suffix()}
+		</nav>
+
+		{#if readonly}
+			<p class="hint warn">READ ONLY, this is a v1 channel</p>
+		{:else if !canEdit}
+			<p class="hint warn">(READ ONLY, you do not have edit access)</p>
+		{/if}
 	</header>
 
-	{#if hasSelection && canEdit}
+	{#if canEdit}
 		<BatchActionBar selectedIds={selectedTracks} {channel} {allTags} {tracks} onClear={clearSelection} />
 	{/if}
 
@@ -538,14 +549,6 @@
 								{sortBy === 'mentions' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
 							</button>{/if}
 						{#if !hiddenColumns.includes('discogs')}<div class="col-discogs">{m.batch_edit_column_discogs()}</div>{/if}
-						{#if !hiddenColumns.includes('meta')}<button
-								class="col-meta sortable"
-								class:sorted={sortBy === 'meta'}
-								onclick={() => toggleSort('meta')}
-							>
-								{m.batch_edit_column_meta()}
-								{sortBy === 'meta' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
-							</button>{/if}
 						{#if !hiddenColumns.includes('duration')}<button
 								class="col-duration sortable"
 								class:sorted={sortBy === 'duration'}
@@ -553,6 +556,14 @@
 							>
 								{m.batch_edit_column_duration()}
 								{sortBy === 'duration' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+							</button>{/if}
+						{#if !hiddenColumns.includes('meta')}<button
+								class="col-meta sortable"
+								class:sorted={sortBy === 'meta'}
+								onclick={() => toggleSort('meta')}
+							>
+								{m.batch_edit_column_meta()}
+								{sortBy === 'meta' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
 							</button>{/if}
 						{#if !hiddenColumns.includes('error')}<button
 								class="col-error sortable"
@@ -681,6 +692,7 @@
 		align-items: center;
 		gap: 0.5rem;
 		flex-wrap: wrap;
+		margin-top: 0.5rem;
 	}
 
 	.sort-row {

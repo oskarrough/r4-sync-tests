@@ -99,13 +99,13 @@
 				onTab={(dir) => handleTab('discogs_url', dir)}
 			/>
 		</div>{/if}
+	{#if !hiddenColumns.includes('duration')}<div class="col-duration">
+			{#if track.duration}{Math.floor(track.duration / 60)}:{String(track.duration % 60).padStart(2, '0')}{/if}
+		</div>{/if}
 	{#if !hiddenColumns.includes('meta')}<div class="col-meta">
 			{#if track.youtube_data}<span class="meta-indicator yt" title="YouTube metadata">Y</span>{/if}
 			{#if track.musicbrainz_data}<span class="meta-indicator mb" title="MusicBrainz metadata">M</span>{/if}
 			{#if track.discogs_data}<span class="meta-indicator dc" title="Discogs metadata">D</span>{/if}
-		</div>{/if}
-	{#if !hiddenColumns.includes('duration')}<div class="col-duration">
-			{#if track.duration}{Math.floor(track.duration / 60)}:{String(track.duration % 60).padStart(2, '0')}{/if}
 		</div>{/if}
 	{#if !hiddenColumns.includes('error')}<div class="col-error" class:has-error={track.playback_error}>
 			{#if track.playback_error}<span title={track.playback_error}>⚠ {track.playback_error}</span>{/if}

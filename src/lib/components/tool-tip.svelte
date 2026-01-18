@@ -65,7 +65,6 @@
 		margin: 0;
 		padding: 0.2rem 0.5rem;
 		font-size: var(--font-3);
-		color: var(--gray-11);
 		border: 1px solid var(--gray-6);
 		background: var(--gray-1);
 		border-radius: var(--border-radius);
