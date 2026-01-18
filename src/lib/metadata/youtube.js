@@ -46,9 +46,16 @@ async function fetchBatch(ids, signal) {
 }
 
 /**
+ * @typedef {Object} PullProgressEvent
+ * @property {number} current - Current batch number
+ * @property {number} total - Total batches
+ * @property {Array<{id: string, duration: number, title?: string}>} videos - Videos from this batch
+ */
+
+/**
  * Fetch YouTube metadata and save to track_meta collection
  * @param {string[]} ytids YouTube video IDs
- * @param {{signal?: AbortSignal, onProgress?: (progress: {current: number, total: number, videos: Array<{id: string, duration: number}>}) => void}} [options]
+ * @param {{signal?: AbortSignal, onProgress?: (event: PullProgressEvent) => void | Promise<void>}} [options]
  * @returns {Promise<Array<{id: string, duration: number, title?: string, [key: string]: unknown}>>} Fetched videos with metadata
  */
 export async function pull(ytids, {signal, onProgress} = {}) {
@@ -59,13 +66,18 @@ export async function pull(ytids, {signal, onProgress} = {}) {
 	}
 
 	const videos = []
-	let processed = 0
+	const chunkSize = 50
+	const totalBatches = Math.ceil(toUpdate.length / chunkSize)
+	let currentBatch = 0
 
-	for await (const result of mapChunked(toUpdate, fetchBatch, {chunk: 50, concurrency: 3, signal})) {
+	for await (const result of mapChunked(toUpdate, fetchBatch, {chunk: chunkSize, concurrency: 3, signal})) {
+		currentBatch++
+
 		if (!result.ok) {
 			log.warn('batch failed:', result.error.message)
-			processed += 50 // approximate
-			onProgress?.({current: Math.min(processed, toUpdate.length), total: toUpdate.length, videos: []})
+			if (onProgress) {
+				await onProgress({current: currentBatch, total: totalBatches, videos: []})
+			}
 			continue
 		}
 
@@ -85,8 +97,9 @@ export async function pull(ytids, {signal, onProgress} = {}) {
 			batchVideos.push(video)
 		}
 
-		processed += result.value.length || 50
-		onProgress?.({current: Math.min(processed, toUpdate.length), total: toUpdate.length, videos: batchVideos})
+		if (onProgress) {
+			await onProgress({current: currentBatch, total: totalBatches, videos: batchVideos})
+		}
 	}
 
 	log.info(`processed ${toUpdate.length} ytids, got ${videos.length} videos`)

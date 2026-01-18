@@ -33,6 +33,6 @@ v1 channels (from firebase import) can't sync to r4, marked as `source: 'v1'` an
 
 ## files
 
-- lib/r5/followers.js - sync logic
-- lib/api.js - follow/unfollow/getFollowers
-- routes/following/ - ui
+- src/lib/tanstack/collections/follows.ts - sync logic and follow/unfollow functions
+- src/lib/components/button-follow.svelte - follow button component
+- src/routes/following/ - ui

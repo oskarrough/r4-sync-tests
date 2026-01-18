@@ -45,7 +45,8 @@
 							{timeAgo(broadcast.track_played_at)}
 						{/if}
 						{#if broadcast.tracks}
-							<em>{broadcast.tracks.title}</em> via <a href="/{broadcast.tracks.slug}">@{broadcast.tracks.slug}</a>
+							<em>{broadcast.tracks.title}</em> via
+							<a href="/{broadcast.channels.slug}">@{broadcast.channels.slug}</a>
 						{:else}
 							<em>...</em>
 						{/if}

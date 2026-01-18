@@ -1,6 +1,8 @@
 <script>
 	import {
 		IconAdd,
+		IconArrowDown,
+		IconArrowUp,
 		IconChartScatter,
 		IconClose,
 		IconDelete,
@@ -38,6 +40,8 @@
 
 	const icons = {
 		add: IconAdd,
+		'arrow-down': IconArrowDown,
+		'arrow-up': IconArrowUp,
 		'chart-scatter': IconChartScatter,
 		close: IconClose,
 		delete: IconDelete,

@@ -1,14 +1,16 @@
-# Track Metadata System
+# Track metadata system
 
-Metadata from YouTube, MusicBrainz, and Discogs stored in `track_meta` table: `{ytid, youtube_data, musicbrainz_data, discogs_data}`.
+We enrich our tracks with data from YouTube, MusicBrainz, and Discogs. It is stored in the "trackMeta tanstack db collection" with `{ytid, youtube_data, musicbrainz_data, discogs_data}`.
 
-## Sources & API
+All metadata is only stored locally. It is not persisted to remote, except `track.duration` which is persisted.
+
+Providers:
 
 - **YouTube**: `@lib/metadata/youtube.js` - duration, title, description
 - **MusicBrainz**: `@lib/metadata/musicbrainz.js` - artist, release info
 - **Discogs**: `@lib/metadata/discogs.js` - detailed release metadata
 
-### Method patterns:
+Methods:
 
 - `pull(params)` - fetch from external API and save to local db
 - `local(ytids)` - read from local track_meta only
@@ -16,22 +18,8 @@ Metadata from YouTube, MusicBrainz, and Discogs stored in `track_meta` table: `{
 - `fetch(url)` - fetch external data without saving
 - `hunt(trackId, ytid, title)` - discover Discogs URL via MusicBrainz chain
 
-## Auto-Discovery
-
-Tracks without `discogs_url` automatically attempt discovery via:
-`title → MusicBrainz recording → releases → Discogs URLs`
-
-Uses `discogs.hunt()` which searches MusicBrainz, finds releases, extracts Discogs URLs from relationships, and saves discovered URL to tracks table.
-
-## Usage
-
-`tracks_with_meta` view joins tracks + track_meta for easy querying.
-
-All metadata stored locally. Future: shared metadata via @radio4000/sdk.
-
-We have components that shows the most useful metadata for each provider:
-
-1. track-meta-r5.svelte
-2. track-meta-youtube.svelte
-3. track-meta-musicbrainz.svelte
-4. track-meta-discogs.svelte
+Components:
+track-meta-r5.svelte
+track-meta-youtube.svelte
+track-meta-musicbrainz.svelte
+track-meta-discogs.svelte

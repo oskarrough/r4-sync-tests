@@ -7,6 +7,7 @@
 
 	let map = null
 	let selectedMarker = null
+	/** @type {{lat: number, lng: number} | null} */
 	let selected = $state(null)
 
 	function handleReady(m) {

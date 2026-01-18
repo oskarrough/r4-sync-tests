@@ -113,7 +113,7 @@
 
 		{#if !error && !success}<p>&nbsp;</p>{/if}
 
-		<form class="form" onsubmit={handleSubmit} disabled={submitting}>
+		<form class="form" onsubmit={handleSubmit}>
 			<fieldset>
 				<legend><label for="name">Name</label></legend>
 				<input id="name" name="name" type="text" value={channel.name ?? ''} required />

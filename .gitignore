@@ -1,18 +1,16 @@
-node_modules
-
 # Output
-.output
-.vercel
+node_modules
 /.svelte-kit
 /build
-/docs/_site
+.sprite
+
 # inlang generated artifacts
 ./i18n/project.inlang/cache/
 ./i18n/project.inlang/project_id
 
+
 # OS
 .DS_Store
-Thumbs.db
 
 # Env
 .env

@@ -7,30 +7,54 @@ import {appState} from '$lib/app-state.svelte'
 
 /** @typedef {import('$lib/types').BroadcastWithChannel} BroadcastWithChannel */
 
+const BROADCAST_SELECT = `
+	channel_id,
+	track_id,
+	track_played_at,
+	channels:channels_with_tracks (*),
+	tracks:channel_tracks!track_id (*)
+`
+
+/**
+ * Fetch all active broadcasts with their channel and track data.
+ * Type-narrows Supabase response to BroadcastWithChannel[].
+ * @returns {Promise<BroadcastWithChannel[]>}
+ */
+export async function readBroadcasts() {
+	const {data, error} = await sdk.supabase.from('broadcast').select(BROADCAST_SELECT)
+	if (error) throw error
+	return /** @type {BroadcastWithChannel[]} */ (/** @type {unknown} */ (data || []))
+}
+
+/**
+ * Fetch a single broadcast by channel ID.
+ * @param {string} channelId
+ * @returns {Promise<BroadcastWithChannel | null>}
+ */
+export async function readBroadcast(channelId) {
+	const {data, error} = await sdk.supabase
+		.from('broadcast')
+		.select(BROADCAST_SELECT)
+		.eq('channel_id', channelId)
+		.single()
+	if (error?.code === 'PGRST116') return null // not found
+	if (error) throw error
+	return /** @type {BroadcastWithChannel} */ (/** @type {unknown} */ (data))
+}
+
 export const broadcastsCollection = createCollection(
 	queryCollectionOptions({
 		queryKey: () => ['broadcasts'],
 		queryClient,
 		getKey: (/** @type {BroadcastWithChannel} */ item) => item.channel_id,
 		staleTime: Infinity,
-		queryFn: fetchBroadcastsWithChannel
+		queryFn: async () => {
+			const broadcasts = await readBroadcasts()
+			syncBroadcastingState(broadcasts)
+			return broadcasts
+		}
 	})
 )
-
-const BROADCAST_SELECT = `
-	channel_id,
-	track_id,
-	track_played_at,
-	channels:channels_with_tracks (*),
-	tracks (*)
-`
-
-async function fetchBroadcastsWithChannel() {
-	const {data, error} = await sdk.supabase.from('broadcast').select(BROADCAST_SELECT)
-	if (error) throw error
-	syncBroadcastingState(data || [])
-	return /** @type {BroadcastWithChannel[]} */ (data || [])
-}
 
 /**
  * Sync appState.broadcasting_channel_id from the broadcasts list
@@ -49,13 +73,9 @@ sdk.supabase
 
 		if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
 			const newData = /** @type {{channel_id: string}} */ (payload.new)
-			const {data} = await sdk.supabase
-				.from('broadcast')
-				.select(BROADCAST_SELECT)
-				.eq('channel_id', newData.channel_id)
-				.single()
-			if (data) {
-				broadcastsCollection.utils.writeUpsert(/** @type {BroadcastWithChannel} */ (data))
+			const broadcast = await readBroadcast(newData.channel_id)
+			if (broadcast) {
+				broadcastsCollection.utils.writeUpsert(broadcast)
 				syncBroadcastingState([...broadcastsCollection.state.values()])
 			}
 		}

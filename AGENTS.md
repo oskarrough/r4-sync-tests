@@ -20,7 +20,7 @@ The `/src/routes/_debug` folder has several examples, tests and playgrounds.
 ```
 /src/lib/types.ts      -- type definitions for the most important interfaces
 /src/lib/api.js        -- reusable data operations
-/src/lib/utils         -- the odd reusable function
+/src/lib/utils.ts      -- reusable utility functions
 /src/lib/tanstack      -- data and state
 /src/lib/components    -- where components go
 /src/routes            -- our pages

@@ -9,7 +9,7 @@
 		[...channelsCollection.state.values()]
 			.filter((c) => c.image)
 			.map((c) => ({
-				url: channelAvatarUrl(c.image),
+				url: channelAvatarUrl(/** @type {string} */ (c.image)),
 				width: 250,
 				height: 250,
 				slug: c.slug,

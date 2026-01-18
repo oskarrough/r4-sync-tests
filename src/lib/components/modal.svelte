@@ -4,7 +4,7 @@
 
 	let {showModal = $bindable(), header, children} = $props()
 
-	let dialog = $state() // HTMLDialogElement
+	let dialog = $state()
 
 	$effect(() => {
 		if (showModal) {
@@ -36,13 +36,31 @@
 
 <style>
 	dialog {
+		--duration: 200ms;
 		border: none;
 		width: 100%;
 		background: none;
 		padding: calc(0.2px + 13vh) 12px 13vh;
 	}
+	dialog[open] {
+		animation: modal-in var(--duration) ease-out;
+	}
+	@keyframes modal-in {
+		from { opacity: 0; transform: scale(0.98); }
+		to { opacity: 1; transform: scale(1); }
+	}
 	dialog::backdrop {
-		background: rgba(0, 0, 0, 0.4);
+		background: lch(0 0 0 / 0.275);
+		opacity: 1;
+		transition:
+			opacity var(--duration) ease-out,
+			display var(--duration) allow-discrete,
+			overlay var(--duration) allow-discrete;
+	}
+	@starting-style {
+		dialog[open]::backdrop {
+			opacity: 0;
+		}
 	}
 	dialog > div {
 		max-width: 640px;
@@ -58,28 +76,7 @@
 		border: 1px solid var(--gray-12);
 		border-radius: var(--border-radius);
 		padding: 1em;
-	}
-	dialog[open] {
-		animation: zoom 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-	}
-	@keyframes zoom {
-		from {
-			transform: scale(0.95);
-		}
-		to {
-			transform: scale(1);
-		}
-	}
-	dialog[open]::backdrop {
-		animation: fade 0.2s ease-out;
-	}
-	@keyframes fade {
-		from {
-			opacity: 0;
-		}
-		to {
-			opacity: 1;
-		}
+		transform-origin: 50% 50% 0px;
 	}
 	header {
 		display: flex;

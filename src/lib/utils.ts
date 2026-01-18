@@ -172,6 +172,27 @@ export function delayWithJitter(base: number, jitter: number = 0.2): Promise<voi
 	return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+const oembedProviders: Record<string, string> = {
+	'youtube.com': 'https://www.youtube.com/oembed',
+	'youtu.be': 'https://www.youtube.com/oembed',
+	'soundcloud.com': 'https://soundcloud.com/oembed',
+	'vimeo.com': 'https://vimeo.com/api/oembed.json'
+}
+
+export async function fetchOEmbedTitle(mediaUrl: string): Promise<string | null> {
+	try {
+		const hostname = new URL(mediaUrl).hostname.replace('www.', '')
+		const endpoint = oembedProviders[hostname]
+		if (!endpoint) return null
+		const res = await fetch(`${endpoint}?url=${encodeURIComponent(mediaUrl)}&format=json`)
+		if (!res.ok) return null
+		const data = await res.json()
+		return data.title || null
+	} catch {
+		return null
+	}
+}
+
 /**
  * Build a Cloudinary URL for a channel avatar image
  * @param {string} id - Cloudinary image ID
