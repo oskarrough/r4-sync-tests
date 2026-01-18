@@ -1,29 +1,18 @@
 <script>
 	import {appState} from '$lib/app-state.svelte'
-	import {joinBroadcast, leaveBroadcast, watchBroadcasts} from '$lib/broadcast'
+	import {joinBroadcast, leaveBroadcast} from '$lib/broadcast'
 	import BroadcastControls from '$lib/components/broadcast-controls.svelte'
 	import ChannelCard from '$lib/components/channel-card.svelte'
 	import EnsureTrack from '$lib/components/ensure-track.svelte'
+	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
+	import {broadcastsCollection} from '$lib/tanstack/collections'
 	import {timeAgo} from '$lib/utils'
 	import * as m from '$lib/paraglide/messages'
 
-	/** @type {{broadcasts: import('$lib/types').BroadcastWithChannel[], error: string | null}} */
-	const broadcastState = $state({
-		broadcasts: [],
-		error: null
-	})
-
-	const activeBroadcasts = $derived(broadcastState.broadcasts)
-	const loadingError = $derived(broadcastState.error)
-
-	const unsubscribe = watchBroadcasts((data) => {
-		broadcastState.broadcasts = data.broadcasts
-		broadcastState.error = data.error
-	})
-
-	$effect(() => {
-		return unsubscribe
-	})
+	const broadcasts = useLiveQuery(broadcastsCollection)
+	const activeBroadcasts = $derived(broadcasts.data ?? [])
+	const loading = $derived(broadcasts.isLoading)
+	const loadingError = $derived(broadcasts.isError ? 'Failed to load broadcasts' : null)
 </script>
 
 <svelte:head>

@@ -1,7 +1,6 @@
 <script>
 	import {page} from '$app/state'
 	import {appState} from '$lib/app-state.svelte'
-	import {watchBroadcasts} from '$lib/broadcast'
 	import AddTrackModal from '$lib/components/add-track-modal.svelte'
 	import EditTrackModal from '$lib/components/edit-track-modal.svelte'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
@@ -9,19 +8,16 @@
 	import Icon from '$lib/components/icon.svelte'
 	import TestCounter from '$lib/components/test-counter.svelte'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
+	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
+	import {broadcastsCollection} from '$lib/tanstack/collections'
 	import * as m from '$lib/paraglide/messages'
 
 	const {preloading} = $props()
 
 	const userChannel = $derived(appState.channel)
 
-	let broadcastCount = $state(0)
-
-	const unsubscribe = watchBroadcasts((data) => {
-		broadcastCount = data.broadcasts.length
-	})
-
-	$effect(() => unsubscribe)
+	const broadcasts = useLiveQuery(broadcastsCollection)
+	const broadcastCount = $derived(broadcasts.data?.length ?? 0)
 </script>
 
 <header>

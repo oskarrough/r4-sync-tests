@@ -2,7 +2,13 @@ import {browser} from '$app/environment'
 import {validateListeningState} from '$lib/broadcast.js'
 import {logger} from '$lib/logger'
 import {sdk} from '@radio4000/sdk'
-import {queryClient, tracksCollection, channelsCollection, spamDecisionsCollection} from '$lib/tanstack/collections'
+import {
+	queryClient,
+	tracksCollection,
+	channelsCollection,
+	spamDecisionsCollection,
+	broadcastsCollection
+} from '$lib/tanstack/collections'
 import {cacheReady} from '$lib/tanstack/query-cache-persistence'
 import {collectionsHydrated} from '$lib/tanstack/collection-persistence'
 import {fetchAllChannels} from '$lib/api/fetch-channels'
@@ -56,6 +62,7 @@ async function preload() {
 			queryClient,
 			tracksCollection,
 			channelsCollection,
+			broadcastsCollection,
 			spamDecisionsCollection,
 			queue,
 			api
