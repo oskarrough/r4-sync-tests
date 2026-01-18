@@ -46,7 +46,7 @@
 						{/if}
 						{#if broadcast.tracks}
 							<em>{broadcast.tracks.title}</em> via
-							<a href="/{broadcast.channels?.slug}">@{broadcast.channels?.slug}</a>
+							<a href="/{broadcast.channels.slug}">@{broadcast.channels.slug}</a>
 						{:else}
 							<em>...</em>
 						{/if}

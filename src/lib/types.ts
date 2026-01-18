@@ -66,28 +66,9 @@ export interface Broadcast {
 	track_played_at: string
 }
 
-// Supabase views return nullable id/name/slug even though DB has NOT NULL constraints.
-// SDK Channel overrides these as required, but broadcast joins get raw view types.
-type BroadcastChannel = Omit<Channel, 'id' | 'name' | 'slug' | 'created_at' | 'updated_at'> & {
-	id: string | null
-	name: string | null
-	slug: string | null
-	created_at: string | null
-	updated_at: string | null
-}
-
-// Raw track from tracks table (no channel slug - that comes from channel_tracks view)
-type BroadcastTrack = Omit<Track, 'slug' | 'id' | 'title' | 'url' | 'created_at' | 'updated_at'> & {
-	id: string
-	title: string
-	url: string
-	created_at: string
-	updated_at: string
-}
-
 export interface BroadcastWithChannel extends Broadcast {
-	channels: BroadcastChannel
-	tracks: BroadcastTrack | null
+	channels: Channel
+	tracks: Track | null
 }
 
 export interface PlayHistory {
