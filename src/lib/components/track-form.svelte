@@ -1,6 +1,6 @@
 <script>
 	import {addTrack, updateTrack} from '$lib/tanstack/collections/tracks'
-	import {fetchOEmbedTitle} from '$lib/utils/oembed'
+	import {fetchOEmbedTitle} from '$lib/utils'
 	import * as m from '$lib/paraglide/messages'
 
 	const uid = $props.id()
