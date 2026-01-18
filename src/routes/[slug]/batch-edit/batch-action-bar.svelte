@@ -4,8 +4,8 @@
 	import {extractYouTubeId} from '$lib/utils'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
 
-	/** @type {{selectedIds?: string[], channel: import('$lib/types').Channel | null, allTags?: {value: string, count: number}[], tracks?: import('$lib/types').TrackWithMeta[], onClear?: () => void}} */
-	let {selectedIds = [], channel, allTags = [], tracks = [], onClear = () => {}} = $props()
+	/** @type {{selectedIds?: string[], channel: import('$lib/types').Channel | null, allTags?: {value: string, count: number}[], tracks?: import('$lib/types').TrackWithMeta[] }} */
+	let {selectedIds = [], channel, allTags = [], tracks = []} = $props()
 
 	let showAppend = $state(false)
 	let showRemoveTag = $state(false)
@@ -111,6 +111,20 @@
 	{#if selectedIds.length > 0}
 		<span class="count">Selected: {selectedIds.length}</span>
 
+		{#if tracksWithMetaDuration.length > 0}
+			<button
+				onclick={copyDurationFromMeta}
+				{@attach tooltip({content: 'Copy duration from YouTube metadata to track'})}
+				>Copy duration ({tracksWithMetaDuration.length})</button
+			>
+		{/if}
+
+		{#if tracksWithDuration.length > 0}
+			<button onclick={removeDuration} {@attach tooltip({content: 'Clear the duration field from selected tracks'})}
+				>Remove duration ({tracksWithDuration.length})</button
+			>
+		{/if}
+
 		{#if selectedMissingMeta.length > 0}
 			<button
 				onclick={fetchMeta}
@@ -122,36 +136,27 @@
 					: `Fetch meta (${selectedMissingMeta.length})`}
 			</button>
 		{/if}
+
+		{#if tracksWithMeta.length > 0}
+			<button onclick={removeMeta} {@attach tooltip({content: 'Delete cached YouTube/MusicBrainz/Discogs metadata'})}
+				>Remove meta ({tracksWithMeta.length})</button
+			>
+		{/if}
+
+		<hr />
+
 		<button
 			onclick={() => (showAppend = true)}
 			disabled={selectedIds.length === 0}
 			{@attach tooltip({content: 'Add text or tags to track descriptions'})}
 		>
-			Append...
+			Append text...
 		</button>
 		<button
 			onclick={() => (showRemoveTag = true)}
 			disabled={selectedTracksTags.length === 0}
 			{@attach tooltip({content: 'Remove a specific tag from all selected tracks'})}>Remove tag...</button
 		>
-		{#if tracksWithMetaDuration.length > 0}
-			<button
-				onclick={copyDurationFromMeta}
-				{@attach tooltip({content: 'Copy duration from YouTube metadata to track'})}
-				>Copy duration ({tracksWithMetaDuration.length})</button
-			>
-		{/if}
-		{#if tracksWithDuration.length > 0}
-			<button onclick={removeDuration} {@attach tooltip({content: 'Clear the duration field from selected tracks'})}
-				>Remove duration ({tracksWithDuration.length})</button
-			>
-		{/if}
-		{#if tracksWithMeta.length > 0}
-			<button onclick={removeMeta} {@attach tooltip({content: 'Delete cached YouTube/MusicBrainz/Discogs metadata'})}
-				>Remove meta ({tracksWithMeta.length})</button
-			>
-		{/if}
-		<button onclick={onClear} {@attach tooltip({content: 'Deselect all tracks'})}>Clear</button>
 	{:else}
 		&nbsp;
 	{/if}

@@ -314,6 +314,10 @@
 	<p style="padding: 1rem;">Channel not found</p>
 {:else}
 	<header>
+		<!-- <p class="hint">
+			Double-click to edit cells. Changes save as you edit. Tab to move between cells.<br />
+			Hold <kbd>Shift</kbd> or <kbd>ctrl</kbd> to select multiple cells.
+		</p> -->
 		<menu class="controls">
 			<PopoverMenu id="batch-filter">
 				{#snippet trigger()}<Icon icon="filter-alt" size="20" /> {filterLabels[filter]}{/snippet}
@@ -442,11 +446,12 @@
 				<div class="tracks-list">
 					<div class="tracks-header" style:grid-template-columns={gridTemplate}>
 						<div class="col-checkbox">
-							<menu class="selection">
-								<button onclick={hasSelection ? clearSelection : selectAll}>
-									{hasSelection ? selectedCount : filteredTracks.length}
-								</button>
-							</menu>
+							<input
+								type="checkbox"
+								checked={selectedCount === filteredTracks.length && filteredTracks.length > 0}
+								indeterminate={selectedCount > 0 && selectedCount < filteredTracks.length}
+								onchange={hasSelection ? clearSelection : selectAll}
+							/>
 						</div>
 						<div class="col-link"></div>
 						{#if !hiddenColumns.includes('url')}<div class="col-url">{m.batch_edit_column_url()}</div>{/if}
@@ -578,6 +583,11 @@
 		padding-right: 17px;
 	}
 
+	.tracks-header .col-checkbox {
+		text-align: center;
+		min-width: 40px;
+	}
+
 	.tracks-container {
 		min-width: 0;
 		overflow: hidden;
@@ -656,11 +666,6 @@
 
 	.column-options label:hover {
 		background: var(--gray-3);
-	}
-
-	menu.selection {
-		margin-left: 0.5rem;
-		margin-right: 0.5rem;
 	}
 
 	p.warn {
