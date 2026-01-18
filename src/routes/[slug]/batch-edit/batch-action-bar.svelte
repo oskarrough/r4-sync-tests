@@ -1,5 +1,10 @@
 <script>
-	import {batchUpdateTracksUniform, batchUpdateTracksIndividual, deleteTrackMeta} from '$lib/tanstack/collections'
+	import {
+		batchUpdateTracksUniform,
+		batchUpdateTracksIndividual,
+		deleteTrackMeta,
+		fetchMetaForTracks
+	} from '$lib/tanstack/collections'
 	import {extractYouTubeId} from '$lib/utils'
 	import {tooltip} from '$lib/components/tooltip-attachment.js'
 
@@ -9,12 +14,20 @@
 	let showAppend = $state(false)
 	let showRemoveTag = $state(false)
 	let appendText = $state('')
+	let fetchingMeta = $state(false)
+	let fetchProgress = $state({current: 0, total: 0})
 
 	/** @type {import('$lib/types').TrackWithMeta[]} */
 	let selectedTracks = $derived(selectedIds.map((id) => tracks.find((t) => t.id === id)).filter((t) => t !== undefined))
 
+	// Selected tracks missing YouTube metadata
+	let selectedMissingMeta = $derived(selectedTracks.filter((t) => !t.youtube_data && !t.playback_error))
+
 	// Tracks that have metadata duration but no track duration
 	let tracksWithMetaDuration = $derived(selectedTracks.filter((t) => !t.duration && t.youtube_data?.duration))
+
+	// Tracks that have a duration set
+	let tracksWithDuration = $derived(selectedTracks.filter((t) => t.duration))
 
 	// Tracks that have any metadata
 	let tracksWithMeta = $derived(selectedTracks.filter((t) => t.youtube_data || t.musicbrainz_data || t.discogs_data))
@@ -82,14 +95,43 @@
 		if (ytids.length === 0) return
 		deleteTrackMeta(ytids)
 	}
+
+	async function fetchMeta() {
+		if (fetchingMeta || selectedMissingMeta.length === 0 || !channel) return
+		fetchingMeta = true
+		fetchProgress = {current: 0, total: 0}
+		try {
+			await fetchMetaForTracks(channel, selectedMissingMeta, (progress) => {
+				fetchProgress = progress
+			})
+		} finally {
+			fetchingMeta = false
+			fetchProgress = {current: 0, total: 0}
+		}
+	}
 </script>
 
 <aside>
 	<span class="count">Selected: {selectedIds.length}</span>
 
-	<button onclick={() => (showAppend = true)} {@attach tooltip({content: 'Add text or tags to track descriptions'})}
-		>Append...</button
+	{#if selectedMissingMeta.length > 0}
+		<button
+			onclick={fetchMeta}
+			disabled={fetchingMeta}
+			{@attach tooltip({content: 'Fetch YouTube metadata for selected tracks'})}
+		>
+			{fetchingMeta
+				? `Fetching... (${fetchProgress.current}/${fetchProgress.total})`
+				: `Fetch meta (${selectedMissingMeta.length})`}
+		</button>
+	{/if}
+	<button
+		onclick={() => (showAppend = true)}
+		disabled={selectedIds.length === 0}
+		{@attach tooltip({content: 'Add text or tags to track descriptions'})}
 	>
+		Append...
+	</button>
 	<button
 		onclick={() => (showRemoveTag = true)}
 		disabled={selectedTracksTags.length === 0}

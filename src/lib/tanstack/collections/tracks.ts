@@ -4,6 +4,7 @@ import {NonRetriableError} from '@tanstack/offline-transactions'
 import {sdk} from '@radio4000/sdk'
 import type {PendingMutation} from '@tanstack/db'
 import {extractYouTubeId, uuid} from '$lib/utils'
+import {pull as pullYouTubeMeta} from '$lib/metadata/youtube'
 import {queryClient} from './query-client'
 import {channelsCollection, type Channel} from './channels'
 import {trackMetaCollection, type TrackMeta} from './track-meta'
@@ -296,6 +297,38 @@ export async function ensureTracksLoaded(slug: string): Promise<void> {
 	tracksCollection.utils.writeBatch(() => {
 		for (const track of data) {
 			tracksCollection.utils.writeUpsert(track)
+		}
+	})
+}
+
+type FetchMetaProgress = {current: number; total: number}
+
+/**
+ * Fetch YouTube metadata for tracks and update their durations
+ */
+export async function fetchMetaForTracks(
+	channel: Channel,
+	tracks: Track[],
+	onProgress?: (progress: FetchMetaProgress) => void
+): Promise<void> {
+	const trackByYtid = new Map<string, Track>()
+	for (const t of tracks) {
+		const ytid = extractYouTubeId(t.url)
+		if (ytid) trackByYtid.set(ytid, t)
+	}
+
+	const ytids = [...trackByYtid.keys()]
+	if (ytids.length === 0) return
+
+	await pullYouTubeMeta(ytids, {
+		onProgress: async ({current, total, videos}) => {
+			onProgress?.({current, total})
+			const updates = videos
+				.filter((v) => v?.duration && trackByYtid.has(v.id))
+				.map((v) => ({id: trackByYtid.get(v.id)!.id, changes: {duration: v.duration}}))
+			if (updates.length) {
+				await batchUpdateTracksIndividual(channel, updates)
+			}
 		}
 	})
 }

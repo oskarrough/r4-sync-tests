@@ -30,7 +30,8 @@ export {
 	batchUpdateTracksIndividual,
 	batchDeleteTracks,
 	checkTracksFreshness,
-	ensureTracksLoaded
+	ensureTracksLoaded,
+	fetchMetaForTracks
 } from './tracks'
 
 // Offline executor
