@@ -148,22 +148,6 @@
 			applyInitialVolume()
 		}
 	})
-
-	$effect(() => {
-		const seekTime = globalThis.__pendingSeekTime
-		if (!seekTime || !mediaElement || !track) return
-		globalThis.__pendingSeekTime = undefined
-
-		const doSeek = () => {
-			log.log('seeking to broadcast position', {seekTime, trackId: track.id})
-			mediaElement.currentTime = seekTime
-		}
-		if (mediaElement.readyState >= 1) {
-			doSeek()
-		} else {
-			mediaElement.addEventListener('loadedmetadata', doSeek, {once: true})
-		}
-	})
 </script>
 
 <div class={['player', appState.player_expanded ? 'expanded' : 'compact']}>

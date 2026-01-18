@@ -1,4 +1,4 @@
-import {playTrack} from '$lib/api'
+import {playTrack, seekTo} from '$lib/api'
 import {appState} from '$lib/app-state.svelte'
 import {logger} from '$lib/logger'
 import {sdk} from '@radio4000/sdk'
@@ -189,8 +189,8 @@ async function playBroadcastTrack(broadcast) {
 
 	const seekTime = calculateSeekTime(broadcast, track)
 	log.log('play_broadcast_track', {track_id, seekTime})
-	globalThis.__pendingSeekTime = seekTime
 	await playTrack(track_id, null, 'broadcast_sync')
+	if (seekTime) seekTo(seekTime)
 	appState.listening_to_channel_id = channel_id
 	return true
 }
