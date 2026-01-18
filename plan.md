@@ -3,23 +3,6 @@
 List of possible improvements to the architecture, idea, cli and web application.
 Verify and evaluate todos before taking them on. They might be outdated or just not good ideas.
 
-## Done: Batch Duration Fetch Improvements
-
-Improved the batch-edit "Fetch meta" feature for fetching YouTube durations.
-
-**Changes:**
-- `youtube.js`: Added `onProgress` callback to `pull()` for progress updates
-- `batch-edit/+page.svelte`: Selection-aware fetch - if tracks selected, fetches only for selected; otherwise all missing meta
-- Progress UI shows `(N/total)` during fetch
-- Added "Fix durations (N)" button for tracks with cached metadata but no saved duration
-- Added "Meta but no duration" filter to find edge cases
-
-**Usage:**
-1. Go to `/{slug}/batch-edit`
-2. Optional: Select specific tracks
-3. Click "Fetch meta (N)" - fetches YouTube data + saves duration
-4. If some tracks have cached meta but no duration (edge case), use "Fix durations" or filter by "Meta but no duration"
-
 ## BACKLOG
 
 - On-demand predicate push-down: we set `syncMode: 'on-demand'` but don't use `parseLoadSubsetOptions` in queryFn. Currently we manually check for slug and call different SDK methods. With proper on-demand, live query `where()` clauses flow through to backend:

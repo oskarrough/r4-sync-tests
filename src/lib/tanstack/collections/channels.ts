@@ -159,7 +159,7 @@ export function updateChannel(id: string, changes: Record<string, unknown>) {
 		const channel = channelsCollection.get(id)
 		if (!channel) return
 		channelsCollection.update(id, (draft) => {
-			Object.assign(draft, changes, {updated_at: new Date().toISOString()})
+			Object.assign(draft, changes)
 		})
 	})
 	return tx.commit()

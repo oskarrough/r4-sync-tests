@@ -66,38 +66,23 @@
 
 	// All tracks missing YouTube metadata
 	let allTracksMissingMeta = $derived(tracks.filter((t) => !t.youtube_data && !t.playback_error))
+	let allMissingYtids = $derived(allTracksMissingMeta.map((t) => extractYouTubeId(t.url)).filter(Boolean))
 
-	// Selected tracks (actual track objects)
-	let selectedTrackObjects = $derived(selectedTracks.map((id) => tracks.find((t) => t.id === id)).filter(Boolean))
-
-	// Target tracks for fetch: selected if any, otherwise all missing meta
-	let targetTracks = $derived(
-		selectedTracks.length > 0
-			? selectedTrackObjects.filter((t) => !t.youtube_data && !t.playback_error)
-			: allTracksMissingMeta
-	)
-
-	// YouTube IDs for target tracks
-	let targetYtids = $derived(targetTracks.map((t) => extractYouTubeId(t.url)).filter(Boolean))
-
-	// Tracks with cached metadata duration but no saved track.duration
-	let tracksNeedingDuration = $derived(tracks.filter((t) => !t.duration && t.youtube_data?.duration))
-
-	async function fetchYouTubeMeta() {
-		if (fetchingMeta || targetYtids.length === 0) return
+	async function fetchAllMeta() {
+		if (fetchingMeta || allMissingYtids.length === 0) return
 		fetchingMeta = true
-		fetchProgress = {current: 0, total: targetYtids.length}
+		fetchProgress = {current: 0, total: allMissingYtids.length}
 
-		// Build ytid → track mapping from target tracks
+		// Build ytid → track mapping
 		/** @type {SvelteMap<string, import('$lib/types').Track>} */
 		const trackByYtid = new SvelteMap()
-		for (const t of targetTracks) {
+		for (const t of allTracksMissingMeta) {
 			const ytid = extractYouTubeId(t.url)
 			if (ytid) trackByYtid.set(ytid, t)
 		}
 
 		try {
-			await pullYouTubeMeta(targetYtids, {
+			await pullYouTubeMeta(allMissingYtids, {
 				onProgress: async ({current, total, videos}) => {
 					fetchProgress = {current, total}
 
@@ -119,15 +104,6 @@
 			fetchingMeta = false
 			fetchProgress = {current: 0, total: 0}
 		}
-	}
-
-	async function fixDurations() {
-		if (!channel || tracksNeedingDuration.length === 0) return
-		const updates = tracksNeedingDuration.map((t) => ({
-			id: t.id,
-			changes: {duration: t.youtube_data?.duration}
-		}))
-		await batchUpdateTracksIndividual(channel, updates)
 	}
 
 	// Column visibility
@@ -360,21 +336,6 @@
 	<p style="padding: 1rem;">Channel not found</p>
 {:else}
 	<header>
-		<nav>
-			<a href="/{slug}">@{channel.name}</a>
-			{m.batch_edit_nav_suffix()}
-		</nav>
-
-		{#if readonly}
-			<p class="hint warn">READ ONLY, this is a v1 channel</p>
-		{:else if !canEdit}
-			<p class="hint warn">(READ ONLY, you do not have edit access)</p>
-		{/if}
-
-		<!-- <p class="hint">
-			Double-click to edit cells. Changes save as you edit. Tab to move between cells.<br />
-			Hold <kbd>Shift</kbd> or <kbd>ctrl</kbd> to select multiple cells.
-		</p> -->
 		<menu class="controls">
 			<PopoverMenu id="batch-filter">
 				{#snippet trigger()}<Icon icon="filter-alt" size="20" /> {filterLabels[filter]}{/snippet}
@@ -419,20 +380,15 @@
 
 			<input type="search" bind:value={search} placeholder="Search..." />
 
-			{#if canEdit && targetYtids.length > 0}
+			{#if canEdit && allMissingYtids.length > 0}
 				<button
-					onclick={fetchYouTubeMeta}
+					onclick={fetchAllMeta}
 					disabled={fetchingMeta}
-					title="Fetch YouTube metadata for {targetYtids.length} {selectedTracks.length > 0 ? 'selected' : ''} tracks"
+					title="Fetch YouTube metadata for all {allMissingYtids.length} tracks missing metadata"
 				>
 					{fetchingMeta
 						? `Fetching... (${fetchProgress.current}/${fetchProgress.total})`
-						: `Fetch meta (${targetYtids.length}${selectedTracks.length > 0 ? ' sel' : ''})`}
-				</button>
-			{/if}
-			{#if canEdit && tracksNeedingDuration.length > 0}
-				<button onclick={fixDurations} title="Copy cached metadata duration to {tracksNeedingDuration.length} tracks">
-					Fix durations ({tracksNeedingDuration.length})
+						: `Fetch all meta (${allMissingYtids.length})`}
 				</button>
 			{/if}
 

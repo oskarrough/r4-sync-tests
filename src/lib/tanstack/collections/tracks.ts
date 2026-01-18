@@ -78,7 +78,7 @@ async function handleTrackInsert(mutation: PendingMutation, metadata: Record<str
 async function handleTrackUpdate(mutation: PendingMutation): Promise<void> {
 	const track = mutation.modified as {id: string}
 	const changes = mutation.changes as Record<string, unknown>
-	log.info('update_start', {id: track.id, title: changes.title})
+	log.info('update_start', {id: track.id, changes})
 	const response = await sdk.tracks.updateTrack(track.id, changes)
 	log.info('update_done', {id: track.id, error: response.error})
 	if (response.error) throw new NonRetriableError(getErrorMessage(response.error))
@@ -165,7 +165,7 @@ export function addTrack(
 	return tx.commit()
 }
 
-export function updateTrack(channel: {id: string; slug: string}, id: string, changes: Record<string, unknown>) {
+export async function updateTrack(channel: {id: string; slug: string}, id: string, changes: Record<string, unknown>) {
 	const tx = getOfflineExecutor().createOfflineTransaction({
 		mutationFnName: 'syncTracks',
 		metadata: {channelId: channel.id, slug: channel.slug},
@@ -175,10 +175,13 @@ export function updateTrack(channel: {id: string; slug: string}, id: string, cha
 		const track = tracksCollection.get(id)
 		if (!track) return
 		tracksCollection.update(id, (draft) => {
-			Object.assign(draft, changes, {updated_at: new Date().toISOString()})
+			Object.assign(draft, changes)
 		})
 	})
-	return tx.commit()
+	await tx.commit()
+	// Derived live queries don't react to transaction updates, so manually trigger
+	const track = tracksCollection.get(id)
+	if (track) tracksCollection.utils.writeUpsert({...track, ...changes})
 }
 
 export function deleteTrack(channel: {id: string; slug: string}, id: string) {
@@ -196,7 +199,7 @@ export function deleteTrack(channel: {id: string; slug: string}, id: string) {
 	return tx.commit()
 }
 
-export function batchUpdateTracksUniform(channel: Channel, ids: string[], changes: Record<string, unknown>) {
+export async function batchUpdateTracksUniform(channel: Channel, ids: string[], changes: Record<string, unknown>) {
 	const tx = getOfflineExecutor().createOfflineTransaction({
 		mutationFnName: 'syncTracks',
 		metadata: {channelId: channel.id, slug: channel.slug},
@@ -207,14 +210,21 @@ export function batchUpdateTracksUniform(channel: Channel, ids: string[], change
 			const track = tracksCollection.get(id)
 			if (!track) continue
 			tracksCollection.update(id, (draft) => {
-				Object.assign(draft, changes, {updated_at: new Date().toISOString()})
+				Object.assign(draft, changes)
 			})
 		}
 	})
-	return tx.commit()
+	await tx.commit()
+	// Derived live queries don't react to transaction updates, so manually trigger
+	tracksCollection.utils.writeBatch(() => {
+		for (const id of ids) {
+			const track = tracksCollection.get(id)
+			if (track) tracksCollection.utils.writeUpsert({...track, ...changes})
+		}
+	})
 }
 
-export function batchUpdateTracksIndividual(
+export async function batchUpdateTracksIndividual(
 	channel: Channel,
 	updates: Array<{id: string; changes: Record<string, unknown>}>
 ) {
@@ -224,16 +234,22 @@ export function batchUpdateTracksIndividual(
 		autoCommit: false
 	})
 	tx.mutate(() => {
-		const now = new Date().toISOString()
 		for (const {id, changes} of updates) {
 			const track = tracksCollection.get(id)
 			if (!track) continue
 			tracksCollection.update(id, (draft) => {
-				Object.assign(draft, changes, {updated_at: now})
+				Object.assign(draft, changes)
 			})
 		}
 	})
-	return tx.commit()
+	await tx.commit()
+	// Derived live queries don't react to transaction updates, so manually trigger
+	tracksCollection.utils.writeBatch(() => {
+		for (const {id, changes} of updates) {
+			const track = tracksCollection.get(id)
+			if (track) tracksCollection.utils.writeUpsert({...track, ...changes})
+		}
+	})
 }
 
 export function batchDeleteTracks(channel: Channel, ids: string[]) {
