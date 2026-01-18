@@ -31,7 +31,7 @@ export async function joinBroadcast(channelId) {
 
 		// Prefetch all tracks for this channel
 		const broadcast = broadcastsCollection.state.get(channelId)
-		const slug = broadcast?.channels?.slug
+		const slug = broadcast?.channels.slug
 		if (slug) {
 			ensureTracksLoaded(slug)
 			log.log('prefetching_tracks', {slug})

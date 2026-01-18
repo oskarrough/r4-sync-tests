@@ -97,7 +97,8 @@
 			}
 			onsubmit?.({data: {url, title}, error: null})
 			if (mode === 'create') {
-				/** @type {HTMLFormElement} */ event.target.reset()
+				const form = /** @type {HTMLFormElement | null} */ (event.target)
+				form?.reset()
 			}
 		} catch (err) {
 			error = /** @type {Error} */ (err).message || 'Failed to save track'
@@ -115,7 +116,7 @@
 	<p class="error" role="alert">{m.common_error()}: {error}</p>
 {/if}
 
-<form class="form" onsubmit={handleSubmit} disabled={submitting}>
+<form class="form" onsubmit={handleSubmit}>
 	<fieldset>
 		<legend><label for="{uid}-url">URL</label></legend>
 		<input

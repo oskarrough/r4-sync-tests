@@ -74,7 +74,7 @@
 			<p class="error" role="alert">{m.common_error()}: {error}</p>
 		{/if}
 
-		<form class="form" onsubmit={handleDelete} disabled={deleting}>
+		<form class="form" onsubmit={handleDelete}>
 			<fieldset>
 				<legend><label for="confirm">Type <code>{track.title}</code> to confirm</label></legend>
 				<input id="confirm" type="text" bind:value={confirmTitle} autocomplete="off" />

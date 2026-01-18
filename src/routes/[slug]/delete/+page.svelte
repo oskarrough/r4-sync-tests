@@ -66,7 +66,7 @@
 			<p class="error" role="alert">{error}</p>
 		{/if}
 
-		<form class="form" onsubmit={handleDelete} disabled={deleting}>
+		<form class="form" onsubmit={handleDelete}>
 			<fieldset>
 				<legend><label for="confirm">Type <code>{channel.slug}</code> to confirm</label></legend>
 				<input id="confirm" type="text" bind:value={confirmSlug} autocomplete="off" />
