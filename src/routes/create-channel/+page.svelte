@@ -57,7 +57,7 @@
 		</header>
 
 		{#if error}
-			<p class="error">Error: {error}</p>
+			<p class="error" role="alert">{error}</p>
 		{/if}
 
 		<form class="form" onsubmit={handleSubmit} disabled={submitting}>

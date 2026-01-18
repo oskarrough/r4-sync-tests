@@ -55,7 +55,7 @@
 			<input type="email" bind:value={email} required autocomplete="email" placeholder="Enter your email address…" />
 		</label>
 		{#if error}
-			<p role="alert">{error}</p>
+			<p class="error" role="alert">{error}</p>
 		{/if}
 		<button type="submit" class="primary" disabled={loading}>
 			{loading ? m.common_sending() : m.auth_continue_with_email()}

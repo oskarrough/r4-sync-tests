@@ -104,7 +104,7 @@
 		</header>
 
 		{#if error}
-			<p class="error">{m.common_error()}: {error}</p>
+			<p class="error" role="alert">{m.common_error()}: {error}</p>
 		{/if}
 
 		{#if success}
