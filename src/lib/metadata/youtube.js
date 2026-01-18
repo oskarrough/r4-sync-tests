@@ -75,6 +75,9 @@ export async function pull(ytids, {signal, onProgress} = {}) {
 
 		if (!result.ok) {
 			log.warn('batch failed:', result.error.message)
+			if (onProgress) {
+				await onProgress({current: currentBatch, total: totalBatches, videos: []})
+			}
 			continue
 		}
 

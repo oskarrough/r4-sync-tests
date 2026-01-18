@@ -46,8 +46,14 @@
 		animation: modal-in var(--duration) ease-out;
 	}
 	@keyframes modal-in {
-		from { opacity: 0; transform: scale(0.98); }
-		to { opacity: 1; transform: scale(1); }
+		from {
+			opacity: 0;
+			transform: scale(0.98);
+		}
+		to {
+			opacity: 1;
+			transform: scale(1);
+		}
 	}
 	dialog::backdrop {
 		background: lch(0 0 0 / 0.275);

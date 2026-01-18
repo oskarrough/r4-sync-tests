@@ -1,5 +1,4 @@
 <script>
-	import {SvelteMap} from 'svelte/reactivity'
 	import {useLiveQuery} from '$lib/tanstack/useLiveQuery.svelte.js'
 	import {eq} from '@tanstack/db'
 	import SvelteVirtualList from '@humanspeak/svelte-virtual-list'
@@ -10,12 +9,11 @@
 		tracksCollection,
 		trackMetaCollection,
 		updateTrack,
-		batchUpdateTracksIndividual
+		insertDurationFromMeta
 	} from '$lib/tanstack/collections'
+	import {pull as pullYouTubeMeta} from '$lib/metadata/youtube'
 	import {extractYouTubeId} from '$lib/utils'
 	import {appState} from '$lib/app-state.svelte'
-	import {pull as pullYouTubeMeta} from '$lib/metadata/youtube'
-	import {mapChunked} from '$lib/async'
 	import TrackRow from './track-row.svelte'
 	import BatchActionBar from './batch-action-bar.svelte'
 	import PopoverMenu from '$lib/components/popover-menu.svelte'
@@ -63,48 +61,26 @@
 	let mentionFilter = $state('')
 	let search = $state('')
 	let fetchingMeta = $state(false)
+	let fetchProgress = $state({current: 0, total: 0})
 
-	// Tracks missing YouTube metadata (exclude tracks with playback errors)
-	let tracksMissingMeta = $derived(
-		tracks
-			.filter((t) => !t.youtube_data && !t.playback_error)
-			.map((t) => extractYouTubeId(t.url))
-			.filter(Boolean)
-	)
+	// All tracks missing YouTube metadata
+	let allTracksMissingMeta = $derived(tracks.filter((t) => !t.youtube_data && !t.playback_error))
 
-	async function fetchYouTubeMeta() {
-		if (fetchingMeta || tracksMissingMeta.length === 0) return
+	async function fetchAllMeta() {
+		if (fetchingMeta || allTracksMissingMeta.length === 0 || !channel) return
 		fetchingMeta = true
+		fetchProgress = {current: 0, total: 0}
 		try {
-			// Build ytid → track mapping
-			/** @type {SvelteMap<string, import('$lib/types').Track>} */
-			const trackByYtid = new SvelteMap()
-			for (const t of rawTracks) {
-				const ytid = extractYouTubeId(t.url)
-				if (ytid) trackByYtid.set(ytid, t)
-			}
-
-			// Stream: fetch chunk → update tracks → next chunk
-			for await (const result of mapChunked(tracksMissingMeta, (batch) => pullYouTubeMeta(batch), {
-				chunk: 50,
-				concurrency: 1
-			})) {
-				if (!result.ok) continue
-
-				const updates = result.value
-					.filter((v) => v?.duration && trackByYtid.has(v.id))
-					.map((v) => {
-						const track = trackByYtid.get(v.id)
-						return track ? {id: track.id, changes: {duration: v.duration}} : null
-					})
-					.filter(Boolean)
-
-				if (updates.length && channel) {
-					await batchUpdateTracksIndividual(channel, updates)
+			const ytids = allTracksMissingMeta.map((t) => extractYouTubeId(t.url)).filter((id) => id !== null)
+			await pullYouTubeMeta(ytids, {
+				onProgress: ({current, total}) => {
+					fetchProgress = {current, total}
 				}
-			}
+			})
+			await insertDurationFromMeta(channel, allTracksMissingMeta)
 		} finally {
 			fetchingMeta = false
+			fetchProgress = {current: 0, total: 0}
 		}
 	}
 
@@ -116,8 +92,8 @@
 		'tags',
 		'mentions',
 		'discogs',
-		'meta',
 		'duration',
+		'meta',
 		'error',
 		'created',
 		'updated'
@@ -163,7 +139,8 @@
 		'has-t-param': 'Has &t= param',
 		'has-error': 'Has error',
 		'has-duration': 'Has duration',
-		'no-duration': 'No duration'
+		'no-duration': 'No duration',
+		'meta-no-duration': 'Meta but no duration'
 	}
 
 	const sortKey = {
@@ -247,6 +224,8 @@
 					return (track.duration ?? 0) > 0
 				case 'no-duration':
 					return !track.duration
+				case 'meta-no-duration':
+					return !track.duration && track.youtube_data?.duration
 				default:
 					return true
 			}
@@ -335,17 +314,6 @@
 	<p style="padding: 1rem;">Channel not found</p>
 {:else}
 	<header>
-		<nav>
-			<a href="/{slug}">@{channel.name}</a>
-			{m.batch_edit_nav_suffix()}
-		</nav>
-
-		{#if readonly}
-			<p class="hint warn">READ ONLY, this is a v1 channel</p>
-		{:else if !canEdit}
-			<p class="hint warn">(READ ONLY, you do not have edit access)</p>
-		{/if}
-
 		<!-- <p class="hint">
 			Double-click to edit cells. Changes save as you edit. Tab to move between cells.<br />
 			Hold <kbd>Shift</kbd> or <kbd>ctrl</kbd> to select multiple cells.
@@ -365,6 +333,9 @@
 				<button class:active={filter === 'has-error'} onclick={() => (filter = 'has-error')}>Has error</button>
 				<button class:active={filter === 'has-duration'} onclick={() => (filter = 'has-duration')}>Has duration</button>
 				<button class:active={filter === 'no-duration'} onclick={() => (filter = 'no-duration')}>No duration</button>
+				<button class:active={filter === 'meta-no-duration'} onclick={() => (filter = 'meta-no-duration')}
+					>Meta but no duration</button
+				>
 			</PopoverMenu>
 
 			{#if allTags.length > 0}
@@ -391,18 +362,20 @@
 
 			<input type="search" bind:value={search} placeholder="Search..." />
 
-			{#if canEdit && tracksMissingMeta.length > 0}
+			{#if canEdit && allTracksMissingMeta.length > 0}
 				<button
-					onclick={fetchYouTubeMeta}
+					onclick={fetchAllMeta}
 					disabled={fetchingMeta}
-					title="Fetch YouTube metadata for {tracksMissingMeta.length} tracks (excludes tracks with playback errors)"
+					title="Fetch YouTube metadata for all {allTracksMissingMeta.length} tracks missing metadata"
 				>
-					{fetchingMeta ? 'Fetching...' : `Fetch meta (${tracksMissingMeta.length})`}
+					{fetchingMeta
+						? `Fetching... (${fetchProgress.current}/${fetchProgress.total})`
+						: `Fetch all meta (${allTracksMissingMeta.length})`}
 				</button>
 			{/if}
 
 			<PopoverMenu id="batch-display" closeOnClick={false} style="margin-left: auto;">
-				{#snippet trigger()}<Icon icon="grid" size="20" /> Display{/snippet}
+				{#snippet trigger()}<Icon icon="grid" size="20" strokeWidth={1.7} /> Display{/snippet}
 				<div class="sort-row">
 					<select bind:value={sortBy}>
 						<option value={null}>Sort by...</option>
@@ -446,9 +419,20 @@
 				</div>
 			</PopoverMenu>
 		</menu>
+
+		<nav>
+			<a href="/{slug}">@{channel.name}</a>
+			{m.batch_edit_nav_suffix()}
+		</nav>
+
+		{#if readonly}
+			<p class="hint warn">READ ONLY, this is a v1 channel</p>
+		{:else if !canEdit}
+			<p class="hint warn">(READ ONLY, you do not have edit access)</p>
+		{/if}
 	</header>
 
-	{#if hasSelection && canEdit}
+	{#if canEdit}
 		<BatchActionBar selectedIds={selectedTracks} {channel} {allTags} {tracks} onClear={clearSelection} />
 	{/if}
 
@@ -462,11 +446,12 @@
 				<div class="tracks-list">
 					<div class="tracks-header" style:grid-template-columns={gridTemplate}>
 						<div class="col-checkbox">
-							<menu class="selection">
-								<button onclick={hasSelection ? clearSelection : selectAll}>
-									{hasSelection ? selectedCount : filteredTracks.length}
-								</button>
-							</menu>
+							<input
+								type="checkbox"
+								checked={selectedCount === filteredTracks.length && filteredTracks.length > 0}
+								indeterminate={selectedCount > 0 && selectedCount < filteredTracks.length}
+								onchange={hasSelection ? clearSelection : selectAll}
+							/>
 						</div>
 						<div class="col-link"></div>
 						{#if !hiddenColumns.includes('url')}<div class="col-url">{m.batch_edit_column_url()}</div>{/if}
@@ -503,14 +488,6 @@
 								{sortBy === 'mentions' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
 							</button>{/if}
 						{#if !hiddenColumns.includes('discogs')}<div class="col-discogs">{m.batch_edit_column_discogs()}</div>{/if}
-						{#if !hiddenColumns.includes('meta')}<button
-								class="col-meta sortable"
-								class:sorted={sortBy === 'meta'}
-								onclick={() => toggleSort('meta')}
-							>
-								{m.batch_edit_column_meta()}
-								{sortBy === 'meta' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
-							</button>{/if}
 						{#if !hiddenColumns.includes('duration')}<button
 								class="col-duration sortable"
 								class:sorted={sortBy === 'duration'}
@@ -518,6 +495,14 @@
 							>
 								{m.batch_edit_column_duration()}
 								{sortBy === 'duration' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+							</button>{/if}
+						{#if !hiddenColumns.includes('meta')}<button
+								class="col-meta sortable"
+								class:sorted={sortBy === 'meta'}
+								onclick={() => toggleSort('meta')}
+							>
+								{m.batch_edit_column_meta()}
+								{sortBy === 'meta' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
 							</button>{/if}
 						{#if !hiddenColumns.includes('error')}<button
 								class="col-error sortable"
@@ -598,6 +583,11 @@
 		padding-right: 17px;
 	}
 
+	.tracks-header .col-checkbox {
+		text-align: center;
+		min-width: 40px;
+	}
+
 	.tracks-container {
 		min-width: 0;
 		overflow: hidden;
@@ -646,6 +636,7 @@
 		align-items: center;
 		gap: 0.5rem;
 		flex-wrap: wrap;
+		margin-top: 0.5rem;
 	}
 
 	.sort-row {
@@ -675,11 +666,6 @@
 
 	.column-options label:hover {
 		background: var(--gray-3);
-	}
-
-	menu.selection {
-		margin-left: 0.5rem;
-		margin-right: 0.5rem;
 	}
 
 	p.warn {

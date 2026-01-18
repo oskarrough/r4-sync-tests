@@ -31,7 +31,7 @@ export {
 	batchDeleteTracks,
 	checkTracksFreshness,
 	ensureTracksLoaded,
-	fetchMetaForTracks
+	insertDurationFromMeta
 } from './tracks'
 
 // Offline executor

@@ -73,6 +73,9 @@
 			<p>
 				<a href="/{channel.slug}">@{channel.slug}</a> / {track.title}
 			</p>
+
+			<TrackCard {track} />
+
 			<menu class="tree">
 				<a href="?tab=r5" class:active={activeTab === 'r5' || !activeTab}>{m.track_detail_nav_r5()}</a>
 				<a href="?tab=youtube" class:active={activeTab === 'youtube'}>{m.track_detail_nav_youtube()}</a>
@@ -91,7 +94,6 @@
 		{:else if activeTab === 'related'}
 			<TrackRelated {track} />
 		{:else}
-			<TrackCard {track} />
 			<TrackMetaR5 data={track} />
 		{/if}
 

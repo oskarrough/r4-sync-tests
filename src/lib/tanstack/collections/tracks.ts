@@ -4,7 +4,6 @@ import {NonRetriableError} from '@tanstack/offline-transactions'
 import {sdk} from '@radio4000/sdk'
 import type {PendingMutation} from '@tanstack/db'
 import {extractYouTubeId, uuid} from '$lib/utils'
-import {pull as pullYouTubeMeta} from '$lib/metadata/youtube'
 import {queryClient} from './query-client'
 import {channelsCollection, type Channel} from './channels'
 import {trackMetaCollection, type TrackMeta} from './track-meta'
@@ -79,7 +78,7 @@ async function handleTrackInsert(mutation: PendingMutation, metadata: Record<str
 async function handleTrackUpdate(mutation: PendingMutation): Promise<void> {
 	const track = mutation.modified as {id: string}
 	const changes = mutation.changes as Record<string, unknown>
-	log.info('update_start', {id: track.id, title: changes.title})
+	log.info('update_start', {id: track.id, changes})
 	const response = await sdk.tracks.updateTrack(track.id, changes)
 	log.info('update_done', {id: track.id, error: response.error})
 	if (response.error) throw new NonRetriableError(getErrorMessage(response.error))
@@ -166,7 +165,7 @@ export function addTrack(
 	return tx.commit()
 }
 
-export function updateTrack(channel: {id: string; slug: string}, id: string, changes: Record<string, unknown>) {
+export async function updateTrack(channel: {id: string; slug: string}, id: string, changes: Record<string, unknown>) {
 	const tx = getOfflineExecutor().createOfflineTransaction({
 		mutationFnName: 'syncTracks',
 		metadata: {channelId: channel.id, slug: channel.slug},
@@ -176,10 +175,13 @@ export function updateTrack(channel: {id: string; slug: string}, id: string, cha
 		const track = tracksCollection.get(id)
 		if (!track) return
 		tracksCollection.update(id, (draft) => {
-			Object.assign(draft, changes, {updated_at: new Date().toISOString()})
+			Object.assign(draft, changes)
 		})
 	})
-	return tx.commit()
+	await tx.commit()
+	// Derived live queries don't react to transaction updates, so manually trigger
+	const track = tracksCollection.get(id)
+	if (track) tracksCollection.utils.writeUpsert({...track, ...changes})
 }
 
 export function deleteTrack(channel: {id: string; slug: string}, id: string) {
@@ -197,7 +199,7 @@ export function deleteTrack(channel: {id: string; slug: string}, id: string) {
 	return tx.commit()
 }
 
-export function batchUpdateTracksUniform(channel: Channel, ids: string[], changes: Record<string, unknown>) {
+export async function batchUpdateTracksUniform(channel: Channel, ids: string[], changes: Record<string, unknown>) {
 	const tx = getOfflineExecutor().createOfflineTransaction({
 		mutationFnName: 'syncTracks',
 		metadata: {channelId: channel.id, slug: channel.slug},
@@ -208,14 +210,21 @@ export function batchUpdateTracksUniform(channel: Channel, ids: string[], change
 			const track = tracksCollection.get(id)
 			if (!track) continue
 			tracksCollection.update(id, (draft) => {
-				Object.assign(draft, changes, {updated_at: new Date().toISOString()})
+				Object.assign(draft, changes)
 			})
 		}
 	})
-	return tx.commit()
+	await tx.commit()
+	// Derived live queries don't react to transaction updates, so manually trigger
+	tracksCollection.utils.writeBatch(() => {
+		for (const id of ids) {
+			const track = tracksCollection.get(id)
+			if (track) tracksCollection.utils.writeUpsert({...track, ...changes})
+		}
+	})
 }
 
-export function batchUpdateTracksIndividual(
+export async function batchUpdateTracksIndividual(
 	channel: Channel,
 	updates: Array<{id: string; changes: Record<string, unknown>}>
 ) {
@@ -225,16 +234,22 @@ export function batchUpdateTracksIndividual(
 		autoCommit: false
 	})
 	tx.mutate(() => {
-		const now = new Date().toISOString()
 		for (const {id, changes} of updates) {
 			const track = tracksCollection.get(id)
 			if (!track) continue
 			tracksCollection.update(id, (draft) => {
-				Object.assign(draft, changes, {updated_at: now})
+				Object.assign(draft, changes)
 			})
 		}
 	})
-	return tx.commit()
+	await tx.commit()
+	// Derived live queries don't react to transaction updates, so manually trigger
+	tracksCollection.utils.writeBatch(() => {
+		for (const {id, changes} of updates) {
+			const track = tracksCollection.get(id)
+			if (track) tracksCollection.utils.writeUpsert({...track, ...changes})
+		}
+	})
 }
 
 export function batchDeleteTracks(channel: Channel, ids: string[]) {
@@ -301,34 +316,21 @@ export async function ensureTracksLoaded(slug: string): Promise<void> {
 	})
 }
 
-type FetchMetaProgress = {current: number; total: number}
-
 /**
- * Fetch YouTube metadata for tracks and update their durations
+ * Insert duration from trackMetaCollection to tracks that are missing it
  */
-export async function fetchMetaForTracks(
-	channel: Channel,
-	tracks: Track[],
-	onProgress?: (progress: FetchMetaProgress) => void
-): Promise<void> {
-	const trackByYtid = new Map<string, Track>()
-	for (const t of tracks) {
-		const ytid = extractYouTubeId(t.url)
-		if (ytid) trackByYtid.set(ytid, t)
+export async function insertDurationFromMeta(channel: Channel, tracks: Track[]): Promise<number> {
+	const updates: Array<{id: string; changes: {duration: number}}> = []
+	for (const track of tracks) {
+		if (track.duration) continue
+		const ytid = extractYouTubeId(track.url)
+		if (!ytid) continue
+		const meta = trackMetaCollection.get(ytid)
+		if (!meta?.youtube_data?.duration) continue
+		updates.push({id: track.id, changes: {duration: meta.youtube_data.duration}})
 	}
-
-	const ytids = [...trackByYtid.keys()]
-	if (ytids.length === 0) return
-
-	await pullYouTubeMeta(ytids, {
-		onProgress: async ({current, total, videos}) => {
-			onProgress?.({current, total})
-			const updates = videos
-				.filter((v) => v?.duration && trackByYtid.has(v.id))
-				.map((v) => ({id: trackByYtid.get(v.id)!.id, changes: {duration: v.duration}}))
-			if (updates.length) {
-				await batchUpdateTracksIndividual(channel, updates)
-			}
-		}
-	})
+	if (updates.length) {
+		await batchUpdateTracksIndividual(channel, updates)
+	}
+	return updates.length
 }
