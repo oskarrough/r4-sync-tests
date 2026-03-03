@@ -545,29 +545,6 @@ export function play(deckId: number, player?: MediaPlayer | null) {
 	return Promise.resolve()
 }
 
-export function pause(player: MediaPlayer) {
-	if (!player) {
-		log.warn('Media player not ready')
-		return
-	}
-	player.pause()
-	maybeBroadcastNotify()
-}
-
-export function togglePlay(player: MediaPlayer) {
-	if (!player) {
-		log.warn('Media player not ready')
-		return
-	}
-	if (player.paused) {
-		// play() needs deckId but togglePlay gets a player ref directly from component
-		// The component will use its own deckId-scoped play call
-		player.play()
-	} else {
-		pause(player)
-	}
-}
-
 /**
  * @param {number} deckId
  * @param {number} seconds
